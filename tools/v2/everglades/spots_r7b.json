@@ -1,0 +1,101 @@
+{
+ "dome_noon": {
+  "eye": [
+   -2600,
+   30,
+   -1100
+  ],
+  "look": [
+   -2500,
+   0,
+   -1100
+  ],
+  "at": [
+   -2550,
+   -1150
+  ],
+  "tod": 11,
+  "post": "const cy = game.everglades.parts.cypress; const T = game.THREE; let best = null; const ts = cy.treesNear(s.at[0], s.at[1], 900); for (const t of ts) { const d = Math.hypot(t.x - s.at[0], t.z - s.at[1]); if (!best || d < best.d) best = { t, d }; } if (!best) return 'no tree'; const t = best.t, a = s.az || 0.7, D = s.dist || 34;\n const eye = new T.Vector3(t.x + Math.cos(a) * D, t.y + (s.eh || 2), t.z + Math.sin(a) * D), look = new T.Vector3(t.x, t.y + t.H * (s.lh || 0.45), t.z); game.teleport(eye.x, undefined, eye.z, 0);\n game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.lookAt(look); if (cam.fov !== 60) { cam.fov = 60; cam.updateProjectionMatrix(); } return true; }; window.__vegShotCam = [eye.toArray(), look.toArray()]; await new Promise((r) => setTimeout(r, 6000)); return { x: t.x, z: t.z, H: t.H, n: ts.length };",
+  "dist": 40,
+  "eh": 2,
+  "lh": 0.4
+ },
+ "dome_close": {
+  "eye": [
+   -2600,
+   30,
+   -1100
+  ],
+  "look": [
+   -2500,
+   0,
+   -1100
+  ],
+  "at": [
+   -2550,
+   -1150
+  ],
+  "tod": 15,
+  "post": "const cy = game.everglades.parts.cypress; const T = game.THREE; let best = null; const ts = cy.treesNear(s.at[0], s.at[1], 900); for (const t of ts) { const d = Math.hypot(t.x - s.at[0], t.z - s.at[1]); if (!best || d < best.d) best = { t, d }; } if (!best) return 'no tree'; const t = best.t, a = s.az || 0.7, D = s.dist || 34;\n const eye = new T.Vector3(t.x + Math.cos(a) * D, t.y + (s.eh || 2), t.z + Math.sin(a) * D), look = new T.Vector3(t.x, t.y + t.H * (s.lh || 0.45), t.z); game.teleport(eye.x, undefined, eye.z, 0);\n game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.lookAt(look); if (cam.fov !== 60) { cam.fov = 60; cam.updateProjectionMatrix(); } return true; }; window.__vegShotCam = [eye.toArray(), look.toArray()]; await new Promise((r) => setTimeout(r, 6000)); return { x: t.x, z: t.z, H: t.H, n: ts.length };",
+  "dist": 12,
+  "eh": 1.7,
+  "lh": 0.55,
+  "az": 2.2
+ },
+ "slough_aerial": {
+  "eye": [
+   -2150,
+   80,
+   -700
+  ],
+  "look": [
+   -2450,
+   0,
+   -1050
+  ],
+  "tod": 10.5,
+  "fov": 60
+ },
+ "gus_ground_noon": {
+  "eye": [
+   -1656.0,
+   1.7,
+   -908.6
+  ],
+  "look": [
+   -1631.1,
+   1.5,
+   -905.9
+  ],
+  "tod": 12,
+  "fov": 60
+ },
+ "south_aerial_noon": {
+  "eye": [
+   -2554.8,
+   45,
+   -517.8
+  ],
+  "look": [
+   -2594.8,
+   0,
+   -447.8
+  ],
+  "tod": 12.5,
+  "fov": 55
+ },
+ "slough_airboat": {
+  "eye": [
+   -2350,
+   1.4,
+   -1050
+  ],
+  "look": [
+   -2450,
+   2,
+   -1000
+  ],
+  "tod": 9,
+  "fov": 62
+ }
+}

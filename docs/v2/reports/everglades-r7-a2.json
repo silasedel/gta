@@ -1,0 +1,44 @@
+{
+ "set": "a2",
+ "when": "2026-11-19T04:17:02.327Z",
+ "runs": {
+  "A": {
+   "dome_noon": {
+    "avgMs": 54.4,
+    "p95Ms": 92.3,
+    "calls": 402,
+    "tris": 3866383
+   },
+   "dome_close": {
+    "avgMs": 54.27,
+    "p95Ms": 76.5,
+    "calls": 554,
+    "tris": 3527267
+   },
+   "slough_aerial": {
+    "avgMs": 56.08,
+    "p95Ms": 97.1,
+    "calls": 583,
+    "tris": 2708394
+   },
+   "gus_ground_noon": {
+    "avgMs": 119.23,
+    "p95Ms": 391,
+    "calls": 649,
+    "tris": 7934440
+   },
+   "south_aerial_noon": {
+    "avgMs": 58.18,
+    "p95Ms": 136.7,
+    "calls": 358,
+    "tris": 5397481
+   },
+   "slough_airboat": {
+    "avgMs": 50.75,
+    "p95Ms": 110,
+    "calls": 458,
+    "tris": 5951173
+   }
+  }
+ }
+}

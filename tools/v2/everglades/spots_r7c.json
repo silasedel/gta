@@ -1,0 +1,93 @@
+{
+ "gator_bank": {
+  "eye": [
+   -2450,
+   3,
+   -950
+  ],
+  "look": [
+   -2400,
+   0,
+   -950
+  ],
+  "at": [
+   -2450,
+   -950
+  ],
+  "tod": 10.5,
+  "post": "const W = game.everglades.parts.wildlife; const T = game.THREE; let best = null; for (const c of W.cells.values()) for (const g of (s.bird ? c.birds : c.gators)) { if (g.gone || (s.bird ? false : g.inWater !== !!s.wet)) continue; const d = Math.hypot(g.x - s.at[0], g.z - s.at[1]); if (!best || d < best.d) best = { g, d }; } if (!best) return 'none';\n const g = best.g, a = s.az || 0.8, D = s.dist || 7; const eye = new T.Vector3(g.x + Math.cos(a) * D, g.y + (s.eh || 1.6), g.z + Math.sin(a) * D), look = new T.Vector3(g.x, g.y + 0.3, g.z);\n game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.lookAt(look); if (cam.fov !== 50) { cam.fov = 50; cam.updateProjectionMatrix(); } return true; }; window.__vegShotCam = [eye.toArray(), look.toArray()]; return { x: g.x, z: g.z, m: g.m };",
+  "dist": 6,
+  "eh": 1.4,
+  "hidePlayer": true
+ },
+ "gator_wet": {
+  "eye": [
+   -2450,
+   3,
+   -950
+  ],
+  "look": [
+   -2400,
+   0,
+   -950
+  ],
+  "at": [
+   -2450,
+   -950
+  ],
+  "tod": 10.5,
+  "post": "const W = game.everglades.parts.wildlife; const T = game.THREE; let best = null; for (const c of W.cells.values()) for (const g of (s.bird ? c.birds : c.gators)) { if (g.gone || (s.bird ? false : g.inWater !== !!s.wet)) continue; const d = Math.hypot(g.x - s.at[0], g.z - s.at[1]); if (!best || d < best.d) best = { g, d }; } if (!best) return 'none';\n const g = best.g, a = s.az || 0.8, D = s.dist || 7; const eye = new T.Vector3(g.x + Math.cos(a) * D, g.y + (s.eh || 1.6), g.z + Math.sin(a) * D), look = new T.Vector3(g.x, g.y + 0.3, g.z);\n game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.lookAt(look); if (cam.fov !== 50) { cam.fov = 50; cam.updateProjectionMatrix(); } return true; }; window.__vegShotCam = [eye.toArray(), look.toArray()]; return { x: g.x, z: g.z, m: g.m };",
+  "wet": true,
+  "dist": 6,
+  "eh": 1.0
+ },
+ "egret": {
+  "eye": [
+   -2450,
+   3,
+   -950
+  ],
+  "look": [
+   -2400,
+   0,
+   -950
+  ],
+  "at": [
+   -2450,
+   -950
+  ],
+  "tod": 8,
+  "post": "const W = game.everglades.parts.wildlife; const T = game.THREE; let best = null; for (const c of W.cells.values()) for (const g of (s.bird ? c.birds : c.gators)) { if (g.gone || (s.bird ? false : g.inWater !== !!s.wet)) continue; const d = Math.hypot(g.x - s.at[0], g.z - s.at[1]); if (!best || d < best.d) best = { g, d }; } if (!best) return 'none';\n const g = best.g, a = s.az || 0.8, D = s.dist || 7; const eye = new T.Vector3(g.x + Math.cos(a) * D, g.y + (s.eh || 1.6), g.z + Math.sin(a) * D), look = new T.Vector3(g.x, g.y + 0.3, g.z);\n game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.lookAt(look); if (cam.fov !== 50) { cam.fov = 50; cam.updateProjectionMatrix(); } return true; }; window.__vegShotCam = [eye.toArray(), look.toArray()]; return { x: g.x, z: g.z, m: g.m };",
+  "bird": true,
+  "dist": 5,
+  "eh": 1.2
+ },
+ "mist_dawn": {
+  "eye": [
+   -2350,
+   2.0,
+   -1050
+  ],
+  "look": [
+   -2450,
+   2.5,
+   -1000
+  ],
+  "tod": 6.3,
+  "fov": 62
+ },
+ "mist_dawn2": {
+  "eye": [
+   -2150,
+   25,
+   -700
+  ],
+  "look": [
+   -2450,
+   0,
+   -1050
+  ],
+  "tod": 6.5,
+  "fov": 60
+ }
+}

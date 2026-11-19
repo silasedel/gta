@@ -14,20 +14,20 @@ function tex(c, srgb = true, repeat = false) {
 export function mossTexture() {
   const W = 256, H = 512, c = canvas(W, H), g = c.getContext('2d'), r = rng(7);
   g.clearRect(0, 0, W, H);
-  for (let n = 0; n < 230; n++) {
+  for (let n = 0; n < 75; n++) {
     const x0 = 8 + r() * (W - 16), len = H * (0.25 + 0.75 * Math.pow(r(), 0.7)), amp = 3 + r() * 7, f = 0.012 + r() * 0.02, ph = r() * 6.28;
     const v = 150 + r() * 60, gr = v + 6 + r() * 10, b = v - 18 - r() * 16;
     g.strokeStyle = `rgba(${v | 0},${gr | 0},${b | 0},1)`;
     let px = x0, py = 0;
     for (let y = 4; y < len; y += 4) {
-      const t = y / len; g.lineWidth = Math.max(0.6, (1 - t) * (1.4 + r() * 1.6));
+      const t = y / len; g.lineWidth = Math.max(0.5, (1 - t) * (0.9 + r() * 1.1));
       const x = x0 + Math.sin(y * f + ph) * amp * (0.4 + t) + (r() - 0.5) * 1.5;
       g.beginPath(); g.moveTo(px, py); g.lineTo(x, y); g.stroke(); px = x; py = y;
       if (r() < 0.05) { const bx = x + (r() - 0.5) * 18; g.beginPath(); g.moveTo(x, y); g.lineTo(bx, y + 10 + r() * 30); g.stroke(); }
     }
   }
   // a dense band at the top (the clump over the branch)
-  for (let n = 0; n < 900; n++) { const x = r() * W, y = r() * r() * 70, v = 140 + r() * 60; g.fillStyle = `rgba(${v | 0},${(v + 8) | 0},${(v - 22) | 0},1)`; g.fillRect(x, y, 1 + r() * 2.5, 2 + r() * 5); }
+  for (let n = 0; n < 260; n++) { const x = W * (0.15 + r() * 0.7), y = r() * r() * 50, v = 140 + r() * 60; g.fillStyle = `rgba(${v | 0},${(v + 8) | 0},${(v - 22) | 0},1)`; g.fillRect(x, y, 1 + r() * 2.5, 2 + r() * 5); }
   return tex(c);
 }
 
@@ -60,7 +60,7 @@ export function mistTexture() {
   g.clearRect(0, 0, S, S);
   for (let n = 0; n < 26; n++) {
     const x = S / 2 + (r() - 0.5) * S * 0.45, y = S / 2 + (r() - 0.5) * S * 0.3, R = S * (0.15 + r() * 0.22);
-    const gr = g.createRadialGradient(x, y, 0, x, y, R); gr.addColorStop(0, 'rgba(255,255,255,0.16)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    const gr = g.createRadialGradient(x, y, 0, x, y, R); gr.addColorStop(0, 'rgba(255,255,255,0.3)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
     g.fillStyle = gr; g.fillRect(0, 0, S, S);
   }
   const t = tex(c); t.colorSpace = THREE.NoColorSpace; return t;

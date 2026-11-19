@@ -1,0 +1,38 @@
+{
+ "set": "a4",
+ "when": "2026-11-19T04:30:12.052Z",
+ "runs": {
+  "A": {
+   "gator_bank": {
+    "avgMs": 68.2,
+    "p95Ms": 226.2,
+    "calls": 296,
+    "tris": 1533520
+   },
+   "gator_wet": {
+    "avgMs": 46.45,
+    "p95Ms": 116.8,
+    "calls": 326,
+    "tris": 2618066
+   },
+   "egret": {
+    "avgMs": 44.27,
+    "p95Ms": 80.7,
+    "calls": 312,
+    "tris": 1904456
+   },
+   "mist_dawn": {
+    "avgMs": 58.27,
+    "p95Ms": 148.8,
+    "calls": 458,
+    "tris": 5638500
+   },
+   "mist_dawn2": {
+    "avgMs": 55.97,
+    "p95Ms": 171.3,
+    "calls": 553,
+    "tris": 4735974
+   }
+  }
+ }
+}

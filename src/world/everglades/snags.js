@@ -20,7 +20,7 @@ function snagGeo(seed) {
   const limbs = 2 + ((r(4) * 4) | 0);
   for (let k = 0; k < limbs; k++) {
     const y = H * (0.45 + r(10 + k) * 0.45), L = 0.8 + r(20 + k) * 2.6, a = r(30 + k) * 6.28, up = 0.25 + r(40 + k) * 0.7;
-    const c = new THREE.CylinderGeometry(0.03, 0.09, L, 5, 1); c.translate(0, L / 2, 0); c.rotateZ(-(Math.PI / 2 - up)); c.rotateY(a); c.translate(0, y, 0);
+    const c = new THREE.CylinderGeometry(0.05, 0.13, L, 5, 1); c.translate(0, L / 2, 0); c.rotateZ(-(Math.PI / 2 - up)); c.rotateY(a); c.translate(0, y, 0);
     { const uv = c.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i), uv.getY(i) * L / 4 + 0.3); } parts.push(c);
   }
   const g = mergeGeometries(parts.map((p) => p.index ? p.toNonIndexed() : p)); g.computeVertexNormals(); g.userData.H = H; return g;

@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import { lilyTexture } from './textures.js';
 import { hash2, vnoise } from './region.js';
 
-const CH = 64, CELL = 4, R = 420, MAXPADS = 14000;
+const CH = 64, CELL = 4, R = 640, MAXPADS = 14000;
 
 export function createSwampWater(game, G) {
   const SEA = G.SEA, Y = SEA + 0.014;
@@ -33,7 +33,7 @@ export function createSwampWater(game, G) {
         vec2 gp = vGlW.xz + vec2(uGlT * 0.05, uGlT * 0.03);
         float scumN = glF(gp * 0.11), bank = vColor.r;
         float scum = smoothstep(0.6, 0.78, scumN + bank * 0.3 - 0.08) * (0.15 + 0.6 * bank) * 0.85;
-        float speck = step(0.9, glH(floor(gp * 3.1))) * smoothstep(0.45, 0.8, scumN + bank * 0.3) * 0.8;
+        float speck = 0.0;
         vec3 scumC = mix(vec3(0.03, 0.038, 0.012), vec3(0.055, 0.06, 0.018), glN(gp * 0.9));
         diffuseColor.rgb = mix(diffuseColor.rgb, scumC, scum);
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.2, 0.13, 0.06), speck * (1.0 - scum));
@@ -117,7 +117,7 @@ export function createSwampWater(game, G) {
     uT.value += dt; if (nmap) { nmap.offset.x = (uT.value * 0.003) % 1; nmap.offset.y = (uT.value * 0.002) % 1; }
     if (job) {
       const t0 = performance.now();
-      try { while (performance.now() - t0 < 1.5) { const r = job.it.next(); if (r.done) { const v = r.value; chunks.set(job.key, v); if (v) { group.add(v.mesh); stats.verts += v.mesh.geometry.attributes.position.count; padsDirty = true; } job = null; break; } } }
+      try { while (performance.now() - t0 < 2.5) { const r = job.it.next(); if (r.done) { const v = r.value; chunks.set(job.key, v); if (v) { group.add(v.mesh); stats.verts += v.mesh.geometry.attributes.position.count; padsDirty = true; } job = null; scanT = 0; break; } } }
       catch (e) { console.warn('[everglades] water chunk', e); chunks.set(job.key, null); job = null; }
       return;
     }

@@ -15,7 +15,8 @@ export function mistAmount(h) { // 0..1 by hour of day
 export function createMist(game, G) {
   const geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, 0.5, 0);
   { const n = geo.attributes.normal; for (let i = 0; i < n.count; i++) n.setXYZ(i, 0, 1, 0); }
-  const mat = new THREE.MeshLambertMaterial({ name: 'gl7Mist', map: mistTexture(), color: 0xe9ecef, transparent: true, depthWrite: false, opacity: 0, side: THREE.DoubleSide, fog: true });
+  const mat = new THREE.MeshBasicMaterial({ name: 'gl7Mist', map: mistTexture(), color: 0xe9ecef, transparent: true, depthWrite: false, opacity: 0, side: THREE.DoubleSide, fog: true });
+  mat.defines = { NO_WET: '' };
   mat.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vMistK;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>
@@ -41,6 +42,8 @@ export function createMist(game, G) {
   function update(dt, cam, active) {
     const h = (((game.timeOfDay ?? 12) % 24) + 24) % 24, a = active ? mistAmount(h) * (game.weather?.kind === 'rain' ? 0.6 : 1) : 0;
     mat.opacity = a * 0.95; mesh.visible = a > 0.01; stats.amount = +a.toFixed(2);
+    if (mesh.visible) { const env = game.env, sc = env?.sun?.color, df = env?.dayFactor ?? 1; // unlit puffs take the light's color: warm at dawn, gray-blue at night
+      const k = 0.25 + 0.75 * Math.min(1, df * 1.4); if (sc) mat.color.setRGB((0.62 + 0.38 * sc.r) * k, (0.64 + 0.36 * sc.g) * k, (0.68 + 0.32 * sc.b) * k); }
     if (!mesh.visible) { if (cells.size && !active) { cells.clear(); rebuild(); } return; }
     if ((scanT -= dt) > 0) return; scanT = 0.8;
     const ci0 = Math.floor(cam.x / CELL), cj0 = Math.floor(cam.z / CELL), rc = Math.ceil(R / CELL); let d = false;

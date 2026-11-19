@@ -1,0 +1,26 @@
+{
+ "set": "a3",
+ "when": "2026-11-19T04:24:10.160Z",
+ "runs": {
+  "A": {
+   "dome_noon": {
+    "avgMs": 66.94,
+    "p95Ms": 112.7,
+    "calls": 355,
+    "tris": 3900455
+   },
+   "dome_close": {
+    "avgMs": 71.73,
+    "p95Ms": 186.2,
+    "calls": 545,
+    "tris": 3575289
+   },
+   "slough_aerial": {
+    "avgMs": 61.56,
+    "p95Ms": 100.5,
+    "calls": 628,
+    "tris": 2976968
+   }
+  }
+ }
+}

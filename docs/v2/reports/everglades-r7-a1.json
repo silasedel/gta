@@ -1,0 +1,56 @@
+{
+ "set": "a1",
+ "when": "2026-11-19T04:09:34.178Z",
+ "runs": {
+  "A": {
+   "gus_ground_noon": {
+    "avgMs": 110.81,
+    "p95Ms": 355.4,
+    "calls": 658,
+    "tris": 7525958
+   },
+   "gus_dock_dawn": {
+    "avgMs": 78.65,
+    "p95Ms": 293.5,
+    "calls": 603,
+    "tris": 4676700
+   },
+   "west_airboat_noon": {
+    "avgMs": 78.13,
+    "p95Ms": 315,
+    "calls": 363,
+    "tris": 5313721
+   },
+   "south_aerial_noon": {
+    "avgMs": 90.07,
+    "p95Ms": 203.9,
+    "calls": 360,
+    "tris": 5229561
+   },
+   "south_bank_dawn": {
+    "avgMs": 80.77,
+    "p95Ms": 219.1,
+    "calls": 557,
+    "tris": 6118473
+   },
+   "tarp_ground": {
+    "avgMs": 110.13,
+    "p95Ms": 239.8,
+    "calls": 499,
+    "tris": 6029172
+   },
+   "slough_airboat": {
+    "avgMs": 83.89,
+    "p95Ms": 241.4,
+    "calls": 421,
+    "tris": 5936104
+   },
+   "slough_aerial": {
+    "avgMs": 53.81,
+    "p95Ms": 178.1,
+    "calls": 522,
+    "tris": 2556777
+   }
+  }
+ }
+}

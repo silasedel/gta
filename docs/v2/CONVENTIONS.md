@@ -122,6 +122,15 @@ How the world and the systems connect. If something here is wrong, fix the code 
   `game.vegetation.block(x, z, r)` keeps an area free; plants never stand where a static collider sits above the ground.
   `?veglib=0`: procedural plants only (A/B). Shader variation per instance: mirror, twist, bend, crown spread, frond droop, color jitter.
 
+- **Everglades (r7, Nov 18):** `src/world/everglades/` (`everglades.v2.js`, order 160, `game.everglades.stats()`), active
+  within ~500 m of the districts Everglades / Everglades City / Big Cypress: tannin film + duckweed + lily pads on the open
+  water (`water.js`), procedural cypress domes / strands with trunk colliders (`cypress.js`), Spanish moss (`moss.js`), snags
+  and knees (`snags.js`), gators / egrets / herons (`wildlife.js`, the user's Alligator 1-3 in
+  `public/assets/models/everglades/`, `tools/v2/everglades/build_models.sh`), dawn mist (`mist.js`), and the camps
+  (`camps.js`: Gator Gus Airboat Rides with 3 rentable airboats, $25 on boarding via `game.wallet.pay`; stilt fish camps,
+  tarp shack, airboat-only island shack; sites found on the map data near target points in `PLACES`, people by cast id via
+  `game.npc.spawnPosed`). `?gl7=0` off, `?gl7parts=water,moss` subset. Shots: `tools/v2/everglades/shots.mjs`, `check.mjs`.
+
 ## 3. Rendering rules (stage 1)
 - Locked 1080p-class internal resolution; TAA in every preset; no film grain. Any screen-space dither must use the
   per-frame offset `uFrameN` from `src/render/frameNoise.js` (TAA resolves it).
