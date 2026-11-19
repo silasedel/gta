@@ -53,6 +53,16 @@
 | **gate High** (`bench-gate-high`, 05:15, built app) | 5-7 | 40 ms | 108 ms | 142 ms | 206 ms | 1991 (60%) | 194 | 3304 |
 | gate Medium (`bench-gate-medium`, 05:20, built app) | 6-9 | 39 ms | 108 ms | 134 ms | 2856 ms (1 gap outside the frame) | 1886 (59%) | 213 | 3208 |
 
+| **gate High, round 2** (`bench-gate2-high`, 05:45, + empty-pool skip, 10 point lights) | 8-11 | 33 ms | 108 ms | 175 ms | 3313 ms (1 gap) | 1570 (44%) | 208 | 3541 |
+
+Round 2 (05:25-05:45): Rapier `world.step` is 1.6-1.7 ms per step on a quiet machine (target < 3 ms met; putting far
+bodies to sleep by force made AI cars fight it: 33 ms, reverted). Draw submission: about half of the ~400 city prop
+pools are empty each frame and still paid a full draw setup (skipped now: render CPU 14 -> 11.5 ms); 16 -> 10 constant
+point lights (fewer uniform uploads per program switch, shorter per-pixel light loop). GC tail: the top old-space
+allocator while driving is the city geometry staging (`Batch.vert` pushing into JS arrays: ~72 MB/s promoted to old
+space, `src/world/city/geo.js` + direct `b.p.push` / `b.c[i]` users in tilebuild.js, facade.js, nicoHouse/kit.js);
+converting Batch to pooled typed arrays needs those call sites changed together, so it is the next job, not a night edit.
+
 Medium is no faster than High: the frame is CPU-bound (cpu p50 25-43 ms per segment) once High renders at ~1440p
 internal. Zero console errors in both runs.
 
