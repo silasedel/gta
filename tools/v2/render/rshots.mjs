@@ -38,6 +38,14 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     const q = JSON.parse(pole || 'null');
     if (q) { VIEWS.pole1 = { abs: [[q[0] + 4, q[1] + 1.7, q[2] + 3], [q[0], q[1] + 3, q[2]]] }; VIEWS.pole2 = { abs: [[q[0] - 4, q[1] + 2.5, q[2] - 4], [q[0], q[1] + 3, q[2]]] }; VIEWS.pole3 = { abs: [[q[0] + 3, q[1] + 8, q[2] - 6], [q[0], q[1] + 0.5, q[2]]] }; views.push('pole1', 'pole2', 'pole3'); }
   }
+  // --nico: the mock-up views at Nico's dock (r4/17: dock from the water looking at the house; r4/18: from the back deck out)
+  if (o.nico) {
+    const nv = await b.eval(`(() => { const N = game.nicoHouse; if (!N) return 'null'; const A = N.anchors || {}; const dk = A.dock?.pos; if (!dk) return 'null';
+      const c = new game.THREE.Box3().setFromObject(N.house?.group || N.group).getCenter(new game.THREE.Vector3()); const dx = dk.x - c.x, dz = dk.z - c.z, l = Math.hypot(dx, dz) || 1, ux = dx / l, uz = dz / l;
+      return JSON.stringify({ m17: [[dk.x + ux * 16 - uz * 4, 1.6, dk.z + uz * 16 + ux * 4], [c.x, 2.5, c.z]], m18: [[c.x + ux * 9, (dk.y || 0) + 5.6, c.z + uz * 9], [dk.x + ux * 60, 0, dk.z + uz * 60]], m17b: [[dk.x + ux * 8 + uz * 7, 1.2, dk.z + uz * 8 - ux * 7], [dk.x, 0.6, dk.z]] }); })()`);
+    console.log('nico', nv); const NV = JSON.parse(nv || 'null');
+    if (NV) for (const k of Object.keys(NV)) { VIEWS[k] = { abs: NV[k] }; views.push(k); }
+  }
   // --shore: views of the nearest shoreline (march out from the player until city.isWater; camera inland looking at it)
   if (o.shore) {
     const sh = await b.eval(`(() => { const P = game.player.position, W = game.city.isWater; let best = null;

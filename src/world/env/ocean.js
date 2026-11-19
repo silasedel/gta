@@ -31,7 +31,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
     uSbRect: { value: new THREE.Vector4(0, 0, 1, 0) }, // seabed grid (center x, z, half size, on): see-through fades out before its rim
     // render track (Nov 18, user: "the water line at the shore glitches and looks harsh"): the opaque scene's depth, copied
     // right before the water draws (oceanSoftEdge below), gives the TRUE water depth at every pixel near the shore
-    tSceneDepth: { value: null }, uSoft: { value: 0 }, uDepthSize: { value: new THREE.Vector2(1, 1) }, uNearFar: { value: new THREE.Vector2(0.25, 8000) },
+    tSceneDepth: { value: null }, tSceneColor: { value: null }, uProj: { value: new THREE.Matrix4() }, uSSR: { value: 1 }, uSoft: { value: 0 }, uDepthSize: { value: new THREE.Vector2(1, 1) }, uNearFar: { value: new THREE.Vector2(0.25, 8000) },
   }]);
   // share sky uniform objects (by reference) so the ocean always reflects the current sky
   for (const k of ['lightDir', 'lightColor', 'sunDir', 'moonDir', 'uZenith', 'uHorizon', 'uHorizonSun', 'uSunGlow', 'uNight', 'uFogColor']) uniforms[k] = u[k];
@@ -68,6 +68,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
       uniform float uNight;
       uniform sampler2D tHgt; uniform vec4 uHRect; uniform float uSea; uniform vec4 uSbRect;
       uniform sampler2D tSceneDepth; uniform float uSoft; uniform vec2 uDepthSize, uNearFar;
+      uniform sampler2D tSceneColor; uniform mat4 uProj; uniform float uSSR;
       varying vec3 vWorld;
       varying float vViewZ;
       #include <common>
@@ -88,6 +89,27 @@ export function createOcean(game, skyUniforms, normalsTex) {
         art += uNight * vec3( 0.75, 0.82, 1.0 ) * ( pow( md, 900.0 ) * 3.0 + pow( md, 60.0 ) * 0.08 ) * step( 0.0, moonDir.y );
         art += uNight * vec3( 0.035, 0.018, 0.016 ) * exp( -hh * 9.0 ); // city glow (dimmed in reflection)
         return art;
+      }
+      // render track (Nov 18, mock-ups r4/17, r4/18: calm water mirrors the dock, boats and shore): screen-space reflection
+      // against the opaque scene copied before the water draws (depth + color). 18 growing steps in view space, jittered
+      // per pixel (TAA resolves it), faded at the screen border and with distance traveled; misses keep the analytic sky.
+      vec4 ssrTrace( vec3 wp, vec3 rd ) {
+        vec3 q = ( viewMatrix * vec4( wp, 1.0 ) ).xyz, vd = normalize( ( viewMatrix * vec4( rd, 0.0 ) ).xyz );
+        float stepL = 0.35 + 0.015 * -q.z;
+        q += vd * stepL * fract( sin( dot( gl_FragCoord.xy, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
+        for ( int i = 0; i < 18; i ++ ) {
+          q += vd * stepL; stepL *= 1.22;
+          vec4 cp = uProj * vec4( q, 1.0 ); if ( cp.w <= 0.0 ) break;
+          vec2 uv = cp.xy / cp.w * 0.5 + 0.5;
+          if ( uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0 ) break;
+          float sd = texture2D( tSceneDepth, uv ).x; if ( sd >= 0.999999 ) continue;
+          float dz = -q.z + perspectiveDepthToViewZ( sd, uNearFar.x, uNearFar.y );
+          if ( dz > 0.0 && dz < stepL * 1.6 + 0.25 ) {
+            vec2 e = smoothstep( 0.0, 0.07, uv ) * smoothstep( 0.0, 0.07, 1.0 - uv );
+            return vec4( texture2D( tSceneColor, uv ).rgb, e.x * e.y * ( 1.0 - float( i ) / 26.0 ) );
+          }
+        }
+        return vec4( 0.0 );
       }
       vec3 nrm( vec2 uv ) { return texture2D( tNormal, uv ).xyz * 2.0 - 1.0; }
       float oH( vec2 q ) { return fract( sin( dot( q, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ); }
@@ -147,6 +169,9 @@ export function createOcean(game, skyUniforms, normalsTex) {
         vec3 R = reflect( -V, N );
         R.y = abs( R.y ) + 0.01;
         vec3 refl = skyColor( normalize( R ) ) * ( 1.0 - 0.22 * lowSun );
+      #if PASS == 1
+        if ( uSoft > 0.5 && uSSR > 0.5 && dist < 600.0 ) { vec4 sr = ssrTrace( vWorld, normalize( R ) ); refl = mix( refl, sr.rgb, sr.a * 0.92 ); }
+      #endif
 
         vec3 L = normalize( lightDir );
         float sunUp = smoothstep( -0.05, 0.05, L.y );
@@ -157,7 +182,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
         vec3 amb = mix( uAmbient, vec3( dot( uAmbient, vec3( 0.3333 ) ) ), 0.5 );
         vec3 Ein = amb + uSunCol * max( L.y, 0.0 ) * sunUp; // light reaching into the water
         float wob = ( ( oN( p * 0.9 + vec2( t * 0.35, -t * 0.2 ) ) - 0.5 ) * 0.03 + 0.012 * sin( t * 0.8 + p.x * 0.07 + p.y * 0.05 ) ) * hK; // the edge breathes a few cm
-        float dE = wD + wob;
+        float dE = wD + wob, dP = max( dE, 0.0 );
         // render track: true depth from the scene depth buffer (vertical, m). Near the shore it replaces the blurred, 1.5 s
         // stepped height-cascade estimate, so the edge sits exactly where the ground meets the water, fades to nothing there
         // (no hard cut line, no shimmer of the intersection under TAA jitter) and never jumps when the cascade recenters.
@@ -171,7 +196,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
           dE = softD < 1.6 ? mix( softD, dE, smoothstep( 0.35, 1.6, softD ) ) : dE;
         }
         float kEdge = uSoft > 0.5 ? smoothstep( 0.0, 0.015, softD ) : 1.0;
-        float dP = max( dE, 0.0 );
+        dP = max( dE, 0.0 );
         float cv = sqrt( max( 1.0 - ( 1.0 - NdV * NdV ) / 1.769, 0.0 ) ), cs = sqrt( max( 1.0 - ( 1.0 - L.y * L.y ) / 1.769, 0.0 ) );
         float Lp = dP / max( cv, 0.25 ) + dP / max( cs, 0.35 );
         vec3 Tr = exp( -vec3( 0.42, 0.072, 0.034 ) * Lp );
@@ -247,7 +272,8 @@ export function createOcean(game, skyUniforms, normalsTex) {
   // Only for the main scene target (it carries a depthTexture); env cubes, probes and tools render without it (uSoft 0).
   // One depth blit per frame (multisampled targets resolve their depth in the blit). ?softshore=0 = old edge.
   const SOFT = !(typeof location !== 'undefined' && /[?&]softshore=0\b/.test(location.search));
-  const dRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.UnsignedByteType, depthBuffer: true, samples: 0 });
+  const SSR = typeof location !== 'undefined' && /[?&]waterssr=1\b/.test(location.search); // screen-space reflections on the water: OFF by default until its GPU cost is measured on a quiet machine (?waterssr=1 or game.waterSSR)
+  const dRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: true, samples: 0, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false });
   dRT.depthTexture = new THREE.DepthTexture(4, 4, THREE.UnsignedIntType); dRT.depthTexture.format = THREE.DepthFormat;
   dRT.depthTexture.minFilter = dRT.depthTexture.magFilter = THREE.NearestFilter;
   const softStats = { blits: 0, skipped: 0, fail: false }; let softFail = false, softChecks = 3; // getError syncs with the GPU process: checked on the first blits only
@@ -265,13 +291,14 @@ export function createOcean(game, skyUniforms, normalsTex) {
       if (softChecks > 0) for (let k = 0; k < 16 && gl.getError() !== gl.NO_ERROR; k++); // clear older, unrelated errors
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, src);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, props.__webglFramebuffer);
-      gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
+      gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, gl.DEPTH_BUFFER_BIT | ((SSR || game.waterSSR === true) && game.waterSSR !== false && rt.texture?.type === THREE.HalfFloatType ? gl.COLOR_BUFFER_BIT : 0), gl.NEAREST);
       gl.bindFramebuffer(gl.FRAMEBUFFER, src);
       if (softChecks > 0) { softChecks--; const e = gl.getError(); if (e !== gl.NO_ERROR) {
         let info = '';
         try { gl.bindFramebuffer(gl.READ_FRAMEBUFFER, src); const a = gl.getFramebufferAttachmentParameter(gl.READ_FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE), st = gl.getFramebufferAttachmentParameter(gl.READ_FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE), ty = gl.getFramebufferAttachmentParameter(gl.READ_FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE); info = 'src depth ' + a + ' stencil ' + st + ' type ' + ty + ' samples ' + rt.samples; gl.bindFramebuffer(gl.FRAMEBUFFER, src); } catch (e2) { /* */ }
         softFail = softStats.fail = true; softStats.err = e + ' ' + info; console.warn('[ocean] soft shore off (depth blit failed)', softStats.err); return; } }
       uniforms.tSceneDepth.value = dRT.depthTexture; uniforms.uDepthSize.value.set(w, h); uniforms.uNearFar.value.set(cam.near, cam.far);
+      uniforms.tSceneColor.value = dRT.texture; uniforms.uProj.value.copy(cam.projectionMatrix); uniforms.uSSR.value = (SSR || game.waterSSR === true) && game.waterSSR !== false && rt.texture?.type === THREE.HalfFloatType ? 1 : 0;
       uniforms.uSoft.value = 1; softStats.blits++;
     } catch (e) { softFail = true; console.warn('[ocean] soft shore off', e); }
   };
