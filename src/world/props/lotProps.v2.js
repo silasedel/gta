@@ -90,6 +90,12 @@ function create(game) {
   function place(owner, name, x, y, z, ry, seed, opts = {}) {
     const parts = kit.parts[name]; if (!parts) return null;
     [x, z] = offRoad(x, z, name.startsWith('mailbox') ? 0.15 : 0.32);
+    // r8 (user: mailbox through the stairs, carts boxing in a car, a van on a utility pole): never inside a registered solid
+    // (house walls / deck / stairs / piles, poles, palms, other props, parked cars): nudge up to 3 m along the curb, else skip
+    if (!opts.force) { const rad = name.startsWith('mailbox') ? 0.25 : 0.33, own = 'lot:' + owner, ux = Math.cos(ry), uz = -Math.sin(ry);
+      const fr = occupancy.free(x, z, rad, { y: Number.isFinite(y) ? y : 0, h: 1.2, gap: 0.12, owner: own, sameOwnerOk: true, dir: [ux, uz] }, 3, (px, pz) => !carAt(px, pz, rad) && offRoad(px, pz, rad)[0] === px)
+        || occupancy.free(x, z, rad, { y: Number.isFinite(y) ? y : 0, h: 1.2, gap: 0.12, owner: own, sameOwnerOk: true }, 2.5, (px, pz) => !carAt(px, pz, rad) && offRoad(px, pz, rad)[0] === px);
+      if (!fr) { stats.skipped = (stats.skipped || 0) + 1; return null; } [x, z] = fr; }
     y = groundAt(x, y, z); // r2-physics: stand on the real ground at its own spot (Keys beach / rural lots were buried 0.15-0.6 m at a flat y)
     const s = opts.s ?? 1 + (hash(seed * 3.1) - 0.5) * 0.12, rx = opts.lean ? (hash(seed * 5.3) - 0.5) * opts.lean : 0, rz = opts.lean ? (hash(seed * 7.7) - 0.5) * opts.lean : 0;
     _e.set(rx, ry, rz, 'XYZ'); _q.setFromEuler(_e); _m.compose(_p.set(x, y, z), _q, _s.setScalar(s));
@@ -107,8 +113,19 @@ function create(game) {
     try { occupancy.add({ x, z, r: name.startsWith('mailbox') ? 0.25 : 0.33, y, h: 1.2, kind: name.startsWith('mailbox') ? 'mailbox' : 'bin', src: 'lotProps.v2.js', owner: 'lot:' + owner }); } catch (e) { /* */ }
     return it;
   }
+  // parked cars right there (their bodies; cars are not in the occupancy index because they move)
+  function carAt(x, z, rad) { for (const v of game.vehicles?.list || []) { try { if (v.ai && !v.parked) continue; const t = v.body.translation(); if ((t.x - x) ** 2 + (t.z - z) ** 2 < (2.6 + rad) ** 2) return true; } catch (e) { /* */ } } return false; }
+  const lists = new Map();
+  // a solid registered after an owner's props were placed (houses register after the spawn street's dressing): place again
+  function revalidate(x, z, R) {
+    const redo = [];
+    for (const [owner, its] of owners) { if (!its.some((it) => (it.x - x) ** 2 + (it.z - z) ** 2 < R * R)) continue;
+      if (its.some((it) => occupancy.blocked(it.x, it.z, it.kindTag === 'mailbox' ? 0.2 : 0.28, { y: it.y, h: 1.2, owner: 'lot:' + owner, sameOwnerOk: true }))) redo.push(owner); }
+    for (const owner of redo) { const l = lists.get(owner); if (l) { add(owner, l); stats.revalidated = (stats.revalidated || 0) + 1; } }
+  }
   function add(owner, list) {
     if (owners.has(owner)) remove(owner);
+    lists.set(owner, list);
     const out = []; owners.set(owner, out); stats.owners++;
     // collection day per street side (owner + rough position): the carts are out at the curb, else beside the house
     for (const L of list) {
@@ -149,12 +166,12 @@ function create(game) {
     return out.length;
   }
   function remove(owner) {
-    const out = owners.get(owner); if (!out) return;
+    const out = owners.get(owner); lists.delete(owner); if (!out) return;
     dynProps.removeOwner('lot:' + owner); try { occupancy.removeOwner('lot:' + owner); } catch (e) { /* */ }
     for (const it of out) { for (const P of pools.values()) { const i = P.items.indexOf(it); if (i >= 0) { P.items.splice(i, 1); P.dirty = true; } } if (it.fixed) { try { game.world.removeRigidBody(it.fixed); } catch (e) { /* */ } } stats.items--; if (it.kindTag === 'mailbox') stats.mailboxes--; else if (it.kindTag === 'carts') stats.carts--; }
     owners.delete(owner); stats.owners--; flush();
   }
-  return { add, remove, stats, root, pools, owners };
+  return { add, remove, revalidate, stats, root, pools, owners };
 }
 
 let inst = null; const queue = [];
@@ -165,6 +182,7 @@ function get() {
 export const lotProps = {
   get enabled() { return !OFF; },
   add(owner, list) { const p = get(); if (p) return p.add(owner, list); if (!OFF) { queue.push([owner, list]); setTimeout(get, 500); } return 0; },
+  revalidate(x, z, R = 25) { if (inst) inst.revalidate(x, z, R); },
   remove(owner) { if (inst) inst.remove(owner); else { const i = queue.findIndex((q) => q[0] === owner); if (i >= 0) queue.splice(i, 1); } },
   get stats() { return inst ? inst.stats : null; },
 };

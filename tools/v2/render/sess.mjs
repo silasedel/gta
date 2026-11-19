@@ -24,7 +24,23 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     await b.sleep(100);
     const code = fs.readFileSync(f, 'utf8'); const first = code.split('\n')[0];
     if (first.startsWith('//quit')) break;
+    if (first.startsWith('//reload')) { b.errors.length = 0; await b.goto('http://127.0.0.1:5200/?mute' + (first.slice(8).trim() || o.q || '')); await b.waitFor(GAME_READY, 480); await startGame(b);
+      fs.writeFileSync(path.join(DIR, `r${n}.json`), '"reloaded"'); fs.writeFileSync(path.join(DIR, 'errors.txt'), [...new Set(b.errors)].join('\n')); n++; continue; }
     if (first.startsWith('//heap start')) { await b.send('HeapProfiler.enable'); await b.send('HeapProfiler.startSampling', { samplingInterval: 262144, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true }); fs.writeFileSync(path.join(DIR, `r${n}.json`), '"started"'); n++; continue; }
+    // perf track: "//prof start" / "//prof stop" = CPU profile (self ms by function, and the game-code caller of the hottest frames)
+    if (first.startsWith('//prof start')) { await b.send('Profiler.enable'); await b.send('Profiler.setSamplingInterval', { interval: 200 }); await b.send('Profiler.start'); fs.writeFileSync(path.join(DIR, `r${n}.json`), '"started"'); n++; continue; }
+    if (first.startsWith('//prof stop')) {
+      const p = (await b.send('Profiler.stop')).result?.profile; const byId = new Map(); const self = new Map(); const tot = new Map();
+      const nm = (cf) => `${cf.functionName || '(anon)'} ${String(cf.url).split('/').slice(-2).join('/').replace(/\?.*$/, '')}:${cf.lineNumber + 1}`;
+      for (const nd of p.nodes) byId.set(nd.id, nd);
+      const parent = new Map(); for (const nd of p.nodes) for (const c of nd.children || []) parent.set(c, nd.id);
+      const dts = p.timeDeltas; const cnt = new Map(); for (let i = 0; i < p.samples.length; i++) cnt.set(p.samples[i], (cnt.get(p.samples[i]) || 0) + (dts[i] || 0));
+      let all = 0;
+      for (const [id, us] of cnt) { all += us; const nd = byId.get(id); const k = nm(nd.callFrame); self.set(k, (self.get(k) || 0) + us);
+        const seen = new Set(); let cur = id; while (cur !== undefined) { const kk = nm(byId.get(cur).callFrame); if (!seen.has(kk)) { seen.add(kk); tot.set(kk, (tot.get(kk) || 0) + us); } cur = parent.get(cur); } }
+      const secs = all / 1e6; const f = (m) => [...m].sort((x, y) => y[1] - x[1]).slice(0, 60).map(([k, v]) => [k, +(v / 1000 / secs).toFixed(2)]);
+      fs.writeFileSync(path.join(DIR, `r${n}.json`), JSON.stringify({ secs: +secs.toFixed(1), unit: 'ms per second', self: f(self), total: f(tot) }, null, 1)); n++; continue;
+    }
     if (first.startsWith('//heap stop')) {
       const r = (await b.send('HeapProfiler.stopSampling')).result?.profile; const agg = new Map(), via = new Map(); let tot = 0;
       const nm = (cf) => `${cf.functionName || '(anon)'} ${String(cf.url).split('/').slice(-2).join('/').replace(/\?.*$/, '')}:${cf.lineNumber}`;

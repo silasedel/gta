@@ -310,7 +310,7 @@ export function createTileBuilder(ctx) {
   }
   const TREE_LIB = { oak: [['liveoak_b', 'liveoak_c', 'oak_gnarled', 'oak_pale_b'], 1], tree: [['liveoak_b', 'liveoak_c', 'shade_tree'], 1], gumbo: [['shade_tree', 'oak_pale_b', 'oak_pale_a'], 1.05], banyan: [['banyan', 'banyan_b'], 1],
     pine: [['pine_a', 'pine_b', 'pine_c'], 1], cypress: [['cypress_a', 'cypress_b'], 0.9], mangrove: [['mangrove'], 1.0], seagrape: [['rubber_fig'], 0.7], citrus: [['oak_pale_a'], 0.45], poinciana: [['poinciana_hd1', 'poinciana_hd2', 'poinciana_hd3'], 0.62] };
-  const BUSH_LIB = { blob: ['bush_round', 'green_shrub', 'fern_clump', 'tropical_bed', 'bush_round', 'hibiscus'], flower: ['bougainvillea', 'bougainvillea_b', 'hibiscus', 'flower_bush_a', 'flower_bush_b', 'oleander'] };
+  const BUSH_LIB = { blob: ['tropical_leaf', 'green_shrub', 'fern_clump', 'tropical_bed', 'tropical_leaf', 'hibiscus_shrub'], flower: ['bougainvillea_hd', 'hibiscus_shrub', 'hibiscus_hd', 'oleander', 'bougainvillea_hd', 'oleander'] }; // r8: no card-blob shrubs (Shrub 1 / 6, Flower Bush 1)
   // street shrubs (vegetation track): real shrub variants (woody skeleton, leaf clusters, flowers, litter) split over bush / flower-bed props
   const vegBush = { blob: [], flower: [] };
   try {

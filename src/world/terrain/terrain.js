@@ -57,7 +57,12 @@ export async function createTerrain(renderer, data, opts = {}) {
   const N = LAYERS.length;
   const real = (x, z) => (data.inRealMiami ? data.inRealMiami(x, z) : false);
   const lowAt = data.terrainHeightAt && data.terrainHeightAt.lowAt ? data.terrainHeightAt.lowAt : null; // micro-relief drainage lows (relief.js)
-  let _claims = null; const claimAt = (x, z) => { if (!_claims) _claims = groundClaims(data.setpieces || []); return !!_claims.at(x, z, 6); };
+  // r8 (user: "sand meets grass in a hard straight line"): the shell apron around a set-piece yard ends in a wandering, patchy
+  // edge (1-10 m out, two noise scales), never along the claim rectangle's straight side
+  let _claims = null; const claimAt = (x, z) => { if (!_claims) _claims = groundClaims(data.setpieces || []);
+    if (!_claims.at(x, z, 10)) return false; if (_claims.at(x + 4, z, 0) && _claims.at(x - 4, z, 0) && _claims.at(x, z + 4, 0) && _claims.at(x, z - 4, 0)) return true; // deep inside: always
+    const jx = (vnoise(x * 0.09 + 3.1, z * 0.09) - 0.5) * 7, jz = (vnoise(x * 0.09, z * 0.09 - 5.7) - 0.5) * 7, pad = 0.5 + 6 * vnoise(x * 0.035 - 1.3, z * 0.035 + 2.2) * (0.6 + 0.4 * vnoise(x * 0.21, z * 0.21));
+    return !!_claims.at(x + jx, z + jz, pad); };
   // the Keys: data-driven (layout places whose kind or name says key), cached on a 64 m grid; no hard-coded coordinates
   const keyPlaces = (data.places || []).filter((p) => /key/i.test(p.kind || '') || /\bkeys?\b/i.test(p.name || '')).map((p) => [p.x, p.z, Math.max(400, p.r || 800)]);
   const keyCache = new Map();
@@ -227,7 +232,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
       for (let i = -1; i <= nx + 1; i++) { const x = x0 + i * cell, z = z0 + j * cell, k = (j + 1) * W + i + 1;
         const w = data.isWater ? data.isWater(x, z) : false; Wt[k] = w ? 1 : 0; H[k] = heightAt(x, z, !!o.lod);
         if (i >= 0 && j >= 0 && i <= nx && j <= nz) { Rl[k] = real(x, z) ? 1 : 0; Lr[k] = w ? LI.marsh : layerAt(x + (vnoise(x * 0.031 + 7.7, z * 0.031) - 0.5) * 11, z + (vnoise(x * 0.031, z * 0.031 - 3.3) - 0.5) * 11); // ground pass: land-cover borders wander (no ruled straight class edges from the cover polygons)
-          if (Sd) { const sd = w ? 0 : shoreDist(x, z); Sd[k] = sd; if (Lr[k] === LI.sand && sd > (isKeys(x, z) ? 12 : 30)) Lr[k] = YARD; }
+          if (Sd) { const sd = w ? 0 : shoreDist(x, z); Sd[k] = sd; if (Lr[k] === LI.sand && sd > (isKeys(x, z) ? 8 : 24) + 14 * vnoise(x * 0.045 + 7.3, z * 0.045 - 2.9)) Lr[k] = YARD; } // r8: beach -> yard sand along a wandering line, not a contour parallel to the shore
           if (!w && claimAt(x, z)) Lr[k] = LI.shell; } } // r2-ground: around set-piece yards (Nico's lot) the terrain is the same pale crushed shell as the yard sheet, so its sunk edge has no seam
       if ((j & 7) === 7) yield;
     }

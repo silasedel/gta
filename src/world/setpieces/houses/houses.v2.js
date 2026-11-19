@@ -12,6 +12,7 @@ import { planHouse, buildHouse, buildHouseGen } from './generator.js';
 import { lots } from './lots.js';
 import { lotProps } from '../../props/lotProps.v2.js';
 import { occupancy } from '../../ground/occupancy.js';
+import { surfaceMask } from '../../ground/surfaceMask.js';
 // clipping sweep: yard palms / trees never inside a map building footprint or through a pole / another trunk (shared index)
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search);
 const TALLV = { coconut: [0.3, 9, 2.6], sabal: [0.3, 8, 2.4], royal: [0.35, 12, 2.6], liveoak: [0.35, 9, 3.2], gumbo: [0.35, 8, 3], seagrape: [0.25, 4, 2] };
@@ -25,6 +26,11 @@ export async function initV2(game) {
   game.lots = lots;
   if (!lots.enabled) return;
   const hk = createHouseKit(THREE, { shareTex: game.nicoHouse?.house?.kit?.tex });
+  // crushed-shell drives go into the terrain's drive mask (ragged blended edge) instead of a hard-edged slab
+  let GM = null; try { GM = surfaceMask(); } catch (e) { GM = null; } hk.groundDrive = !!(GM && !GM.off && GM.addDrive);
+  const drivesDone = new Set();
+  function lotDrive(L, dv) { if (!dv || !GM || drivesDone.has(L.lotKey)) return; const c = Math.cos(L.ry), s = Math.sin(L.ry);
+    if (GM.addDrive(L.x + c * dv.x + s * dv.z, L.z - s * dv.x + c * dv.z, L.ry, dv.w, dv.len)) drivesDone.add(L.lotKey); }
   const root = new THREE.Group(); root.name = 'houses'; scene.add(root);
   game.shaderWarmWrap?.(root);   // perf: new LOD groups wait (hidden) for a not-yet-linked shader instead of stalling a frame
   const hm = hk.mat, noCast = new Set([hm.concrete(), hm.metalPaint(), hm.plastic(), hm.houseWindow(), hm.digits(), hm.chainlink(), hm.screen(), hm.poolWater()]);
@@ -80,7 +86,7 @@ export async function initV2(game) {
     for (const [m, k] of res.batch.b) { if (!k.n) continue;
       const q = { n: k.n, pos: new Float32Array(k.pos), nor: new Float32Array(k.nor), uv: new Float32Array(k.uv), col: new Float32Array(k.col), wear: new Float32Array(k.wear), idx: k.n > 65535 ? new Uint32Array(k.idx) : new Uint16Array(k.idx) };
       bytes += k.n * 48 + q.idx.byteLength; b.set(m, q); }
-    return { batch: { b }, colliders: res.colliders, lamps: res.lamps, plants: res.plants || [], cars: res.cars || [], curb: res.curb || [], bytes };
+    return { batch: { b }, colliders: res.colliders, lamps: res.lamps, plants: res.plants || [], cars: res.cars || [], curb: res.curb || [], drive: res.drive || null, bytes };
   }
   function cacheGet(key) { const e = cache.get(key); if (e) { cache.delete(key); cache.set(key, e); stats.cacheHits = (stats.cacheHits || 0) + 1; } return e; }
   function cachePut(key, e) {
@@ -91,11 +97,33 @@ export async function initV2(game) {
   }
   const ckey = (L, lod) => L.lotKey + '|' + lod;
   function buildCached(L, lod) { const k = ckey(L, lod); let e = cacheGet(k); if (!e) { e = pack(buildHouse(hk, L.sp, lod)); cachePut(k, e); stats.builds = (stats.builds || 0) + 1; } return e; }
+  // r8 (user: mailbox through the stairs, cars boxed in, van on a pole): every house's solid parts (walls, deck, stairs, posts,
+  // piles) go into the shared occupancy index, so lot props, parked cars and any later placer (game.placement.spotOk) keep out
+  function lotOccupancy(L, cols, owner) {
+    if (!cols || CLIP_OFF) return; const c0 = Math.cos(L.ry), s0 = Math.sin(L.ry);
+    for (const q of cols) { try {
+      const lx = q.p[0], lz = q.p[2], wx = L.x + c0 * lx + s0 * lz, wz = L.z - s0 * lx + c0 * lz;
+      if (q.shape === 'cyl') { occupancy.add({ x: wx, z: wz, r: q.r, y: L.y + q.p[1] - q.hh, h: q.hh * 2, kind: 'house', src: 'houses.v2.js:pile', owner, audit: false }); continue; }
+      const rx = q.rx || 0, ca = Math.abs(Math.cos(rx)), sa = Math.abs(Math.sin(rx)), hx = q.h[0], hz = q.h[2] * ca + q.h[1] * sa, hy = q.h[1] * ca + q.h[2] * sa;
+      const rr = Math.max(0.08, Math.min(hx, hz, 1.2)), a = L.ry + (q.ry || 0), ca2 = Math.cos(a), sa2 = Math.sin(a);
+      const nu = Math.max(1, Math.ceil((2 * hx - 2 * rr) / (rr * 1.5)) + 1), nv = Math.max(1, Math.ceil((2 * hz - 2 * rr) / (rr * 1.5)) + 1);
+      for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) {
+        const u = nu > 1 ? -hx + rr + (2 * hx - 2 * rr) * i / (nu - 1) : 0, v = nv > 1 ? -hz + rr + (2 * hz - 2 * rr) * j / (nv - 1) : 0;
+        occupancy.add({ x: wx + ca2 * u + sa2 * v, z: wz - sa2 * u + ca2 * v, r: rr, y: L.y + q.p[1] - hy, h: hy * 2, kind: q.ramp ? 'stairs' : 'house', src: 'houses.v2.js:lot', owner, audit: false });
+      } } catch (e) { /* skip a bad descriptor */ } }
+  }
+  // r8: a deck stair comes down on the side away from the driveway, unless its foot would land on a road or in water there
+  function stairSide(L) {
+    const sp = L.sp; if (!sp.stilt || sp.porch?.kind !== 'deck' || sp.stairSide !== undefined) return;
+    const PL = game.placement, c = Math.cos(L.ry), s = Math.sin(L.ry), n = Math.ceil(sp.base / 0.19), zf = sp.d / 2 + sp.porch.d + 0.27 * n + 0.6;
+    const bad = (side) => { const lx = side * (sp.w / 2 - 0.65); for (const dz of [0, -1.5]) for (const dx of [-0.7, 0.7]) { const x = L.x + c * (lx + dx) + s * (zf + dz), z = L.z - s * (lx + dx) + c * (zf + dz); if (PL?.onRoad?.(x, z, 0.3) || PL?.inWater?.(x, z) || /asphalt|concrete|parking|water/.test(String(D?.surfaceAt?.(x, z) || ''))) return true; } return false; }; // surfaceAt also sees cul-de-sac bulbs / aprons
+    const pref = sp.drvU > 0 ? -1 : 1; sp.stairSide = !bad(pref) ? pref : !bad(-pref) ? -pref : pref;
+  }
   function* mergeClusterGen(cl, lod) {
     const entries = [];
     for (const L of cl.lots) {
       if (!okLot(L)) { L.bad = true; continue; }
-      const res = buildCached(L, lod);
+      stairSide(L); const res = buildCached(L, lod); lotDrive(L, res.drive); if (lod === 1) { lotOccupancy(L, res.colliders, 'houses:' + cl.key); try { lotProps.revalidate?.(L.x, L.z, 22); } catch (e) { /* */ } }
       if (lod === 1) { const c = Math.cos(L.ry), s = Math.sin(L.ry); L.colliders = res.colliders; for (const p of res.plants) (cl.plants[p.kind] ||= []).push({ x: L.x + c * p.x + s * p.z, y: L.y, z: L.z - s * p.x + c * p.z, ry: (p.x * 7 + p.z * 3) % 6.28, s: p.s });
         if (res.curb && res.curb.length) { const W = (q) => ({ x: L.x + c * q.x + s * q.z, y: L.y, z: L.z - s * q.x + c * q.z, ry: L.ry }); // props pass: library mailbox + carts (src/world/props/lotProps.v2.js)
           lotProps.add('house:' + L.lotKey, res.curb.map((q) => ({ kind: q.kind, ...W(q), seed: (L.sp.seed || 1) + q.x * 13, side: q.side ? W(q.side) : undefined }))); } }
@@ -148,7 +176,7 @@ export async function initV2(game) {
   function startNear(L) {
     nearBusy = L;
     jobs.unshift(nearJob = (function* () {
-      const k = ckey(L, 0); let val = cacheGet(k);
+      stairSide(L); const k = ckey(L, 0); let val = cacheGet(k);
       if (!val) {
         const g = buildHouseGen(hk, L.sp, 0); let r = g.next(), work = 0, t1 = performance.now();
         while (!r.done) { work += performance.now() - t1; yield; t1 = performance.now(); r = g.next(); }
@@ -164,7 +192,10 @@ export async function initV2(game) {
       // parked car on the driveway: a real (parked, locked) traffic vehicle while the lot is at full detail
       if (r.value.cars.length && game.vehicles?.spawn && !L.car) { const cr = r.value.cars[0], c = Math.cos(L.ry), s = Math.sin(L.ry);
         const T = ['sedan', 'compact', 'suv', 'pickup', 'van', 'sedan', 'suv'][(L.sp.seed >>> 3) % 7];
-        try { L.car = game.vehicles.spawn(T, new THREE.Vector3(L.x + c * cr.x + s * cr.z, L.y + 0.6, L.z - s * cr.x + c * cr.z), L.ry + cr.ry, { snap: false }); } catch (e) { L.car = null; } }
+        let px = L.x + c * cr.x + s * cr.z, pz = L.z - s * cr.x + c * cr.z; const PL = game.placement;
+        // r8: the drive must be clear (no pole, stairs, bins, shrubs); else nudge along the drive, else no car
+        const q = PL?.clearSpot ? PL.clearSpot(px, pz, L.ry + cr.ry, 4.9, 2.0, 2.5, { y: L.y }) : [px, pz];
+        if (q) { [px, pz] = q; try { L.car = game.vehicles.spawn(T, new THREE.Vector3(px, L.y + 0.6, pz), L.ry + cr.ry, { snap: false }); } catch (e) { L.car = null; } } }
     })());
   }
   function dropNear(L) {

@@ -206,11 +206,11 @@ export function* buildHouseGen(hk, sp, lod = 0) {
   if (sp.carport) carport();
   extras();
   yield;
-  const plants = [], cars = [], curb = []; // curb: library mailbox / carts spots (house-local) for src/world/props/lotProps.v2.js
+  const plants = [], cars = [], curb = []; let drive = null; // curb: library mailbox / carts spots (house-local) for src/world/props/lotProps.v2.js
   if (sp.yard) yard();
   if (lod < 2) livedIn();
 
-  return { batch: B, colliders: cols, lamps, plants, cars, curb, spec: sp };
+  return { batch: B, colliders: cols, lamps, plants, cars, curb, drive, spec: sp };
 
   // =================================================================== helpers
   function wp(Wl, u, y, o) { const [x, z] = Wl.p(u, o); return [x, y, z]; }
@@ -529,13 +529,19 @@ export function* buildHouseGen(hk, sp, lod = 0) {
       if (L0) for (let x = x0 + 0.07; x < x1; x += 0.146) box(WOOD, 0.14, 0.038, pd - 0.02, x, y - 0.019, (zA + zB) / 2, { color: vary(0xa49c90, 0.07), wear: 0.4, grain: 2 });
       else box(WOOD, w, 0.04, pd, 0, y - 0.02, (zA + zB) / 2, { color: 0xa49c90, wear: 0.4 });
       col(0, y - 0.15, (zA + zB) / 2, w, 0.3, pd);
-      const stairX = sp.drvU > 0 ? x1 - 0.65 : x0 + 0.65;
+      // r8 (user bug: mailbox through the stairs, car under them): the stair comes down on the side AWAY from the driveway
+      const stairX = (sp.stairSide ?? (sp.drvU > 0 ? -1 : 1)) < 0 ? x0 + 0.65 : x1 - 0.65;   // sp.stairSide: set by the world when one side's foot would land on a road / water
       railing([[x0, zB - 0.05], [x1, zB - 0.05]], y, [[stairX - 0.6, stairX + 0.6]]);
       railing([[x0 + 0.05, zA], [x0 + 0.05, zB]], y, []); railing([[x1 - 0.05, zA], [x1 - 0.05, zB]], y, []);
       // stair: straight run down toward the street at the deck edge
       const n = Math.ceil(y / 0.19), rise = y / n, run = 0.27, sz = zB;
       for (let i = 0; i < n - 1; i++) { const yy = y - rise * (i + 1), zz = sz + run * (i + 0.5); if (L1) box(WOOD, 1.1, 0.04, run + 0.02, stairX, yy, zz, { color: vary(0xa49c90, 0.06), wear: 0.5 }); }
-      for (const s2 of [-1, 1]) { B.strut(WOOD, [stairX + s2 * 0.57, y - 0.1, sz], [stairX + s2 * 0.57, 0.05, sz + run * n], 0.26, 0.045, { color: 0x8a8478, wear: 0.5 }); if (L1) railLine([stairX + s2 * 0.6, y + 0.95, sz], [stairX + s2 * 0.6, 0.95, sz + run * n]); }
+      // stringers, hand rails and newel posts: each rail ends on a post at the foot (r8: the rails ended in mid-air)
+      const zEnd = sz + run * n;
+      for (const s2 of [-1, 1]) { B.strut(WOOD, [stairX + s2 * 0.57, y - 0.1, sz], [stairX + s2 * 0.57, 0.05, zEnd], 0.26, 0.045, { color: 0x8a8478, wear: 0.5 });
+        if (L1) { railLine([stairX + s2 * 0.6, y + 0.95, sz], [stairX + s2 * 0.6, 1.0, zEnd - 0.08]);
+          box(PAINT, 0.1, 1.08, 0.1, stairX + s2 * 0.6, 0.52, zEnd - 0.08, { color: C.trim, wear: wr(0.15), grain: 1, bevel: 0.01 });
+          box(PAINT, 0.13, 0.04, 0.13, stairX + s2 * 0.6, 1.07, zEnd - 0.08, { color: C.trim, wear: wr(0.1) }); } }
       cols.push({ shape: 'box', p: [stairX, y / 2 - 0.15, sz + run * n / 2], h: [0.55, 0.06, run * n / 2 * 1.08], ry: 0, rx: Math.atan2(y, run * n), ramp: true });
       // porch roof on posts over part of the deck
       const px0 = x0 + 0.2, px1 = x1 - 0.2, yr = top + 0.05;
@@ -669,7 +675,10 @@ export function* buildHouseGen(hk, sp, lod = 0) {
     if (lod < 2) {
       const len = zRoad - zd0, n = L0 ? Math.max(1, Math.round(len / 3)) : 1;
       if (sp.style === 'keys' && !sp.pavedDrive) { // keys lots: a crushed-shell drive worn into the sand, not poured concrete (Nov 17 mock-up)
-        const SH = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.4, grunge: true }); box(SH, dw + 0.4, 0.03, len + 0.2, xd, 0.012, zd0 + len / 2, { color: vary(0xd6cdb8, 0.05), wear: 0.5 }); }
+        // r8 (user: "harsh dirt edge"): drawn into the ground by the terrain's drive mask (ragged, blended edge) when the world
+        // has one (hk.groundDrive); the flat slab with hard edges is only the fallback (previews)
+        if (hk.groundDrive) { drive = { x: xd, z: zd0 + len / 2, w: dw + 0.6, len: len + 0.6 }; vary(0xd6cdb8, 0.05); }
+        else { const SH = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.4, grunge: true }); box(SH, dw + 0.4, 0.03, len + 0.2, xd, 0.012, zd0 + len / 2, { color: vary(0xd6cdb8, 0.05), wear: 0.5 }); } }
       else for (let k = 0; k < n; k++) { const za = zd0 + (len * k) / n, zb = zd0 + (len * (k + 1)) / n; box(CONC, dw - 0.02, 0.06, zb - za - (L0 ? 0.02 : 0), xd, 0.0, (za + zb) / 2, { color: vary(0xbfbfba, 0.035), wear: 0.3 + r() * 0.4 }); }   // neutral weathered concrete (was tan)
       if (L0) for (let k = 0; k < 3; k++) { // soft oil stains (same r() calls as the old dark boxes, so the lot layout does not shift)
         const sw = 0.7 + r() * 0.8, sl = 0.6 + r() * 0.9, sx = xd + (r() - 0.5) * 1.2, sz = zd0 + 1 + r() * (len - 2), sr = r() * 3, g = new THREE.PlaneGeometry(sw, sl); g.rotateX(-PI / 2);
@@ -735,7 +744,7 @@ export function* buildHouseGen(hk, sp, lod = 0) {
   // carport volumes), pots by the entry, and the back yard: clothesline, kettle grill and chairs, a kid's bike or a kayak.
   function livedIn() {
     const pd = sp.porch ? sp.porch.d : 0, door = walls.front.open.find((o) => o.kind === 'door'), xDoor = door ? x0 + door.u : 0, drvSide = sp.drvU > 0 ? 1 : -1;
-    const stairX = sp.stilt ? (sp.drvU > 0 ? x1 - 0.65 : x0 + 0.65) : null, zf = z1 + pd + 0.75;
+    const stairX = sp.stilt ? ((sp.stairSide ?? (sp.drvU > 0 ? -1 : 1)) < 0 ? x0 + 0.65 : x1 - 0.65) : null, zf = z1 + pd + 0.75;
     const blocked = (x, z) => (Math.abs(x - xDoor) < 1.1 && z > z1 - 0.2) || (stairX !== null && Math.abs(x - stairX) < 1.1 && z > z1) || (x * drvSide > w / 2 + 0.2 && sp.carport);
     const kinds = { keys: ['seagrape', 'croton', 'hibiscus'], ranch: ['ixora', 'croton', 'hedge'], med: ['bougainvillea', 'hibiscus', 'ixora'], deco: ['croton', 'ixora', 'hibiscus'], mcm: ['croton', 'sawpalmetto', 'ixora'], bungalow: ['hibiscus', 'croton', 'bougainvillea'] }[sp.style];
     if (!sp.yard) { // street lots: foundation planting (map lots plant in yard())

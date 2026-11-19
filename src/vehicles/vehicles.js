@@ -1417,7 +1417,7 @@ export async function createVehicles(game) {
   // lot planting blocks parking (user: an SUV wedged in the hedge by Nico's stairs): no parked car within 1.5 m of a drawn
   // shrub / hedge (r2-physics' shrub zones, registered within 50 m of the player) at its center or corners
   function lotBlocked(x, z, heading = 0, L = 4.8, W = 2.0) {
-    if (game.placement?.parkOk && !game.placement.parkOk(x, z, heading, L, W)) return true; // map audit: the shared rule (bushes anywhere on the map, water)
+    if (game.placement?.parkOk && !(game.placement.spotOk || game.placement.parkOk)(x, z, heading, L, W)) return true; // map audit: the shared rule (bushes anywhere on the map, water)
     const at = game.physics?.shrubs?.at; if (!at) return false;
     const c = Math.cos(heading), s_ = Math.sin(heading);
     for (const [a, b] of [[0, 0], [W / 2, L / 2], [-W / 2, L / 2], [W / 2, -L / 2], [-W / 2, -L / 2], [0, L / 2], [0, -L / 2]]) {
@@ -1480,7 +1480,10 @@ export async function createVehicles(game) {
   // placeStatic('covered1', { x, z, heading }) -> Promise<Object3D>: a static library prop (car under a cover) with a box collider
   async function placeStatic(key, o = {}) {
     const rec = await loadCarModel(key); if (!rec) return null;
+    for (let i = 0; i < 40 && game.lots?.enabled !== false && !game.houses; i++) await new Promise((r) => setTimeout(r, 500)); // the lots' solids (stairs, decks) register with the houses module
     const g = buildStaticCar(key); if (!g) return null;
+    { const d0 = g.userData.dims, PL = game.placement; // r8 (map / lots agent): never on a utility pole, in a house's stairs or bins (game.placement.clearSpot)
+      if (PL?.clearSpot && d0) { const q = PL.clearSpot(o.x, o.z, o.heading || 0, d0.L, d0.W, 5); if (!q) return null; o = { ...o, x: q[0], z: q[1] }; } }
     const y = o.y ?? groundY(o.x, o.z), d = g.userData.dims;
     g.position.set(o.x, y, o.z); g.rotation.y = o.heading || 0; scene.add(g);
     try {

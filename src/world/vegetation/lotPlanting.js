@@ -12,7 +12,7 @@ import { lots as houseLots } from '../setpieces/houses/lots.js';
 const ON = typeof location === 'undefined' || !/[?&]vegyards=0\b/.test(location.search);
 const NEAR = 150, FAR = 400;
 const hh = (a, b, c) => { const s = Math.sin(a * 127.1 + b * 311.7 + c * 74.7) * 43758.5453; return s - Math.floor(s); };
-const FOUND = ['green_shrub', 'bush_round', 'hibiscus_hd', 'hibiscus_hd', 'tropical_bed', 'bougainvillea', 'bush_leafy', 'bougainvillea_b', 'bush_round'];
+const FOUND = ['green_shrub', 'tropical_leaf', 'hibiscus_hd', 'hibiscus_shrub', 'tropical_bed', 'bougainvillea_hd', 'tropical_leaf', 'hibiscus_shrub', 'green_shrub']; // r8: no card-blob shrubs
 const CANOPY = ['poinciana_hd1', 'shade_tree', 'poinciana_hd2', 'rubber_fig', 'poinciana_hd3'];
 const UNDER = ['fern_clump', 'tropical_bed', 'fern_a', 'fern_b', 'tropical_bed'];
 
@@ -65,7 +65,7 @@ export function createLotPlanting(game) {
     for (const [li, [su, sv]] of [[0, 1], [-1, 0], [1, 0], [0, -1]].entries()) { const len = su ? l.d : l.w, n = Math.floor((len - 1) / 1.35);
       for (let k = 0; k <= n; k++) { const t = -len / 2 + 0.5 + k * 1.35, g = hh(id + li * 13, k >> 2, 41); if (g < 0.22) continue; // runs and gaps
         const u = su ? su * (hw - 0.45) : t, v = sv ? sv * (hd - 0.45) : t, [x, z] = W(u, v); if (!free(x, z, 0.5) || !plantable(game, x, z)) continue;
-        const r = hh(id + li, k, 42), key = r < 0.55 ? 'bush_round' : r < 0.72 ? 'green_shrub' : r < 0.82 ? (li === 0 ? 'hibiscus_hd' : 'bush_leafy') : r < 0.92 ? 'bougainvillea' : 'tropical_bed'; /* hedge runs mostly the light round shrub (244 tris; the dense green shrub is 14k) */
+        const r = hh(id + li, k, 42), key = r < 0.4 ? 'tropical_leaf' : r < 0.62 ? 'green_shrub' : r < 0.76 ? (li === 0 ? 'hibiscus_hd' : 'hibiscus_shrub') : r < 0.88 ? 'bougainvillea_hd' : 'tropical_bed'; /* r8: real plants only (the Shrub 1 / Shrub 6 card blobs are out); the cheap filler is the 144-tri tropical leaf plant */ /* hedge runs mostly the light round shrub (244 tris; the dense green shrub is 14k) */
         if (put(key, x, z, 1.0 + hh(id + li, k, 43) * 0.45)) taken.push([x, z, 0.5]); } }
     // a canopy tree at a front corner, so the crown overhangs the street (Keys streets are tunnels of green)
     { const side = hh(id, 5, 51) < 0.5 ? -1 : 1; for (const sd of [side, -side]) { const [x, z] = W(sd * (hw - 1.6), hd - 1.6);

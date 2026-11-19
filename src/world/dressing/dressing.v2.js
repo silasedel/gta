@@ -529,7 +529,7 @@ float lNoise(vec2 p) {
       let n = 0;
       for (const c of carSpots.slice(0, 6)) {
         try {
-          if (game.placement?.parkOk && !game.placement.parkOk(c.x, c.z, c.ry, 4.8, 2.0) && !/[?&]mapfix=0\b/.test(location.search)) continue; // map audit: not in a yard bush / hedge (shared placement rule)
+          if (game.placement?.parkOk && !(game.placement.spotOk || game.placement.parkOk)(c.x, c.z, c.ry, 4.8, 2.0) && !/[?&]mapfix=0\b/.test(location.search)) continue; // map audit: not in a yard bush / hedge (shared placement rule)
           const v = V.spawn(types[n % types.length], new THREE.Vector3(c.x, groundY(c.x, c.z) + 0.6, c.z), c.ry, { snap: false });
           if (v) n++;
         } catch (e) {

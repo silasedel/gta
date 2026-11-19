@@ -133,3 +133,15 @@ polygonOffsetUnits: -2` (decals -2 / -4); never two faces in the same plane.
    needed, but ideally `react()` would only choose `call911` when the player caused the event (`e.byPlayer`).
 6. **Gameplay (gameplay.js, world.js):** `G.arrestT` is no longer set (the old "sprint to break free" grab is replaced by the
    compliance window / taser / cuffing in `police/arrest.js`); world.js:409 can drop that help line.
+
+## Nov 19 — from the map / lots agent (neighbor lots, ground, plants)
+1. **New shared rule `game.placement.spotOk(x, z, heading, L, W)` / `clearSpot(...)`** (src/world/placement.v2.js): a car box may not
+   touch water, a drawn bush, or any registered solid in the occupancy index: house walls / decks / stairs / piles (every generated
+   house registers them now), utility and lamp poles, palms, mailboxes and carts. Street parking and `placeStatic` use it. **Nico's
+   house agent:** the yard cars (vehicles.js NICO_CARS via `spawnParked(..., { keepSpot: true })`) skip it; the white SUV next to the
+   blue stilt house at about (-966, 5187) stands in bougainvillea: please run your CAR_SPOTS through `game.placement.clearSpot`.
+2. **Nico's house agent (yard.data.js):** the yard still uses the card-blob shrub models `bush_round`, `bush_leafy`, `bougainvillea`,
+   `bougainvillea_b` (Shrub 1 / Shrub 6). Real-plant replacements are in the library now: `bougainvillea_hd` (magenta), `hibiscus_shrub`
+   (red), `tropical_leaf` (low broad-leaf, 144 tris), plus `hibiscus_hd`, `green_shrub`, `oleander`.
+3. **Vehicles:** the static graffiti van (`van2`, placed across the lane from Nico's) is a very low-res model; it now only stands on a
+   clear spot, but the model itself needs a better source (the user flagged it).
