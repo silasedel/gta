@@ -1055,6 +1055,7 @@ export function createPost(game) {
     enabled: true, needsSwap: false, clear: false, renderToScreen: false,
     setSize() {},
     render(r, wb, rb) {
+      if (AE_GPU) { aeGpuRender(r, rb); return; }
       // r2-perf: a reading every 24th frame (the readback synced the GPU queue under ANGLE-Metal). Render track (Nov 18,
       // user: "lighting snaps darker / brighter instantly"): at 10-20 fps that was one reading every 1.2-2.4 s, and the
       // exposure then lunged toward each new reading. Now time based: at most every 0.3 s, at least every 24th frame.
@@ -1087,6 +1088,64 @@ export function createPost(game) {
     } catch (e) { ae.ok = false; ae.pending = false; console.warn('[post] auto exposure off', e); }
   }
   const AE_THREE = typeof location !== 'undefined' && /[?&]aeread=three\b/.test(location.search);
+  // perf track (Nov 19): auto exposure entirely on the GPU. Any CPU readback (getBufferSubData, even after its fence signaled)
+  // is a synchronous round trip to the GPU process: 25-45 ms a second of main-thread stalls in the in-app benchmark, a
+  // dropped frame at every reading. Now the 32x18 log-luminance image feeds a 1x1 state target (comp, vel, smoothed log,
+  // valid) updated every frame by the same smoothing / dead zone / spring as the CPU version below, and the output pass
+  // multiplies the HDR picture by 2^comp before tone mapping. ?aeread=cpu = the fenced readback, ?aeread=three = oldest.
+  const AE_GPU = !(typeof location !== 'undefined' && /[?&]aeread=(cpu|three)\b/.test(location.search));
+  const aeU = { tLum: { value: lumRT.texture }, tPrev: { value: null }, uH: { value: 1 / 60 }, uOn: { value: 0 }, uLo: { value: -0.3 }, uHi: { value: 1.1 }, uRef: { value: -2 }, uStrength: { value: 0.55 }, uInstant: { value: 0 }, uSnap: { value: 0 }, uUp: { value: 0.9 }, uDown: { value: 1.8 } };
+  const aeStateRT = AE_GPU ? [0, 1].map(() => new THREE.WebGLRenderTarget(1, 1, { type: THREE.FloatType, depthBuffer: false, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter })) : null;
+  let aeFlip = 0, aeInit = false;
+  const aeMat = new THREE.ShaderMaterial({
+    uniforms: aeU,
+    vertexShader: 'void main() { gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+    fragmentShader: /* glsl */`
+      uniform sampler2D tLum; uniform sampler2D tPrev;
+      uniform float uH, uOn, uLo, uHi, uRef, uStrength, uInstant, uSnap, uUp, uDown;
+      void main() {
+        float s = 0.0, ws = 0.0;
+        for ( int y = 0; y < 18; y++ ) for ( int x = 0; x < 32; x++ ) {
+          float dx = ( float( x ) + 0.5 ) / 32.0 - 0.5, dy = ( float( y ) + 0.5 ) / 18.0 - 0.45;
+          float w = exp( -( dx * dx * 5.0 + dy * dy * 7.0 ) );
+          vec4 t = texture2D( tLum, vec2( ( float( x ) + 0.5 ) / 32.0, ( float( y ) + 0.5 ) / 18.0 ) );
+          float e = ( floor( t.r * 255.0 + 0.5 ) * 256.0 + floor( t.g * 255.0 + 0.5 ) ) / 65535.0;
+          s += w * ( e * 16.0 - 12.0 ); ws += w;
+        }
+        float avg = s / ws;
+        vec4 p = texture2D( tPrev, vec2( 0.5 ) );
+        bool valid = p.a > 0.5;
+        float sm = valid ? p.b + ( avg - p.b ) * ( 1.0 - exp( -uH / 0.6 ) ) : avg;
+        float want = uOn > 0.5 ? clamp( ( uRef - sm ) * uStrength, uLo, uHi ) : 0.0;
+        float comp = valid ? p.r : 0.0, vel = valid ? p.g : 0.0;
+        if ( uInstant > 0.5 ) { comp = want; vel = 0.0; }
+        else if ( uSnap > 0.5 ) { float rate = want > comp ? uUp : uDown; comp += ( want - comp ) * ( 1.0 - exp( -uH * rate ) ); }
+        else {
+          float err = want - comp, dead = 0.06;
+          float goal = abs( err ) <= dead ? comp : want - sign( err ) * dead * 0.5;
+          float st = want > comp ? 1.1 : 0.75, w = 2.0 / st, h = uH, x = w * h, ex = 1.0 / ( 1.0 + x + 0.48 * x * x + 0.235 * x * x * x );
+          float ch = comp - goal, tmp = ( vel + w * ch ) * h;
+          vel = ( vel - w * tmp ) * ex;
+          float nc = goal + ( ch + tmp ) * ex;
+          float ms = 0.7 * h; nc = clamp( nc, comp - ms, comp + ms );
+          vel = h > 0.0 ? ( nc - comp ) / h : 0.0; comp = nc;
+        }
+        gl_FragColor = vec4( comp, vel, sm, 1.0 );
+      }`,
+    depthTest: false, depthWrite: false,
+  });
+  const aeQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), aeMat); aeQuad.frustumCulled = false;
+  const aeScene = new THREE.Scene(); aeScene.add(aeQuad);
+  function aeGpuRender(r, rb) {
+    const prev = r.getRenderTarget();
+    if (!aeInit) { for (const t of aeStateRT) { r.setRenderTarget(t); r.setClearColor(0x000000, 0); r.clear(true, false, false); } r.setClearColor(0x000000, 1); aeInit = true; }
+    lumMat.uniforms.tDiffuse.value = rb.texture;
+    r.setRenderTarget(lumRT); r.render(lumScene, lumCam);
+    aeU.tPrev.value = aeStateRT[aeFlip].texture;
+    r.setRenderTarget(aeStateRT[1 - aeFlip]); r.render(aeScene, lumCam);
+    aeFlip = 1 - aeFlip;
+    r.setRenderTarget(prev);
+  }
   function aeDone() {
     let s = 0;
     for (let i = 0; i < lumW.length; i++) s += lumW[i] * (((lumBuf[i * 4] * 256 + lumBuf[i * 4 + 1]) / 65535) * 16 - 12);
@@ -1110,6 +1169,18 @@ export function createPost(game) {
   composer.addPass(bloom);
 
   const output = new OutputPass();
+  if (AE_GPU) { // perf track: GPU auto exposure is applied here, before tone mapping (not in cinema stage scenes: they set their own)
+    output.uniforms.tAE = { value: null }; output.uniforms.uAEMix = { value: 0 };
+    output.material.fragmentShader = output.material.fragmentShader.replace('void main() {', 'uniform sampler2D tAE; uniform float uAEMix;\nvoid main() {')
+      .replace('gl_FragColor = texture2D( tDiffuse, vUv );', 'gl_FragColor = texture2D( tDiffuse, vUv ); gl_FragColor.rgb *= mix( 1.0, exp2( texture2D( tAE, vec2( 0.5 ) ).r ), uAEMix );');
+    output.material.needsUpdate = true;
+    const outRender = output.render.bind(output);
+    output.render = (r, wb, rb, dt, mask) => {
+      output.uniforms.tAE.value = aeStateRT[aeFlip].texture;
+      output.uniforms.uAEMix.value = aeInit && renderPass.scene === scene ? 1 : 0;
+      outRender(r, wb, rb, dt, mask);
+    };
+  }
   composer.addPass(output);
 
   const smaa = new SMAAPass(W * pr, H * pr);
@@ -1426,8 +1497,17 @@ export function createPost(game) {
         }
         if (game.lookAEInstant) { ae.comp = want; ae.vel = 0; }
         A.avgLog = ae.avgLog; A.comp = ae.comp;
+        if (AE_GPU) { // same limits as above, evaluated on the GPU against its own smoothed reading
+          const r2a = game.lookR2 !== false;
+          aeU.uOn.value = game.look3 && !env?.underwater && game.look3Parts?.ae !== false ? 1 : 0;
+          aeU.uLo.value = r2a ? Math.max(A.min, -0.1) : A.min;
+          aeU.uHi.value = A.max * (1 - 0.45 * night) * (1 - (r2a ? 0.5 : 0.65) * THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0, 0.15, 0.45));
+          aeU.uRef.value = A.ref; aeU.uStrength.value = A.strength; aeU.uUp.value = A.up; aeU.uDown.value = A.down;
+          aeU.uH.value = Math.min(dt, 0.1); aeU.uInstant.value = game.lookAEInstant ? 1 : 0; aeU.uSnap.value = AE_OLD ? 1 : 0;
+          A.gpu = true;
+        }
       }
-      if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt * Math.pow(2, ae.comp) * (game.look3 && game.lookR2 !== false ? (game.lookExpR2 ?? 1.12) : 1); // r2-look (user, Nov 17 afternoon: "too dark"): +0.16 stop; sunlit pale ground ~0.8 display
+      if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt * (AE_GPU ? 1 : Math.pow(2, ae.comp)) * (game.look3 && game.lookR2 !== false ? (game.lookExpR2 ?? 1.12) : 1); // r2-look (user, Nov 17 afternoon: "too dark"): +0.16 stop; sunlit pale ground ~0.8 display
       // god rays: only when the sun is on/near screen; stronger when low (golden hour)
       const low = 1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 1, 0.1, 0.5);
       gu.uRays.value = sunOn > 0 ? Math.min(1, sunOn * 1.5) * (LOOK_OFF ? 0.3 + 0.25 * low : 0.12 + 0.13 * low) : 0; // look track: shafts halved (user: glare too strong and hazy)

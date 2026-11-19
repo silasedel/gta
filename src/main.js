@@ -1180,6 +1180,8 @@ async function boot() {
     const work = performance.now() - fStart;
     // rolling per-system CPU averages (ms, EMA) for profiling: game.perf.sysAvg / game.perf.workAvg
     { const A = (game.perf.sysAvg ||= {}); for (const k in PT) A[k] = (A[k] || 0) * 0.95 + PT[k] * 0.05; game.perf.workAvg = (game.perf.workAvg || 0) * 0.95 + work * 0.05; game.perf.gapAvg = (game.perf.gapAvg || 0) * 0.95 + gap * 0.05; }
+    // benchmark (src/perf/bench.v2.js, ?bench=<label>): every frame's gap, CPU work and per-system times
+    if (game.perf.onFrame) try { game.perf.onFrame(gap, work, PT, dProg); } catch (e) { /* never break the frame */ }
     if ((gap > 25 || work > 25) && game.clock.elapsed > 3) {
       const top = Object.entries(PT).filter(([, v]) => v > 2).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => `${k} ${v.toFixed(1)}`);
       spikes.push({ t: +game.clock.elapsed.toFixed(1), gap: Math.round(gap), work: Math.round(work), top, newPrograms: dProg, newTextures: dTex, newGeometries: dGeo, calls: renderer.info.render.calls });

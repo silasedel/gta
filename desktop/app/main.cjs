@@ -54,7 +54,8 @@ sw.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
 // No autoplay gate for game audio.
 sw.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 // Large V8 heap for the renderer (the browser tab caps lower).
-sw.appendSwitch('js-flags', '--max-old-space-size=8192');
+// --ps-js-flags="..." adds V8 flags for measurement runs (A/B of GC settings with the in-game benchmark).
+sw.appendSwitch('js-flags', ['--max-old-space-size=8192', argValue('ps-js-flags') || ''].join(' ').trim());
 if (process.platform === 'darwin') {
   // ANGLE on Metal: Chromium's fastest WebGL path on Apple silicon.
   sw.appendSwitch('use-angle', 'metal');
@@ -63,7 +64,8 @@ if (process.platform === 'darwin') {
 app.setName('Southline');
 // Measurement runs (--ps-size) use their own profile, so they never share the single-instance lock,
 // window state, saves or logs with the player's copy of the app.
-const testProfile = !!argValue('ps-size') || hasArg('ps-test-profile');
+const benchLabel = argValue('ps-bench'); // built-in benchmark (src/perf/bench.v2.js): --ps-bench=<label> [--ps-bench-out=<file.json>] [--ps-bench-stay]
+const testProfile = !!argValue('ps-size') || hasArg('ps-test-profile') || !!benchLabel;
 if (testProfile) {
   app.setPath('userData', path.join(app.getPath('appData'), 'Port Solana Test'));
 } else {
@@ -96,7 +98,10 @@ function webRoot() {
 }
 
 function startUrl() {
-  const q = argValue('ps-query');
+  let q = argValue('ps-query');
+  if (benchLabel) {
+    q = [q, `bench=${encodeURIComponent(benchLabel)}`, 'nomenu'].filter(Boolean).join('&');
+  }
   const base = `${protocolMod.ORIGIN}/index.html`;
   if (!q) {
     return base;
@@ -385,6 +390,53 @@ function createWindow() {
   });
 
   wc.loadURL(startUrl());
+  if (benchLabel) {
+    watchBench(wc);
+  }
+}
+
+// Benchmark: poll the page for its report, write it, log the summary, quit (unless --ps-bench-stay).
+function watchBench(wc) {
+  const out = argValue('ps-bench-out') || path.join(app.getPath('userData'), 'logs', `bench-${benchLabel}.json`);
+  log.info(`bench ${benchLabel} started -> ${out}`);
+  const timer = setInterval(async () => {
+    if (!win || win.isDestroyed()) {
+      clearInterval(timer);
+      return;
+    }
+    let rep = null;
+    try {
+      rep = await wc.executeJavaScript('window.__benchDone ? window.__benchReport : null');
+    } catch (e) {
+      return;
+    }
+    if (!rep) {
+      return;
+    }
+    clearInterval(timer);
+    try {
+      fs.mkdirSync(path.dirname(out), { recursive: true });
+      fs.writeFileSync(out, JSON.stringify(JSON.parse(rep), null, 1));
+    } catch (e) {
+      log.info('bench write failed: ' + e.message);
+    }
+    try {
+      const r = JSON.parse(rep);
+      const g = r.gate || {};
+      log.info(`bench ${benchLabel}: p50 ${g.p50} p95 ${g.p95} p99 ${g.p99} max ${g.max} over16.7 ${g.over16_7} over25 ${g.over25} over33 ${g.over33} over50 ${g.over50} over100 ${g.over100} pass ${g.pass} preset ${r.quality && r.quality.preset} canvas ${r.display && r.display.canvas}`);
+      for (const sgm of r.segments || []) {
+        log.info(`bench ${benchLabel} ${sgm.id}: p50 ${sgm.p50} p99 ${sgm.p99} max ${sgm.max} >33 ${sgm.over33} cpuP99 ${sgm.cpuP99} calls ${sgm.calls} gc ${sgm.gc} top ${(sgm.sys || []).slice(0, 5).map((x) => x.join(' ')).join(', ')}`);
+      }
+      for (const w of (r.worst || []).slice(0, 8)) {
+        log.info(`bench ${benchLabel} worst ${w.seg} +${w.t}s gap ${w.gap} work ${w.work} prog ${w.newPrograms} gc ${w.gcMB} top ${(w.top || []).map((x) => x.join(' ')).join(', ')}`);
+      }
+    } catch (e) {
+      log.info('bench report unreadable: ' + e.message);
+    }
+    if (!hasArg('ps-bench-stay')) {
+      app.quit();
+    }
+  }, 2000);
 }
 
 function startMemorySampler() {
