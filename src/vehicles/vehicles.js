@@ -1467,7 +1467,7 @@ export async function createVehicles(game) {
     // the STOP corner and Nico's drive mouth stay clear of curb parking (mock-up: one SUV crossing, nothing parked)
     for (const [lx, lz, r] of [[-20.9, 23.8, 15], [-18.5, 20.5, 9]]) { const p = NH.toWorld(new THREE.Vector3(lx, 0, lz)); addNoParkZone(p.x, p.z, r); }
     // the neighbors: a sedan under a cover in the next yard, the old graffiti van rusting on the lot across the lane
-    for (const [k, lx, lz, h] of [['covered1', -22.9, -3.5, -0.37], ['van2', 18.6, 25.0, 1.58]]) { // spots from r2-keys (rotated house, mock-up frame)
+    for (const [k, lx, lz, h] of [['covered1', -22.9, -3.5, -0.37]]) { // spots from r2-keys (rotated house, mock-up frame)
       const p = NH.toWorld(new THREE.Vector3(lx, 0, lz));
       try { await placeStatic(k, { x: p.x, z: p.z, heading: h + h0 }); } catch (e) { /* optional */ }
     }
@@ -1476,6 +1476,12 @@ export async function createVehicles(game) {
       try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: (ta ? ta.heading : c.heading) + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, old: c.old, tint: c.tint, keepSpot: true }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
+    // the old van rusting on the lot across the lane (user r8: the 2.8k-tri graffiti van read very low-res): the HD boxy passenger
+    // van (Van 5), sun-faded, rusted and salt-crusted, locked, on a clear spot (game.placement: never on a pole, stairs or bins)
+    try { for (let i = 0; i < 40 && game.lots?.enabled !== false && !game.houses; i++) await new Promise((r) => setTimeout(r, 500));
+      const p = NH.toWorld(new THREE.Vector3(18.6, 0, 25.0)), hv = 1.58 + h0, q = game.placement?.clearSpot ? game.placement.clearSpot(p.x, p.z, hv, 5.3, 2.1, 8, { cars: true }) : [p.x, p.z];
+      if (q) { const v = await spawnParked('van5', { x: q[0], z: q[1], heading: hv, color: 0x9a968a, finish: 'solid', old: true, locked: true, keepSpot: true, wear: { dirt: 0.45, rust: 0.42, fade: 0.7, age: 1, dirtColor: 'salt' } }); if (v) { v.pinned = true; v.derelict = true; } }
+    } catch (e) { /* optional */ }
   })();
   // placeStatic('covered1', { x, z, heading }) -> Promise<Object3D>: a static library prop (car under a cover) with a box collider
   async function placeStatic(key, o = {}) {
@@ -1483,7 +1489,7 @@ export async function createVehicles(game) {
     for (let i = 0; i < 40 && game.lots?.enabled !== false && !game.houses; i++) await new Promise((r) => setTimeout(r, 500)); // the lots' solids (stairs, decks) register with the houses module
     const g = buildStaticCar(key); if (!g) return null;
     { const d0 = g.userData.dims, PL = game.placement; // r8 (map / lots agent): never on a utility pole, in a house's stairs or bins (game.placement.clearSpot)
-      if (PL?.clearSpot && d0) { const q = PL.clearSpot(o.x, o.z, o.heading || 0, d0.L, d0.W, 5); if (!q) return null; o = { ...o, x: q[0], z: q[1] }; } }
+      if (PL?.clearSpot && d0) { const q = PL.clearSpot(o.x, o.z, o.heading || 0, d0.L, d0.W, 5, { cars: true }); if (!q) return null; o = { ...o, x: q[0], z: q[1] }; } }
     const y = o.y ?? groundY(o.x, o.z), d = g.userData.dims;
     g.position.set(o.x, y, o.z); g.rotation.y = o.heading || 0; scene.add(g);
     try {

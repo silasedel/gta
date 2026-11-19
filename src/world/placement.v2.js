@@ -59,6 +59,10 @@ export async function initV2(game) {
     if (OFF) return true;
     if (!parkOk(x, z, heading, L, W, o.edge || null)) return false;
     const c = Math.cos(heading), s = Math.sin(heading), r = W / 2 * 0.95, n = Math.max(1, Math.ceil((L - W) / (r * 1.2)) + 1);
+    // opts.cars: other cars (moving or parked) too: no car box within about a car of this one (new placements only: an
+    // existing car checking its own spot would find itself)
+    if (o.cars) for (const v of game.vehicles?.list || []) { try { if (v === o.self) continue; const t = v.body.translation(), dx = t.x - x, dz = t.z - z; if (dx * dx + dz * dz > 100) continue;
+      const u = dx * c - dz * s, w = dx * s + dz * c; if (Math.abs(u) < W / 2 + 1.25 && Math.abs(w) < L / 2 + 2.7) return false; } catch (e) { /* */ } }
     let y = o.y; if (!Number.isFinite(y)) { try { y = game.city?.terrain?.heightAt?.(x, z) ?? 0; } catch (e) { y = 0; } }
     for (let i = 0; i < n; i++) { const b = n > 1 ? -(L - W) / 2 + (L - W) * i / (n - 1) : 0, px = x + b * s, pz = z + b * c;
       const it = occupancy.blocked(px, pz, r, { y: y + 0.1, h: 1.5, gap: 0.15, owner: o.ignoreOwner, sameOwnerOk: o.ignoreOwner !== undefined });

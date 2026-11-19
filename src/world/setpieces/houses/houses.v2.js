@@ -194,7 +194,7 @@ export async function initV2(game) {
         const T = ['sedan', 'compact', 'suv', 'pickup', 'van', 'sedan', 'suv'][(L.sp.seed >>> 3) % 7];
         let px = L.x + c * cr.x + s * cr.z, pz = L.z - s * cr.x + c * cr.z; const PL = game.placement;
         // r8: the drive must be clear (no pole, stairs, bins, shrubs); else nudge along the drive, else no car
-        const q = PL?.clearSpot ? PL.clearSpot(px, pz, L.ry + cr.ry, 4.9, 2.0, 2.5, { y: L.y }) : [px, pz];
+        const q = PL?.clearSpot ? PL.clearSpot(px, pz, L.ry + cr.ry, 4.9, 2.0, 2.5, { y: L.y, cars: true }) : [px, pz];
         if (q) { [px, pz] = q; try { L.car = game.vehicles.spawn(T, new THREE.Vector3(px, L.y + 0.6, pz), L.ry + cr.ry, { snap: false }); } catch (e) { L.car = null; } } }
     })());
   }
