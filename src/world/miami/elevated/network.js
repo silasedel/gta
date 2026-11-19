@@ -267,6 +267,21 @@ export function* buildNetworkSteps(data, opts = {}) {
   // nodes along each chain (edge joints) for "do these two chains meet here" tests
   for (const c of chains) { const ns = new Set(); for (const id of c.edges) { ns.add(E[id].a); ns.add(E[id].b); } c.nodeSet = ns; }
   function sharesNodeNear(c, k, x, z, R) { for (const nd of c.nodeSet) if (k.nodeSet.has(nd) && Math.hypot(N[nd].x - x, N[nd].z - z) < R) return true; return false; }
+  // bridge clearance (user, Nov 19: "a bridge goes over the road a few feet above, blocking it"): deck junctions. A node in the
+  // middle of a chain (an edge joint) that another chain also uses is a junction between two decks (T: a deck street ends on a
+  // through deck; X: two decks cross at one node). Only chain ENDS used to share their height (nodeY), so the second deck of a
+  // T / X junction kept its own data height and met the first 1.3-3 m above / below it: a slab hanging over the other road.
+  // Every interior joint node another chain shares now carries the height of whichever deck solved first (tools/v2/map3/
+  // bridge_clearance.mjs finds them). ?deckjoin=0 = old
+  const DECKJOIN = !(typeof location !== 'undefined' && /[?&]deckjoin=0\b/.test(location.search));
+  const nodeUse = new Map(); for (const c of chains) for (const nd of c.nodeSet) nodeUse.set(nd, (nodeUse.get(nd) || 0) + 1);
+  for (const c of chains) { c.joints = [];
+    if (!DECKJOIN) continue;
+    for (const nd of c.nodeSet) { if (nd === c.nodeA || nd === c.nodeB || nodeUse.get(nd) < 2) continue;
+      let bi = -1, bd = 9; for (let i = 0; i < c.n; i++) { const d = Math.hypot(c.x[i] - N[nd].x, c.z[i] - N[nd].z); if (d < bd) { bd = d; bi = i; } }
+      if (bi > 0 && bi < c.n - 1) c.joints.push([bi, nd]); } }
+  const nodeByChain = new Set(), nodeSrc = new Map(); // nodes whose nodeY came from a solved chain (not the ground preset) -> [chain, sample]
+  stats.deckJoin = 0; stats.deckJoinFar = 0;
   // gore / merge runs: a contiguous stretch where a deck overlaps a same-direction neighbour in plan stays coplanar with
   // it for the whole overlap if it is level with it anywhere in the run (OSM ramps "climb" while still on the main deck)
   for (const c of chains) {
@@ -284,7 +299,7 @@ export function* buildNetworkSteps(data, opts = {}) {
   // pass 0: independent solve (mandatory merges + clearances); pass 1: + optional gap fills where the decks already sit level
   for (const c of chains) c.extraHi = new Float64Array(c.n).fill(Infinity);
   for (let pass = 0; pass < 4; pass++) {
-    solved.fill(0); nodeY.clear(); for (const n of nodeOwnEnds.keys()) if (nodeIsGround(n)) nodeY.set(n, 0);
+    solved.fill(0); nodeY.clear(); nodeByChain.clear(); nodeSrc.clear(); for (const n of nodeOwnEnds.keys()) if (nodeIsGround(n)) nodeY.set(n, 0);
     for (const c of ordered) solveChain(c, pass);
     yield;
   }
@@ -302,6 +317,24 @@ export function* buildNetworkSteps(data, opts = {}) {
       for (let q = 0; q < n; q++) { const i = end === 0 ? q : n - 1 - q, s = end === 0 ? c.s[i] : c.length - c.s[i]; if (s > zone && q > 0) break;
         if (kind === 'junction' || kind === 'street') { eq[i] = 0; beq[i] = 0; cons[i] = 1; } }
       if (kind === 'deck' && nodeY.has(node)) { eq[end === 0 ? 0 : n - 1] = nodeY.get(node); cons[end === 0 ? 0 : n - 1] = 6; }
+    }
+    // deck junction in the middle of this chain: meet the deck that already fixed the node's height (see DECKJOIN)
+    const pinned = []; // [sample, node] of this chain pinned to a node height another deck set
+    for (const [i, node] of c.joints) { if (!nodeByChain.has(node)) continue; const y = nodeY.get(node);
+      if (Math.abs(y - c.yT[i]) > 4.0) { if (pass === 3) stats.deckJoinFar++; continue; } // a stacked level drawn through one node: a data error, leave it
+      eq[i] = y; cons[i] = 6; pinned.push([i, node]); if (pass === 3) stats.deckJoin++; }
+    if (DECKJOIN) for (const [end, node, kind] of [[0, c.nodeA, c.endA], [1, c.nodeB, c.endB]]) if (kind === 'deck' && nodeByChain.has(node)) pinned.push([end === 0 ? 0 : n - 1, node]);
+    if (pinned.length) { // how high this deck can climb at <= 8 % from its at-grade ends (junction / street pins)
+      const reach = new Float64Array(n).fill(Infinity); let d = Infinity;
+      for (let i = 0; i < n; i++) { if (i) d += c.s[i] - c.s[i - 1]; if (cons[i] === 1) d = 0; reach[i] = 0.08 * d; }
+      d = Infinity; for (let i = n - 1; i >= 0; i--) { if (i < n - 1) d += c.s[i + 1] - c.s[i]; if (cons[i] === 1) d = 0; reach[i] = Math.min(reach[i], 0.08 * d); }
+      // too high to reach without a steep hump: ask the deck that set the node to come down there next pass (its own clearance
+      // bounds still win over this, see the infeasible rule below)
+      for (const [i, node] of pinned) { const y = nodeY.get(node), src = nodeSrc.get(node);
+        if (src && src[0] !== c.id && y > reach[i] + 0.1) { const ck = chains[src[0]], lim = Math.max(0, reach[i]);
+          for (let q = Math.max(0, src[1] - 2); q <= Math.min(ck.n - 1, src[1] + 2); q++) ck.extraHi[q] = Math.min(ck.extraHi[q], lim); } }
+    }
+    for (const [end, node, kind] of [[0, c.nodeA, c.endA], [1, c.nodeB, c.endB]]) {
       // map audit (user: ramps that do not meet anything): a deck whose OSM way just ends (no road continues) over land comes down to
       // the ground there instead of stopping in the air as a cut-off slab; the grade cones turn it into a <= 7 % ramp. Over water it
       // stays (a pier / a ferry ramp)
@@ -397,7 +430,8 @@ export function* buildNetworkSteps(data, opts = {}) {
     if (!CLIP_OFF && data.hasRelief) for (let i = 0; i < n; i++) { if (isWater(c.x[i], c.z[i])) continue; const g = terrainY(c.x[i], c.z[i]); if (g > 0.05 && c.y[i] < g + 0.02) c.y[i] = g + 0.02; }
     if (pass === 0) c.yPrev = Float64Array.from(c.y);
     solved[c.id] = 1;
-    for (const [end, node] of [[0, c.nodeA], [1, c.nodeB]]) if (!nodeY.has(node)) nodeY.set(node, c.y[end === 0 ? 0 : n - 1]);
+    for (const [end, node] of [[0, c.nodeA], [1, c.nodeB]]) if (!nodeY.has(node)) { nodeY.set(node, c.y[end === 0 ? 0 : n - 1]); nodeByChain.add(node); nodeSrc.set(node, [c.id, end === 0 ? 0 : n - 1]); }
+    for (const [i, node] of c.joints) if (!nodeY.has(node)) { nodeY.set(node, c.y[i]); nodeByChain.add(node); nodeSrc.set(node, [c.id, i]); } // DECKJOIN
   }
 
   mark('before 7. visible deck');

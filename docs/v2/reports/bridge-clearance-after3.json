@@ -1,0 +1,354 @@
+{
+ "tag": "after3",
+ "audit": {
+  "roadOnWater": 1,
+  "deckStep": 13,
+  "deckDangling": 9,
+  "deckLow": 10,
+  "bldWater": 1
+ },
+ "auditDeck": [
+  {
+   "cls": "deckStep",
+   "x": 208.14,
+   "z": -5496.01,
+   "y": 0.59,
+   "grade": 9.41,
+   "kink": 0.77,
+   "chain": 2,
+   "name": "NW 2nd Ave",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -3806,
+   "z": -3674,
+   "y": 5.47,
+   "chain": 16,
+   "name": "County Road 833",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 623.54,
+   "z": -3184.42,
+   "y": 2.77,
+   "grade": -10.85,
+   "kink": 0.04,
+   "chain": 32,
+   "name": "NE 2nd Ave",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 381.48,
+   "z": -3079.54,
+   "len": 18,
+   "minY": 0,
+   "chain": 33,
+   "name": "NE 30th St",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -1001,
+   "z": -3102,
+   "y": 5.49,
+   "chain": 35,
+   "name": "Coral Way",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckLow",
+   "x": -1864.22,
+   "z": -2242.6,
+   "len": 14,
+   "minY": 0,
+   "chain": 63,
+   "name": "Corkscrew Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 838.22,
+   "z": -1863.52,
+   "len": 16,
+   "minY": 0.06,
+   "chain": 78,
+   "name": "Airboat Rd",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 836.48,
+   "z": -1834.11,
+   "len": 18,
+   "minY": 0,
+   "chain": 78,
+   "name": "Airboat Rd",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 337.29,
+   "z": -1429.55,
+   "len": 18,
+   "minY": 0,
+   "chain": 85,
+   "name": "State Road 935",
+   "kind": "trunk"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 2068,
+   "z": -990,
+   "y": 5.5,
+   "chain": 93,
+   "name": "Pennsylvania Ave",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 2234.98,
+   "z": -1421.34,
+   "y": 3.77,
+   "grade": -10.23,
+   "kink": 0.01,
+   "chain": 99,
+   "name": "27th St",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 1034,
+   "z": -1397,
+   "y": 5.46,
+   "chain": 101,
+   "name": "Canal Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 2112.62,
+   "z": -1370.32,
+   "y": 2.13,
+   "grade": -10.96,
+   "kink": 0.07,
+   "chain": 104,
+   "name": "Drexel Ave",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 125.32,
+   "z": -1203.2,
+   "len": 10,
+   "minY": 0.29,
+   "chain": 113,
+   "name": "NW 2nd Ave",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 2370.89,
+   "z": -963.14,
+   "y": 0.82,
+   "grade": 9.52,
+   "kink": 0.73,
+   "chain": 118,
+   "name": "Collins Ave",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckLow",
+   "x": -149.22,
+   "z": -776.08,
+   "len": 30,
+   "minY": 0,
+   "chain": 124,
+   "name": "NW 6th St",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1963.01,
+   "z": -441.83,
+   "y": 1.37,
+   "grade": 9.01,
+   "kink": 0.3,
+   "chain": 141,
+   "name": "18th St",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1941.55,
+   "z": -436.85,
+   "y": 3.54,
+   "grade": 10.38,
+   "kink": 0.02,
+   "chain": 141,
+   "name": "18th St",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -1815,
+   "z": -429,
+   "y": 5.39,
+   "chain": 142,
+   "name": "County Road 846",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": -1394.72,
+   "z": -126.9,
+   "y": 2.01,
+   "grade": -9.3,
+   "kink": -0.99,
+   "chain": 158,
+   "name": "Airboat Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": -4928.26,
+   "z": -127.81,
+   "y": 3.63,
+   "grade": -9.52,
+   "kink": 0.01,
+   "chain": 168,
+   "name": "Heron Ln",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 267.53,
+   "z": -47.1,
+   "y": 2.88,
+   "grade": -9.54,
+   "kink": -0.59,
+   "chain": 170,
+   "name": "SW 1st Ave",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -3421,
+   "z": 253,
+   "y": 5.54,
+   "chain": 193,
+   "name": "County Road 721",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 1826.96,
+   "z": 275.73,
+   "len": 22,
+   "minY": 0,
+   "chain": 202,
+   "name": "Dock St",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 1881,
+   "z": 374,
+   "y": 5.25,
+   "chain": 202,
+   "name": "Dock St",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 1738,
+   "z": 418,
+   "y": 5.5,
+   "chain": 205,
+   "name": "Container Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1784.43,
+   "z": 592.06,
+   "y": 4.94,
+   "grade": -9.98,
+   "kink": 0,
+   "chain": 210,
+   "name": "Container Rd",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1771.63,
+   "z": 610.36,
+   "y": 2.74,
+   "grade": -9.51,
+   "kink": 0.09,
+   "chain": 210,
+   "name": "Container Rd",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 51.47,
+   "z": 885.83,
+   "len": 8,
+   "minY": 0.47,
+   "chain": 217,
+   "name": "State Road 970",
+   "kind": "trunk"
+  },
+  {
+   "cls": "deckStep",
+   "x": 435.06,
+   "z": 1259.53,
+   "y": 1.42,
+   "grade": 9.13,
+   "kink": 0.17,
+   "chain": 230,
+   "name": "Miami Ave",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 2200,
+   "z": 1375,
+   "y": 1.82,
+   "chain": 236,
+   "name": "Main St",
+   "kind": "residential"
+  },
+  {
+   "cls": "deckLow",
+   "x": -795.21,
+   "z": 2392.7,
+   "len": 30,
+   "minY": 0,
+   "chain": 252,
+   "name": "Bay St",
+   "kind": "residential"
+  }
+ ],
+ "when": "2026-11-19T14:24:07.752Z",
+ "build": "b20261119-010725",
+ "need": 4.8,
+ "spots": 0,
+ "roadSpots": 0,
+ "deckSpots": 0,
+ "samples": 0,
+ "netStats": {
+  "infeasible": 45,
+  "liftedOverRoad": 0,
+  "droppedUnder": 0,
+  "deckJoin": 57,
+  "deckJoinFar": 0,
+  "squeezed": 2153,
+  "conflicts": 1,
+  "barLaneDrop": 4008
+ },
+ "list": []
+}
