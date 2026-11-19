@@ -196,6 +196,17 @@ How the world and the systems connect. If something here is wrong, fix the code 
   an accelerated canvas: create canvases you read with `willReadFrequently`); never ray-test the whole scene
   (`scene.traverse` + `Raycaster` against every InstancedMesh); a new shader program is never first-used in a frame
   (`src/perf/shaderGate.v2.js` skips the draw until it links; `?shadergate=0` = off).
+- **Frame budget / benchmark (perf lead, Nov 19).** The 60 fps gate is measured in the Mac app, not headless:
+  `node tools/v2/bench.mjs --label <x> [--web <vite build dir> | --app <Southline.app>] [--preset high] [--jsflags "..."]`
+  plays a fixed route (`src/perf/bench.v2.js`, `?bench=<label>`; Mac app `--ps-bench=<label>`): spawn, walk, drive the
+  Keys, downtown, beach, downtown at night; report `docs/v2/reports/bench-<label>.json` (p50/p95/p99, frames over
+  16.7/25/33/50/100 ms, per-segment system times, worst frames with what ran, GC count, console errors) + summary lines in
+  the test profile's app log. Teleport settles are recorded apart (load screens). CPU / allocation profile of the same route
+  over DevTools: `node tools/v2/bench-prof.mjs --web <unminified build> --segs downtown,night --heap 1`.
+  Rules from the measurements: no CPU readback of GPU data in a frame (`readPixels`, `getBufferSubData`, `getImageData` on
+  an accelerated canvas: create canvases you read with `willReadFrequently`); never ray-test the whole scene
+  (`scene.traverse` + `Raycaster` against every InstancedMesh); a new shader program is never first-used in a frame
+  (`src/perf/shaderGate.v2.js` skips the draw until it links; `?shadergate=0` = off).
 - **Water edge (Nov 18).** The ocean reads the opaque scene depth (copied before its first pass) for the true water depth
   near the shore: ground meeting the water needs no special mesh work; `?softshore=0` = old edge.
 
