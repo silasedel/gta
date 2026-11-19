@@ -17,6 +17,7 @@ const ROUTE = [
   { id: 'downtown', kind: 'drive', at: [407, -110], secs: 35, tod: 15, speed: 22 },
   { id: 'beach', kind: 'walk', at: [2332, -660], secs: 15, tod: 13 },
   { id: 'night', kind: 'drive', at: [407, -110], secs: 30, tod: 22, speed: 22 },
+  { id: 'house', kind: 'walk', house: true, secs: 15, tod: 16 }, // Nico's house and dock (the story start)
 ];
 
 function pct(sorted, p) {
@@ -153,11 +154,25 @@ export function initV2(game) {
     const gy = game.groundHeightAt ? game.groundHeightAt(_p.x, _p.z) : null;
     const y = (Number.isFinite(gy) ? gy : _p.y) + 0.9;
     const half = _p.h / 2;
+    // kinematic while the route drives it: a dynamic body teleported every sub-step into curbs and traffic made the solver
+    // resolve deep penetrations (a cost a real drive never has); it still pushes traffic and streams like a real car
+    const R = game.RAPIER;
+    if (!drive.kin && R?.RigidBodyType) { try { v.body.setBodyType(R.RigidBodyType.KinematicPositionBased, true); drive.kin = true; } catch (e) { drive.kin = 'no'; } }
+    if (drive.kin === true) {
+      v.body.setNextKinematicTranslation({ x: _p.x, y, z: _p.z });
+      v.body.setNextKinematicRotation({ x: 0, y: Math.sin(half), z: 0, w: Math.cos(half) });
+      return;
+    }
     v.body.setTranslation({ x: _p.x, y, z: _p.z }, true);
     v.body.setRotation({ x: 0, y: Math.sin(half), z: 0, w: Math.cos(half) }, true);
     v.body.setLinvel({ x: Math.sin(_p.h) * drive.speed, y: 0, z: Math.cos(_p.h) * drive.speed }, true);
     v.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
   });
+  function endDrive() {
+    try { if (drive.kin === true) { drive.v.body.setBodyType(game.RAPIER.RigidBodyType.Dynamic, true); drive.v.body.setLinvel({ x: 0, y: 0, z: 0 }, true); } } catch (e) { /* */ }
+    try { game.exitVehicle?.(); } catch (e) { /* */ }
+    drive = null;
+  }
   game.updaters.push(function benchDriveClock(dt) { if (drive) drive.s += dt * drive.speed; });
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -212,7 +227,14 @@ export function initV2(game) {
       game.timeOfDay = R.tod;
       releaseAll();
       game.cameraOverride = null;
-      if (drive) { try { game.exitVehicle?.(); } catch (e) { /* */ } drive = null; }
+      if (drive) { endDrive(); }
+      if (R.house) {
+        const A = game.nicoHouse?.anchors || {};
+        const a = A.dock || A.front || A.spawn || null; // the dock view (outside); the bedroom spawn as a fallback
+        const p = a?.pos;
+        if (!p || !Number.isFinite(p.x)) continue;
+        game.teleport(p.x, p.y + 0.1, p.z, a.heading ?? 0); await settleAfterTeleport(R.id);
+      }
       if (R.at) { game.teleport(R.at[0], undefined, R.at[1], 0); await settleAfterTeleport(R.id); }
       if (R.kind === 'drive') {
         const p = game.player.position;
@@ -241,7 +263,7 @@ export function initV2(game) {
       releaseAll();
       closeSeg(S);
     }
-    if (drive) { try { game.exitVehicle?.(); } catch (e) { /* */ } drive = null; }
+    if (drive) endDrive();
     game.teleport(spawn.x, undefined, spawn.z, spawn.h);
     finish(tReady);
   }
