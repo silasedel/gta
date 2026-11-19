@@ -89,7 +89,10 @@ const ROUGH_D = /Overtown|Liberty City/;
 export const CASINO = { name: 'casino_tower', x: 2183, y: -2.3, z: -370, ry: -Math.PI / 2, s: 1 }; // y: the model's plaza sits 2.3 m below its lowest part // Miami Beach superblock, entrance faces Collins Ave (west)
 // Miami International (layout.json airport, apron between the two runways), placed by hand: the terminal (synthetic lots that the
 // procedural facade builder draws: glass curtain wall, canopy roof), the user's control tower and jet bridges at its gates, runway lights
-export const AIRPORT = {
+// airports agent (Nov 19): both airports are now built by src/world/airport (airports.json: runways, terminal, towers, gates,
+// parked and flying airliners, lights). This old hand-placed set stays only for A/B with ?oldairport=1.
+const OLD_AIRPORT = typeof location !== 'undefined' && /[?&]oldairport=1\b/.test(location.search);
+export const AIRPORT = !OLD_AIRPORT ? { runways: [], terminal: [], fixed: [] } : {
   // runway outlines (features.json areas a1 / a2): edge, threshold and approach lights are laid out from these
   runways: [[[-794.24, 636.31], [-789.76, 507.69], [-2054.76, 463.69], [-2059.24, 592.31]], [[-849.39, 1720.82], [-800.61, 1645.18], [-1977.61, 886.18], [-2026.39, 961.82]]],
   terminal: [ // footprints (x, z), heights: main hall, gate pier wing toward the access loop
@@ -439,6 +442,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0), C = new THREE.Color();
   function nightOf(h) { return h >= 19.5 || h < 6 ? 1 : h > 18.6 ? (h - 18.6) / 0.9 : h < 7 ? 1 - (h - 6) : 0; }
   let R = null, CAM = null;
+  let fenceDirty = false;
   function tick(renderer, cam) {
     R = renderer; CAM = cam;
     const fr = renderer.info.render.frame; if (fr === tickFrame) return; tickFrame = fr;
@@ -511,9 +515,9 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     const lm = new THREE.MeshStandardMaterial({ color: 0x9a9a96, roughness: 0.5, metalness: 0.3 });
     lm.onBeforeCompile = (sh) => { sh.uniforms.uLibNight = nightU; sh.fragmentShader = 'uniform float uLibNight;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += vColor * (uLibNight * 14.0 + 0.6);').replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb = mix(vec3(0.6), diffuseColor.rgb, 0.0);'); };
     lm.customProgramCacheKey = () => 'libbld-rwylight';
-    const im = new THREE.InstancedMesh(g, lm, n); im.name = 'runway-lights'; im.userData.noDetailCull = true; im.castShadow = false; im.receiveShadow = false;
+    if (n) { const im = new THREE.InstancedMesh(g, lm, n); im.name = 'runway-lights'; im.userData.noDetailCull = true; im.castShadow = false; im.receiveShadow = false;
     for (let i = 0; i < n; i++) { const x = pts[i * 2], z = pts[i * 2 + 1]; M4.makeTranslation(x, ground ? ground(x, z) || 0 : 0, z); im.setMatrixAt(i, M4); im.setColorAt(i, COLS[col[i]]); }
-    im.computeBoundingSphere(); if (!OFF) group.add(im);
+    im.computeBoundingSphere(); if (!OFF) group.add(im); } // airports agent: no old runways -> no fixtures (src/world/airport draws the lights)
   }
   // ---- rough side: chain-link fences around the vacant overgrown lots (tile areas cls 'dirt' in Overtown / Liberty City) ----
   // panels 1.8 m on galvanized posts, inset 0.4 m into the lot, some panels missing (cut open) or leaning; one instanced draw
@@ -531,7 +535,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   const postMat = new THREE.MeshStandardMaterial({ color: 0x9a9e9c, metalness: 0.6, roughness: 0.5 });
   const fencePanels = new THREE.InstancedMesh(panelGeo, panelMat, 4096), fencePosts = new THREE.InstancedMesh(postGeo, postMat, 4096);
   for (const m of [fencePanels, fencePosts]) { m.count = 0; m.frustumCulled = false; m.receiveShadow = true; group.add(m); } fencePosts.castShadow = true; fencePanels.name = 'rough-fence-mesh'; fencePosts.name = 'rough-fence-posts';
-  let fenceDirty = false;
+  /* fenceDirty declared above tick() (was a temporal-dead-zone crash at boot) */
   function lotFences(tile) {
     if (OFF || !districtAt || !tile || tile.x0 === undefined) return null; const key = tile.x0 + ',' + tile.z0;
     if (fences.has(key)) return fences.get(key); const out = []; fences.set(key, out);

@@ -14,7 +14,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AIR_TYPES } from './types.js';
 import { createSim, stepSim, attitude } from './flight/sim.js';
 import { createAirFx, makePropDisc } from './airfx.js';
-import { buildAirportFence } from '../../world/airport/fence.js';
+import AIRPORT_DATA from '../../world/airport/airports.json';
 
 export const order = 186;
 const Q = typeof location !== 'undefined' ? location.search : '';
@@ -214,7 +214,9 @@ export async function initV2(game) {
     try {
       if (s.kind === 'airport') {
         if (city.collidersReadyAt && !city.collidersReadyAt(s.cx, s.cz) && s.tries++ < 20) { s.state = 'idle'; s.next = game.clock.elapsed + 3; return; }
-        const spots = pickSpots(s, apronSpots(s), s.spawn);
+        // GA ramp stands from the airport layout (src/world/airport/airports.json gaStands); the old apron scan as fallback
+        const apd = AIRPORT_DATA.airports.find((a) => a.id === s.id), ga = apd?.gaStands || [];
+        const spots = ga.length ? s.spawn.map((kind, i) => { const g = kind === 'bizjet' ? ga[ga.length - 1] : ga[Math.min(i, ga.length - 2)]; return g && { kind, x: g.x, z: g.z, heading: g.heading, R: kind === 'bizjet' ? 15 : 7.5 }; }).filter(Boolean) : pickSpots(s, apronSpots(s), s.spawn);
         s.spotInfo = spots;
         for (const p of spots) {
           const T = AIR_TYPES[p.kind], gy = city.groundHeightAt(p.x, p.z);
@@ -228,17 +230,12 @@ export async function initV2(game) {
       s.state = 'live';
     } catch (e) { console.error('[air] populate', s.id, e); s.state = 'failed'; }
   }
-  function buildFence(s) {
-    if (FENCE_OFF || s.kind !== 'airport' || s.fence) return;
-    try { const t0 = performance.now(); s.fence = buildAirportFence({ city, world, RAPIER, scene, rect: s.rect }); s.fence.stats.ms = Math.round(performance.now() - t0); }
-    catch (e) { console.error('[air] fence', s.id, e); s.fence = { failed: true, stats: { error: String(e) } }; }
-  }
+  // the perimeter fence is built by src/world/airport (airports.json airside polygon, gates, climbable)
   function streamSites() {
     const pp = game.player?.position; if (!pp) return;
     for (const s of sites) {
       const d = Math.hypot(pp.x - s.cx, pp.z - s.cz);
       // far away: hide only (never remove Rapier bodies at runtime: other systems may still hold the vehicle / handles)
-      if (s.kind === 'airport') { if (d < 2600 && !s.fence) buildFence(s); if (s.fence?.group) s.fence.group.visible = d < 4200; }
       if (s.state === 'idle' && d < 1500 && game.clock.elapsed >= s.next) populate(s);
       if (s.state === 'live') for (const A of s.planes) { const show = d < 2800 || A.playerDriven || A.active; if (A.mesh.visible !== show) A.mesh.visible = show; }
     }
@@ -447,5 +444,5 @@ export async function initV2(game) {
     return Math.hypot(dx, dz) + (Math.abs(pos.y - S.pos.y) > 6 ? 99 : 0);
   }
   game.vehicles?.registerKind?.('aircraft', impl);
-  game.air = { list, types: AIR_TYPES, fx, sites, spawn: impl.spawn, remove: removeAircraft, attitude: (A) => attitude(A.S), fenceStats: () => sites.filter((s) => s.fence).map((s) => ({ id: s.id, ...s.fence.stats })) };
+  game.air = { list, types: AIR_TYPES, fx, sites, spawn: impl.spawn, remove: removeAircraft, attitude: (A) => attitude(A.S), fenceStats: () => game.airport?.fenceStats?.() || [] };
 }

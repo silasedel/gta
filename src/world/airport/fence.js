@@ -1,207 +1,130 @@
-// r4-air: airport perimeter fence (user: "an actual metal fence all around, like in real life").
-// Security chain-link: galvanized line posts every ~3 m (heavier corner / gate posts), a top rail, chain-link fabric
-// (procedural diamond mesh texture, see-through), 45-degree barbed-wire arms leaning out with three strands, and open
-// sliding gates where roads cross the line. Traced from the city's 'airport' zone raster (eroded one cell so the fence
-// stands inside the airport edge), simplified, laid on the terrain. Static cuboid colliders per span keep cars, people
-// and planes out. Library check (Models/Fences): no chain-link model (Fence 3/6 are welded-mesh panels), so this is a
-// clean instanced kit: one draw call per part per chunk.
+// Airport perimeter fence (airports agent, Nov 19; r4-air kit): galvanized chain-link, 2.15 m, line posts every ~3 m,
+// a top rail, 45-degree barbed-wire arms leaning OUT with three strands. It follows the airside polygon of
+// airports.json all the way round with NO gaps: where the terminal stands on the line the building is the barrier, and
+// at the vehicle gates a closed sliding gate (chain-link leaf on a steel frame) fills the opening, with a guard booth and
+// a red-and-white barrier arm outside. Static colliders per span; climbable (src/world/airport/climb.js asks
+// nearest(x, z) for the span, its outward normal and height).
 import * as THREE from 'three';
 
-const CELL = 8, POST = 3.0, H = 2.15, ARM = 0.5, TILE = 0.1;   // TILE: one chain-link diamond (m)
+const POST = 3.0, H = 2.15, ARM = 0.5, TILE = 0.1;
 
 function diamondTexture() {
   const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
-  const g = c.getContext('2d'); g.clearRect(0, 0, S, S);
-  g.strokeStyle = 'rgba(196,201,204,1)'; g.lineWidth = 5; g.lineCap = 'round';
-  // one 0.3 m tile: two diagonal wires (they meet at the tile edges -> diamonds)
+  const g = c.getContext('2d'); g.clearRect(0, 0, S, S); g.fillStyle = 'rgba(170,176,180,0.16)'; g.fillRect(0, 0, S, S);   // the far-off sheen of the mesh
+  g.strokeStyle = 'rgba(196,201,204,1)'; g.lineWidth = 7; g.lineCap = 'round';
   g.beginPath(); g.moveTo(0, 0); g.lineTo(S, S); g.moveTo(S, 0); g.lineTo(0, S); g.stroke();
   g.strokeStyle = 'rgba(120,126,130,0.9)'; g.lineWidth = 1.5;
   g.beginPath(); g.moveTo(2, 0); g.lineTo(S, S - 2); g.moveTo(S - 2, 0); g.lineTo(0, S - 2); g.stroke();
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
-
-// contour of mask (nx x nz booleans, cell centers at x0 + i*CELL) -> closed / open polylines in world xz
-function contours(mask, nx, nz, x0, z0) {
-  const segs = [], at = (i, j) => (i >= 0 && j >= 0 && i < nx && j < nz ? mask[j * nx + i] : 0);
-  const P = (i, j, e) => { // edge midpoint of cell (i, j): 0 top (j), 1 right, 2 bottom, 3 left
-    const x = x0 + i * CELL, z = z0 + j * CELL;
-    return e === 0 ? [x + CELL / 2, z] : e === 1 ? [x + CELL, z + CELL / 2] : e === 2 ? [x + CELL / 2, z + CELL] : [x, z + CELL / 2];
-  };
-  const T = { 1: [[3, 2]], 2: [[2, 1]], 3: [[3, 1]], 4: [[0, 1]], 5: [[3, 0], [2, 1]], 6: [[0, 2]], 7: [[3, 0]], 8: [[0, 3]], 9: [[0, 2]], 10: [[0, 1], [3, 2]], 11: [[0, 1]], 12: [[3, 1]], 13: [[2, 1]], 14: [[3, 2]] };
-  for (let j = -1; j < nz; j++) for (let i = -1; i < nx; i++) {
-    const a = at(i, j), b = at(i + 1, j), cc = at(i + 1, j + 1), d = at(i, j + 1);
-    const k = a * 8 + b * 4 + cc * 2 + d; if (!T[k]) continue;
-    for (const [e0, e1] of T[k]) segs.push([P(i, j, e0), P(i, j, e1)]);
-  }
-  // chain segments by shared endpoints
-  const key = (p) => Math.round(p[0] * 2) + ',' + Math.round(p[1] * 2), ends = new Map();
-  segs.forEach((s, idx) => { for (const p of s) { const k = key(p); if (!ends.has(k)) ends.set(k, []); ends.get(k).push(idx); } });
-  const used = new Uint8Array(segs.length), lines = [];
-  for (let s0 = 0; s0 < segs.length; s0++) {
-    if (used[s0]) continue; used[s0] = 1;
-    const line = [segs[s0][0], segs[s0][1]];
-    for (const dir of [1, -1]) {
-      for (;;) {
-        const tip = dir > 0 ? line[line.length - 1] : line[0];
-        const nb = (ends.get(key(tip)) || []).find((q) => !used[q]); if (nb === undefined) break;
-        used[nb] = 1; const s = segs[nb], nxt = key(s[0]) === key(tip) ? s[1] : s[0];
-        if (dir > 0) line.push(nxt); else line.unshift(nxt);
-      }
-    }
-    lines.push(line);
-  }
-  return lines;
-}
-function rdp(pts, eps) {
-  if (pts.length < 3) return pts;
-  const closed = pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1];
-  if (closed) { // a loop: split at the vertex farthest from the start, simplify both halves
-    let fi = 0, fd = -1; for (let i = 1; i < pts.length - 1; i++) { const d = Math.hypot(pts[i][0] - pts[0][0], pts[i][1] - pts[0][1]); if (d > fd) { fd = d; fi = i; } }
-    if (fi > 0) return rdp(pts.slice(0, fi + 1), eps).slice(0, -1).concat(rdp(pts.slice(fi), eps));
-  }
-  const [ax, az] = pts[0], [bx, bz] = pts[pts.length - 1], dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz) || 1;
-  let md = 0, mi = 0;
-  for (let i = 1; i < pts.length - 1; i++) { const d = Math.abs((pts[i][0] - ax) * dz - (pts[i][1] - az) * dx) / L; if (d > md) { md = d; mi = i; } }
-  if (md <= eps) return [pts[0], pts[pts.length - 1]];
-  return rdp(pts.slice(0, mi + 1), eps).slice(0, -1).concat(rdp(pts.slice(mi), eps));
+function signTexture() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g2 = c.getContext('2d');
+  g2.fillStyle = '#f4f4f0'; g2.fillRect(0, 0, 256, 128); g2.fillStyle = '#b3171d'; g2.fillRect(0, 0, 256, 38); g2.fillStyle = '#fff'; g2.font = 'bold 26px Arial'; g2.textAlign = 'center'; g2.fillText('RESTRICTED AREA', 128, 28);
+  g2.fillStyle = '#1b1b1b'; g2.font = 'bold 19px Arial'; g2.fillText('AIRPORT OPERATIONS', 128, 66); g2.font = '16px Arial'; g2.fillText('No trespassing. Violators', 128, 92); g2.fillText('will be prosecuted.', 128, 114);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
-// opts: { city, world, RAPIER, scene, rect: [x0, z0, x1, z1], zone: 'airport' }
-export function buildAirportFence(opts) {
-  const { city, scene, world, RAPIER } = opts, [rx0, rz0, rx1, rz1] = opts.rect, zone = opts.zone || 'airport';
-  const nx = Math.ceil((rx1 - rx0) / CELL), nz = Math.ceil((rz1 - rz0) / CELL);
-  const raw = new Uint8Array(nx * nz);
-  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
-    const x = rx0 + (i + 0.5) * CELL, z = rz0 + (j + 0.5) * CELL;
-    raw[j * nx + i] = city.zoneAt(x, z) === zone ? 1 : 0;
-  }
-  // close small notches (dilate, then erode twice): one clean outline that stands ~1 cell inside the zone edge
-  const morph = (src, keep) => { const out = new Uint8Array(nx * nz); for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { let n = 0, s = 0; for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++) { const ii = i + a, jj = j + b; if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue; n++; s += src[jj * nx + ii]; } out[j * nx + i] = keep(s, n, src[j * nx + i]) ? 1 : 0; } return out; };
-  let m = morph(raw, (s) => s > 0); m = morph(m, (s, n) => s === n); m = morph(m, (s, n) => s === n);
-  // keep the biggest connected region only (the airfield), fill its holes
-  const lab = new Int32Array(nx * nz), sizes = [0]; let L = 0;
-  for (let s = 0; s < nx * nz; s++) { if (!m[s] || lab[s]) continue; L++; let n = 0; const st = [s]; lab[s] = L; while (st.length) { const c = st.pop(); n++; const i = c % nx, j = (c / nx) | 0; for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ii = i + a, jj = j + b; if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue; const q = jj * nx + ii; if (m[q] && !lab[q]) { lab[q] = L; st.push(q); } } } sizes.push(n); }
-  let big = 1; for (let k = 1; k <= L; k++) if (sizes[k] > sizes[big]) big = k;
-  const mask = new Uint8Array(nx * nz); for (let s = 0; s < nx * nz; s++) mask[s] = lab[s] === big ? 1 : 0;
-  { // fill holes: outside flood from the border; anything unreached and not mask -> mask
-    const out = new Uint8Array(nx * nz), st = [];
-    for (let i = 0; i < nx; i++) for (const j of [0, nz - 1]) { const q = j * nx + i; if (!mask[q] && !out[q]) { out[q] = 1; st.push(q); } }
-    for (let j = 0; j < nz; j++) for (const i of [0, nx - 1]) { const q = j * nx + i; if (!mask[q] && !out[q]) { out[q] = 1; st.push(q); } }
-    while (st.length) { const c = st.pop(), i = c % nx, j = (c / nx) | 0; for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ii = i + a, jj = j + b; if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue; const q = jj * nx + ii; if (!mask[q] && !out[q]) { out[q] = 1; st.push(q); } } }
-    for (let s = 0; s < nx * nz; s++) if (!out[s]) mask[s] = 1;
-  }
-  const inside = (x, z) => { const i = Math.floor((x - rx0) / CELL), j = Math.floor((z - rz0) / CELL); return i >= 0 && j >= 0 && i < nx && j < nz && mask[j * nx + i] === 1; };
-  const lines = contours(mask, nx, nz, rx0 + CELL / 2, rz0 + CELL / 2).map((l) => rdp(l, 3.5)).filter((l) => l.length > 1);
-  // ---- lay posts along the outline; gaps at roads (gates) and over water
-  const roadAt = (x, z) => { try { const r = city.roadGraph?.nearestEdge?.(x, z, {}, 30); return r && r.dist < (r.edge.width || 8) / 2 + 2.5 ? r : null; } catch (e) { return null; } };
-  const gy = (x, z) => city.groundHeightAt(x, z);
-  const runs = [], gates = [];
-  for (const line of lines) {
-    let run = null, gap = null;
-    const flush = () => { if (run && run.length > 1) runs.push(run); run = null; };
-    for (let k = 0; k < line.length - 1; k++) {
-      const [ax, az] = line[k], [bx, bz] = line[k + 1], len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(len / POST));
-      for (let s = (k === 0 ? 0 : 1); s <= n; s++) {
-        const t = s / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t;
-        const blocked = city.isWater?.(x, z) || roadAt(x, z);
-        if (blocked) { if (run) { if (!gap && !city.isWater?.(x, z)) gap = { a: run[run.length - 1] }; flush(); } continue; }
-        const p = { x, z, y: gy(x, z) };
-        if (!run) { run = []; if (gap) { gap.b = p; const gl = Math.hypot(gap.b.x - gap.a.x, gap.b.z - gap.a.z); if (gl > 4 && gl < 45) gates.push(gap); gap = null; } }
-        run.push(p);
-      }
+// opts: { scene/group, world, RAPIER, ground(x, z), ring: [[x, z]...] (closed, airside inside), gates: [{ x, z, w }], skip(x, z) -> bool (a building is the barrier there), inside(x, z) }
+export function buildFence(opts) {
+  const { group: parent, world, RAPIER, ground, ring, gates = [], skip = () => false, inside } = opts;
+  // resample the ring into posts every ~3 m; break runs at gates and where skip() says a building stands
+  const n = ring.length, runs = [], gateSpans = [];
+  let run = [];
+  const flush = () => { if (run.length > 1) runs.push(run); run = []; };
+  const gateAt = (x, z) => gates.find((g) => Math.hypot(g.x - x, g.z - z) < g.w / 2 + 0.6);
+  let gateOpen = null;
+  for (let k = 0; k < n; k++) {
+    const [ax, az] = ring[k], [bx, bz] = ring[(k + 1) % n], len = Math.hypot(bx - ax, bz - az), m = Math.max(1, Math.round(len / POST));
+    for (let s = 0; s < m; s++) {
+      const t = s / m, x = ax + (bx - ax) * t, z = az + (bz - az) * t;
+      const g = gateAt(x, z);
+      if (g || skip(x, z)) { if (g && run.length && !gateOpen) gateOpen = { g, a: run[run.length - 1] }; flush(); continue; }
+      const p = { x, z, y: ground(x, z) };
+      if (!run.length && gateOpen) { gateSpans.push({ ...gateOpen, b: p }); gateOpen = null; }
+      run.push(p);
     }
-    flush();
   }
-  // ---- geometry
-  const group = new THREE.Group(); group.name = 'airport-fence';
+  flush();
+  // the ring is closed: join the last run to the first when they meet
+  if (runs.length > 1) { const f = runs[0], l = runs[runs.length - 1], a = l[l.length - 1], b = f[0]; if (Math.hypot(a.x - b.x, a.z - b.z) < POST * 1.6) { runs[0] = l.concat(f); runs.pop(); } }
+  else if (runs.length === 1) { const r = runs[0]; if (Math.hypot(r[0].x - r[r.length - 1].x, r[0].z - r[r.length - 1].z) < POST * 1.6) r.push(r[0]); }
+
+  const group = new THREE.Group(); group.name = 'airport-fence'; parent.add(group);
   const steel = new THREE.MeshStandardMaterial({ color: 0x9ea4a8, metalness: 0.65, roughness: 0.42 });
   const fabricMat = new THREE.MeshStandardMaterial({ map: diamondTexture(), color: 0xd8dde0, metalness: 0.55, roughness: 0.45, transparent: true, alphaTest: 0.04, depthWrite: false, side: THREE.DoubleSide });
   const wireMat = new THREE.LineBasicMaterial({ color: 0x55595c });
   const postGeo = new THREE.CylinderGeometry(0.03, 0.03, 1, 8).translate(0, 0.5, 0), railGeo = new THREE.CylinderGeometry(0.021, 0.021, 1, 6).rotateZ(Math.PI / 2).translate(0.5, 0, 0);
   const armGeo = new THREE.BoxGeometry(0.035, ARM, 0.035).translate(0, ARM / 2, 0);
-  const posts = [], rails = [], arms = [], fab = { p: [], uv: [], idx: [] }, wires = [];
+  const posts = [], rails = [], arms = [], fab = { p: [], uv: [], idx: [], u: 0 }, wires = [], spans = [];
   const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), V = new THREE.Vector3(), Sc = new THREE.Vector3();
-  const outward = (a, b) => { const dx = b.x - a.x, dz = b.z - a.z, l = Math.hypot(dx, dz) || 1; let nx = dz / l, nz = -dx / l; const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2; if (inside(mx + nx * 6, mz + nz * 6)) { nx = -nx; nz = -nz; } return [nx, nz]; };
-  let spans = 0;
-  const colliders = [];
-  for (const run of runs) {
-    for (let i = 0; i < run.length; i++) {
-      const p = run[i], end = i === 0 || i === run.length - 1;
-      const prev = run[Math.max(0, i - 1)], next = run[Math.min(run.length - 1, i + 1)];
-      const [ox, oz] = outward(prev === p ? p : prev, next === p ? p : next);
-      const hgt = H + 0.08;
-      Sc.set(end ? 1.8 : 1, hgt, end ? 1.8 : 1); M.compose(V.set(p.x, p.y - 0.05, p.z), Q.identity(), Sc); posts.push(M.clone());
-      // barbed-wire arm: leans 45 deg outward
-      const yaw = Math.atan2(ox, oz); E.set(Math.PI / 4, yaw, 0, 'YXZ'); Q.setFromEuler(E);
-      M.compose(V.set(p.x, p.y + hgt - 0.05, p.z), Q, Sc.set(1, 1, 1)); arms.push(M.clone());
-      if (i < run.length - 1) {
-        const q = run[i + 1], dx = q.x - p.x, dz = q.z - p.z, dy = q.y - p.y, len = Math.hypot(dx, dz);
-        if (len > 8) continue;   // a jump (should not happen inside a run)
-        spans++;
-        // top rail
-        const ry = Math.atan2(-dz, dx), rp = Math.atan2(dy, len);
-        E.set(0, ry, rp, 'YZX'); Q.setFromEuler(E); M.compose(V.set(p.x, p.y + H, p.z), Q, Sc.set(Math.hypot(len, dy), 1, 1)); rails.push(M.clone());
-        // fabric quad (u per 0.3 m tile, v per 0.3 m)
-        const b = fab.p.length / 3, u0 = (fab.u || 0), u1 = u0 + len / TILE;
-        fab.p.push(p.x, p.y + 0.04, p.z, q.x, q.y + 0.04, q.z, q.x, q.y + H, q.z, p.x, p.y + H, p.z);
-        fab.uv.push(u0, 0, u1, 0, u1, (H - 0.04) / TILE, u0, (H - 0.04) / TILE); fab.idx.push(b, b + 1, b + 2, b, b + 2, b + 3); fab.u = u1 % 64;
-        // three barbed strands along the arm tips
-        const [ox2, oz2] = outward(p, q);
-        for (const f of [0.33, 0.66, 1.0]) { const o = ARM * f * Math.SQRT1_2, hh = H + 0.03 + ARM * f * Math.SQRT1_2; wires.push(p.x + ox * o, p.y + hh, p.z + oz * o, q.x + ox2 * o, q.y + hh, q.z + oz2 * o); }
-        colliders.push({ x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 + 1.45, z: (p.z + q.z) / 2, hx: len / 2 + 0.05, ry: Math.atan2(dx, dz) });
-      }
-    }
-  }
-  // ---- gates: heavy posts + an open sliding gate leaf parked along the fence inside the line, and a warning sign
-  const gateFrames = [];
-  for (const g of gates) {
-    for (const p of [g.a, g.b]) { Sc.set(3.2, H + 0.35, 3.2); M.compose(V.set(p.x, p.y - 0.05, p.z), Q.identity(), Sc); posts.push(M.clone()); }
-    const dx = g.b.x - g.a.x, dz = g.b.z - g.a.z, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
-    const [ox, oz] = outward(g.a, g.b), ix = -ox * 0.7, iz = -oz * 0.7;    // leaf slid back behind the fence (inside)
-    const a = { x: g.a.x - ux * len * 0.98 + ix, z: g.a.z - uz * len * 0.98 + iz }, b = { x: g.a.x + ix, z: g.a.z + iz };
-    a.y = gy(a.x, a.z); b.y = gy(b.x, b.z);
-    gateFrames.push({ a, b, len: len * 0.98 });
-  }
-  const chunkOf = new Map();
-  const addInst = (geo, mat, list, name) => { if (!list.length) return; const im = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((mm, i) => im.setMatrixAt(i, mm)); im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.name = name; im.castShadow = false; im.receiveShadow = true; group.add(im); };
-  void chunkOf;
-  addInst(postGeo, steel, posts, 'fence-posts'); addInst(railGeo, steel, rails, 'fence-rails'); addInst(armGeo, steel, arms, 'fence-arms');
-  if (fab.p.length) {
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(fab.p, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(fab.uv, 2)); g.setIndex(fab.idx); g.computeVertexNormals(); g.computeBoundingSphere();
-    const mesh = new THREE.Mesh(g, fabricMat); mesh.name = 'fence-fabric'; mesh.renderOrder = 2; group.add(mesh);
-  }
-  if (wires.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(wires, 3)); const ls = new THREE.LineSegments(g, wireMat); ls.name = 'fence-barbed'; group.add(ls); }
-  // gate leaves: framed chain-link panels on two small wheels
-  for (const f of gateFrames) {
-    const leaf = new THREE.Group(); leaf.name = 'fence-gate';
-    const dx = f.b.x - f.a.x, dz = f.b.z - f.a.z; leaf.position.set(f.a.x, Math.min(f.a.y, f.b.y), f.a.z); leaf.rotation.y = Math.atan2(-dz, dx);
-    const frame = (x0, y0, x1, y1) => { const l = Math.hypot(x1 - x0, y1 - y0), m = new THREE.Mesh(new THREE.BoxGeometry(l, 0.05, 0.05), steel); m.position.set((x0 + x1) / 2, (y0 + y1) / 2, 0); m.rotation.z = Math.atan2(y1 - y0, x1 - x0); leaf.add(m); };
-    frame(0, 0.12, f.len, 0.12); frame(0, H, f.len, H); frame(0, 0.12, 0, H); frame(f.len, 0.12, f.len, H); frame(0, 0.12, f.len, H);
-    const pg = new THREE.PlaneGeometry(f.len, H - 0.12); pg.translate(f.len / 2, (H + 0.12) / 2, 0); const uv = pg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * f.len / TILE, uv.getY(i) * (H - 0.12) / TILE);
-    leaf.add(new THREE.Mesh(pg, fabricMat));
-    // sign on the leaf
-    const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g2 = c.getContext('2d');
-    g2.fillStyle = '#f4f4f0'; g2.fillRect(0, 0, 256, 128); g2.fillStyle = '#b3171d'; g2.fillRect(0, 0, 256, 38); g2.fillStyle = '#fff'; g2.font = 'bold 26px Arial'; g2.textAlign = 'center'; g2.fillText('RESTRICTED AREA', 128, 28);
-    g2.fillStyle = '#1b1b1b'; g2.font = 'bold 19px Arial'; g2.fillText('AIRPORT OPERATIONS', 128, 66); g2.font = '16px Arial'; g2.fillText('Authorized vehicles only', 128, 92); g2.fillText('Southline Aviation Authority', 128, 114);
-    const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), new THREE.MeshStandardMaterial({ map: tx, roughness: 0.7, side: THREE.DoubleSide })); sign.position.set(f.len * 0.25, 1.3, 0.04); leaf.add(sign);
-    group.add(leaf);
-  }
-  scene.add(group);
-  // ---- colliders: one fixed body, a thin cuboid per span (and per gate leaf)
-  let body = null;
-  try {
-    body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
-    for (const c of colliders) {
-      const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), c.ry);
-      world.createCollider(RAPIER.ColliderDesc.cuboid(0.06, 1.5, c.hx).setTranslation(c.x, c.y, c.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }), body);
-    }
-    for (const f of gateFrames) { const dx = f.b.x - f.a.x, dz = f.b.z - f.a.z, q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(dx, dz)); world.createCollider(RAPIER.ColliderDesc.cuboid(0.06, 1.2, f.len / 2).setTranslation((f.a.x + f.b.x) / 2, f.a.y + 1.2, (f.a.z + f.b.z) / 2).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }), body); }
-  } catch (e) { console.warn('[fence] colliders', e); }
-  const stats = { runs: runs.length, posts: posts.length, spans, gates: gates.length, km: +(spans * POST / 1000).toFixed(2), colliders: colliders.length };
-  return {
-    group, stats, gates, inside,
-    dispose() { scene.remove(group); group.traverse((o) => { o.geometry?.dispose?.(); }); try { if (body) world.removeRigidBody(body); } catch (e) { /* */ } },
+  const outward = (a, b) => { const dx = b.x - a.x, dz = b.z - a.z, l = Math.hypot(dx, dz) || 1; let nx = dz / l, nz = -dx / l; const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2; if (inside && inside(mx + nx * 2, mz + nz * 2)) { nx = -nx; nz = -nz; } return [nx, nz]; };
+  const addSpan = (p, q, isGate) => {
+    const dx = q.x - p.x, dz = q.z - p.z, dy = q.y - p.y, len = Math.hypot(dx, dz); if (len < 0.05) return;
+    const ry = Math.atan2(-dz, dx), rp = Math.atan2(dy, len);
+    E.set(0, ry, rp, 'YZX'); Q.setFromEuler(E); M.compose(V.set(p.x, p.y + H, p.z), Q, Sc.set(Math.hypot(len, dy), 1, 1)); rails.push(M.clone());
+    if (isGate) { M.compose(V.set(p.x, p.y + 0.12, p.z), Q, Sc.set(Math.hypot(len, dy), 1, 1)); rails.push(M.clone()); }
+    const b = fab.p.length / 3, u0 = fab.u, u1 = u0 + len / TILE;
+    fab.p.push(p.x, p.y + 0.04, p.z, q.x, q.y + 0.04, q.z, q.x, q.y + H, q.z, p.x, p.y + H, p.z);
+    fab.uv.push(u0, 0, u1, 0, u1, (H - 0.04) / TILE, u0, (H - 0.04) / TILE); fab.idx.push(b, b + 1, b + 2, b, b + 2, b + 3); fab.u = u1 % 64;
+    const [ox, oz] = outward(p, q);
+    for (const f of [0.33, 0.66, 1.0]) { const o = ARM * f * Math.SQRT1_2, hh = H + 0.03 + ARM * f * Math.SQRT1_2; wires.push(p.x + ox * o, p.y + hh, p.z + oz * o, q.x + ox * o, q.y + hh, q.z + oz * o); }
+    spans.push({ ax: p.x, az: p.z, bx: q.x, bz: q.z, y: Math.min(p.y, q.y), nx: ox, nz: oz, len, gate: !!isGate });
   };
+  for (const r of runs) for (let i = 0; i < r.length; i++) {
+    const p = r[i], end = i === 0 || i === r.length - 1, prev = r[Math.max(0, i - 1)], next = r[Math.min(r.length - 1, i + 1)];
+    Sc.set(end ? 1.8 : 1, H + 0.08, end ? 1.8 : 1); M.compose(V.set(p.x, p.y - 0.05, p.z), Q.identity(), Sc); posts.push(M.clone());
+    const [ox, oz] = outward(prev === p ? p : prev, next === p ? p : next); E.set(Math.PI / 4, Math.atan2(ox, oz), 0, 'YXZ'); Q.setFromEuler(E);
+    M.compose(V.set(p.x, p.y + H + 0.03, p.z), Q, Sc.set(1, 1, 1)); arms.push(M.clone());
+    if (i < r.length - 1 && Math.hypot(r[i + 1].x - p.x, r[i + 1].z - p.z) < 8) addSpan(p, r[i + 1], false);
+  }
+  // gates: heavy posts, a closed leaf in the opening (framed chain-link, a diagonal brace), a booth and barrier arm outside
+  const booths = [];
+  for (const gs of gateSpans) {
+    const a = gs.a, b = gs.b;
+    for (const p of [a, b]) { Sc.set(3.4, H + 0.4, 3.4); M.compose(V.set(p.x, p.y - 0.05, p.z), Q.identity(), Sc); posts.push(M.clone()); }
+    addSpan(a, b, true);
+    const dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz), [ox, oz] = outward(a, b);
+    const brace = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(len, H - 0.2), 0.05, 0.05), steel); brace.position.set((a.x + b.x) / 2, a.y + H / 2, (a.z + b.z) / 2); brace.rotation.set(0, Math.atan2(-dz, dx), Math.atan2(H - 0.2, len), 'YZX'); group.add(brace);
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), new THREE.MeshStandardMaterial({ map: signTexture(), roughness: 0.7, side: THREE.DoubleSide })); sign.position.set((a.x + b.x) / 2 + ox * 0.05, a.y + 1.3, (a.z + b.z) / 2 + oz * 0.05); sign.rotation.y = Math.atan2(ox, oz); group.add(sign);
+    booths.push({ x: (a.x + b.x) / 2 + ox * 6 + (dx / len) * (len / 2 + 2.5), z: (a.z + b.z) / 2 + oz * 6 + (dz / len) * (len / 2 + 2.5), heading: Math.atan2(ox, oz), arm: { x: (a.x + b.x) / 2 + ox * 5, z: (a.z + b.z) / 2 + oz * 5, along: Math.atan2(dx, dz), len } });
+  }
+  // warning signs every ~150 m along the outside
+  const signMat = new THREE.MeshStandardMaterial({ map: signTexture(), roughness: 0.7 });
+  let acc = 0;
+  for (const sp of spans) { acc += sp.len; if (acc < 150 || sp.gate) continue; acc = 0; const m = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), signMat); m.position.set((sp.ax + sp.bx) / 2 + sp.nx * 0.06, sp.y + 1.35, (sp.az + sp.bz) / 2 + sp.nz * 0.06); m.rotation.y = Math.atan2(sp.nx, sp.nz); group.add(m); }
+  const addInst = (geo, mat, list, name) => { if (!list.length) return; const im = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((mm, i) => im.setMatrixAt(i, mm)); im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.name = name; im.castShadow = false; im.receiveShadow = true; group.add(im); };
+  addInst(postGeo, steel, posts, 'fence-posts'); addInst(railGeo, steel, rails, 'fence-rails'); addInst(armGeo, steel, arms, 'fence-arms');
+  if (fab.p.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(fab.p, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(fab.uv, 2)); g.setIndex(fab.idx); g.computeVertexNormals(); g.computeBoundingSphere(); const mesh = new THREE.Mesh(g, fabricMat); mesh.name = 'fence-fabric'; mesh.renderOrder = 2; group.add(mesh); }
+  if (wires.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(wires, 3)); const ls = new THREE.LineSegments(g, wireMat); ls.name = 'fence-barbed'; group.add(ls); }
+  // guard booths (white box with a window band and a flat roof) and barrier arms
+  const boothMat = new THREE.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.7 }), winMat = new THREE.MeshStandardMaterial({ color: 0x324452, roughness: 0.1, metalness: 0.3 });
+  const armMat = new THREE.MeshStandardMaterial({ map: (() => { const c = document.createElement('canvas'); c.width = 128; c.height = 8; const g = c.getContext('2d'); for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#ffffff' : '#d01a1a'; g.fillRect(i * 16, 0, 16, 8); } const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })(), roughness: 0.5 });
+  const body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+  for (const bo of booths) {
+    const y = ground(bo.x, bo.z), g = new THREE.Group(); g.position.set(bo.x, y, bo.z); g.rotation.y = bo.heading; group.add(g);
+    const w = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.6, 2.4), boothMat); w.position.y = 1.3; w.castShadow = true; g.add(w);
+    const win = new THREE.Mesh(new THREE.BoxGeometry(2.45, 0.9, 2.45), winMat); win.position.y = 1.75; g.add(win);
+    const rf = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.2, 3.0), boothMat); rf.position.y = 2.7; g.add(rf);
+    world.createCollider(RAPIER.ColliderDesc.cuboid(1.2, 1.3, 1.2).setTranslation(bo.x, y + 1.3, bo.z), body);
+    const a = bo.arm, ay = ground(a.x, a.z), arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, a.len * 0.9), armMat); arm.position.set(a.x, ay + 1.0, a.z); arm.rotation.y = a.along; group.add(arm);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), boothMat); post.position.set(a.x + Math.sin(a.along) * a.len * 0.47, ay + 0.55, a.z + Math.cos(a.along) * a.len * 0.47); group.add(post);
+  }
+  // colliders: a thin wall per span, 2.6 m high (the barbed arms count)
+  for (const sp of spans) {
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(sp.bx - sp.ax, sp.bz - sp.az));
+    world.createCollider(RAPIER.ColliderDesc.cuboid(0.06, 1.3, sp.len / 2 + 0.05).setTranslation((sp.ax + sp.bx) / 2, sp.y + 1.3, (sp.az + sp.bz) / 2).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }), body);
+  }
+  // nearest fence span to a point: { x, z (closest point), nx, nz (outward), y, d, gate }
+  function nearest(x, z, maxD = 3) {
+    let best = null, bd = maxD;
+    for (const sp of spans) {
+      if (Math.abs(sp.ax - x) > sp.len + maxD + 1 && Math.abs(sp.bx - x) > sp.len + maxD + 1) continue;
+      const dx = sp.bx - sp.ax, dz = sp.bz - sp.az, L2 = dx * dx + dz * dz; let t = L2 ? ((x - sp.ax) * dx + (z - sp.az) * dz) / L2 : 0; t = Math.max(0, Math.min(1, t));
+      const px = sp.ax + dx * t, pz = sp.az + dz * t, d = Math.hypot(px - x, pz - z);
+      if (d < bd) { bd = d; best = { x: px, z: pz, nx: sp.nx, nz: sp.nz, y: sp.y, d, gate: sp.gate, height: H + 0.35 }; }
+    }
+    return best;
+  }
+  return { group, nearest, stats: { runs: runs.length, posts: posts.length, spans: spans.length, gates: gateSpans.length, km: +(spans.reduce((s, p) => s + p.len, 0) / 1000).toFixed(2) }, gates: gateSpans };
 }

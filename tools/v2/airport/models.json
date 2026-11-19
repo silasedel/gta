@@ -1,0 +1,8 @@
+{
+ "terminal_hall": { "src": "Airport/Terminal Hall 1 - Check-In Counter Hall With Truss Roof/Terminal Hall 1.glb", "tris": 70000, "tex": 1024 },
+ "gate_sign": { "src": "Airport/Gate Sign 1 - Boarding Gate Podium Sign/Gate Sign 1.glb", "tris": 0, "tex": 512 },
+ "baggage_cart": { "src": "Airport/Baggage Cart 1 - Enclosed Luggage Trolley/Baggage Cart 1.glb", "tris": 0, "tex": 512 },
+ "catering_truck": { "src": "Airport/Airport Truck 1 - Animated Catering Lift Truck/Airport Truck 1.glb", "tris": 14000, "tex": 1024, "lod1": 1500, "bake1": false },
+ "suitcase": { "src": "Airport/Luggage 1 - Rolling Suitcase/Luggage 1.glb", "tris": 700, "tex": 256 },
+ "turboprop": { "src": "Planes/Plane 4 - Twin-Turboprop Regional Airliner/Plane 4.glb", "tris": 16000, "tex": 1024, "lod1": 2500, "bake1": false, "drop": "interior|lav|curtain|seat|cabin" }
+}

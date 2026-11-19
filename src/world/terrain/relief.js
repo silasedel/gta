@@ -14,7 +14,7 @@ const OFF = typeof location === 'undefined' || !/[?&]relief=1\b/.test(location.s
 const BUILT = new Set(['asphalt', 'concrete', 'pavers', 'tile', 'wood', 'metal', 'sidewalk', 'pier', 'building', 'water']);
 const FLAT_COVER = new Set(['parking', 'plaza', 'marina', 'pool', 'paved', 'apron', 'runway', 'taxiway', 'pitch', 'playground', 'construction', 'campground']);
 const COVER_W = { golf: 0.6, cemetery: 0.3, garden: 0.5, farmland: 0.35, grove: 0.6, park: 0.8, grass: 0.8, sand: 0.6, dune: 1.2, sawgrass: 0.45, wetland: 0.3, mangrove: 0.2 };
-const ZONE_W = { rural: 1, wilderness: 1, park: 0.75, residential: 0.4, beach: 0.45, causeway: 0.25, airport: 0.12 };
+const ZONE_W = { rural: 1, wilderness: 1, park: 0.75, residential: 0.4, beach: 0.45, causeway: 0.25, airport: 0 }; // airports agent (Nov 19): an airfield is graded flat (runways, taxiways and aprons are drawn by src/world/airport on y = ground)
 const SWALE_Z = { rural: 1, wilderness: 1, residential: 0.7, park: 0.5, causeway: 0.6, beach: 0.3 };
 const D8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7071, 0.7071], [-0.7071, 0.7071], [0.7071, -0.7071], [-0.7071, -0.7071]];
 

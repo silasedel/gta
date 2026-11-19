@@ -772,6 +772,42 @@ try:
 except Exception:
     W.log.append('furniture ' + traceback.format_exc()[-400:]); log('furniture failed', W.log[-1][-200:])
 
+# ---------------------------------------------------------------- 9d. airports (airports agent, Nov 19)
+# src/world/airport/airports.json (tools/v2/airport/design.py) holds each airport's AIRSIDE polygon (inside the perimeter
+# fence). Nothing ordinary stands on an airfield: every road with more than 6 m inside it, every lot / building, tree,
+# prop, POI and path inside it is dropped, the old runway / apron cover areas are replaced (the game draws runways,
+# taxiways, aprons, lights and buildings itself, src/world/airport/*), and the airside becomes one 'airport' land-use area
+# (zone airport: mown grass, no sidewalks). Runs at export so the block / lot sequence (Keys legacy layout) is untouched.
+_APJ = os.path.join(ROOT, 'src', 'world', 'airport', 'airports.json')
+if os.path.exists(_APJ) and os.environ.get('MAP3_AIRPORTS', '1') != '0':
+    _aps = json.load(open(_APJ))['airports']
+    _air = unary_union([Polygon(a['airside']).buffer(0) for a in _aps]); _air_in = _air.buffer(-4).union(unary_union([Polygon(a['terminal']['ring']).buffer(2) for a in _aps if a.get('terminal')]))   # + roads that ran into the terminal
+    _nr0, _nb0, _na0 = len(W.roads), len(W.buildings), len(W.areas)
+    _drop = [r for r in W.roads if LineString(r.pts).intersection(_air_in).length > 6]
+    json.dump([dict(id=r.id, pts=[list(p) for p in r.pts], kind=r.kind, name=r.name, width=round(r.width, 1)) for r in _drop], open(os.path.join(OUT, 'airport_dropped.json'), 'w'))   # tools/v2/airport/design.py (gates)
+    W.roads = [r for r in W.roads if LineString(r.pts).intersection(_air_in).length <= 6]
+    W.buildings = [b for b in W.buildings if not Polygon(b['ring']).buffer(0).intersects(_air)]
+    _in = lambda o: _air.contains(Point(o['x'], o['z']))
+    W.trees = [t for t in W.trees if not _in(t)]; W.props = [p for p in W.props if not _in(p)]; W.pois = [p for p in W.pois if not _in(p)]
+    W.paths = [p for p in W.paths if LineString(p['pts']).intersection(_air_in).length <= 2]
+    _areas = []
+    for a in W.areas:
+        if a['kind'] in ('runway', 'apron', 'taxiway') and a['poly'].intersects(_air.buffer(150)): continue
+        if a['poly'].intersects(_air):
+            g = a['poly'].difference(_air)
+            for p in (g.geoms if hasattr(g, 'geoms') else [g]):
+                if p.geom_type == 'Polygon' and p.area > 12: _areas.append(dict(a, poly=p))
+            continue
+        _areas.append(a)
+    W.areas = _areas
+    for a in _aps:
+        W.add_area(Polygon(a['airside']).buffer(0), 'airport', a['name'], clip=False)
+        if a.get('landside'): W.add_area(Polygon(a['landside']).buffer(0).difference(_air), 'airport', a['name'], clip=False)   # the terminal's landside pocket: zone airport too (no house lots / wild trees on the curb)
+    _ex = {'mia': 'airport', 'eyw': 'airfield'}
+    for a in _aps:
+        if a['id'] in _ex: W.extra[_ex[a['id']]] = dict(name=a['name'] + ' Airport', runways=[[[round(v) for v in r['a']], [round(v) for v in r['b']]] for r in a['runways']])
+    log(f'airports: dropped {_nr0 - len(W.roads)} roads, {_nb0 - len(W.buildings)} buildings inside the airside; areas {_na0} -> {len(W.areas)}')
+
 # ---------------------------------------------------------------- 9. export
 def ring(c): return [[round(x, 2), round(z, 2)] for x, z in list(c)[:-1]]
 def polyd(p, **kw):
