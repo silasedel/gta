@@ -116,8 +116,10 @@ export function makeIdentity(def, seed, opts = {}) {
   const accentFam = dark
     ? r.pick(['white', 'ice', 'seafoam', 'yellow', 'gray', 'red'])
     : r.pick(['navy', 'blue', 'teal', 'red', 'black', 'gunmetal', 'aqua', 'green', 'orange']);
-  const accent = r.pick(HULL_COLORS[accentFam]);
-  const hull2 = r.chance(0.5)
+  // (the rolls always run, so a fixed color never shifts the rest of a seed's build)
+  const accentRolled = r.pick(HULL_COLORS[accentFam]);
+  const accent = opts.accent ?? accentRolled;
+  const hull2Rolled = r.chance(0.5)
     ? accent
     : r.pick(
         HULL_COLORS[
@@ -128,6 +130,7 @@ export function makeIdentity(def, seed, opts = {}) {
           )
         ],
       );
+  const hull2 = opts.hull2 ?? hull2Rolled;
   const graphics =
     opts.graphics ||
     r.pick(

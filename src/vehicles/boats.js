@@ -1074,6 +1074,7 @@ export function createBoats(game, opts = {}) {
       external: !!o.external,
     };
     b.seed = o.seed ?? hash2(pos.x, pos.z);
+    b.identityOpts = o.identity || {}; // fixed paint for a named boat (e.g. Nico's skiff: black swoosh)
     b.hydro = hullSamples(t);
     b.isAirboat = !!t.airboat;
     if (t.airboat) {
@@ -1140,7 +1141,8 @@ export function createBoats(game, opts = {}) {
         upgradeQ.shift();
         continue;
       }
-      if (!b._gen) b._gen = buildBoatSteps(NEWKEY[b.typeKey], b.seed, {}, 3);
+      if (!b._gen)
+        b._gen = buildBoatSteps(NEWKEY[b.typeKey], b.seed, { identity: b.identityOpts || {} }, 3);
       let s;
       try {
         s = b._gen.next();

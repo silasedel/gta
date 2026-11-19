@@ -638,6 +638,8 @@ function mooredSkiff(game, g, a) {
           // r12 (user: the reference's open skiff, no T-top): a fixed build of the Baywright 21 with no top, a cooler aboard and a
           // dark swoosh on the white hull (src/vehicles/boats/models/cc.js rolls these from the seed)
           seed: 2,
+          // user (Nov 19): a black swoosh like the reference skiff (was green)
+          identity: { accent: 0x111214, hull2: 0x111214 },
         });
       } catch (e) {
         console.warn('[nicoHouse] skiff', e);
