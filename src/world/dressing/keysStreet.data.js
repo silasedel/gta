@@ -44,7 +44,7 @@ export const KEYS_LOTS = [
     car: { kind: 'van', look: 'old', u: 5.6, v: 5.4, h: Math.PI - 0.1 },
   },
   { // E: blue stilt house east of Nico, storage below, board fence on the side to Nico's
-    id: 'pp_blue', x: 33.3, z: -3.3, face: 0.36,   /* r9: 6 m further out along the canal's width (Nico's canal is 12 m now; was 27.7, -1.2). r8 (Nico's SPEC F): across Nico's new canal, its side to the water (was 22.5, 5.0, 0.785: in the canal) */ w: 8.8, d: 8.0, style: 'keys', stilt: true, base: 3.0, gap: 5.6, side: 3.5, back: 6,
+    id: 'pp_blue', x: 36.4, z: -4.5, face: 0.36,   /* r9: 9.3 m further out (its yard edge, shrubs and fence clear of the far wall) along the canal's width (Nico's canal is 12 m now; was 27.7, -1.2). r8 (Nico's SPEC F): across Nico's new canal, its side to the water (was 22.5, 5.0, 0.785: in the canal) */ w: 8.8, d: 8.0, style: 'keys', stilt: true, base: 3.0, gap: 5.6, side: 3.5, back: 6,
     over: { colors: { body: 0x9ab8d0, trim: 0xf2f0ea, accent: 0x2a4a6a, roof: 0x9aa0a8 }, fence: 'none', frontHedge: false, hedge: false, car: false, bins: true, palms: 1, shrubs: 2, lattice: true, storage: true },
     extras: [{ k: 'fence', u: -7.5, v: 6.0, u2: -7.5, v2: -8.0 }, { k: 'kayaks', u: 6.0, v: -2.0, h: 1.4 }, { k: 'chairs', u: 0.5, v: -6.5, h: 3.0 }],
     car: { kind: 'suv', look: 'faded', u: 6.5, v: 6.0, h: Math.PI },
