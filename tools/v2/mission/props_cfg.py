@@ -140,7 +140,10 @@ CFG = {
         # the deck helicopters carry service roundels and unit codes: removed
         "dropfaces": r"^Mat_(6|7|8|9|10)$",
         "len": 155,
-        "tris": 11000,
+        "tris": 9000,
+        # one collapse pass: repeated passes on this rip fling vertices out (a 97 m wide hull)
+        "passes": 1,
+        "drop_thin": 0.15,
         "diffuse_only": True,
         "planar": True,
         "lod1": 2500,
@@ -162,6 +165,7 @@ CFG = {
         "src": "uss-cyclone-war-thunder/source/x/USS_Cyclone.obj",
         "len": 55,
         "tris": 11000,
+        "passes": 1,
         "drop_thin": 0.12,
         "diffuse_only": True,
         "planar": True,
@@ -365,6 +369,8 @@ CFG = {
         "src": "100-dolllar-cash/source/Cash $100.glb",
         "rot": (0, 90, 0),
         "tris": 6000,
+        # bills are 0.1 mm apart: the default weld fuses the stack into faces the collapse cannot reduce
+        "weld": 1e-7,
         "len": 0.17,
         "tex": 1024,
         "desc": "100 dollar bill bundles.",

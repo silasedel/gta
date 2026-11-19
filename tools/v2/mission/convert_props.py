@@ -276,7 +276,7 @@ def cap_textures(cap):
 # ---------------------------------------------------------------- geometry
 
 
-def decimate(target, planar=False):
+def decimate(target, planar=False, weld=1e-4, passes=3):
     """Collapses the meshes toward a triangle budget, spread by each mesh's share. With planar, flat regions are
     dissolved first (hard-surface ships keep rails and edges far better than with collapse alone)."""
     objs = meshes()
@@ -286,7 +286,7 @@ def decimate(target, planar=False):
     for o in objs:
         b = bmesh.new()
         b.from_mesh(o.data)
-        bmesh.ops.remove_doubles(b, verts=b.verts, dist=1e-4)
+        bmesh.ops.remove_doubles(b, verts=b.verts, dist=weld)
         b.to_mesh(o.data)
         b.free()
         if planar and tris(o) > 64:
@@ -298,7 +298,7 @@ def decimate(target, planar=False):
             tri = o.modifiers.new("t", "TRIANGULATE")
             apply_modifiers(o)
     # a few passes: small parts stop at their floor, so the big ones take the rest of the cut
-    for _ in range(3):
+    for _ in range(passes):
         tot = sum(tris(o) for o in objs)
         if tot <= target * 1.05:
             break
@@ -664,7 +664,7 @@ def convert(key, c):
     if c.get("drop_thin"):
         drop_thin(c["drop_thin"])
     if c.get("tris") and not os.environ.get("MISSION_RAW"):
-        decimate(c["tris"], c.get("planar", False))
+        decimate(c["tris"], c.get("planar", False), c.get("weld", 1e-4), c.get("passes", 3))
     for img in list(bpy.data.images):
         if img.size[0] == 0:
             continue

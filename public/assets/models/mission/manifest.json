@@ -152,19 +152,19 @@
       "id": "navy_destroyer",
       "file": "navy_destroyer.glb",
       "size": [
-        97.107,
-        49.302,
-        156.318
+        21.807,
+        51.436,
+        155.288
       ],
-      "tris": 12913,
+      "tris": 10259,
       "description": "Guided-missile destroyer (hull numbers, name, crest and deck helicopters removed), 155 m.",
       "use": "Static ship at the naval pier.",
       "lod1": {
         "file": "navy_destroyer_lod1.glb",
-        "tris": 5811,
+        "tris": 4381,
         "distance": 400
       },
-      "bytes": 2427832,
+      "bytes": 2274916,
       "placement": "Naval pier near the air station; moor bow out, keep 60 m clear water around it."
     },
     "navy_patrol": {
@@ -427,13 +427,13 @@
       "file": "cash_100.glb",
       "size": [
         0.17,
-        0.023,
+        0.024,
         0.092
       ],
-      "tris": 56364,
+      "tris": 6517,
       "description": "100 dollar bill bundles.",
       "use": "Payment close-ups; pickup loot.",
-      "bytes": 2487864
+      "bytes": 325780
     },
     "cash_pile": {
       "id": "cash_pile",
