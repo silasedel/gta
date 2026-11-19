@@ -52,7 +52,7 @@ export function createClimb(game, fences) {
     try { game.movePlayerTo(x, y, z); } catch (e) { /* */ }
     P.heading = c.heading;
     P.state.grounded = false;
-    if (P.script?.anim) { const a = P.script.anim, up = k >= 0.1 && k < 0.66; a.swimming = up; a.jumping = !up; a.speed = up ? 1.3 : 0; a.grounded = false; }   // hand-over-hand: the crawl clip held upright reads as pulling up the mesh
+    if (P.script?.anim) { const a = P.script.anim; a.jumping = true; a.grounded = false; a.speed = 0; }   // the jump clip is the base; poseUpdate layers the climb on it
     if (k >= 1) {
       S.move = null; if (P.script?.climb) P.script = null;
       try { P.collider?.setEnabled(true); } catch (e) { /* */ }
@@ -72,15 +72,19 @@ export function createClimb(game, fences) {
     const m = S.move; if (!m || !S.char) return;
     if (!S.bones || S.bones._root !== S.char.root) { S.bones = findBones(S.char); if (S.bones) S.bones._root = S.char.root; }
     const b = S.bones; if (!b) return;
-    const k = m.k || 0, w = k < 0.1 ? k / 0.1 : k > 0.9 ? (1 - k) / 0.1 : 1;
-    const cyc = Math.sin(((k - 0.16) / 0.46) * Math.PI * 3), climbing = k >= 0.16 && k < 0.62, over = k >= 0.62 && k < 0.8;
-    const la = climbing ? 0.45 + cyc * 0.35 : over ? 0.2 : 0.9, ra = climbing ? 0.45 - cyc * 0.35 : over ? 0.6 : 0.9;
-    // raise the arms forward / up (Mixamo arm bones: rotate about local x to lift toward the front)
-    if (!climbing) { rot(b.LeftArm, -1.2 * la * w, 0, -0.2 * w); rot(b.RightArm, -1.2 * ra * w, 0, 0.2 * w); }   // over the top / drop: arms reach for the rail
-    const lk = climbing ? 0.7 - cyc * 0.5 : over ? 1.4 : 0.5, rk = climbing ? 0.7 + cyc * 0.5 : over ? 0.3 : 0.5;
-    rot(b.LeftUpLeg, -1.0 * lk * w, 0, over ? -0.5 * w : 0); rot(b.RightUpLeg, -1.0 * rk * w, 0, 0);
-    rot(b.LeftLeg, 1.4 * lk * w, 0, 0); rot(b.RightLeg, 1.4 * rk * w, 0, 0);
-    rot(b.Spine, 0.15 * w, 0, 0);
+    // tuned on Nico's rig (live session, Nov 19): +x on the arm bones lifts the arm forward / up, -x on an up-leg lifts the
+    // thigh, +x on a leg bends the knee. Hand over hand: the arms swap high / low three times while he goes up.
+    const k = m.k || 0, w = k < 0.08 ? k / 0.08 : k > 0.92 ? (1 - k) / 0.08 : 1;
+    const climbing = k >= 0.16 && k < 0.62, over = k >= 0.62 && k < 0.8, drop = k >= 0.8;
+    const cyc = climbing ? Math.sin(((k - 0.16) / 0.46) * Math.PI * 3) : 0, hi = 0.5 + 0.5 * cyc;
+    let la, ra, lf, rf, lu, ll, ru, rl;
+    if (k < 0.16) { la = ra = 2.3; lf = rf = 0.6; lu = -0.8; ll = 1.2; ru = -0.4; rl = 0.8; }                 // jump and grab
+    else if (climbing) { la = 1.6 + 0.8 * hi; ra = 2.4 - 0.8 * hi; lf = 0.9 - 0.4 * hi; rf = 0.5 + 0.4 * hi; lu = -0.5 - 0.8 * (1 - hi); ll = 1.0 + 0.8 * (1 - hi); ru = -0.5 - 0.8 * hi; rl = 1.0 + 0.8 * hi; }
+    else if (over) { la = ra = 1.7; lf = rf = 0.7; lu = -1.7; ll = 1.3; ru = -0.3; rl = 0.6; }                  // hands on the rail, a leg swung over
+    else { const e = (k - 0.8) / 0.2; la = ra = 1.5 - 1.2 * e; lf = rf = 0.5; lu = -0.9 + 0.6 * e; ll = 1.1 - 0.6 * e; ru = -0.6 + 0.4 * e; rl = 0.9 - 0.5 * e; }   // drop and land
+    rot(b.LeftArm, la * w, 0, 0); rot(b.RightArm, ra * w, 0, 0); rot(b.LeftForeArm, lf * w, 0, 0); rot(b.RightForeArm, rf * w, 0, 0);
+    rot(b.LeftUpLeg, lu * w, 0, 0); rot(b.LeftLeg, ll * w, 0, 0); rot(b.RightUpLeg, ru * w, 0, 0); rot(b.RightLeg, rl * w, 0, 0);
+    void drop;
   }
   return {
     probe, start, fixed, poseUpdate, stats: S.stats, get active() { return !!S.move; }, get phase() { return S.move?.phase || null; },
