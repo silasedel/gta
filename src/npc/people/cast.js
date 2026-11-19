@@ -140,6 +140,20 @@ export function placesFor(zone, act, ctx = {}) {
       return ['hotel_staff'];
     case 'gang':
       return ['gang', 'rough'];
+    // Nov 19 people (NPC 172-185): roles that only scripts place (the base, the airport, the story), never the
+    // street crowd. Poachers fall back to the gang crew while they load.
+    case 'poacher':
+      return ['poacher', 'gang'];
+    case 'military':
+    case 'soldier':
+      return ['military'];
+    case 'aviation':
+    case 'pilot':
+      return ['aviation'];
+    case 'bodyguard':
+      return ['bodyguard', 'security'];
+    case 'gun_store':
+      return ['gun_store', 'shop_staff'];
     case 'rough':
     case 'hobo':
     case 'homeless':

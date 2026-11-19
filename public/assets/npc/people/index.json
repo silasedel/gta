@@ -6113,6 +6113,458 @@
     "leg": 1.0,
     "hat": false
    }
+  },
+  {
+   "id": "p172",
+   "file": "p172.glb",
+   "name": "Military Officer In Olive Service Uniform And Cap",
+   "g": "m",
+   "age": "adult",
+   "years": 48,
+   "role": "officer",
+   "look": "uniform",
+   "places": [
+    "military"
+   ],
+   "height": 1.858,
+   "hipH": 0.9401,
+   "tris": {
+    "LOD0_body": 48736,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10969670,
+    "top": 4275492,
+    "bottom": 3947299,
+    "hair": 4275752,
+    "shoes": 1841946,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": true
+   }
+  },
+  {
+   "id": "p173",
+   "file": "p173.glb",
+   "name": "Woman Soldier In Desert Tan Fatigues And Armor Vest",
+   "g": "f",
+   "age": "adult",
+   "years": 27,
+   "role": "soldier",
+   "look": "uniform",
+   "places": [
+    "military"
+   ],
+   "height": 1.744,
+   "hipH": 0.9392,
+   "tris": {
+    "LOD0_body": 48545,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11891016,
+    "top": 7295794,
+    "bottom": 9203273,
+    "hair": 11637360,
+    "shoes": 5322782,
+    "sleeve": 0.1,
+    "leg": 0.25,
+    "hat": true
+   }
+  },
+  {
+   "id": "p174",
+   "file": "p174.glb",
+   "name": "Woman Pilot In White Shirt With Shoulder Boards And Headset",
+   "g": "f",
+   "age": "adult",
+   "years": 34,
+   "role": "pilot",
+   "look": "uniform",
+   "places": [
+    "aviation"
+   ],
+   "height": 1.705,
+   "hipH": 0.9124,
+   "tris": {
+    "LOD0_body": 49422,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10378303,
+    "top": 11973045,
+    "bottom": 2171179,
+    "hair": 4206626,
+    "shoes": 1052687,
+    "sleeve": 0.5,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p175",
+   "file": "p175.glb",
+   "name": "Bald Bodyguard In Black Polo And Cargo Pants",
+   "g": "m",
+   "age": "adult",
+   "years": 38,
+   "role": "bodyguard",
+   "look": "uniform",
+   "places": [
+    "bodyguard",
+    "security"
+   ],
+   "height": 1.925,
+   "hipH": 0.9688,
+   "tris": {
+    "LOD0_body": 49554,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 9197120,
+    "top": 2105376,
+    "bottom": 2105376,
+    "hair": 11045496,
+    "shoes": 1513752,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p176",
+   "file": "p176.glb",
+   "name": "Bodyguard In Charcoal Suit And Open White Shirt",
+   "g": "m",
+   "age": "adult",
+   "years": 36,
+   "role": "bodyguard",
+   "look": "business",
+   "places": [
+    "bodyguard"
+   ],
+   "height": 1.906,
+   "hipH": 0.9825,
+   "tris": {
+    "LOD0_body": 49582,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10970441,
+    "top": 3355443,
+    "bottom": 2368548,
+    "hair": 2959399,
+    "shoes": 1644825,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p177",
+   "file": "p177.glb",
+   "name": "Heavyset Swamp Poacher In Sleeveless Plaid Shirt And Waders",
+   "g": "m",
+   "age": "adult",
+   "years": 50,
+   "role": "poacher",
+   "look": "rugged",
+   "places": [
+    "poacher"
+   ],
+   "height": 1.815,
+   "hipH": 0.881,
+   "tris": {
+    "LOD0_body": 48762,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 9919295,
+    "top": 5586484,
+    "bottom": 3813924,
+    "hair": 6838339,
+    "shoes": 1775376,
+    "sleeve": 0.1,
+    "leg": 1.0,
+    "hat": true
+   }
+  },
+  {
+   "id": "p178",
+   "file": "p178.glb",
+   "name": "Wiry Swamp Poacher Woman In Green Tank And Camo Pants",
+   "g": "f",
+   "age": "adult",
+   "years": 32,
+   "role": "poacher",
+   "look": "rugged",
+   "places": [
+    "poacher"
+   ],
+   "height": 1.728,
+   "hipH": 0.9254,
+   "tris": {
+    "LOD0_body": 49770,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10511942,
+    "top": 4867117,
+    "bottom": 4866348,
+    "hair": 7694417,
+    "shoes": 2104341,
+    "sleeve": 0.0,
+    "leg": 1.0,
+    "hat": true
+   }
+  },
+  {
+   "id": "p179",
+   "file": "p179.glb",
+   "name": "Weathered Boat Owner In Fishing Shirt And White Cap",
+   "g": "m",
+   "age": "older",
+   "years": 64,
+   "role": "boat_captain",
+   "look": "rugged",
+   "places": [
+    "dock",
+    "keys",
+    "fishing"
+   ],
+   "height": 1.795,
+   "hipH": 0.8908,
+   "tris": {
+    "LOD0_body": 48587,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 9458232,
+    "top": 7304304,
+    "bottom": 6903358,
+    "hair": 8152133,
+    "shoes": 5718834,
+    "sleeve": 0.5,
+    "leg": 0.33,
+    "hat": true
+   }
+  },
+  {
+   "id": "p180",
+   "file": "p180.glb",
+   "name": "Bearded Gun Store Clerk In Black Tee With Tattooed Forearms",
+   "g": "m",
+   "age": "adult",
+   "years": 44,
+   "role": "clerk",
+   "look": "street",
+   "places": [
+    "gun_store"
+   ],
+   "height": 1.824,
+   "hipH": 0.9254,
+   "tris": {
+    "LOD0_body": 49292,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10641476,
+    "top": 2171169,
+    "bottom": 3948614,
+    "hair": 4011054,
+    "shoes": 2367514,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p181",
+   "file": "p181.glb",
+   "name": "Older Shop Owner In Stained Apron And Slacks",
+   "g": "m",
+   "age": "older",
+   "years": 64,
+   "role": "shop_owner",
+   "look": "staff",
+   "places": [
+    "shop_owner",
+    "shop_staff"
+   ],
+   "height": 1.705,
+   "hipH": 0.9014,
+   "tris": {
+    "LOD0_body": 49330,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 9327673,
+    "top": 12692113,
+    "bottom": 8942681,
+    "hair": 11246483,
+    "shoes": 2761240,
+    "sleeve": 0.8,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p182",
+   "file": "p182.glb",
+   "name": "Seaplane Pilot In Light Blue Shirt And Life Vest",
+   "g": "m",
+   "age": "adult",
+   "years": 34,
+   "role": "pilot",
+   "look": "uniform",
+   "places": [
+    "aviation"
+   ],
+   "height": 1.804,
+   "hipH": 0.9003,
+   "tris": {
+    "LOD0_body": 49284,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10310704,
+    "top": 2566958,
+    "bottom": 9399880,
+    "hair": 4601900,
+    "shoes": 8348233,
+    "sleeve": 0.7,
+    "leg": 0.25,
+    "hat": false
+   }
+  },
+  {
+   "id": "p183",
+   "file": "p183.glb",
+   "name": "Rural Pilot In Denim Shirt Ball Cap And Headset",
+   "g": "m",
+   "age": "adult",
+   "years": 45,
+   "role": "pilot",
+   "look": "rugged",
+   "places": [
+    "aviation"
+   ],
+   "height": 1.824,
+   "hipH": 0.9119,
+   "tris": {
+    "LOD0_body": 49620,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 9787196,
+    "top": 5658967,
+    "bottom": 8019774,
+    "hair": 8876632,
+    "shoes": 3154967,
+    "sleeve": 0.6,
+    "leg": 0.1,
+    "hat": true
+   }
+  },
+  {
+   "id": "p184",
+   "file": "p184.glb",
+   "name": "Airline Captain In White Shirt Black Tie And Cap",
+   "g": "m",
+   "age": "adult",
+   "years": 44,
+   "role": "pilot",
+   "look": "uniform",
+   "places": [
+    "aviation"
+   ],
+   "height": 1.879,
+   "hipH": 0.9152,
+   "tris": {
+    "LOD0_body": 49060,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11364421,
+    "top": 13158349,
+    "bottom": 2105376,
+    "hair": 2762793,
+    "shoes": 2631202,
+    "sleeve": 0.5,
+    "leg": 1.0,
+    "hat": true
+   }
+  },
+  {
+   "id": "p185",
+   "file": "p185.glb",
+   "name": "Young Base Guard In Woodland Camo With Radio",
+   "g": "m",
+   "age": "adult",
+   "years": 24,
+   "role": "soldier",
+   "look": "uniform",
+   "places": [
+    "military"
+   ],
+   "height": 1.844,
+   "hipH": 0.8932,
+   "tris": {
+    "LOD0_body": 47678,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10443842,
+    "top": 4340262,
+    "bottom": 4603690,
+    "hair": 6709060,
+    "shoes": 1906445,
+    "sleeve": 0.6,
+    "leg": 1.0,
+    "hat": true
+   }
   }
  ]
 }

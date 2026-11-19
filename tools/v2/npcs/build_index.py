@@ -17,7 +17,7 @@ for c in cast:
            'a2': os.path.exists(os.path.join(out, pid + '_a2.webp')), 'skirt': m.get('skirt', False)}
     cp = os.path.join(mdir, pid + '_cols.json')
     if os.path.exists(cp): row['cols'] = json.load(open(cp))
-    for k in ('gait', 'build'):
+    for k in ('look', 'gait', 'build'):   # look = look class for district casting (src/npc/people/casting.js)
         if k in c: row[k] = c[k]
     people.append(row)
 json.dump({'version': 1, 'people': people}, open(os.path.join(out, 'index.json'), 'w'), indent=1)
