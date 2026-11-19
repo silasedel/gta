@@ -2,7 +2,7 @@
 
 - Body shape (silhouette and proportions only) comes from a Sketchfab model named **"lowpoly el camino no textures"**
   (`~/Downloads/lowpoly-el-camino-no-textures.zip`: `source/sketchfab-elcamino.fbx` plus one AO jpeg, which is not used).
-- **License: not included in the zip. The user needs to confirm it** (Sketchfab page / author) before any public release.
+- **License:** free to use (confirmed by the user, Nov 19: every asset they download is pre-screened as free to use).
 - Everything else was rebuilt in `tools/v2/cars/ute1/build_ute1.py`: subdivided shell with recessed shut lines, chrome
   bumpers / trim / mirrors / exhaust tips, glass, lamps, plate recesses, ribbed bed, the whole cabin, new wheels and tires.
   The source's maker badge and logo faces are deleted. No brand text or badges anywhere.
