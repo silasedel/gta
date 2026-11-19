@@ -231,6 +231,11 @@ export function canonicalClips() {
   C.talk_g = { name: 'talk_g', dur: 8, keys: tk.map((k, i) => ({ t: i, b: talkK(k), hips: WEIGHT_L.hips, hipsRot: WEIGHT_L.hipsRot })), ground: true };
   // holding a drink, a sip every few seconds
   const drinkHold = merge(STAND, WEIGHT_L.b, DRINK_R), drinkSip = merge(STAND, WEIGHT_L.b, DRINK_SIP);
+  // r7: smoking: cigarette low in the right hand (pinched), a drag every ~7 s, the left hand in a pocket-ish rest
+  const PINCH_R = handPose('Right', 28, 0.9);
+  const smokeHold = merge(STAND, WEIGHT_L.b, { RightArm: [['z', 76], ['x', -6], ['y', 22]], RightForeArm: [['y', 82]], RightHand: [['z', 8], ['x', -18]], ...PINCH_R });
+  const smokeDrag = merge(STAND, WEIGHT_L.b, { RightArm: [['z', 64], ['x', -30], ['y', 42]], RightForeArm: [['y', 140]], RightHand: [['z', -24], ['x', -6]], Head: [['x', -6]], ...PINCH_R });
+  C.smoke = { name: 'smoke', dur: 8, keys: [0, 3.2, 3.9, 4.9, 5.6, 8].map((t, i) => ({ t, b: i === 2 || i === 3 ? smokeDrag : merge(smokeHold, { Head: [['x', 2], ['y', i * 5 - 10]] }), hips: WEIGHT_L.hips, hipsRot: WEIGHT_L.hipsRot })), ground: true, prop: 'cig' };
   C.drink = { name: 'drink', dur: 9, keys: [0, 2.6, 3.3, 4.1, 4.8, 9].map((t, i) => ({ t, b: i === 2 || i === 3 ? drinkSip : merge(drinkHold, { Head: [['x', 3], ['y', i * 4 - 8]] }), hips: WEIGHT_L.hips, hipsRot: WEIGHT_L.hipsRot })), ground: true, prop: 'cup' };
   // taking a photo: phone held up in landscape at eye height
   const photo = merge(STAND, {

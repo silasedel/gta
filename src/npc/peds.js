@@ -636,13 +636,26 @@ export async function createPeds(game) {
   let _ball = null;
   const clearWhy = {};
   const why = (k) => { clearWhy[k] = (clearWhy[k] || 0) + 1; return false; };
-  function memberClear(x, y, z) {
+  let _gRay = null;
+  function rayHit(x, y, z, dx, dz, far) {
+    _gRay = _gRay || new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 1 });
+    _gRay.origin.x = x; _gRay.origin.y = y; _gRay.origin.z = z; _gRay.dir.x = dx; _gRay.dir.y = 0; _gRay.dir.z = dz;
+    const QF = RAPIER.QueryFilterFlags; const h = world.castRay(_gRay, far, false, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS);
+    return h ? h.timeOfImpact : far;
+  }
+  function memberClear(x, y, z, cx, cz) {
     try { if (game.placement?.onRoad?.(x, z, 0.25)) return why('road'); if (game.placement?.inWater?.(x, z)) return why('water'); } catch (e) { /* */ }
     if (walkGround(game, x, z, _wg) === 'road') return why('road');
-    try {   // trunks (r2-physics colliders), poles, walls, fences, parked cars' static shells: a ball at chest height
-      _ball = _ball || new RAPIER.Ball(0.24);
-      const QF = RAPIER.QueryFilterFlags;
-      if (world.intersectionWithShape({ x, y: y + 1.15, z }, _bq, _ball, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS)) return why('solid');
+    // trunks (r2-physics colliders), poles, walls, fences: waist-high rays from the group center out to the spot and a short
+    // cross at the spot. (A ball overlap test was refused nearly everywhere: the tile colliders are one big trimesh at the
+    // origin and the overlap query counted spots near it as inside: clearWhy.solid 140 / 140 downtown.)
+    try {
+      if (cx !== undefined) {
+        const dx = x - cx, dz = z - cz, d = Math.hypot(dx, dz) || 1e-3;
+        if (rayHit(cx, y + 1.0, cz, dx / d, dz / d, d + 0.3) < d + 0.25) return why('solid');
+        const px = -dz / d, pz = dx / d;
+        if (rayHit(x - px * 0.3, y + 1.0, z - pz * 0.3, px, pz, 0.6) < 0.6) return why('solid');
+      }
     } catch (e) { /* keep */ }
     return true;
   }
@@ -676,7 +689,7 @@ export async function createPeds(game) {
       for (let k = 0; k < n; k++) {
         const a = a0 + (k / n) * Math.PI * 2 + rand(-0.22, 0.22), r = rr + rand(-0.1, 0.14);
         const x = ccx + Math.sin(a) * r, z = ccz + Math.cos(a) * r;
-        if (!memberClear(x, cy, z)) break;
+        if (!memberClear(x, cy, z, ccx, ccz)) break;
         out.push(x, z);
       }
       if (out.length === n * 2) spots = out;
@@ -707,7 +720,7 @@ export async function createPeds(game) {
       if (!g.lead) g.lead = p.char?.personMeta || { years: 32, age: 'adult', look: 'casual' };
       p.group = g; g.members.push(p); p.stateT = g.stay - (5 - g.pendT) + rand(0, 2.5);
       const ls = LISTEN[theme] || LISTEN.friends;
-      p.listenStyle = AGE(p.char?.personMeta) === 'kid' ? null : Math.random() < ls[0] ? ls[1] : null;
+      p.listenStyle = AGE(p.char?.personMeta) === 'kid' ? null : p.identity?.smoker && g.theme !== 'family' && g.theme !== 'business' ? 'smoke' : Math.random() < ls[0] ? ls[1] : null;   // r7: smokers smoke while they listen
       p.idleStyle = p.act === 'dance' ? 'dance' : p.listenStyle; p.styleT = rand(1, 4);
       if (g.front && g.members.length === 1) p.spot = g.front;
     }
@@ -1483,7 +1496,7 @@ export async function createPeds(game) {
           } else {
             // r6-walk: the pace breathes a little along the way; brisk across a street
             targetSpeed = ped.walkSpeed * (ped.act === 'jog' ? 1 : 1 + 0.07 * Math.sin(now * 0.23 + ped.id * 1.7)) * (ped.nav?.cross && ped.act !== 'jog' ? 1.25 : 1); ped.idleStyle = null;
-            if (ped.act !== 'jog' && !ped.follow && !ped.nav?.path && Math.random() < dt / (ped.P.pauseEvery || 45)) { ped.pause = rand(4, 12); const ids = ped.P.idles; ped.pauseStyle = ids[(Math.random() * ids.length) | 0]; }
+            if (ped.act !== 'jog' && !ped.follow && !ped.nav?.path && Math.random() < dt / (ped.P.pauseEvery || 45)) { ped.pause = rand(4, 12); const ids = ped.P.idles; ped.pauseStyle = ped.identity?.smoker && Math.random() < 0.55 ? 'smoke' : ids[(Math.random() * ids.length) | 0]; if (ped.pauseStyle === 'smoke') ped.pause = rand(14, 30); }   // r7: smokers stop for a cigarette
             // arrived at the shop window / bus stop it was heading for: stop and look, then pick the next place
             const dst = ped.nav?.dest;
             if (dst && !ped.nav.path && !ped.follow && ((frameN + ped.id) % 20) === 0 && Math.hypot(dst.x - ped.pos.x, dst.z - ped.pos.z) < 9) {

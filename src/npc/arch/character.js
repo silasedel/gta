@@ -30,13 +30,14 @@ function sharedMat(key, make) { let m = shared.get(key); if (!m) { m = make(); s
 
 // idle style (peds / people.v2 vocabulary) -> clip
 const STYLE_CLIP = { phone: 'phone_text', talk: 'talk_g', film: 'photo', photo: 'photo', cower: 'cower', lie: 'lie', sitGround: 'sitGround', sitBench: 'sitBench', sit: 'sit', stool: 'sit_stool',
-  lean: 'lean_cross', lean_wall: 'lean_wall', lean_cross: 'lean_cross', kneel: 'kneel', volley: 'volley', swim: 'swim', drink: 'drink', cross_arms: 'cross_arms', cross: 'cross_arms',
+  lean: 'lean_cross', lean_wall: 'lean_wall', lean_cross: 'lean_cross', kneel: 'kneel', volley: 'volley', swim: 'swim', drink: 'drink', smoke: 'smoke', cross_arms: 'cross_arms', cross: 'cross_arms',
   bartend: 'bartend', pour: 'pour', shake: 'shake', cook: 'cook', carry_tray: 'carry_tray', tray: 'carry_tray', idle_old: 'idle_old', idle_f: 'idle_f', idle: 'idle' };
 const FULL = new Set(['cower', 'lie', 'sitGround', 'sitBench', 'sit', 'sit_stool', 'lean_cross', 'lean_wall', 'kneel', 'volley', 'swim', 'dance', 'dance_arms', 'dance_sway', 'bartend', 'cook', 'shake', 'pour']);
 const UPPER = ['phoneCall', 'wave', 'argue', 'leash', 'handsUp'];
 
 // ------------------------------------------------------------------ small props (original, procedural)
 const PROP_MAT = {};
+const _propOn = { phone: false, cup: false, rag: false, shaker: false, bottle: false, tray: false, cig: false };
 const pm = (k, c, r = 0.5, m = 0) => (PROP_MAT[k] ||= new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m }));
 function makeProp(kind) {
   const g = new THREE.Group(); g.name = 'npcProp:' + kind;
@@ -44,13 +45,14 @@ function makeProp(kind) {
   if (kind === 'phone') { add(new THREE.BoxGeometry(0.072, 0.152, 0.009), pm('phone', 0x101114, 0.3, 0.4)); add(new THREE.PlaneGeometry(0.064, 0.14), new THREE.MeshBasicMaterial({ color: 0x8fb4d8 }), 0, 0, 0.0047); }
   else if (kind === 'cup') { add(new THREE.CylinderGeometry(0.034, 0.028, 0.11, 14, 1, true), pm('glass', 0xd8e8ee, 0.08, 0.0)).material.side = THREE.DoubleSide; add(new THREE.CylinderGeometry(0.03, 0.027, 0.06, 14), pm('drink', 0xb5541f, 0.2), 0, -0.022); }
   else if (kind === 'bottle') { add(new THREE.CylinderGeometry(0.035, 0.035, 0.2, 12), pm('bottle', 0x2f4a2a, 0.15, 0.1), 0, -0.04); add(new THREE.CylinderGeometry(0.012, 0.03, 0.08, 10), pm('bottle', 0x2f4a2a), 0, 0.1); }
+  else if (kind === 'cig') { add(new THREE.CylinderGeometry(0.0042, 0.0042, 0.075, 8), pm('cig', 0xf2efe8, 0.8), 0, 0, 0, 0, 0, Math.PI / 2); add(new THREE.CylinderGeometry(0.0044, 0.0044, 0.006, 8), new THREE.MeshBasicMaterial({ color: 0xff6a1a }), -0.039, 0, 0, 0, 0, Math.PI / 2); }
   else if (kind === 'shaker') { add(new THREE.CylinderGeometry(0.04, 0.034, 0.2, 14), pm('steel', 0xc8ccd0, 0.25, 1.0)); }
   else if (kind === 'rag') { add(new THREE.BoxGeometry(0.16, 0.012, 0.12), pm('rag', 0xe9e4d8, 0.95), 0, -0.03, 0.02); }
   else if (kind === 'tray') { add(new THREE.CylinderGeometry(0.19, 0.19, 0.012, 24), pm('tray', 0x2a2a2c, 0.35, 0.6)); for (let i = 0; i < 3; i++) add(new THREE.CylinderGeometry(0.03, 0.025, 0.12, 10), pm('glass', 0xd8e8ee, 0.08), -0.07 + i * 0.07, 0.066, (i % 2) * 0.05); }
   return g;
 }
 // hand-local offsets (canonical: the right hand points -X, palm -Y in T-pose)
-const PROP_AT = { phone: [-0.085, -0.025, 0.02, 0, 0, Math.PI / 2], cup: [-0.07, -0.04, 0.0, 0, 0, 0], bottle: [-0.08, -0.04, 0, 0, 0, Math.PI / 2], shaker: [-0.07, -0.04, 0, 0, 0, Math.PI / 2], rag: [-0.08, -0.03, 0, 0, 0, 0], tray: [-0.1, 0.03, 0, 0, 0, 0] };
+const PROP_AT = { cig: [-0.075, -0.012, 0.03, 0, 0.3, 0], phone: [-0.085, -0.025, 0.02, 0, 0, Math.PI / 2], cup: [-0.07, -0.04, 0.0, 0, 0, 0], bottle: [-0.08, -0.04, 0, 0, 0, Math.PI / 2], shaker: [-0.07, -0.04, 0, 0, 0, Math.PI / 2], rag: [-0.08, -0.03, 0, 0, 0, 0], tray: [-0.1, 0.03, 0, 0, 0, 0] };
 
 // ------------------------------------------------------------------ variants
 const HAIR_SHADES = { dark: ['#0e0b09', '#16100c', '#1c130e', '#24170f'], brown: ['#3a2414', '#4f3622', '#5a3f28', '#6b4a2e'], fair: ['#7a5a36', '#8a6a3e', '#a8854f'], grey: ['#8f8a80', '#a8a49b', '#bab4aa', '#cfcac0'] };
@@ -239,7 +241,7 @@ export function createNpc(game, opts = {}) {
     if (st.guardW > 0.01 && C.punchR && !(st.punchT >= 0)) { setT(A.punchR, 0); setW(A.punchR, st.guardW * 6 * baseW); }
     // props: phone for texting / filming / calls, cup, bar tools, tray
     const pc = st.styleName ? C[st.styleName]?.userData.prop : null;
-    const propOn = { phone: (pc === 'phone' && styleW > 0.4) || st.callW > 0.4, cup: pc === 'cup' && styleW > 0.4, rag: pc === 'rag' && styleW > 0.4, shaker: pc === 'shaker' && styleW > 0.4, bottle: pc === 'bottle' && styleW > 0.4, tray: pc === 'tray' && styleW > 0.4 };
+    const propOn = _propOn; propOn.phone = (pc === 'phone' && styleW > 0.4) || st.callW > 0.4; propOn.cup = pc === 'cup' && styleW > 0.4; propOn.rag = pc === 'rag' && styleW > 0.4; propOn.shaker = pc === 'shaker' && styleW > 0.4; propOn.bottle = pc === 'bottle' && styleW > 0.4; propOn.tray = pc === 'tray' && styleW > 0.4; propOn.cig = pc === 'cig' && styleW > 0.4;   // (no per-frame object)
     for (const k in propOn) { if (propOn[k]) prop(k).visible = true; else if (props[k]) props[k].visible = false; }
     st.cupUp = !!(props.cup && props.cup.visible);
     character.hasPhone = true;
