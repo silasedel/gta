@@ -53,6 +53,26 @@ export function initV2(game) {
       return obr.apply(this, a);
     };
   }
+  // Shadow pass: three.js shares one depth material between all casters and rewrites its side / instancing / skinning per
+  // object, so the shared material switched programs (program parameters + cache key) several times a frame. Each caster
+  // class (side x instanced x skinned) gets its own depth material instead, assigned the first time it casts.
+  // ?shadowdepth=0 = old.
+  if (!/[?&]shadowdepth=0\b/.test(location.search)) {
+    const DM = new Map();
+    const SIDE = { [THREE.FrontSide]: THREE.BackSide, [THREE.BackSide]: THREE.FrontSide, [THREE.DoubleSide]: THREE.DoubleSide };
+    const OP = THREE.Object3D.prototype, obs = OP.onBeforeShadow;
+    OP.onBeforeShadow = function (renderer, object, camera, shadowCamera, geometry, depthMaterial, group) {
+      if (this.customDepthMaterial === undefined && depthMaterial && depthMaterial.isMeshDepthMaterial && depthMaterial.depthPacking === THREE.RGBADepthPacking && !Array.isArray(this.material) && this.material) {
+        const m = this.material;
+        const side = m.shadowSide !== null && m.shadowSide !== undefined ? m.shadowSide : SIDE[m.side];
+        const k = side + '|' + (this.isInstancedMesh ? 1 : 0) + '|' + (this.isSkinnedMesh ? 1 : 0) + '|' + (this.isBatchedMesh ? 1 : 0);
+        let d = DM.get(k);
+        if (!d) { d = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }); d.name = 'psShadowDepth ' + k; DM.set(k, d); }
+        this.customDepthMaterial = d;
+      }
+      return obs.call(this, renderer, object, camera, shadowCamera, geometry, depthMaterial, group);
+    };
+  }
   // the queued objects' programs, created between frames in one compile call (one light traversal for all of them)
   const batch = [];
   const fake = {
