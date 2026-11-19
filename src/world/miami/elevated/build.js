@@ -13,6 +13,10 @@ const COL = { // a touch warm (not beige): the blue sky fill on shaded faces the
 };
 
 const KDECK = [1.9, 1.87, 1.78], KDECK_LOD = [0.56, 0.55, 0.53]; // r5-bridge Keys deck tints (full detail / LOD)
+// W4 (Nov 19: Keys bridges "too low and plain"): Keys parapets / fascia / piers in pale Florida bridge concrete (the generic palette is
+// weathered grey ~0.3-0.4, which read as a dark slab over the turquoise water), a galvanized top rail on the parapet, pile caps at the
+// waterline. ?keysbridge=0 = generic look.
+const KCOL = { ...COL, barrier: [0.6, 0.59, 0.56], barrierTop: [0.66, 0.65, 0.62], fascia: [0.54, 0.53, 0.5], soffit: [0.3, 0.295, 0.28], girder: [0.38, 0.372, 0.35], pier: [0.52, 0.51, 0.48], cap: [0.55, 0.54, 0.51], footing: [0.26, 0.255, 0.235], rail: [0.62, 0.64, 0.66], post: [0.5, 0.52, 0.54] };
 const R3C = !(typeof location !== 'undefined' && /[?&]r3concrete=0\b/.test(location.search)); // r3-concrete A/B: 0 = old flat retaining wall
 // r4-shoreland (user: barrier walls "look like cheap 2D layers"): the barrier was one sloped plane over an 8 cm reveal. Now the real
 // New Jersey safety shape: 7.6 cm vertical lip, 55 deg lower face to 33 cm, 84 deg upper face, rounded knee and top edges with
@@ -253,7 +257,7 @@ export function createBuilder(net) {
           // interpolate the profile when trimmed
           const pa = PA10, pb = PB10;
           for (let k = 0; k < 10; k++) { pa[k] = lerp(A[k], Bp[k], tA); pb[k] = lerp(A[k], Bp[k], tB); }
-          const cols = [COL.barrier, COL.barrier, COL.barrierTop, (t0 === 1 || t1 === 1) ? COL.wall : COL.fascia];
+          const cols = c.kst ? [KCOL.barrier, KCOL.barrier, KCOL.barrierTop, KCOL.fascia] : [COL.barrier, COL.barrier, COL.barrierTop, (t0 === 1 || t1 === 1) ? COL.wall : COL.fascia];
           const wallSeg = (t0 === 1 || t1 === 1) && t0 !== 2 && t1 !== 2;
           const jer = isJersey(pa) && isJersey(pb);
           if (jer) jerseyFaces(conc, c, side, F0, F1, pa, pb, B); // r4: lip, lower / upper faces, rounded top
@@ -273,6 +277,7 @@ export function createBuilder(net) {
             setV(vd, F1.x - F1.tz * o0b, y0b, F1.z + F1.tx * o0b, 0, 0, 0, ...U(F1, y0b, pb[1]), gc(y0b, pb[1]));
             quad(conc, va, vb, vc, vd, hx, hy, hz, B);
           }
+          if (c.kst && !jer) keysRail(conc, F0, F1, pa, pb, side, B); // W4: galvanized top rail + posts on the Keys parapet
           // end caps where the run stops
           for (const [at, has, F, prof, dir] of [[i, i > 0 && bar[i - 1], F0, pa, -1], [j, j < c.n - 1 && bar[j + 1], F1, pb, 1]]) {
             if (has && !((at === i && ta > 0) || (at === j && tb < 1))) continue;
@@ -310,11 +315,11 @@ export function createBuilder(net) {
         }
       }
       // soffit + girders under open spans
-      if (open) {
+      if (open) { const KC = c.kst ? KCOL : COL;
         const yA = (o) => P0.y + P.ROAD_Y + P0.b * o, yB = (o) => P1.y + P.ROAD_Y + P1.b * o;
         const slab = (F, o, yf) => [F.x - F.tz * o, yf(o) - 0.85, F.z + F.tx * o];
         const a0 = slab(P0, P0.vL, yA), b0 = slab(P0, P0.vR, yA), b1 = slab(P1, P1.vR, yB), a1 = slab(P1, P1.vL, yB);
-        setV(va, ...a0, 0, 0, 0, a0[0] / 4, a0[2] / 4, COL.soffit); setV(vb, ...b0, 0, 0, 0, b0[0] / 4, b0[2] / 4, COL.soffit); setV(vc, ...b1, 0, 0, 0, b1[0] / 4, b1[2] / 4, COL.soffit); setV(vd, ...a1, 0, 0, 0, a1[0] / 4, a1[2] / 4, COL.soffit);
+        setV(va, ...a0, 0, 0, 0, a0[0] / 4, a0[2] / 4, KC.soffit); setV(vb, ...b0, 0, 0, 0, b0[0] / 4, b0[2] / 4, KC.soffit); setV(vc, ...b1, 0, 0, 0, b1[0] / 4, b1[2] / 4, KC.soffit); setV(vd, ...a1, 0, 0, 0, a1[0] / 4, a1[2] / 4, KC.soffit);
         quad(conc, va, vb, vc, vd, 0, -1, 0, B);
         // girders: 0.7 m wide beams every ~2.9 m across the slab, hanging to DECK_D
         const Wd = Math.min(P0.vR - P0.vL, P1.vR - P1.vL), ng = Math.max(1, Math.round((Wd - 1.6) / 2.9));
@@ -325,12 +330,12 @@ export function createBuilder(net) {
             if (!isSide) {
               const q = (F, o, yf) => [F.x - F.tz * o, yf(o) - P.DECK_D, F.z + F.tx * o];
               const A0 = q(P0, oa0, yA), A1 = q(P0, oa1, yA), B1 = q(P1, ob1, yB), B0 = q(P1, ob0, yB);
-              setV(va, ...A0, 0, 0, 0, 0, 0, COL.girder); setV(vb, ...A1, 0, 0, 0, 0, 0, COL.girder); setV(vc, ...B1, 0, 0, 0, 0, 0, COL.girder); setV(vd, ...B0, 0, 0, 0, 0, 0, COL.girder);
+              setV(va, ...A0, 0, 0, 0, 0, 0, KC.girder); setV(vb, ...A1, 0, 0, 0, 0, 0, KC.girder); setV(vc, ...B1, 0, 0, 0, 0, 0, KC.girder); setV(vd, ...B0, 0, 0, 0, 0, 0, KC.girder);
               quad(conc, va, vb, vc, vd, 0, -1, 0, B);
             } else {
               const tp = (F, o, yf) => [F.x - F.tz * o, yf(o) - 0.85, F.z + F.tx * o], bt = (F, o, yf) => [F.x - F.tz * o, yf(o) - P.DECK_D, F.z + F.tx * o];
               const A0 = tp(P0, oa0, yA), A1 = bt(P0, oa0, yA), B1 = bt(P1, ob0, yB), B0 = tp(P1, ob0, yB);
-              setV(va, ...A0, 0, 0, 0, P0.s / 4, A0[1] / 4, COL.girder); setV(vb, ...A1, 0, 0, 0, P0.s / 4, A1[1] / 4, COL.girder); setV(vc, ...B1, 0, 0, 0, P1.s / 4, B1[1] / 4, COL.girder); setV(vd, ...B0, 0, 0, 0, P1.s / 4, B0[1] / 4, COL.girder);
+              setV(va, ...A0, 0, 0, 0, P0.s / 4, A0[1] / 4, KC.girder); setV(vb, ...A1, 0, 0, 0, P0.s / 4, A1[1] / 4, KC.girder); setV(vc, ...B1, 0, 0, 0, P1.s / 4, B1[1] / 4, KC.girder); setV(vd, ...B0, 0, 0, 0, P1.s / 4, B0[1] / 4, KC.girder);
               quad(conc, va, vb, vc, vd, isSide * -P0.tz, 0, isSide * P0.tx, B);
             }
           }
@@ -440,8 +445,47 @@ export function createBuilder(net) {
     setV(va, ...A0, 0, 1, 0, 0, 0, COL.joint); setV(vb, ...A1, 0, 1, 0, 0, 0, COL.joint); setV(vc, ...B1, 0, 1, 0, 0, 0, COL.joint); setV(vd, ...B0, 0, 1, 0, 0, 0, COL.joint);
     quad(buf, va, vb, vc, vd, 0, 1, 0, B);
   }
+  // W4: Keys parapet top rail (galvanized 8 cm tube 0.42 m over the parapet, posts every 3 m) and pile caps at the waterline
+  const _ra = V(), _rb = V(), _rc = V(), _rd = V();
+  function tubeAlong(buf, A, Bq, h, col, B) { // A / Bq: [x, y, z] centre line ends; square tube of half size h; open ends (never seen)
+    const dx = Bq[0] - A[0], dz = Bq[2] - A[2], L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L;
+    const P4 = (C, a, b) => [C[0] + nx * a, C[1] + b, C[2] + nz * a];
+    for (const [a0, b0, a1, b1, hx, hy, hz] of [[-h, h, h, h, 0, 1, 0], [h, -h, -h, -h, 0, -1, 0], [h, h, h, -h, nx, 0, nz], [-h, -h, -h, h, -nx, 0, -nz]]) {
+      const p0 = P4(A, a0, b0), p1 = P4(A, a1, b1), p2 = P4(Bq, a1, b1), p3 = P4(Bq, a0, b0);
+      setV(_ra, ...p0, 0, 0, 0, 0, p0[1], col); setV(_rb, ...p1, 0, 0, 0, 0.1, p1[1], col); setV(_rc, ...p2, 0, 0, 0, 0.1 + L, p2[1], col); setV(_rd, ...p3, 0, 0, 0, L, p3[1], col);
+      quad(buf, _ra, _rb, _rc, _rd, hx, hy, hz, B);
+    }
+  }
+  function keysRail(buf, F0, F1, pa, pb, side, B) {
+    const oA = (pa[4] + pa[6]) / 2, oB = (pb[4] + pb[6]) / 2, RY = 0.42;
+    const at = (F, o, y) => [F.x - F.tz * o, y, F.z + F.tx * o];
+    tubeAlong(buf, at(F0, oA, pa[5] + RY), at(F1, oB, pb[5] + RY), 0.04, KCOL.rail, B);
+    const L = F1.s - F0.s; if (!(L > 0.01)) return;
+    for (let m = Math.ceil(F0.s / 3) * 3; m < F1.s; m += 3) { const t = (m - F0.s) / L, o = oA + (oB - oA) * t, y = pa[5] + (pb[5] - pa[5]) * t;
+      const C = [F0.x + (F1.x - F0.x) * t - (F0.tz + (F1.tz - F0.tz) * t) * o, 0, F0.z + (F1.z - F0.z) * t + (F0.tx + (F1.tx - F0.tx) * t) * o];
+      const tx = F0.tx, tz = F0.tz, h = 0.03, y0 = y, y1 = y + RY - 0.03;
+      for (const [a0, l0, a1, l1, hx, hz] of [[-h, -h, h, -h, -tx, -tz], [h, -h, h, h, -tz, tx], [h, h, -h, h, tx, tz], [-h, h, -h, -h, tz, -tx]]) { // post: 6 cm square
+        const X = (a, l) => C[0] - tz * a + tx * l, Z = (a, l) => C[2] + tx * a + tz * l;
+        setV(_ra, X(a0, l0), y0, Z(a0, l0), 0, 0, 0, 0, y0, KCOL.post); setV(_rb, X(a1, l1), y0, Z(a1, l1), 0, 0, 0, 0.06, y0, KCOL.post); setV(_rc, X(a1, l1), y1, Z(a1, l1), 0, 0, 0, 0.06, y1, KCOL.post); setV(_rd, X(a0, l0), y1, Z(a0, l0), 0, 0, 0, 0, y1, KCOL.post);
+        quad(buf, _ra, _rb, _rc, _rd, hx, 0, hz, B); } }
+  }
+  const KFOOT = !(typeof location !== 'undefined' && /[?&]kfoot=0\b/.test(location.search));
+  function keysFooting(buf, p, B) {
+    if (!p.cols.length) return; let g = Infinity, cx = 0, cz = 0; for (const q of p.cols) { g = Math.min(g, q[2]); cx += q[0]; cz += q[1]; } cx /= p.cols.length; cz /= p.cols.length;
+    if (!(g < -0.3)) return; // on dry ground the columns go straight into the soil
+    const nx = -p.tz, nz = p.tx; let ha = 0; for (const q of p.cols) ha = Math.max(ha, Math.abs((q[0] - cx) * nx + (q[1] - cz) * nz));
+    ha += p.rect[0] + 0.55; const hl = p.rect[1] + 0.55, y0 = g - 0.5, y1 = 0.28; // top 0.4 m over the sea (-0.12)
+    const Cn = (a, l, y) => [cx + nx * a + p.tx * l, y, cz + nz * a + p.tz * l], col = KCOL.footing;
+    for (const [a0, l0, a1, l1, hx, hz] of [[-ha, -hl, ha, -hl, -p.tx, -p.tz], [ha, -hl, ha, hl, nx, nz], [ha, hl, -ha, hl, p.tx, p.tz], [-ha, hl, -ha, -hl, -nx, -nz]]) {
+      const A = Cn(a0, l0, y0), Bq = Cn(a1, l1, y0), C = Cn(a1, l1, y1), D = Cn(a0, l0, y1);
+      setV(_ra, ...A, 0, 0, 0, a0 / 3, y0 / 3, col); setV(_rb, ...Bq, 0, 0, 0, a1 / 3, y0 / 3, col); setV(_rc, ...C, 0, 0, 0, a1 / 3, y1 / 3, col); setV(_rd, ...D, 0, 0, 0, a0 / 3, y1 / 3, col);
+      quad(buf, _ra, _rb, _rc, _rd, hx, 0, hz, B); }
+    const T = [Cn(-ha, -hl, y1), Cn(ha, -hl, y1), Cn(ha, hl, y1), Cn(-ha, hl, y1)];
+    setV(_ra, ...T[0], 0, 0, 0, 0, 0, col); setV(_rb, ...T[1], 0, 0, 0, 1, 0, col); setV(_rc, ...T[2], 0, 0, 0, 1, 1, col); setV(_rd, ...T[3], 0, 0, 0, 0, 1, col);
+    quad(buf, _ra, _rb, _rc, _rd, 0, 1, 0, B);
+  }
   const SEG = 14;
-  function pierGeo(buf, p, B) {
+  function pierGeo(buf, p, B) { const PC = p.rect ? KCOL : COL;
     const capH = 1.15, capD = 1.7, capTop = p.soffit, capBot = capTop - capH, o0 = p.vL + 0.5, o1 = p.vR - 0.5;
     // cap beam (box oriented with the deck)
     const nx = -p.tz, nz = p.tx;
@@ -455,7 +499,7 @@ export function createBuilder(net) {
     ];
     for (const [a, b, cc, d, hx, hy, hz] of faces) {
       const A = corner(...a), Bq = corner(...b), C = corner(...cc), D = corner(...d);
-      setV(va, ...A, 0, 0, 0, a[0] / 3, a[2] / 3, COL.cap); setV(vb, ...Bq, 0, 0, 0, b[0] / 3, b[2] / 3, COL.cap); setV(vc, ...C, 0, 0, 0, cc[0] / 3, cc[2] / 3, COL.cap); setV(vd, ...D, 0, 0, 0, d[0] / 3, d[2] / 3, COL.cap);
+      setV(va, ...A, 0, 0, 0, a[0] / 3, a[2] / 3, PC.cap); setV(vb, ...Bq, 0, 0, 0, b[0] / 3, b[2] / 3, PC.cap); setV(vc, ...C, 0, 0, 0, cc[0] / 3, cc[2] / 3, PC.cap); setV(vd, ...D, 0, 0, 0, d[0] / 3, d[2] / 3, PC.cap);
       quad(buf, va, vb, vc, vd, hx, hy, hz, B);
     }
     if (p.rect) { // r5-bridge: Keys bents: slender rectangular columns (half sizes across / along the deck)
@@ -464,19 +508,20 @@ export function createBuilder(net) {
         const y0 = g - 0.5, y1 = capBot + 0.05, Cn = (a, l) => [cx + nx2 * a + p.tx * l, cz + nz2 * a + p.tz * l];
         for (const [a0, l0, a1, l1, hx, hz] of [[-ha, -hl, ha, -hl, -p.tx, -p.tz], [ha, -hl, ha, hl, nx2, nz2], [ha, hl, -ha, hl, p.tx, p.tz], [-ha, hl, -ha, -hl, -nx2, -nz2]]) {
           const [x0, z0] = Cn(a0, l0), [x1, z1] = Cn(a1, l1);
-          setV(va, x0, y0, z0, 0, 0, 0, a0 / 3, y0 / 3, COL.pier); setV(vb, x1, y0, z1, 0, 0, 0, a1 / 3, y0 / 3, COL.pier);
-          setV(vc, x1, y1, z1, 0, 0, 0, a1 / 3, y1 / 3, COL.pier); setV(vd, x0, y1, z0, 0, 0, 0, a0 / 3, y1 / 3, COL.pier);
+          setV(va, x0, y0, z0, 0, 0, 0, a0 / 3, y0 / 3, PC.pier); setV(vb, x1, y0, z1, 0, 0, 0, a1 / 3, y0 / 3, PC.pier);
+          setV(vc, x1, y1, z1, 0, 0, 0, a1 / 3, y1 / 3, PC.pier); setV(vd, x0, y1, z0, 0, 0, 0, a0 / 3, y1 / 3, PC.pier);
           quad(buf, va, vb, vc, vd, hx, 0, hz, B);
         }
       }
+      if (KFOOT) keysFooting(buf, p, B);
       return;
     }
     for (const [cx, cz, g] of p.cols) {
       const r = p.r, y0 = g - 0.5, y1 = capBot + 0.05;
       for (let k = 0; k < SEG; k++) {
         const a0 = (k / SEG) * Math.PI * 2, a1 = ((k + 1) / SEG) * Math.PI * 2, c0 = Math.cos(a0), s0 = Math.sin(a0), c1 = Math.cos(a1), s1 = Math.sin(a1);
-        setV(va, cx + c0 * r, y0, cz + s0 * r, c0, 0, s0, k / SEG * 3, y0 / 3, COL.pier); setV(vb, cx + c1 * r, y0, cz + s1 * r, c1, 0, s1, (k + 1) / SEG * 3, y0 / 3, COL.pier);
-        setV(vc, cx + c1 * r, y1, cz + s1 * r, c1, 0, s1, (k + 1) / SEG * 3, y1 / 3, COL.pier); setV(vd, cx + c0 * r, y1, cz + s0 * r, c0, 0, s0, k / SEG * 3, y1 / 3, COL.pier);
+        setV(va, cx + c0 * r, y0, cz + s0 * r, c0, 0, s0, k / SEG * 3, y0 / 3, PC.pier); setV(vb, cx + c1 * r, y0, cz + s1 * r, c1, 0, s1, (k + 1) / SEG * 3, y0 / 3, PC.pier);
+        setV(vc, cx + c1 * r, y1, cz + s1 * r, c1, 0, s1, (k + 1) / SEG * 3, y1 / 3, PC.pier); setV(vd, cx + c0 * r, y1, cz + s0 * r, c0, 0, s0, k / SEG * 3, y1 / 3, PC.pier);
         // smooth normals: emit directly (outward winding)
         const tri = (A, Bv, C) => { triClip(buf, A, Bv, C, B); };
         if ((vb[0] - va[0]) * (vc[2] - va[2]) - (vb[2] - va[2]) * (vc[0] - va[0]) >= 0) { tri(va, vc, vb); tri(va, vd, vc); } else { tri(va, vb, vc); tri(va, vc, vd); }
@@ -586,13 +631,13 @@ export function createBuilder(net) {
         if (c.type[i0] === 0 && c.type[j] === 0) continue;
         if (R4S && !hasBar && !open && !c.water[i0] && !c.water[j] && c.y[i0] - c.gY[i0] < 0.6 && c.y[j] - c.gY[j] < 0.6) continue; // r4: fill slope, not a wall (see buildVisual)
         const oa6 = oa - side * 0.06, ob6 = ob - side * 0.06;
-        q(pt(i0, oa6, top), pt(i0, oa6, bot(i0, oa) + 0.06), pt(j, ob6, bot(j, ob) + 0.06), pt(j, ob6, top), COL.fascia, side * -c.tz[i0], 0, side * c.tx[i0]);
-        if (hasBar) { const ia = oa - side * P.BAR_TOP, ib = ob - side * P.BAR_TOP; const oa_ = oa6, ob_ = ob6; oa = oa_; ob = ob_; q(pt(i0, ia, top), pt(i0, oa, top), pt(j, ob, top), pt(j, ib, top), COL.barrierTop, 0, 1, 0); q(pt(i0, ia, 0), pt(i0, ia, top), pt(j, ib, top), pt(j, ib, 0), COL.barrier, -side * -c.tz[i0], 0, -side * c.tx[i0]); }
+        q(pt(i0, oa6, top), pt(i0, oa6, bot(i0, oa) + 0.06), pt(j, ob6, bot(j, ob) + 0.06), pt(j, ob6, top), (c.kst ? KCOL : COL).fascia, side * -c.tz[i0], 0, side * c.tx[i0]);
+        if (hasBar) { const ia = oa - side * P.BAR_TOP, ib = ob - side * P.BAR_TOP; const oa_ = oa6, ob_ = ob6; oa = oa_; ob = ob_; q(pt(i0, ia, top), pt(i0, oa, top), pt(j, ob, top), pt(j, ib, top), (c.kst ? KCOL : COL).barrierTop, 0, 1, 0); q(pt(i0, ia, 0), pt(i0, ia, top), pt(j, ib, top), pt(j, ib, 0), COL.barrier, -side * -c.tz[i0], 0, -side * c.tx[i0]); }
       }
-      if (open) q(pt(i0, c.vL[i0] + 0.06, -0.79), pt(i0, c.vR[i0] - 0.06, -0.79), pt(j, c.vR[j] - 0.06, -0.79), pt(j, c.vL[j] + 0.06, -0.79), COL.soffit, 0, -1, 0);
+      if (open) q(pt(i0, c.vL[i0] + 0.06, -0.79), pt(i0, c.vR[i0] - 0.06, -0.79), pt(j, c.vR[j] - 0.06, -0.79), pt(j, c.vL[j] + 0.06, -0.79), (c.kst ? KCOL : COL).soffit, 0, -1, 0);
     }
     for (const p of g.piersT) for (const [cx, cz, gy] of p.cols) { const r = p.r, y1 = p.soffit;
-      for (const [dx0, dz0, dx1, dz1, hx, hz] of [[-r, -r, r, -r, 0, -1], [r, -r, r, r, 1, 0], [r, r, -r, r, 0, 1], [-r, r, -r, -r, -1, 0]]) { setV(va, cx + dx0, gy, cz + dz0, 0, 0, 0, 0, 0, COL.pier); setV(vb, cx + dx1, gy, cz + dz1, 0, 0, 0, 0, 0, COL.pier); setV(vc, cx + dx1, y1, cz + dz1, 0, 0, 0, 0, 0, COL.pier); setV(vd, cx + dx0, y1, cz + dz0, 0, 0, 0, 0, 0, COL.pier); quad(buf, va, vb, vc, vd, hx, 0, hz, B); } }
+      for (const [dx0, dz0, dx1, dz1, hx, hz] of [[-r, -r, r, -r, 0, -1], [r, -r, r, r, 1, 0], [r, r, -r, r, 0, 1], [-r, r, -r, -r, -1, 0]]) { setV(va, cx + dx0, gy, cz + dz0, 0, 0, 0, 0, 0, (p.rect ? KCOL : COL).pier); setV(vb, cx + dx1, gy, cz + dz1, 0, 0, 0, 0, 0, (p.rect ? KCOL : COL).pier); setV(vc, cx + dx1, y1, cz + dz1, 0, 0, 0, 0, 0, (p.rect ? KCOL : COL).pier); setV(vd, cx + dx0, y1, cz + dz0, 0, 0, 0, 0, 0, (p.rect ? KCOL : COL).pier); quad(buf, va, vb, vc, vd, hx, 0, hz, B); } }
     return buf;
   }
   return { gather, buildVisual, buildColliders, buildCollidersGen, buildLod, runs, COL };

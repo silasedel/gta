@@ -14,6 +14,7 @@ const DEG = Math.PI / 180;
 // ?keysbridge=0 = the generic viaduct look.
 const WCLEAR = !(typeof location !== 'undefined' && /[?&](wclear|mapfix)=0\b/.test(location.search)), WATER_Y = 1.8; // deck top over open water (sea level -0.12)
 const KEYSB = !(typeof location !== 'undefined' && /[?&]keysbridge=0\b/.test(location.search));
+const KARC = KEYSB && !(typeof location !== 'undefined' && /[?&]karc=0\b/.test(location.search)), KARC_TOP = 7.6; // W4: Keys bridge crest, deck top over the sea: the soffit (deck - 1.25 m) clears the water by ~6.3 m (20 ft) at the peak
 
 // uniform grid of item ids (cell -> int list)
 class Grid {
@@ -392,7 +393,21 @@ export function* buildNetworkSteps(data, opts = {}) {
       for (let i = 0; i < n; i++) if (!Number.isNaN(eq[i])) cap[i] = eq[i];
       for (let i = 1; i < n; i++) cap[i] = Math.min(cap[i], cap[i - 1] + 0.05 * (c.s[i] - c.s[i - 1]));
       for (let i = n - 2; i >= 0; i--) cap[i] = Math.min(cap[i], cap[i + 1] + 0.05 * (c.s[i + 1] - c.s[i]));
-      for (let i = 0; i < n; i++) if (Number.isNaN(eq[i]) && isWater(c.x[i], c.z[i])) { const v = Math.min(WATER_Y, cap[i]); if (v > lo[i]) { lo[i] = v; if (!cons[i]) cons[i] = 4; } } }
+      for (let i = 0; i < n; i++) if (Number.isNaN(eq[i]) && isWater(c.x[i], c.z[i])) { const v = Math.min(WATER_Y, cap[i]); if (v > lo[i]) { lo[i] = v; if (!cons[i]) cons[i] = 4; } }
+      // W4 (Nov 19 playtest: "the Keys-to-mainland overpass and bridges are too low and plain, arc to ~6 m above the water"): the
+      // Keys bridges (same test as c.kst below) rise in one parabolic vertical curve over each open-water run, WATER_Y at the shores
+      // to KARC_TOP over the sea at mid-run, end grade <= 4.5 % (short runs get a lower crest), still capped by the 5 % climb from
+      // the land pins. ?karc=0 = flat 1.8 m deck.
+      if (KARC) { const wt = new Uint8Array(n); let w = 0; for (let i = 0; i < n; i++) if (isWater(c.x[i], c.z[i])) { wt[i] = 1; w++; }
+        const m = n >> 1;
+        if (KEYSB && w >= 6 && c.z[m] > 3900 && c.x[m] < 400) {
+          for (let i = 0; i < n;) { if (!wt[i]) { i++; continue; } let j = i; for (;;) { let k = j + 1; while (k < n && !wt[k]) k++; if (k < n && c.s[k] - c.s[j] < 40) j = k; else break; while (j + 1 < n && wt[j + 1]) j++; }
+            while (j + 1 < n && wt[j + 1]) j++;
+            while (i > 0 && c.yT[i - 1] > 3) i--; while (j + 1 < n && c.yT[j + 1] > 3) j++; // the arc spans the whole raised bridge (data approaches over islets), not only the water
+            const L = c.s[j] - c.s[i];
+            if (L >= 80) { const rise = Math.min(KARC_TOP - WATER_Y, 0.045 * L / 4);
+              for (let k = i; k <= j; k++) { const t = (c.s[k] - c.s[i]) / L, v = Math.min(WATER_Y + rise * 4 * t * (1 - t), cap[k]); if (Number.isNaN(eq[k]) && v > lo[k]) { lo[k] = v; if (!cons[k]) cons[k] = 4; } if (Number.isNaN(eq[k]) && yt[k] < v) yt[k] = v; } }
+            i = j + 1; } } } }
     const OA = c.ovs ? { yt, w, eq, lo, hi, cons, beq } : null; if (OA) applyProfile(c, OA, 1);
     // grade cones: every pin / bound propagates at <= ~7 % (low humps get lower instead of steeper; clearance lifts start early)
     { const G = 0.07, lo0 = Float64Array.from(lo), hi0 = Float64Array.from(hi);
