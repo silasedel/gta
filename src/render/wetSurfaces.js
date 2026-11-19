@@ -51,7 +51,7 @@ if ( uWeather.x > 0.001 ) { // stage1 wet
   float wet = uWeather.x * mix( 0.3, 1.0, up );                               // walls catch some rain, ground the most
   // puddles: low-frequency patches on flat, upward surfaces only (curbs and roofs edges stay dry-ish)
   float pn = wetNoise( wP.xz * 0.11 ) * 0.65 + wetNoise( wP.xz * 0.43 + 7.0 ) * 0.35;
-  float puddle = uWeather.y * up * smoothstep( 0.52, 0.66, pn + 0.18 * uWeather.y );
+  float puddle = uWeather.y * up * smoothstep( 0.47, 0.71, pn + 0.18 * uWeather.y ); // r8: wider, soft rim (was 0.52..0.66: a hard outline)
   float porous = ( 1.0 - metalnessFactor ) * smoothstep( 0.25, 0.7, roughnessFactor );
   // living surfaces (grass, leaves: green-dominant albedo, or alpha-tested cards) darken but barely turn glossy and
   // never hold puddles; hard surfaces (asphalt, concrete, roofs, paint) get the full sheen
@@ -72,7 +72,7 @@ if ( uWeather.x > 0.001 ) { // stage1 wet
   material.diffuseColor *= mix( 1.0, 0.6, wet * max( porous, sandy ) ) * mix( 1.0, 0.85, puddle ) * mix( 1.0, 0.82, wet * sandy );
   float wetR = mix( mix( 0.2, 0.42, 1.0 - up ), 0.55, sandy ) + ( material.roughness - 0.6 ) * 0.3;
   material.roughness = mix( material.roughness, clamp( wetR, 0.12, 0.85 ), sheen * 0.85 );
-  material.roughness = mix( material.roughness, 0.04, puddle );
+  material.roughness = mix( material.roughness, 0.08, puddle * puddle ); // r8: the mirror sets in toward the middle (gloss rose in a ring at the rim) and is never razor-sharp (sparkle / flicker under TAA)
   // standing water is flat: tilt the shading normal back toward world up, plus rain ripples while it rains
   vec2 rip = uWeather.z > 0.01 ? wetRipple( wP.xz, uWeather.w ) * uWeather.z : vec2( 0.0 );
   vec3 flatN = normalize( ( viewMatrix * vec4( rip.x, 1.0, rip.y, 0.0 ) ).xyz );

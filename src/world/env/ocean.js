@@ -186,16 +186,21 @@ export function createOcean(game, skyUniforms, normalsTex) {
         // render track: true depth from the scene depth buffer (vertical, m). Near the shore it replaces the blurred, 1.5 s
         // stepped height-cascade estimate, so the edge sits exactly where the ground meets the water, fades to nothing there
         // (no hard cut line, no shimmer of the intersection under TAA jitter) and never jumps when the cascade recenters.
-        float softD = 1e3;
+        float softD = 1e3, softP = 1e3; // vertical water depth, and the view ray's path through the water (m)
         if ( uSoft > 0.5 ) {
           float sd = texture2D( tSceneDepth, gl_FragCoord.xy / uDepthSize ).x;
           if ( sd < 0.999999 ) {
             float sceneZ = -perspectiveDepthToViewZ( sd, uNearFar.x, uNearFar.y );
-            softD = max( sceneZ - vViewZ, 0.0 ) * dist / max( vViewZ, 1e-3 ) * max( V.y, 0.03 );
+            softP = max( sceneZ - vViewZ, 0.0 ) * dist / max( vViewZ, 1e-3 );
+            softD = softP * max( V.y, 0.03 );
           }
           dE = softD < 1.6 ? mix( softD, dE, smoothstep( 0.35, 1.6, softD ) ) : dE;
         }
-        float kEdge = uSoft > 0.5 ? smoothstep( 0.0, 0.015, softD ) : 1.0;
+        // r8 (user: "water edges sharp and glitching in and out"): the edge fades over the ray's PATH through the water as
+        // well, so where the bank is a step / mesh rim (path short even though the water is suddenly deep) the water still
+        // thins out softly over ~0.4 m instead of cutting off on the ground mesh's polygon outline; scaled with distance so
+        // far shores stay soft without going blurry up close.
+        float kEdge = uSoft > 0.5 ? smoothstep( 0.0, 0.02, softD ) * smoothstep( 0.0, 0.25 + 0.004 * dist, softP ) : 1.0;
         dP = max( dE, 0.0 );
         float cv = sqrt( max( 1.0 - ( 1.0 - NdV * NdV ) / 1.769, 0.0 ) ), cs = sqrt( max( 1.0 - ( 1.0 - L.y * L.y ) / 1.769, 0.0 ) );
         float Lp = dP / max( cv, 0.25 ) + dP / max( cs, 0.35 );
@@ -223,9 +228,10 @@ export function createOcean(game, skyUniforms, normalsTex) {
         float lace = ( 1.0 - smoothstep( 0.0, lw, abs( dE - lw * 0.8 ) ) ) * smoothstep( 0.35, 0.65, oN( p * 2.4 + vec2( t * 0.07, 0.0 ) ) * 0.6 + oN( p * 9.0 - vec2( 0.0, t * 0.1 ) ) * 0.4 ) * hK;
         float fA = clamp( lace * 0.55, 0.0, 1.0 ) * smoothstep( -0.01, 0.004, dE );
         // soft wet-foam fringe on the true edge: a few cm of broken, breathing foam that thins out into the water
-        if ( uSoft > 0.5 && softD < 0.12 ) {
-          float fr = ( 1.0 - smoothstep( 0.004, 0.06 + 0.03 * sin( t * 0.9 + p.x * 0.21 + p.y * 0.17 ), softD ) ) * smoothstep( 0.3, 0.7, oN( p * 3.1 + vec2( t * 0.05, -t * 0.04 ) ) * 0.7 + oN( p * 11.0 ) * 0.3 );
-          fA = max( fA, fr * 0.35 );
+        if ( uSoft > 0.5 && min( softD, softP * 0.15 ) < 0.12 ) {
+          float eD = min( softD, softP * 0.15 ); // the step banks get the same gentle fringe as sloped beaches
+          float fr = ( 1.0 - smoothstep( 0.004, 0.06 + 0.03 * sin( t * 0.9 + p.x * 0.21 + p.y * 0.17 ), eD ) ) * smoothstep( 0.3, 0.7, oN( p * 3.1 + vec2( t * 0.05, -t * 0.04 ) ) * 0.7 + oN( p * 11.0 ) * 0.3 );
+          fA = max( fA, fr * 0.28 );
         }
         // far field (no depth data): a faint broken foam line at the coarse coast, no broad band
         if ( shoreM < 12.0 && hK < 1.0 ) { float nz = texture2D( tNormal, p / 9.0 + t * 0.02 ).r; fA = max( fA, ( 1.0 - smoothstep( 1.0, 5.0 + nz * 4.0, shoreM ) ) * smoothstep( 0.45, 0.8, nz + 0.2 ) * 0.4 * ( 1.0 - hK ) ); }

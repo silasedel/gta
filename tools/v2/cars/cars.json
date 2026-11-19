@@ -2052,8 +2052,12 @@
  },
  "truck12": {
   "src": "Trucks/Truck 12 - Tow Truck/source/inner_Kenworth T440 Tow Truck/Kenworth T440 Tow Truck.glb",
-  "L": 8.6,
-  "dropMat": "logo|badge|emblem|decal|letter|text|sticker|label|caterpillar|\\bcat\\b|kenworth|mcneilus|autocar|brand|script"
+  "L": 9.8,
+  "dropMat": "emblem|logo|badge|decal|sticker",
+  "slots": {
+   "^cabin$": "paint"
+  },
+  "fwd": "-y"
  },
  "truck13": {
   "src": "Trucks/Truck 13 - Front-Load Garbage Truck/source/inner_CDS Autocar McNeilus Pacific/CDS Autocar McNeilus Pacific.blend",
@@ -2065,6 +2069,46 @@
    80000,
    5000
   ],
-  "keepInnerLod": true
+  "keepInnerLod": true,
+  "slots": {
+   "^Truck Body": "paint",
+   "^Yellow$": "trim#d9a21a",
+   "CDS Signboard": "drop",
+   "Foothill Transit Livery": "trim#2a2c30"
+  },
+  "fwd": "-x",
+  "cutBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.4
+    ],
+    "ax": [
+     0,
+     0.65
+    ],
+    "y": [
+     0.4,
+     1.0
+    ]
+   },
+   {
+    "front": true,
+    "dz": [
+     0.9,
+     2.3
+    ],
+    "ax": [
+     0.9,
+     1.5
+    ],
+    "y": [
+     2.5,
+     3.3
+    ],
+    "mode": "lampkill"
+   }
+  ]
  }
 }
