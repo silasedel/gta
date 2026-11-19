@@ -21,7 +21,10 @@ export const CAR_SPOTS = [
 ];
 
 // ---- the driveway: from the drive mouth at the STOP corner past the pickup, with a branch to the carport bay under the house ----
-export const DRIVE = { main: [[-19.0, 21.6], [-17.4, 18.4], [-16.2, 14.0], [-15.0, 9.8], [-12.4, 6.2]], branch: [[-12.4, 6.2], [-8.5, 4.9], [-4.5, 4.4]], halfWidth: 2.3 };
+// r7 (playtest Nov 18 eve, item 6; mock-up r4/01 roof view): the house is square to the street again, so the drive runs STRAIGHT out of
+// the front of the house to the STOP corner (lot frame S: x ~ -5.8 .. -4.1 from the end of Pelican Point Ln at z ~ 28 to the pickup at z ~ 7.5),
+// then bends under the front deck to the carport. Same yard frame G as everything here (converted from S with r4/plan4.js toG).
+export const DRIVE = { main: [[-25.56, 20.35], [-19.44, 14.28], [-15.03, 10.16], [-11.03, 6.36]], branch: [[-11.03, 6.36], [-7.78, 4.02], [-4.03, 2.78]], halfWidth: 2.2 };
 
 // ---- white lattice planter box between the deck and the drive (bougainvillea grows out of it, part 50) ----
 // [ax, az, bx, bz] runs; height of the lattice, depth of the box
@@ -42,10 +45,10 @@ export const BINS = [
 // pavement edge, plate facing the oncoming traffic. Computed from the road graph legs at J (house frame): east leg out of J along
 // (0.763, 0.645), west leg (-0.508, -0.862), north leg (-0.541, 0.841); pos = J + leg * setback + right-of-travel * (3.25 + 0.9),
 // face = leg direction. The street kit's regulatory STOPs (regulatory.v2.js) have none at this corner (no 'stop' control on 3210 / 3215).
+// r7: Pelican Point Ln ends at the front of the lot (lot frame S x -6, z 28.9; there is no corner here any more): one STOP at the right
+// of the drive mouth, its face toward the house, as in the roof-view mock-up (01)
 export const STOPS = [
-  { x: -14.55, z: 23.73, face: 0.869, lean: 0.02 },   // east leg, westbound traffic (the deck sees its back, like a real corner)
-  { x: -27.3, z: 21.2, face: -2.61, lean: -0.02 },    // west leg, northbound
-  { x: -20.4, z: 30.7, face: -0.572, lean: 0.015 },   // north leg, southbound
+  { x: -28.8, z: 17.37, face: 2.42, lean: 0.02 },
 ];
 
 // ---- wooden utility poles: [x, z, height, lean, crossarm yaw (square to the wires)]; wires: [poleA, poleB | WIRE_ENDS key], sag in m.
@@ -58,18 +61,21 @@ export const WIRES = [{ a: 0, b: 1, n: 3, sag: 0.9 }, { a: 0, b: 2, n: 3, sag: 0
 export const SERVICE_POLE = 0;   // index into POLES: the service drop from the house mast lands here
 
 // ---- the mailbox at the drive mouth (part 45), facing the west leg ----
-export const MAILBOX = { x: -19.4, z: 18.2, h: -1.03 };
+export const MAILBOX = { x: -26.95, z: 16.47, h: -0.72 };   // r7: at the right of the straight drive's mouth (it stood in the new drive)
 
 // ---- red roll-off at the street edge of the yard, along the west leg, behind the right-hand bins (mock-up: mid-frame right): a long,
 // LOW 20-yard box (sy), rust-darkened ----
 // r4-keys (user, Nov 18: "move it more to the side so there's room to drive out"; r4 ref 01_roof_view_yard_dumpster: off to the RIGHT of
 // the drive against the bushes by the street, drive clear): slid 13 m down the west leg's verge toward the bay, past the classic. The pickup
 // backs out along (-0.71, +0.70) into the drive mouth; the old spot (-22.0, 12.55) stood 1.3 m off the drive edge in that swing.
-export const DUMPSTER = { x: -26.0, z: 0.0, heading: 0.54, scale: 0.82, sy: 1, tint: [0.96, 0.93, 0.9] };   // full height (squashed ribs looked wrong up close)
+export const DUMPSTER = { x: -25.1, z: 10.0, heading: 0.85, scale: 0.82, sy: 1, tint: [0.96, 0.93, 0.9] };   // full height (squashed ribs looked wrong up close)
 
 // ---- pale limestone / coral boulders: [x, z, piece (1..6 of keys/rocks.glb), scale, heading, sink] ----
 export const ROCKS = [
-  [-17.9, 13.6, 2, 0.22, 0.4, 0.04], [-18.15, 12.7, 5, 0.18, 2.1, 0.03], [-18.6, 14.4, 1, 0.2, 1.2, 0.04], [-17.5, 8.0, 6, 0.2, 4.0, 0.04],   // drive edge (mock-up)
+  // r7: the stones lining the drive's right edge from the pickup to the street (01), a few on its left
+  [-13.86, 3.21, 2, 0.22, 0.4, 0.04], [-15.25, 5.18, 5, 0.18, 2.1, 0.03], [-17.07, 6.78, 1, 0.2, 1.2, 0.04], [-18.78, 8.47, 6, 0.2, 4.0, 0.04],
+  [-20.09, 10.51, 3, 0.19, 0.9, 0.04], [-21.62, 12.36, 4, 0.21, 2.8, 0.04], [-23.48, 13.92, 2, 0.18, 5.0, 0.03], [-25.05, 15.74, 5, 0.22, 1.6, 0.04],
+  [-10.35, 10.28, 6, 0.16, 0.3, 0.03], [-12.34, 12.78, 3, 0.17, 2.2, 0.03],
   [-9.8, 26.6, 3, 0.26, 2.6, 0.05], [-6.0, 27.2, 4, 0.3, 0.9, 0.06], [-3.0, 27.6, 2, 0.24, 5.1, 0.04], [1.0, 27.6, 5, 0.26, 3.3, 0.05], [5.5, 27.6, 1, 0.22, 0.2, 0.04], [8.5, 27.3, 6, 0.28, 1.7, 0.05],   // frontage on the east leg
   [-25.2, 3.5, 3, 0.25, 1.0, 0.05], [-25.0, 8.6, 4, 0.22, 2.0, 0.04],   // west verge
   [-6.5, 15.0, 3, 0.16, 1.0, 0.03], [-3.0, 19.5, 6, 0.17, 0.5, 0.03], [-15.0, 2.0, 2, 0.2, 3.9, 0.04],
@@ -78,24 +84,24 @@ export const ROCKS = [
 // ---- clutter and debris (own models, part 55): kind, x, z, heading, extra ----
 export const DEBRIS = [
   { k: 'pallet', x: -19.3, z: 11.1, h: 0.5, tilt: 0.05 }, { k: 'pallet', x: -19.15, z: 10.95, h: 0.62, y: 0.13 }, { k: 'drywall', x: -24.6, z: 8.6, h: 1.0 },
-  { k: 'lumber', x: -21.0, z: 1.5, h: 1.3 }, { k: 'bucket', x: -19.6, z: 12.4, h: 0 }, { k: 'tire', x: -27.0, z: 24.4, h: 0, flat: true }, { k: 'cinder', x: -9.4, z: 7.1, h: 0.4 },
-  { k: 'cinder', x: -9.1, z: 7.5, h: 1.1 }, { k: 'cooler', x: 2.9, z: 10.6, h: 2.3 }, { k: 'chair', x: 2.1, z: 11.5, h: 3.6 },
+  { k: 'lumber', x: -21.0, z: 1.5, h: 1.3 }, { k: 'bucket', x: -19.6, z: 12.4, h: 0 }, { k: 'tire', x: -27.0, z: 24.4, h: 0, flat: true }, { k: 'cinder', x: -11.55, z: 2.57, h: 0.4 },
+  { k: 'cinder', x: -11.25, z: 2.97, h: 1.1 }, { k: 'cooler', x: 2.9, z: 10.6, h: 2.3 }, { k: 'chair', x: 2.1, z: 11.5, h: 3.6 },
   { k: 'chair', x: 3.7, z: 11.2, h: 2.4, tipped: true }, { k: 'husks', x: -5.6, z: 14.2, h: 0 }, { k: 'husks', x: -2.0, z: 19.8, h: 1 },
   { k: 'tarp', x: -21.5, z: -6.0, h: 0.4 }, { k: 'bucket', x: 2.4, z: 9.8, h: 0, color: 0xe25a1c },
 ];
 
 // ---- yard surface: puddles (fill with the weather's puddle level), tire tracks, leaf-litter / shell / matted-grass patches ----
 // the drive-end puddle (user review): in the low spot where the drive meets the STOP corner; it fills after rain and dries out
-export const CORNER_PUDDLE = { x: -17.7, z: 19.0, a: 1.3, b: 0.55, rot: 0.55 };   // lead review: a small standing puddle at the drive mouth even in dry weather
+export const CORNER_PUDDLE = { x: -24.58, z: 18.01, a: 1.3, b: 0.55, rot: 0.85 };   // lead review: a small standing puddle at the drive mouth even in dry weather
 // small sticks, twigs, palm-frond bits and bark scraps: [x, z, radius, count]
 export const STICKS = [[-14.5, 12.5, 3.0, 24], [-19.5, 13.5, 2.5, 20], [-11.0, 7.5, 2.5, 16], [-20.5, 4.5, 3.0, 20], [-6.0, 18.0, 2.5, 14], [2.0, 16.0, 2.5, 14], [-21.0, -4.0, 3.0, 18]];
 // [x, z, half length, half width, yaw]: small rut puddles (decals). The drive-end puddle is r2-ground's patchPuddles on the yard sheet
 // itself over the sheet's low spot (DRIVE_PUDDLE; nicoHouse.v2.js): fills while it rains, shrinks back as the weather dries
-export const DRIVE_PUDDLE = { x: -16.4, z: 17.6, r: 2.1 };
-export const PUDDLES = [[-14.4, 10.6, 1.0, 0.35, 0.35], [-12.9, 6.1, 0.8, 0.3, -0.2], [-16.7, 15.2, 1.1, 0.4, 0.3], [-9.0, 9.5, 1.2, 0.4, 0.6]];
+export const DRIVE_PUDDLE = { x: -21.9, z: 16.8, r: 2.1 };
+export const PUDDLES = [[-16.4, 11.6, 1.0, 0.35, 0.8], [-12.2, 7.4, 0.8, 0.3, 0.85], [-20.6, 15.6, 1.1, 0.4, 0.8], [-8.6, 4.6, 0.9, 0.35, 0.6]];   // r7: on the straight drive
 export const TRACKS = [   // polylines of the left / right tire, width 0.3 (soft, darker, slightly sunk)
-  { pts: [[-18.8, 21.2], [-17.4, 18.4], [-16.2, 14.0], [-15.0, 9.8], [-12.6, 6.6]], gauge: 1.7 },
-  { pts: [[-14.0, 8.0], [-16.5, 7.4], [-18.0, 6.2]], gauge: 1.55 },
+  { pts: [[-25.16, 19.9], [-19.44, 14.28], [-15.03, 10.16], [-11.23, 6.58]], gauge: 1.7 },
+  { pts: [[-11.23, 6.58], [-7.78, 4.02], [-4.6, 2.9]], gauge: 1.6 },
 ];
 export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed shell / marl dust) | 'matted' | 'leaves']
   // (no 'shell' patches: the yard sheet itself is the pale shell floor; decal rims on it read as patch edges, user review shot_27)
@@ -143,7 +149,7 @@ export const PLANTING = [   // inside the lot only (r2-veg plants the verges and
 // foot, the drive's middle strip between the ruts, and the lot edges (the rest of the yard is trodden bare)
 export const WEEDS = [
   [-12.6, 12.4, 1.0, 40, 1.1], [-18.2, 9.2, 0.9, 34, 1.1], [-10.8, 12.9, 1.6, 50, 1.1], [-10.8, 11.8, 1.4, 40, 1.0],   // bins, planter foot
-  [-13.3, 25.5, 0.6, 28, 1.2], [3.0, 27.6, 0.6, 26, 1.2], [-33.5, 10.5, 0.6, 22, 1.1], [-19.4, 18.2, 0.5, 20, 1.1],   // pole and mailbox feet
+  [-13.3, 25.5, 0.6, 28, 1.2], [3.0, 27.6, 0.6, 26, 1.2], [-33.5, 10.5, 0.6, 22, 1.1], [-26.95, 16.47, 0.5, 20, 1.1],   // pole and mailbox feet
   [-14.55, 23.73, 0.5, 18, 1.0], [-27.3, 21.2, 0.5, 16, 1.0], [-20.4, 30.7, 0.5, 16, 1.0],   // STOP feet
   [-15.6, 12.0, 0.35, 22, 1.0], [-16.8, 16.2, 0.3, 18, 1.0], [-13.6, 8.0, 0.3, 16, 0.9],   // between the ruts
   [-21.5, 15.8, 1.8, 60, 1.2], [-14.5, 3.5, 2.0, 55, 1.2], [-11.5, 4.8, 1.2, 30, 1.0], [-22.0, 3.0, 2.5, 60, 1.3], [-6.0, 25.5, 2.5, 60, 1.2],

@@ -20,7 +20,9 @@ export const P4 = {
   // the house itself (parts r4_10 / r4_70, frame 'house') is turned 45 deg in the lot about its center: from the main drive you see
   // its front corner with the stair and the wraparound deck, the hoop side faces the +X cove side, the back stair stands at the
   // opposite (bay) corner (user review Nov 18). The lawn, bulkhead and dock stay square to the bay.
-  rot: { theta: Math.PI / 4, cx: 0, cz: -7 },
+  // r7 (playtest Nov 18 eve): square to the street and the bay again, as in the mock-ups 01 (roof view: the drive runs straight out
+  // of the front to the STOP corner), 1 (front from the street), 08 and 2 (back from the water). ?nhrot=<deg> for A/B (45 = r4-r6).
+  rot: { theta: (typeof location !== 'undefined' && /[?&]nhrot=(-?[\d.]+)/.exec(location.search)) ? +/[?&]nhrot=(-?[\d.]+)/.exec(location.search)[1] * Math.PI / 180 : 0, cx: 0, cz: -7 },
   F: 3.6,                  // floor / deck surface (tall stilts: a car drives under, 02 / 10)
   wallH: 2.6,              // floor to top plate
   wallT: 0.16,             // board-and-batten + studs + interior boards
@@ -33,18 +35,18 @@ export const P4 = {
   deckW: { x0: -8.5, x1: -6.5, z0: -12.8, z1: -1.6 },
   // posts (whitewashed 10x10 timbers) and beam lines
   postXs: [-8.5, -6.5, -2.2, 2.2, 6.5, 8.5], postZs: [-12.8, -10.4, -7.0, -3.6, -1.6], post: 0.24,
-  beam: { d: 0.29, t: 0.05 }, joist: { d: 0.235, t: 0.045, oc: 0.406 }, board: { w: 0.14, t: 0.035, gap: 0.006 },
+  beam: { d: 0.29, t: 0.05 }, joist: { d: 0.235, t: 0.045, oc: 0.406 }, board: { w: 0.14, t: 0.035, gap: 0.01 },
   rail: { h: 1.0, post: 0.1, bal: 0.042, oc: 0.12 },
   rise: 0.18, run: 0.28,
   // stairs: west front stair (10: on the left, lattice under it), back stair to the lawn (08: top at the left, down to the right)
   stairW: { x: -7.2, z: -1.6, w: 1.2, n: 19, pad: { x0: -9.9, x1: -8.62, z0: -8.9, z1: -7.8 } },   // west side: head pad, then down +Z to the front corner
   stairE: { pad: { x0: 8.62, x1: 9.9, z0: -5.2, z1: -4.1 } },
-  stairF: { pad: { x0: -3.0, x1: -1.9, z0: -1.52, z1: -0.32 } },   // front (hoop side): head pad, then down -X along the front face
+  stairF: { pad: { x0: -8.62, x1: -7.4, z0: -1.5, z1: -0.2 } },   // front (hoop side), r6: head pad at the front corner, then ONE flight down +X along the front face to the hoop
                                        // east side: down -Z to the bay corner
   stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: 5.2, x1: 6.6, z0: -14.05, z1: -12.8 } },   // runs -X from the landing
   // ground-floor room under the east end (10: teal board-and-batten, white slider window, hose reel, vine)
   groundRoom: { x0: 2.2, x1: 6.5, z0: -10.4, z1: -3.6, h: 2.85 },
-  pavers: { x0: -7.0, x1: 6.6, z0: -11.6, z1: -1.2 },
+  pavers: { x0: -9.8, x1: 8.6, z0: -12.6, z1: 3.4 },   // r7 (playtest item 3): the carport floor reaches out under the whole deck, both stairs and ~5 m past the front edge (the hoop court, 10)
   // interior (clear spaces at floor level)
   hall: { x0: -0.7, x1: 0.7, z0: -5.6, z1: -3.6 },
   bath: { x0: 0.7, x1: 3.0, z0: -6.3, z1: -3.6 },
@@ -58,9 +60,13 @@ export const P4 = {
   terrace: { z0: -22.8, z1: -25.8, x0: -18, x1: 12, fall: 5 },   // lawn rises from grade at z0 to lawnTop by z1, flat to the wall
   dock: { y: 0.42, w: 1.5, x0: 9.5, x1: -1.0, z: -30.6, gangX: 9.5 },   // long walkway parallel to the wall (from the left in 08)
   plat: { x0: -6.8, x1: -0.6, z0: -33.4, z1: -27.8 },  // square platform in front of the center-right of the house (08)
+  // r7 (playtest item 12): the seawalled canal along the house's +X side (replaces the round cove): 6 m of water between timber
+  // bulkheads from the bay to just past the front of the house. `on` only where the world's water really is there (the terrain is
+  // carved by tools/v2/map3/keys_detail.py carve_nico); otherwise the lot keeps its old edge.
+  canal: { x0: 12.0, x1: 18.0, z1: 2.0, on: false },
   colors: {
     teal: 0x4f978c, tealDeep: 0x3c7a72, white: 0xe7e3d6, door: 0x2c2f2e, shutter: 0x4d5552,
-    deck: 0xb9b4a9, deckDark: 0x8a857b, post: 0xe2ddd0,
+    deck: 0xa48f74, deckDark: 0x6f6253, post: 0xe2ddd0,   // r7 (playtest item 5): warm weathered boards as in the mock-ups (0, 02, 08), not chalk white
   },
 };
 // house frame H <-> lot frame S (rotation about the house center)
@@ -77,7 +83,12 @@ export function measureSite(waterAt) {
   const oz = Math.max(-6, Math.min(7.5, zw + 21.3)), wall = zw + 0.35 - oz;
   P4.oz = oz; P4.wallZ = wall; P4.terrace.z0 = wall + 4.4; P4.terrace.z1 = wall + 1.4;
   P4.dock.z = wall - 3.4; P4.plat.z0 = wall - 6.2; P4.plat.z1 = wall - 0.6; P4.measured = { zw, oz, wall };
+  const C = P4.canal, cx = (C.x0 + C.x1) / 2, inW = (x, z) => waterAt(...toG(x, z));
+  C.on = !(typeof location !== 'undefined' && /[?&]canal=0\b/.test(location.search)) && inW(cx, wall + 6) && inW(cx, (wall + C.z1) / 2) && inW(cx, C.z1 - 2.5);
+  if (C.on) P4.wallX1 = C.x0;   // the bay bulkhead turns into the canal's house-side wall
 }
+// r7: inside the canal's water (S frame), pad > 0 grows it
+export const inCanal = (sx, sz, pad = 0) => P4.canal.on && sx > P4.canal.x0 - pad && sx < P4.canal.x1 + pad && sz < P4.canal.z1 + pad && sz > P4.wallZ - 8;
 // the lawn raise (S frame, m above grade): 0 at the house, lawnTop along the bulkhead
 export function terraceY(x, z) {
   const T = P4.terrace; if (z > T.z0) return 0;
@@ -86,11 +97,11 @@ export function terraceY(x, z) {
   return P4.lawnTop * e * l;
 }
 // plants also keep out of the hoop side's apron (10: the secondary drive runs there) and the main drive in front of the corner
-export function plantClear(sx, sz, pad = 0) { if (houseBlock(sx, sz, pad)) return true; const [x, z] = StoH(sx, sz); return inR({ x0: -8.5, x1: 11.5, z0: -1.6, z1: 10 }, x, z, pad) || inR({ x0: -9, x1: 1, z0: -14, z1: -1 }, x, z, pad); }
+export function plantClear(sx, sz, pad = 0) { if (houseBlock(sx, sz, pad) || inCanal(sx, sz, pad + 0.6)) return true; const [x, z] = StoH(sx, sz); return inR({ x0: -8.5, x1: 11.5, z0: -1.6, z1: 10 }, x, z, pad) || inR({ x0: -9, x1: 1, z0: -14, z1: -1 }, x, z, pad); }
 // true where the house, decks, stairs or the ground room stand (plants, weeds and yard props keep out). S frame.
 export function houseBlock(sx, sz, pad = 0) {
   const P = P4, [x, z] = StoH(sx, sz);
   return inR({ x0: -8.6, x1: 8.6, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
-    || inR({ x0: -9.6, x1: -1.8, z0: -1.6, z1: -0.25 }, x, z, pad)          // front stair along the hoop side
-    || inR({ x0: 8.5, x1: 10.0, z0: -11.6, z1: -4.1 }, x, z, pad);          // east side stair
+    || inR({ x0: -8.9, x1: -0.4, z0: -1.6, z1: -0.1 }, x, z, pad)          // front stair along the hoop side (corner pad -> foot pad by the hoop)
+    || inR({ x0: -1.4, x1: 6.8, z0: -14.2, z1: -12.7 }, x, z, pad);          // r7: back stair along the back face (08)
 }

@@ -8,6 +8,9 @@
 // Colliders follow the visible shapes (planter, bins, poles, signs, dumpster, rocks, pallets, chairs).
 import { PLANTER, BINS, STOPS, POLES, WIRES, WIRE_ENDS, DUMPSTER, ROCKS, DEBRIS, PUDDLES, TRACKS, LITTER, CAR_SPOTS, CORNER_PUDDLE, STICKS } from '../yard.data.js';
 import { loadKeysModels } from '../models.js';
+import { R4, toS, plantClear } from '../r4/plan4.js';
+// r7: nothing of the yard dressing inside the r4 house footprint, its stairs or the canal (the house is square to the lot since r7)
+const r4Blocked = (x, z, pad = 0.4) => R4 && plantClear(...toS(x, z), pad);
 import { breakables } from '../../../miami/breakables.js';
 export const order = 55;
 
@@ -99,7 +102,7 @@ export function build(ctx) {
   // ======================================================================= satellite dish (mock-up: a big round dish low at the left edge of the deck view)
   // a real offset-free prime-focus dish: parabolic reflector (closed lathe, so it reads from both sides), feed arm to the LNB at the
   // focus, back bracket to a short mast clamped to the porch-front rail post
-  { const F = ctx.plan.F, mx = -7.32, mz = 5.06, R = 0.4, f = 0.32, MD = mat.metalPaint(), V3 = THREE.Vector3;
+  if (!R4) { const F = ctx.plan.F, mx = -7.32, mz = 5.06, R = 0.4, f = 0.32, MD = mat.metalPaint(), V3 = THREE.Vector3;   // r7: r3 only (the r4 house has its own dish; this one floated on a mast in the drive)
     const pts = []; for (let k = 0; k <= 10; k++) { const r = R * k / 10; pts.push(new THREE.Vector2(r, r * r / (4 * f))); } for (let k = 10; k >= 0; k--) { const r = R * k / 10 * 0.985; pts.push(new THREE.Vector2(r, r * r / (4 * f) - 0.018)); }
     const dg = new THREE.LatheGeometry(pts, 32); const axis = new V3(-0.32, 0.72, 0.62).normalize(), q = new THREE.Quaternion().setFromUnitVectors(new V3(0, 1, 0), axis);
     const c = new V3(mx - 0.05, F + 0.78, mz + 0.34), mD = new THREE.Matrix4().compose(c, q, new V3(1, 1, 1));
@@ -117,6 +120,7 @@ export function build(ctx) {
   const wood = () => ({ color: V(r() < 0.3 ? 0xb39a74 : 0x8f8676, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r });
   const LIBP = [];   // library props placed with the keys models below (r2-keys Nov 17 pm: the user's cooler set and patio chair)
   for (const d of DEBRIS) {
+    if (r4Blocked(d.x, d.z, 0.8)) continue;
     const x = d.x, z = d.z, h = d.h || 0, y0 = (d.y || 0) + yS(x, z), base = M(x, y0, z, d.tilt || 0, h, 0), L = (lx, ly, lz, a = 0, b = 0, c = 0, s = 1) => kit.mulM(base, M(lx, ly, lz, a, b, c, s, s, s));
     if (d.k === 'pallet') {
       for (const lz of [-0.45, 0, 0.45]) D.box(W, 1.2, 0.022, 0.1, L(0, 0.011, lz), { grain: 0, ...wood() });
@@ -156,7 +160,7 @@ export function build(ctx) {
 
   // ======================================================================= sticks, twigs, frond bits and bark scraps on the yard
   { const q = kit.rng(5599), yYs = ctx.yardY || (() => 0);
-    for (const [cx, cz, rad, n] of STICKS) for (let i = 0; i < n; i++) { const a = q() * 6.283, d = Math.sqrt(q()) * rad, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, k = q(), y = yYs(x, z);
+    for (const [cx, cz, rad, n] of STICKS) for (let i = 0; i < n; i++) { const a = q() * 6.283, d = Math.sqrt(q()) * rad, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, k = q(), y = yYs(x, z); if (r4Blocked(x, z, 0.2)) continue;
       if (k < 0.55) D.box(W, 0.18 + q() * 0.45, 0.012 + q() * 0.01, 0.014 + q() * 0.01, M(x, y + 0.012, z, (q() - 0.5) * 0.2, q() * 6.28, (q() - 0.5) * 0.1), { grain: 0, color: V(k < 0.3 ? 0x6b5640 : 0x8f7a5e, 0.15), wear: 0.8 });   // twigs
       else if (k < 0.8) D.box(MATTE, 0.35 + q() * 0.6, 0.004, 0.05 + q() * 0.05, M(x, y + 0.008, z, 0, q() * 6.28, 0), { color: V(0x9a8a62, 0.12) });   // dry frond strips
       else D.box(W, 0.08 + q() * 0.1, 0.01, 0.05 + q() * 0.06, M(x, y + 0.008, z, (q() - 0.5) * 0.3, q() * 6.28, 0), { grain: 1, color: V(0x5a4632, 0.15), wear: 1 }); } }   // bark scraps
@@ -286,7 +290,7 @@ export function build(ctx) {
   // user (Nov 18): "there shouldn't be rocks in the road". The yard rocks were laid out for the old lot; on the new Keys lot
   // (r4-keys: local x -24..11.4, z -14.2..33, driveway straight out along +Z at x = -6) drop any outside the lot or on the drive
   const STOPS_OK = [];   // the yard STOP signs marked the OLD lot's T corner; on the new Keys lot the street signs come from the road sign system (user: a stop sign in the middle of the sand)
-  const ROCKS_OK = ROCKS.filter(([x, z]) => x > -23.5 && x < 11 && z > -13.8 && z < 32.2 && !(Math.abs(x + 6) < 3.4 && z > 16));
+  const ROCKS_OK = ROCKS.filter(([x, z]) => !r4Blocked(x, z, 0.5) && x > -23.5 && x < 11 && z > -13.8 && z < 32.2 && !(Math.abs(x + 6) < 3.4 && z > 16));
   for (const [x, z, k, sc, h, sink] of ROCKS_OK) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
   for (const st of STOPS_OK) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
   const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole', 'coolers', 'patio_chair', 'window_ac', 'galv_can', 'mailbox_post', 'wicker_chair']);

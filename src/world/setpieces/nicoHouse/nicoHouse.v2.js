@@ -113,6 +113,9 @@ export async function initV2(game) {
       const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : c.shape === 'hf' ? (HF_TRI ? hfTrimesh(RAPIER, c) : RAPIER.ColliderDesc.heightfield(c.nrows, c.ncols, c.heights, { x: c.scale[0], y: c.scale[1], z: c.scale[2] })) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);   // hf: yard ground (part 05)
       d.setTranslation(c.p[0], c.p[1], c.p[2]).setRotation({ x: c.q[0], y: c.q[1], z: c.q[2], w: c.q[3] });
       const rc = world.createCollider(d, body); rc.setEnabled(c.enabled !== false); live.set(c, { rc, en: c.enabled !== false });
+      // r7 (playtest item 9): footsteps come from what the feet stand on (src/player/footSurface.v2.js): the dock, decks, stairs,
+      // pavers and the yard tell it their surface ('wood', 'concrete', 'gravel', ...), so the dock over the water is wood, not water
+      if (c.surface) try { game.footSurface?.tagCollider?.(rc, c.surface); } catch (e) { /* footsteps module off */ }
     } catch (e) { /* skip a bad descriptor */ }
   }
 
@@ -179,7 +182,33 @@ export async function initV2(game) {
       }
     }
   }
+  if (R4 && !KEYS_OFF && anchors.skiff) mooredSkiff(game, g, anchors.skiff);
   game.emit('nicoHouse:ready', game.nicoHouse);
+}
+
+// r7 (playtest Nov 18 eve, item 10): Nico's skiff at the dock platform is a real boat of the boat system (enter, drive), not a prop.
+// It is spawned once the boat system is up, moored at the platform (a soft pull back to the mooring while nobody has driven it)
+// and the static library boat of part r4_06 is hidden. Retries once a second until game.boatSystem exists.
+function mooredSkiff(game, g, a) {
+  let t = 0, boat = null, tries = 0;
+  const lv = { x: 0, y: 0, z: 0 }, av = { x: 0, y: 0, z: 0 };
+  game.updaters.push(function nicoSkiff(dt) {
+    if (!boat) {
+      if ((t -= dt) > 0 || tries > 120) return; t = 1; tries++;
+      const bs = game.boatSystem; if (!bs?.spawn) return;
+      try { boat = bs.spawn('skiff', { x: a.pos.x, z: a.pos.z }, a.heading, { color: 0xf3f2ee, name: "Nico's skiff" }); } catch (e) { console.warn('[nicoHouse] skiff', e); tries = 999; return; }
+      boat.locked = false; game.nicoHouse.skiff = boat;
+      g.traverse((o) => { if (o.name === 'r4skiff') o.visible = false; });
+      return;
+    }
+    if (boat.disposed || boat.playerDriven || boat.everDriven || boat.frozen) return;
+    if ((t -= dt) > 0) return; t = 0.2;   // 5 Hz (rapier's translation() / linvel() allocate)
+    // mooring lines: pull gently back to the slip and to the slip's heading
+    const p = boat.body.translation(), dx = a.pos.x - p.x, dz = a.pos.z - p.z, d = Math.hypot(dx, dz), v = boat.body.linvel();
+    if (d > 0.35) { lv.x = v.x * 0.8 + dx * 0.4; lv.y = v.y; lv.z = v.z * 0.8 + dz * 0.4; boat.body.setLinvel(lv, true); }
+    let dh = a.heading - boat.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+    if (Math.abs(dh) > 0.05) { const w = boat.body.angvel(); av.x = w.x; av.y = w.y * 0.8 + dh * 0.6; av.z = w.z; boat.body.setAngvel(av, true); }
+  });
 }
 
 // Yard planting (yard.data.js PLANTING) in world space: game.vegetation.place(kind, x, z, opts) when the vegetation helper

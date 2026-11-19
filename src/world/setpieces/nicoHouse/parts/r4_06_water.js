@@ -18,7 +18,7 @@ export function build(ctx) {
   const { lathe } = makeGeo(THREE, kit);
   const W = mat.wood({ marine: true }), WD = mat.wood(), WHITE = mat.paint({ peel: 'a', fade: 0.55, gloss: 0.85 }), ST = mat.steel(), PL = mat.plastic();
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0, Bt = B) => Bt.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.006, rand: r, ...o });
-  const gray = (k = 1) => kit.vary(kit.mul(0xa49e92, k), r, 0.1);
+  const gray = (k = 1) => kit.vary(kit.mul(0x9c8f7c, k), r, 0.1);   // r7: weathered gray-brown (08)
   const zw = P.wallZ, bed = sea - 3.2, lawn = (x) => terraceY(x, zw + 0.3) + 0.02;
   // ---------- bulkhead: vertical 2x10 planks side by side (outer face at zw), whaler + cap on top, tie-back posts ----------
   { const pw = 0.235;
@@ -39,6 +39,32 @@ export function build(ctx) {
         for (const y of [0.88, 0.45]) box(WHITE, xb - xa, 0.09, 0.04, xm, y0 + y, fz - 0.07, { grain: 0, color: kit.vary(0xe9e6dc, r, 0.03), wear: 0.45 }); }
       Fr.col.box((x0 + x1) / 2, lawn(0) + 0.5, fz, x1 - x0, 1.0, 0.12, { tag: 'fence' }); };
     run(P.wallX0 + 0.3, gap[0]); run(gap[1], P.wallX1 - 0.3); }
+  // ---------- r7 (playtest item 12): the seawalled canal along the house's +X side, 6 m of water from the bay to past the front ----------
+  // timber bulkheads like the bay wall (vertical planks, whaler, cap, king piles), the wall top at the yard surface beside it, a white
+  // two-rail fence along the house side; water face of each wall on the canal line (P4.canal), planks on the land side of it
+  if (P.canal.on) { const C = P.canal, pw = 0.235, gY = (x, z) => (ctx.yardY ? ctx.yardY(...Fr.toG(x, z)) : terraceY(x, z)) + 0.06;
+    // a wall from (ax, az) to (bx, bz); n = unit normal toward the water
+    const wallRun = (ax, az, bx, bz, nx, nz, fence) => { const L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, ry = Math.atan2(-uz, ux), at = (t, o) => [ax + ux * t - nx * o, az + uz * t - nz * o];
+      for (let t = 0; t < L - 0.01; t += pw) { const tm = Math.min(L, t + pw / 2), [x, z] = at(tm, 0.03), top = gY(...at(tm, 0.4)) + (r() - 0.5) * 0.03, h = top - bed;
+        box(W, Math.min(pw, L - t) - 0.006, h, 0.06, x, bed + h / 2, z, { grain: 1, color: gray(0.78 + r() * 0.3), wear: 0.9, bevel: 0.008 }, (r() - 0.5) * 0.008, ry, (r() - 0.5) * 0.008); }
+      for (let t = 0; t < L - 0.1; t += 2.4) { const t1 = Math.min(L, t + 2.4), tm = (t + t1) / 2, top = gY(...at(tm, 0.4)), [wx, wz] = at(tm, -0.05), [cx, cz] = at(tm, 0.12), [px, pz] = at(t, -0.2);
+        box(W, t1 - t - 0.01, 0.2, 0.1, wx, top - 0.22, wz, { grain: 0, color: gray(0.7), wear: 0.9 }, 0, ry);
+        box(WD, t1 - t - 0.01, 0.06, 0.3, cx, top + 0.03, cz, { grain: 0, color: gray(0.95), wear: 0.7, bevel: 0.01 }, 0, ry);
+        box(W, 0.2, top + 0.02 - bed, 0.2, px, (top + 0.02 + bed) / 2, pz, { grain: 1, color: gray(0.68), wear: 1, bevel: 0.02 }, 0, ry); }
+      const [mx, mz] = at(L / 2, 0.12); Fr.col.box(mx, (gY(mx, mz) + bed) / 2, mz, L, gY(mx, mz) - bed + 0.2, 0.3, { ry, tag: 'seawall' });
+      if (fence) { const n = Math.max(1, Math.round(L / 2.0)), fo = 0.45;
+        for (let i = 0; i <= n; i++) { const [x, z] = at(L * i / n, fo), y0 = gY(x, z) - 0.06; box(WHITE, 0.1, 1.02, 0.1, x, y0 + 0.47, z, { grain: 1, color: kit.vary(0xe9e6dc, r, 0.03), wear: 0.45, bevel: 0.01 }, 0, ry); }
+        for (let i = 0; i < n; i++) { const [x, z] = at(L * (i + 0.5) / n, fo - 0.07), y0 = gY(x, z) - 0.06; for (const y of [0.88, 0.45]) box(WHITE, L / n - 0.1, 0.09, 0.04, x, y0 + y, z, { grain: 0, color: kit.vary(0xe9e6dc, r, 0.03), wear: 0.45 }, 0, ry); }
+        const [fx, fz] = at(L / 2, fo); Fr.col.box(fx, gY(fx, fz) + 0.45, fz, L, 1.0, 0.12, { ry, tag: 'fence' }); } };
+    wallRun(C.x0, zw, C.x0, C.z1, 1, 0, true);                 // house side (the fence leaves a gap at the bay end for the corner post)
+    wallRun(C.x0, C.z1, C.x1, C.z1, 0, -1, false);             // the dead end past the front of the house
+    wallRun(C.x1, C.z1, C.x1, zw, -1, 0, false);               // the far (neighbor) side
+    wallRun(C.x1, zw, C.x1 + 5, zw, 0, -1, false);             // the bay wall carries on past the canal mouth
+    // a ladder down the house-side canal wall, halfway along
+    { const lz = (zw + C.z1) / 2, lx = C.x0 + 0.1, top = gY(C.x0 - 0.4, lz) + 0.04;
+      for (const s of [-1, 1]) D.tube(ST, [[lx, sea - 1.0, lz + s * 0.22], [lx, top, lz + s * 0.22], [lx - 0.15, top + 0.35, lz + s * 0.22], [lx - 0.4, top + 0.35, lz + s * 0.22], [lx - 0.55, top, lz + s * 0.22]], 0.022, { seg: 10, color: 0xb9bab6, steps: 40, tension: 0.2 });
+      for (let y2 = sea - 0.8; y2 < top; y2 += 0.3) D.cyl(ST, 0.016, 0.016, 0.44, M(lx, y2, lz, Math.PI / 2, 0, 0), { color: 0xb9bab6, seg: 10 }); }
+  }
   // ---------- metal ladder down the wall at the right (08) ----------
   { const lx = -13.5, top = lawn(lx) + 0.1;
     for (const s of [-1, 1]) { D.tube(ST, [[lx + s * 0.22, sea - 1.0, zw - 0.1], [lx + s * 0.22, top, zw - 0.1], [lx + s * 0.22, top + 0.35, zw + 0.05], [lx + s * 0.22, top + 0.35, zw + 0.3], [lx + s * 0.22, top, zw + 0.45]], 0.022, { seg: 10, color: 0xb9bab6, steps: 40, tension: 0.2 }); }
@@ -102,10 +128,15 @@ export function build(ctx) {
     const cn = lib.names('coolers'); if (cn.length) I.add('coolers', cn[0], M(pl.x1 - 0.9, y, pl.z0 + 1.2, 0, 0.4, 0), { tint: [0.55, 0.75, 1.15] });   // the blue cooler at the walk junction
     const meshes = I.build(Fr.groups.detail); for (const m of meshes) m.raycast = () => {};
     // rod in a tripod holder at the platform edge, line out to the water
-    { const T = kit.batch('r4rod'), tx = pl.x0 + 2.2, tz = pl.z0 + 0.55, apex = [tx, y + 0.95, tz];
-      for (let k = 0; k < 3; k++) { const a2 = k * 2.094 + 0.3; T.rod(ST, [tx + Math.cos(a2) * 0.32, y, tz + Math.sin(a2) * 0.32], apex, 0.012, { color: 0x2d2d2d }); }
-      const p = lib.piece('fishing_gear', 'fishing_pole'); if (p) { const g = new THREE.Group(); g.position.set(tx, y + 0.95, tz); g.rotation.set(-0.95, 0.15, 0); for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.castShadow = true; m.raycast = () => {}; g.add(m); } Fr.groups.detail.add(g); }
-      T.tube(mat.plastic(), [[tx, y + 2.4, tz - 1.3], [tx - 0.2, y + 1.2, tz - 3.0], [tx - 0.3, sea, tz - 4.2]], 0.0015, { seg: 3, color: 0xe8e8e0, steps: 20 }); T.build(Fr.groups.detail); }
+    // r7 (playtest item 11): no tripod; the rod lies on the platform boards beside the tackle box, reel down, tip toward the water
+    { const tx = pl.x0 + 2.0, tz = pl.z0 + 0.7;
+      const p = lib.piece('fishing_gear', 'fishing_pole'); if (p) { const g = new THREE.Group(); g.name = 'r7rod'; const bb = new THREE.Box3(); for (const q of p.parts) { q.geometry.computeBoundingBox(); bb.union(q.geometry.boundingBox); }
+        const sz = new THREE.Vector3(); bb.getSize(sz); const inner = new THREE.Group(); g.add(inner);
+        // lay the model's long axis along the boards (+X of the lot frame), lift it so its lowest point rests on the deck
+        if (sz.y >= sz.x && sz.y >= sz.z) inner.rotation.z = -Math.PI / 2; else if (sz.z > sz.x) inner.rotation.y = Math.PI / 2;
+        for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.castShadow = true; m.raycast = () => {}; inner.add(m); }
+        inner.updateMatrixWorld(true); const wb = new THREE.Box3().setFromObject(inner); g.position.set(tx - (wb.min.x + wb.max.x) / 2, y - wb.min.y + 0.002, tz - (wb.min.z + wb.max.z) / 2);
+        Fr.groups.detail.add(g); } }
     // the boat (bobs), stripe repainted black, outboard cowls lettered with an invented brand
     const p = lib.piece('skiff_cc', 'dock'); if (p) {
       const g = new THREE.Group(); g.name = 'r4skiff'; const ext = new THREE.Vector3(); p.box.getSize(ext); const long = ext.x > ext.z ? 'x' : 'z';

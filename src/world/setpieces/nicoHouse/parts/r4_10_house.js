@@ -106,10 +106,16 @@ export function build(ctx) {
   };
   // ================= rails: the deck wraps the whole house, tight (user review), open only at the two stair heads =================
   const e = 0.06, RE = { x0: RX0 + e, x1: RX1 - e, z0: E0 + e, z1: E1 - e }, SWs = P.stairW, SEs = P.stairE;
-  railRun(RE.x0, RE.z0, RE.x1, RE.z0, {});                                                   // back (bay) side
-  railRun(RE.x1, RE.z0, RE.x1, SEs.pad.z0, { noStart: true }); railRun(RE.x1, SEs.pad.z1, RE.x1, RE.z1, { noEnd: true });   // east side, open at the east stair pad
+  // r7 (playtest item 2, mock-ups 08 / 10): the back stair runs down ALONG the back face from a head pad off the back deck's east part
+  // (08: top at the left seen from the water, foot on the lawn toward the middle); the back rail opens only at that pad
+  const BKL = P.stairN.land;
+  railRun(RE.x0, RE.z0, BKL.x0, RE.z0, {}); railRun(BKL.x1, RE.z0, RE.x1, RE.z0, {});         // back (bay) side, open at the stair head
+  railRun(RE.x1, RE.z0, RE.x1, RE.z1, { noStart: true, noEnd: true });                   // east side, closed (r7: no side stair here)
   const FP = P.stairF.pad;
-  railRun(RE.x1, RE.z1, FP.x1, RE.z1, { noStart: true }); railRun(FP.x0, RE.z1, RE.x0, RE.z1, { noEnd: true });   // front (hoop side), open at the front stair pad
+  // front (hoop side): open only at the stair head, which sits at the FRONT CORNER (r6, user: "the top at the corner"); the corner
+  // post itself belongs to the head pad's rail below
+  railRun(RE.x1, RE.z1, FP.x1, RE.z1, { noStart: true });
+  box(WOOD, RL.post, RL.h + 0.04, RL.post, RE.x1, F + (RL.h + 0.04) / 2 - 0.005, RE.z1, { grain: 1, color: gray(0.95), wear: 0.7, bevel: 0.008 });   // the hoop-side / bay-side corner post
   railRun(RE.x0, RE.z1, RE.x0, RE.z0, { noStart: true, noEnd: true });                      // west side
 
   // ================= stairs: two short flights with a 1.2 m landing, running down ALONG the side of the house (02, 08, 10) =================
@@ -178,35 +184,60 @@ export function build(ctx) {
     // lattice skirt under the lower flight (10), outer side
     const za = dirZ > 0 ? lb + 0.3 : la - 0.3, zb = za + dirZ * (f2.total - 0.3); lattice(sgnX < 0 ? pd.x0 + 0.02 : pd.x1 - 0.02, Math.min(za, zb), Math.max(za, zb), dirZ > 0 ? yL - 0.45 : 0.35, dirZ > 0 ? 0.35 : yL - 0.45, { col: false });
   };
-  sideStair(SEs, 1);
-  // front stair on the hoop side (user review 2): head pad off the front deck edge, flight, 1.2 m landing, flight, all running -X along
-  // the front face toward the drive corner; lattice under the lower flight
-  { const pd = FP, zc = (pd.z0 + pd.z1) / 2, w = pd.z1 - pd.z0, yL = F - 10 * rise;
-    for (let x = pd.x0 + pitch / 2; x < pd.x1 - 0.02; x += pitch) box(WOOD, db.w, db.t, w, x, F - db.t / 2, zc, { grain: 2, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
-    for (const xx of [pd.x0 + 0.06, pd.x1 - 0.06]) box(WOOD, J.t, J.d, w, xx, joistBot + J.d / 2, zc, { grain: 2, color: dark(), wear: 0.4 });
-    for (const xx of [pd.x0 + 0.06, pd.x1 - 0.06]) { box(WHITE, 0.14, beamTop - 0.05, 0.14, xx, 0.05 + (beamTop - 0.05) / 2, pd.z1 - 0.06, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); Fr.col.box(xx, 1.6, pd.z1 - 0.06, 0.16, 3.2, 0.16, { tag: 'pile' }); }
-    Fr.col.box((pd.x0 + pd.x1) / 2, F - 0.16, zc, pd.x1 - pd.x0, 0.32, w + 0.1, { tag: 'deck', surface: 'wood' });
-    railRun(pd.x1, RE.z1, pd.x1, pd.z1 - 0.06, { noStart: true }); railRun(pd.x1, pd.z1 - 0.06, pd.x0, pd.z1 - 0.06, { noStart: true, noEnd: true });
-    const f1 = flight({ x: pd.x0, z: zc, y0: F, dir: [-1, 0], n: 9, w: w - 0.1, skipSide: 1 });
-    const la = pd.x0 - f1.total - run - 1.2, lb = la + 1.2;
-    for (let x = la + pitch / 2; x < lb - 0.02; x += pitch) box(WOOD, db.w, db.t, w, x, yL - db.t / 2, zc, { grain: 2, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
-    for (const zz of [pd.z0 + 0.06, pd.z1 - 0.06]) box(WOOD, lb - la, 0.2, J.t, (la + lb) / 2, yL - db.t - 0.1, zz, { grain: 0, color: dark(), wear: 0.4 });
-    for (const x of [la + 0.06, lb - 0.06]) for (const z of [pd.z0 + 0.06, pd.z1 - 0.06]) { box(WHITE, 0.12, yL + RL.h, 0.12, x, (yL + RL.h) / 2, z, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); Fr.col.box(x, (yL + RL.h) / 2, z, 0.14, yL + RL.h, 0.14, { tag: 'pile' }); }
-    Fr.col.box((la + lb) / 2, yL - 0.1, zc, lb - la, 0.2, w, { tag: 'deck', surface: 'wood' });
-    { const zr = pd.z1 - 0.03; box(WOOD, lb - la, 0.09, 0.045, (la + lb) / 2, yL + RL.h - 0.1, zr, { grain: 0, color: gray(0.92), wear: 0.6 }); box(WOOD, lb - la + 0.1, 0.04, 0.145, (la + lb) / 2, yL + RL.h + 0.02, zr, { grain: 0, color: gray(0.96), wear: 0.65 });
-      for (let x = la + 0.15; x < lb - 0.1; x += RL.oc) box(WOOD, RL.bal, RL.h - 0.26, RL.bal, x, yL + 0.12 + (RL.h - 0.26) / 2, zr, { grain: 1, color: gray(0.9), wear: 0.6 });
-      Fr.col.box((la + lb) / 2, yL + 0.55, zr, lb - la, 1.1, 0.1, { tag: 'rail' }); }
-    const f2 = flight({ x: la, z: zc, y0: yL, dir: [-1, 0], n: 9, w: w - 0.1 });
-    // lattice under the lower flight, outer (street) side: the panel builder works along z, so it is turned with a small group
-    const lg = new THREE.Group(); lg.position.set(la - 0.3, 0, pd.z1 - 0.02); lg.rotation.y = -Math.PI / 2; Fr.groups.ext.add(lg);
-    const LB = kit.batch('r4lat'), keepB = B; void keepB; latticeTo(LB, 0, 0, f2.total - 0.3, yL - 0.45, 0.35); LB.build(lg); }
-
+  void sideStair;
+  // r7: the back stair (08): head pad off the back deck edge, ONE straight flight down -X along the back face to the lawn, posts with
+  // concrete footings under the pad and at mid-span, rails continuing the deck rail around the pad and down both sides
+  { const L = BKL, w = 1.1, zc = (L.z0 + RE.z0) / 2, zo = zc - w / 2 - 0.03, xc = (L.x0 + L.x1) / 2, pw = L.x1 - L.x0;
+    for (let z = RE.z0 - pitch / 2; z > zo - 0.05; z -= pitch) box(WOOD, pw, db.t, db.w, xc, F - db.t / 2, z, { grain: 0, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
+    for (const xx of [L.x0 + 0.03, xc, L.x1 - 0.03]) box(WOOD, J.t, J.d, RE.z0 - zo + 0.07, xx, joistBot + J.d / 2, (RE.z0 + zo - 0.07) / 2, { grain: 2, color: dark(), wear: 0.4 });
+    box(WOOD, pw + 0.04, J.d + db.t, 0.04, xc, joistBot + (J.d + db.t) / 2, zo - 0.09, { grain: 0, color: gray(0.88), wear: 0.6 });                      // outer rim board
+    box(WOOD, 0.04, J.d + db.t, RE.z0 - zo + 0.11, L.x1 + 0.02, joistBot + (J.d + db.t) / 2, (RE.z0 + zo - 0.11) / 2, { grain: 2, color: gray(0.88), wear: 0.6 });   // end rim board
+    for (const xx of [L.x1, L.x0]) { box(WHITE, 0.14, beamTop - 0.05, 0.14, xx, 0.05 + (beamTop - 0.05) / 2, zo, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 });
+      box(CONC, 0.36, 0.12, 0.36, xx, 0.05, zo, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(xx, 1.6, zo, 0.16, 3.2, 0.16, { tag: 'pile' }); }
+    Fr.col.box(xc, F - 0.16, (RE.z0 + zo) / 2 - 0.05, pw + 0.06, 0.32, RE.z0 - zo + 0.2, { tag: 'deck', surface: 'wood' });
+    railRun(L.x1, RE.z0, L.x1, zo, { noStart: true });          // pad end
+    railRun(L.x1, zo, L.x0, zo, { noStart: true });             // pad back, ends in the stair's outer newel
+    box(WOOD, RL.post, RL.h + 0.04, RL.post, L.x0, F + (RL.h + 0.04) / 2 - 0.005, zc + w / 2 + 0.03, { grain: 1, color: gray(0.95), wear: 0.7, bevel: 0.008 });   // inner newel
+    const f = flight({ x: L.x0, z: zc, y0: F, dir: [-1, 0], n: 19, w });
+    { const t = 2.8, xs = L.x0 - t, ys = F - 0.06 - (F - 0.18) / (f.total + 0.17) * (t + 0.05) - 0.12;
+      for (const sd of [-1, 1]) { const zz = zc + sd * (w / 2 - 0.025); box(WHITE, 0.11, ys, 0.11, xs, ys / 2, zz, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 });
+        box(CONC, 0.3, 0.1, 0.3, xs, 0.04, zz, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(xs, ys / 2, zz, 0.13, ys, 0.13, { tag: 'pile' });
+        B.strut(WOOD, [xs - 0.05, ys - 0.75, zz], [xs - 0.8, ys - 0.52, zz], 0.07, 0.07, { color: gray(0.9), wear: 0.7, bevel: 0.006, rand: r }); }
+      box(WOOD, 0.045, 0.14, w + 0.06, xs + 0.08, ys - 0.1, zc, { grain: 2, color: dark(), wear: 0.5 }); }
+    { const fx = L.x0 - f.total - run - 0.45; box(CONC, 1.5, 0.1, w + 0.5, fx, 0.035, zc, { color: 0xbdb8ab, wear: 0.9, bevel: 0.02 }); Fr.col.box(fx, 0.035, zc, 1.5, 0.1, w + 0.5, { tag: 'ground', surface: 'concrete' }); }
+  }
+  // front stair on the hoop side (r6, user: "make the top at the corner and going down and getting to the bottom next to the basketball
+  // hoop area"; 02): a head pad off the deck's FRONT CORNER (the corner seen from the drive, the dish hangs on it), then ONE straight
+  // flight down +X along the front face; the foot lands on a small concrete pad on the ground beside the hoop. Rails run on from the
+  // deck rail around the pad and down both sides; nothing under it (the old lattice panel is gone)
+  { const pd = FP, w = 1.1, zc = -0.8, zo = zc + w / 2 + 0.03, zi = zc - w / 2 - 0.03, px0 = RE.x0 - 0.07, xc = (px0 + pd.x1) / 2, pw = pd.x1 - px0;
+    for (let z = pd.z0 + pitch / 2; z < zo + 0.05; z += pitch) box(WOOD, pw, db.t, db.w, xc, F - db.t / 2, z, { grain: 0, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
+    for (const xx of [px0 + 0.03, xc, pd.x1 - 0.03]) box(WOOD, J.t, J.d, zo + 0.07 - pd.z0, xx, joistBot + J.d / 2, (pd.z0 + zo + 0.07) / 2, { grain: 2, color: dark(), wear: 0.4 });
+    box(WOOD, pw + 0.04, J.d + db.t, 0.04, xc, joistBot + (J.d + db.t) / 2, zo + 0.09, { grain: 0, color: gray(0.88), wear: 0.6 });                      // outer rim board
+    box(WOOD, 0.04, J.d + db.t, zo + 0.11 - pd.z0, px0 - 0.02, joistBot + (J.d + db.t) / 2, (pd.z0 + zo + 0.11) / 2, { grain: 2, color: gray(0.88), wear: 0.6 });   // end rim board
+    for (const xx of [RE.x0, pd.x1]) { box(WHITE, 0.14, beamTop - 0.05, 0.14, xx, 0.05 + (beamTop - 0.05) / 2, zo, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 });
+      box(CONC, 0.36, 0.12, 0.36, xx, 0.05, zo, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(xx, 1.6, zo, 0.16, 3.2, 0.16, { tag: 'pile' }); }
+    Fr.col.box(xc, F - 0.16, (pd.z0 + zo) / 2 + 0.05, pw + 0.06, 0.32, zo - pd.z0 + 0.2, { tag: 'deck', surface: 'wood' });
+    railRun(RE.x0, RE.z1, RE.x0, zo, {});                       // pad end: deck corner post -> pad corner post
+    railRun(RE.x0, zo, pd.x1, zo, { noStart: true });           // pad front, ends in the stair's outer newel
+    box(WOOD, RL.post, RL.h + 0.04, RL.post, pd.x1, F + (RL.h + 0.04) / 2 - 0.005, zi, { grain: 1, color: gray(0.95), wear: 0.7, bevel: 0.008 });   // inner newel at the stair head
+    box(WOOD, 0.04, 0.09, zi - RE.z1 - 0.1, pd.x1, railY - 0.1, (zi + RE.z1) / 2, { grain: 2, color: gray(0.92), wear: 0.6 });                    // short tie from the deck rail's end post to it
+    const f = flight({ x: pd.x1, z: zc, y0: F, dir: [1, 0], n: 19, w });
+    // mid-span support: two posts under the stringers with a ledger and a knee brace each
+    { const t = 2.8, xs = pd.x1 + t, ys = F - 0.06 - (F - 0.18) / (f.total + 0.17) * (t + 0.05) - 0.12;
+      for (const sd of [-1, 1]) { const zz = zc + sd * (w / 2 - 0.025); box(WHITE, 0.11, ys, 0.11, xs, ys / 2, zz, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 });
+        box(CONC, 0.3, 0.1, 0.3, xs, 0.04, zz, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(xs, ys / 2, zz, 0.13, ys, 0.13, { tag: 'pile' });
+        B.strut(WOOD, [xs + 0.05, ys - 0.75, zz], [xs + 0.8, ys - 0.52, zz], 0.07, 0.07, { color: gray(0.9), wear: 0.7, bevel: 0.006, rand: r }); }
+      box(WOOD, 0.045, 0.14, w + 0.06, xs - 0.08, ys - 0.1, zc, { grain: 2, color: dark(), wear: 0.5 }); }
+    // the foot: a poured pad flush in the shell, one step wide (the bottom tread sits on it)
+    { const fx = pd.x1 + f.total + run + 0.45; box(CONC, 1.5, 0.1, w + 0.5, fx, 0.035, zc, { color: 0xbdb8ab, wear: 0.9, bevel: 0.02 }); Fr.col.box(fx, 0.035, zc, 1.5, 0.1, w + 0.5, { tag: 'ground', surface: 'concrete' }); }   // r7: top 2.5 cm over the pavers (was coplanar)
+  }
 
   // ================= pavers under the house (10: square concrete pavers) =================
   { const PV = mat.concrete(), Pv = P.pavers, s = 0.6;
     for (let x = Pv.x0; x < Pv.x1 - 0.05; x += s) for (let z = Pv.z0; z < Pv.z1 - 0.05; z += s) {
       if (inR(P.groundRoom, x + s / 2, z + s / 2, -0.05)) continue;
-      const crack = r() < 0.05, t = kit.vary(0xc3beb2, r, 0.06);
+      const crack = r() < 0.05, t = kit.vary(0xb3b1ab, r, 0.05);   // r7: gray poured-concrete court (10), not beige
       box(PV, s - 0.008, 0.07, s - 0.008, x + s / 2, 0.025 + (r() - 0.5) * 0.006, z + s / 2, { color: crack ? kit.mul(t, 0.9) : t, wear: 0.7 + r() * 0.3, bevel: 0.008 }, (r() - 0.5) * 0.006, 0, (r() - 0.5) * 0.006, ctx.site ? Fr.ext : B); }
     Fr.col.box((Pv.x0 + Pv.x1) / 2, 0.03, (Pv.z0 + Pv.z1) / 2, Pv.x1 - Pv.x0, 0.06, Pv.z1 - Pv.z0, { tag: 'ground', surface: 'concrete' }); }
 
@@ -278,14 +309,16 @@ export function build(ctx) {
       return; }
     // jamb liners through the wall depth (the reveal)
     const dep = T + BT, wc = BT - dep / 2;
-    { const [x, z] = atU(0, wc); box(WHITE, o.w, 0.03, dep, x, o.y1 + 0.015, z, { color: CW, wear: 0.3 }, 0, ry); if (o.kind !== 'door' && o.kind !== 'slider') box(WHITE, o.w, 0.03, dep, x, o.y0 - 0.015, z, { color: CW, wear: 0.3 }, 0, ry); }
-    for (const s of [-1, 1]) { const [x, z] = atU(s * (o.w / 2 + 0.015), wc); box(WHITE, 0.03, h + 0.06, dep, x, yc, z, { color: CW, wear: 0.3 }, 0, ry); }
+    // r7 (playtest item 7, flicker): the liners stand 4 mm proud into the opening so their reveal faces never share a plane with
+    // the cut ends of the siding boards and the wall core (they did: the inner frame shimmered)
+    { const [x, z] = atU(0, wc); box(WHITE, o.w, 0.034, dep, x, o.y1 + 0.013, z, { color: CW, wear: 0.3 }, 0, ry); if (o.kind !== 'door' && o.kind !== 'slider') box(WHITE, o.w, 0.034, dep, x, o.y0 - 0.013, z, { color: CW, wear: 0.3 }, 0, ry); }
+    for (const s of [-1, 1]) { const [x, z] = atU(s * (o.w / 2 + 0.013), wc); box(WHITE, 0.034, h + 0.06, dep, x, yc, z, { color: CW, wear: 0.3 }, 0, ry); }
     // casing (sits on the siding: battens are cut there), head with a drip cap, sill nose
     for (const s of [-1, 1]) { const [x, z] = atU(s * (o.w / 2 + 0.03 + cas / 2), BT + 0.013); box(WHITE, cas, h + (o.kind === 'door' || o.kind === 'slider' ? 0.03 : 0.16) + 0.06, 0.026, x, yc + (o.kind === 'door' || o.kind === 'slider' ? 0.03 : 0), z, { grain: 1, color: o.kind === 'door' ? kit.vary(C.tealDeep, r, 0.05) : CW, wear: 0.55 }, 0, ry); }
     { const [x, z] = atU(0, BT + 0.016); box(WHITE, o.w + 0.06 + cas * 2 + 0.04, 0.12, 0.032, x, o.y1 + 0.03 + 0.06, z, { color: o.kind === 'door' ? kit.vary(C.tealDeep, r, 0.05) : CW, wear: 0.55 }, 0, ry);
       const [x2, z2] = atU(0, BT + 0.045); box(WHITE, o.w + 0.06 + cas * 2 + 0.07, 0.025, 0.05, x2, o.y1 + 0.03 + 0.135, z2, { color: CW, wear: 0.6 }, 0, ry); }
     if (o.kind === 'window') { const [x, z] = atU(0, BT + 0.03); box(WHITE, o.w + 0.06 + cas * 2 + 0.05, 0.04, 0.08, x, o.y0 - 0.05, z, { color: CW, wear: 0.65 }, 0, ry);
-      const [x3, z3] = atU(0, BT + 0.013); box(WHITE, o.w + 0.06 + cas * 2, 0.08, 0.026, x3, o.y0 - 0.11, z3, { color: CW, wear: 0.55 }, 0, ry); }
+      const [x3, z3] = atU(0, BT + 0.011); box(WHITE, o.w + 0.06 + cas * 2, 0.08, 0.022, x3, o.y0 - 0.11, z3, { color: CW, wear: 0.55 }, 0, ry); }   // r7: behind the side casings' face (was coplanar)
     if (o.kind === 'window') {
       // double-hung sash: two frames, meeting rail, glass panes (closed thin solids), set at mid depth
       const wS = -T / 2 + 0.01, fr = 0.05;
@@ -397,16 +430,30 @@ export function build(ctx) {
       box(RUB, 0.05, 0.03, 0.1, base[0] + s * w / 2, base[1] + 0.015, base[2], { color: 0x1c1c1c }); }
     for (let t = 0.3; t < len - 0.2; t += 0.3) { const p = new THREE.Vector3(...base).addScaledVector(up, t / len); D.cyl(mat.steel(), 0.016, 0.016, w, M(p.x, p.y, p.z, 0, 0, Math.PI / 2), { color: 0xc9c9c4, seg: 10 }); }
     Fr.col.box(base[0], (base[1] + top[1]) / 2, (base[2] + top[2]) / 2, w + 0.06, len, 0.1, { rx: -Math.atan2(top[2] - base[2], top[1] - base[1]), tag: 'prop' }); }
-  // ================= satellite dish on a 4x4 post at the east deck's NE corner (02), bolted arm, nothing floating =================
-  { const px = 8.5 + 0.02, pz = -12.8 - 0.02, y0 = F, y1 = F + 2.25, DS = mat.metalPaint();
-    box(WOOD, 0.09, y1 - y0, 0.09, px, (y0 + y1) / 2, pz, { grain: 1, color: gray(0.95), wear: 0.6, bevel: 0.008 });
-    for (const yy of [F + 0.6, F + 1.0]) box(STEEL, 0.11, 0.03, 0.11, px, yy, pz, { color: 0x8c8a84, bevel: 0.004 });
-    box(STEEL, 0.06, 0.5, 0.06, px, y1 - 0.25, pz, { color: 0x9a9890, bevel: 0.006 }); B.strut(STEEL, [px, y1 - 0.08, pz], [px - 0.18, y1 + 0.12, pz + 0.12], 0.05, 0.05, { color: 0x9a9890, rand: r });
-    const dish = new THREE.Group(); dish.position.set(px - 0.2, y1 + 0.14, pz + 0.13); dish.rotation.set(0.35, -2.3, 0.0);
-    const Db = kit.batch('r4dish'); lathe(Db, DS, [[0.0, -0.02], [0.15, -0.008], [0.3, 0.03], [0.4, 0.07], [0.405, 0.08], [0.39, 0.078], [0.29, 0.04], [0.14, 0.004], [0.0, -0.004]], null, { color: 0xdcdad3, seg: 32 });
-    Db.box(STEEL, 0.08, 0.08, 0.06, M(0, -0.03, 0), { color: 0x8c8a84, bevel: 0.01 });
-    Db.strut(STEEL, [0, -0.01, -0.33], [0, 0.42, -0.14], 0.022, 0.022, { color: 0xbdbbb3 }); Db.strut(STEEL, [0, -0.01, 0.33], [0, 0.42, -0.14], 0.016, 0.016, { color: 0xbdbbb3 }); Db.box(PLAST, 0.07, 0.09, 0.06, M(0, 0.45, -0.14), { color: 0x2b2b2b, bevel: 0.01 });
-    Db.build(dish); Fr.groups.ext.add(dish); Fr.col.box(px, (y0 + y1) / 2, pz, 0.12, y1 - y0, 0.12, { tag: 'pole' }); }
+  // ================= satellite dish (02): on a galvanized J-mast clamped to the stair-head pad's corner post at the front corner,
+  // an old offset dish looking over the drive: sun-chalked reflector with rust at the rim bolts, back bracket, feed arm with two stays,
+  // LNB, and the coax run down the mast and under the deck (r6, user: "make the stairs and dish stuff better"; nothing floating) =================
+  { const zo = -0.8 + 1.1 / 2 + 0.03, px = RE.x0 - 0.1, pz = zo + 0.1, y0 = F - 0.22, y1 = F + 1.72, DS = mat.metalPaint(), V3 = THREE.Vector3, GALV = 0x9a9890;
+    D.cyl(STEEL, 0.027, 0.027, y1 - y0, M(px, (y0 + y1) / 2, pz), { color: GALV, seg: 12, wear: 0.5 });                                        // the mast
+    for (const yy of [F - 0.12, F + 0.42, F + 0.92]) { box(STEEL, 0.2, 0.035, 0.2, RE.x0 - 0.035, yy, zo + 0.035, { color: 0x86847c, bevel: 0.004 }, 0, 0, 0);   // U-bolt saddles around the post and the mast
+      for (const [dx, dz] of [[-0.11, 0.02], [0.02, -0.11]]) D.cyl(STEEL, 0.008, 0.008, 0.05, M(px + dx + 0.06, yy + 0.03, pz + dz - 0.04), { color: 0x6f6d66, seg: 6 }); }
+    D.cyl(STEEL, 0.031, 0.031, 0.02, M(px, y1 + 0.01, pz), { color: 0x7d7b74, seg: 12 });                                                       // mast cap
+    // the dish, in its own little frame: +Y looks out along `aim`, -Z is the low side where the feed arm leaves the rim
+    const aim = new V3(-0.62, 0.52, 0.59).normalize(), zL = new V3(0, 1, 0).addScaledVector(aim, -aim.y).normalize(), xL = new V3().crossVectors(aim, zL);
+    const dish = new THREE.Group(); dish.matrix.makeBasis(xL, aim, zL).setPosition(new V3(px, y1 - 0.2, pz).addScaledVector(aim, 0.16)); dish.matrixAutoUpdate = false; dish.name = 'r4_dish';
+    const Db = kit.batch('r4dish'), Rd = 0.46, prof = []; for (let k = 0; k <= 9; k++) { const rr = Rd * k / 9; prof.push([Math.max(rr, 0.001), rr * rr / 1.5 - 0.036]); }   // back skin, out to the rolled rim, front skin back in (closed)
+    prof.push([Rd + 0.012, Rd * Rd / 1.5 - 0.03], [Rd + 0.012, Rd * Rd / 1.5 - 0.012]);
+    for (let k = 9; k >= 0; k--) { const rr = Rd * k / 9; prof.push([Math.max(rr, 0.001), rr * rr / 1.5 - 0.02]); }
+    lathe(Db, DS, prof, null, { color: 0xcfccc0, seg: 36, wear: 0.75 });
+    for (let k = 0; k < 8; k++) { const a2 = k / 8 * 6.283 + 0.2; Db.cyl(STEEL, 0.012, 0.012, 0.012, M(Math.cos(a2) * 0.2, 0.2 * 0.2 / 1.5 - 0.016, Math.sin(a2) * 0.2), { color: k % 3 ? 0x8a7a66 : 0x7a4e30, seg: 6 }); }   // bracket bolts, a few rusted
+    Db.box(STEEL, 0.2, 0.05, 0.2, M(0, -0.06, 0), { color: 0x7f7d76, bevel: 0.008 }); Db.box(STEEL, 0.07, 0.16, 0.09, M(0, -0.12, 0), { color: 0x86847c, bevel: 0.008 });   // back plate + elevation bracket (reaches the mast)
+    const lnb = [0, 0.5, -0.16]; Db.strut(STEEL, [0, Rd * Rd / 1.5 - 0.03, -Rd - 0.005], [lnb[0], lnb[1] - 0.03, lnb[2] - 0.02], 0.026, 0.02, { color: 0xb2b0a8 });       // feed arm from the low rim
+    for (const sd of [-1, 1]) Db.strut(STEEL, [sd * Rd * 0.72, Rd * Rd * 0.52 / 1.5 - 0.02, -Rd * 0.69], [lnb[0] + sd * 0.02, lnb[1] - 0.05, lnb[2]], 0.01, 0.01, { color: 0xb2b0a8 });   // two stays
+    Db.box(PLAST, 0.075, 0.1, 0.075, M(lnb[0], lnb[1], lnb[2]), { color: 0x2b2b2b, bevel: 0.012 }); Db.cyl(PLAST, 0.032, 0.026, 0.07, M(lnb[0], lnb[1] - 0.07, lnb[2] + 0.02, 0.3, 0, 0), { color: 0xd9d6cc, seg: 12 });   // LNB body + feed horn
+    Db.build(dish); Fr.groups.ext.add(dish);
+    { const lw = new V3(...lnb).applyMatrix4(dish.matrix), bk = new V3(0, -0.14, 0).applyMatrix4(dish.matrix);   // coax: LNB -> back of the dish -> down the mast -> under the deck
+      D.tube(RUB, [[lw.x, lw.y, lw.z], [(lw.x + bk.x) / 2, Math.min(lw.y, bk.y) - 0.16, (lw.z + bk.z) / 2], [bk.x, bk.y - 0.03, bk.z], [px + 0.03, y1 - 0.45, pz + 0.01], [px + 0.032, F + 0.1, pz + 0.012], [px + 0.035, y0 + 0.02, pz + 0.01], [px + 0.2, y0 - 0.03, pz - 0.15]], 0.006, { seg: 5, color: 0x151515, steps: 60 }); }
+    Fr.col.box(px, F + 0.8, pz, 0.1, 1.9, 0.1, { tag: 'pole' }); }
   // ================= service mast on the west gable and the drop to the street pole =================
   { const mx = P.body.x0 - 0.12, mz = -4.4, my0 = F + 1.2, my1 = roofTop(mz) + 1.1;
     D.cyl(mat.steel(), 0.032, 0.032, my1 - my0, M(mx, (my0 + my1) / 2, mz), { color: 0x9c9a93, seg: 10 }); lathe(D, mat.metalPaint(), [[0.001, 0], [0.06, 0.02], [0.07, 0.08], [0.001, 0.1]], M(mx, my1, mz, Math.PI, 0, 0), { color: 0x333331, seg: 12 });
@@ -459,8 +506,8 @@ export function build(ctx) {
     const TARP = mat.fabric('denim_fabric', { rep: 0.4 }); box(TARP, 2.6, 0.01, 1.3, 6.6, 0.05, 3.6, { color: 0x2f62b8, bevel: 0.003 }, 0, 0.08);
     const LW = mat.wood(); for (let k = 0; k < 4; k++) for (let j = 0; j < 6 - k % 2; j++) box(LW, 2.4, 0.04, 0.14, 6.6 + (r() - 0.5) * 0.06, 0.08 + k * 0.042, 3.2 + j * 0.145 + (k % 2) * 0.07, { grain: 0, color: kit.vary(0xc8ab7c, r, 0.08), wear: 0.3, bevel: 0.004 }, 0, 0.08 + (r() - 0.5) * 0.03);
     Fr.col.box(6.6, 0.15, 3.6, 2.5, 0.25, 1.0, { ry: 0.08, tag: 'prop' });
-    const BAG = mat.fabric('waffle_pique_cotton', { rep: 0.3 }); box(BAG, 0.95, 0.85, 0.95, 11.6, 0.47, -15.2, { color: 0xe4e1d8, bevel: 0.12 }, 0, 0.3); for (const s of [-1, 1]) box(mat.plastic(), 0.05, 0.3, 0.02, 11.6 + s * 0.3, 1.0, -15.2 + 0.44, { color: 0x6a3fb0 }, 0, 0.3);
-    Fr.col.box(11.6, 0.45, -15.2, 0.95, 0.9, 0.95, { ry: 0.3, tag: 'prop' });
+    const BAG = mat.fabric('waffle_pique_cotton', { rep: 0.3 }); box(BAG, 0.95, 0.85, 0.95, 10.4, 0.47, -15.2, { color: 0xe4e1d8, bevel: 0.12 }, 0, 0.3); for (const s of [-1, 1]) box(mat.plastic(), 0.05, 0.3, 0.02, 10.4 + s * 0.3, 1.0, -15.2 + 0.44, { color: 0x6a3fb0 }, 0, 0.3);
+    Fr.col.box(10.4, 0.45, -15.2, 0.95, 0.9, 0.95, { ry: 0.3, tag: 'prop' });
     // travel trailer: rounded aluminum-and-white body on two wheels, stripe, windows, A-frame tongue (procedural; see MISSING_MODELS.md)
     const RVX = -18.5, RVZ = -9.5, RVm = mat.plasticGloss(); box(RVm, 2.35, 2.4, 6.6, RVX, 1.75, RVZ, { color: 0xe9e8e2, bevel: 0.28 }); box(mat.plastic(), 2.37, 0.12, 6.4, RVX, 1.55, RVZ, { color: 0x4a4f57, bevel: 0.03 });
     for (const dz of [-1.6, 0.6, 2.2]) box(GLASS, 2.37, 0.5, 0.8, RVX, 2.2, RVZ + dz, { color: 0x2a3036, bevel: 0.02 });
@@ -469,7 +516,7 @@ export function build(ctx) {
     Fr.col.box(RVX, 1.5, RVZ, 2.4, 3.0, 6.8, { tag: 'vehicle' }); }
 
   // ================= anchors, interior visibility, camera occluder =================
-  Lot.anchor('truckR4', -4.6, 0, 8.2, 0);   // Nico's pickup in the drive under the front eave, facing the street (01)
+  Lot.anchor('truckR4', -4.1, 0, 7.6, 0);   // r7: on the straight drive   // Nico's pickup in the drive under the front eave, facing the street (01)
   Fr.anchor('carport', -0.5, 0.06, -6.5, Math.PI); Fr.anchor('front', 0, 0, 6.0, Math.PI);
   ctx.anchors.spawnYard = { pos: new THREE.Vector3(-6.0, 0, 11.0), heading: Math.PI };   // user: spawn in the middle of the driveway (was beside the truck), facing the house   // r2-keys: Nico's spot in the yard by the pickup (yard frame)
   const camS = new THREE.Vector3();

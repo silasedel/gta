@@ -51,7 +51,7 @@ export function build(ctx) {
     }
     // baseboard and window stools / aprons (white), bamboo roll-up blinds half down
     for (const [u0, u1] of subtract(T, L - T, ops.filter((o) => o.sill < 0.1).map((o) => [o.u0 - 0.05, o.u1 + 0.05]))) { const [x, z] = W.pt((u0 + u1) / 2, -T - 0.012); box(WHITEP, u1 - u0, 0.1, 0.018, x, F + 0.07, z, { color: 0x6b6440, wear: 0.3 }, 0, W.ry); }
-    for (const o of ops.filter((q) => q.kind === 'window')) { const [x, z] = W.pt(o.u, -T - 0.03); box(WHITEP, o.w + 0.14, 0.03, 0.08, x, o.y0 - 0.015, z, { color: 0xd8d2c0, wear: 0.4 }, 0, W.ry);
+    for (const o of ops.filter((q) => q.kind === 'window')) { const [x, z] = W.pt(o.u, -T - 0.046); box(WHITEP, o.w + 0.14, 0.03, 0.08, x, o.y0 - 0.011, z, { color: 0xd8d2c0, wear: 0.4 }, 0, W.ry);
       if (o.frosted) continue; const down = o.h * (0.42 + r() * 0.25), [bx, bz] = W.pt(o.u, -T - 0.05);
       box(BAMBOO(), o.w + 0.1, down, 0.008, bx, o.y1 + 0.02 - down / 2, bz, { color: 0xffffff, bevel: 0.002, uvS: 1 }, 0, W.ry);
       I.cyl(im.pbr('tatami_mat', { rep: 0.3 }), 0.035, 0.035, o.w + 0.1, M(bx, o.y1 + 0.06, bz, 0, W.ry, PI / 2), { color: 0xb08850, seg: 14 });
