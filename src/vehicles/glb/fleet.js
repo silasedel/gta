@@ -511,7 +511,7 @@ export const fileKey = (key) => FLEET_BY_KEY[key]?.model || key;
 /** spec (CAR_TYPES entry) from a fleet entry + its manifest */
 export function specFor(e, man) {
   const P = PHYS[e.phys] || PHYS.sedan,
-    s = man.shape,
+    s = man.shape || {}, // van2's manifest has no shape block: fall back to the overall dims
     d = man.dims;
   const spec = {
     ...P,
