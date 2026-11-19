@@ -1101,7 +1101,14 @@ async function boot() {
       const fixCar = FIXSTEP && P.state.inVehicle && P.state.vehicle?.body && !P.state.vehicle.isBoat && !P.state.vehicle.isAircraft;
       let steps, h;
       if (fixCar) {
-        const H = 1 / 60;
+        // Nov 19 (jitter probe tools/v2/physics/jitter.mjs: the drawn car speed swung ~36 % frame to frame at 20 fps): with at
+        // most MAXS steps of 1/60 s, frames slower than 33 ms threw sim time away, unevenly frame to frame, so the car (and the
+        // world past it) moved in surges. The fixed step now follows the smoothed frame time (1/60 .. 1/40 s, re-chosen only on
+        // a clear change), so MAXS steps cover real time down to 20 fps at the same physics cost.
+        L.frameEma = (L.frameEma || 1 / 60) + (Math.min(0.1, simDt) - (L.frameEma || 1 / 60)) * 0.05;
+        const want = Math.min(1 / 40, Math.max(1 / 60, L.frameEma / MAXS * 1.05));
+        if (!L.fixH || Math.abs(want - L.fixH) / L.fixH > 0.15) L.fixH = want;
+        const H = L.fixH;
         if (!L.fixOn) { L.fixOn = true; L.physAcc = H; L.fixV = null; }
         L.physAcc += simDt;
         steps = Math.floor(L.physAcc / H + 1e-6);
@@ -1179,7 +1186,7 @@ async function boot() {
       { const t1 = performance.now(); try { game.vehicles.update?.(simDt); } catch (e) { console.error(e); } tm('vehicles', t1); }
       // fixed-step driving: draw the player's car between the pose before the last step and the current one
       if (L.fixOn && L.fixV && L.fixV === P.state.vehicle && L.fixV.mesh) {
-        const v = L.fixV, b = v.body, t = b.translation(), r = b.rotation(), a = Math.min(1, Math.max(0, L.physAcc * 60));
+        const v = L.fixV, b = v.body, t = b.translation(), r = b.rotation(), a = Math.min(1, Math.max(0, L.physAcc / (L.fixH || 1 / 60)));
         v.mesh.position.x += (L.fixP.x - t.x) * (1 - a); v.mesh.position.y += (L.fixP.y - t.y) * (1 - a); v.mesh.position.z += (L.fixP.z - t.z) * (1 - a);
         L.fixQ2.set(r.x, r.y, r.z, r.w); v.mesh.quaternion.copy(L.fixQ).slerp(L.fixQ2, a);
         P.position.copy(v.mesh.position);
