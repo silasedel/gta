@@ -107,7 +107,10 @@ function guardFacadeBatch() {
   return true;
 }
 
-const POINT_TARGET = 16;
+// perf (Nov 19): 10, was 16. Every lit shader loops over all of them per pixel (spares at zero intensity too) and re-uploads
+// them on every program switch (~3800 uniform3f calls a frame downtown, 180 programs a frame). Measured live: 3-6 real point
+// lights downtown by day and night, interiors pool 4. ?pointlights=16 = old.
+const POINT_TARGET = (() => { const m = typeof location !== 'undefined' && /[?&]pointlights=(\d+)/.exec(location.search); return m ? Math.max(4, Math.min(32, +m[1])) : 10; })();
 const SPOT_TARGET = 4;
 let addPatched = false;
 const tracked = new Set();
