@@ -24,9 +24,9 @@ function nearMeshes(scene, c, r) {
     // perf: an instanced mesh is cast only when its instances' bounds reach the seat (every instanced mesh in the scene was
     // ray-tested per probe: 200-680 ms a second on the beach); bounds cached until the instance count changes
     if (o.isInstancedMesh) { if (o._fsN !== o.count || !o.boundingSphere) { o.computeBoundingSphere(); o._fsN = o.count; } sph.copy(o.boundingSphere).applyMatrix4(o.matrixWorld); }
-    // perf: merged city batches (whole-tile meshes, 10^5+ triangles, no BVH) are never ray-tested: one probe against them took
+    // perf: merged city batches (whole-tile meshes over 12 m, up to 10^5+ triangles, no BVH) are never ray-tested: one probe against them took
     // 0.4-4.6 s downtown. Furniture is a separate small mesh or an instance; a seat merged into a tile batch keeps the clip pose.
-    if (!o.isInstancedMesh && sph.radius > 12 && (g.index ? g.index.count : g.attributes.position?.count || 0) > 60000) return;
+    if (!o.isInstancedMesh && sph.radius > 12) return;
     if (sph.center.distanceTo(c) < sph.radius + r) out.push(o);
   });
   return out;
