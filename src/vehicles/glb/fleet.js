@@ -204,9 +204,9 @@ export function zoneMix(zone, income = 0.5, parked = false, env = {}) {
   if (zone === 'keys' || env.salt || zone === 'rural' || zone === 'farm' || env.rural) { m.pickup = 26; m.suv += 6; m.taxi = 0; m.bus = 0; m.truck = parked ? 1 : 3; m.sports = 1; m.compact = 10; m.minivan += 2; }
   if (zone === 'downtown' || zone === 'business') { m.taxi = parked ? 0 : 11; m.van += 3; m.truck = parked ? 0.5 : 3; m.minivan = 4; }
   if (zone === 'beach' || zone === 'nightlife') { m.sports += 5; m.muscle += 2; m.taxi = parked ? 0 : 8; }
-  // exotics: a trace in any rich zone, a few percent of the cars in the luxury districts (~1 in 12 parked on Brickell / Ocean Drive)
+  // exotics: a trace in any rich zone; in the luxury districts ~1 car in 15 in traffic and ~1 in 9 parked (Brickell, Ocean Drive)
   const lux = env.lux ?? 0;
-  m.super = (parked ? 0.25 : 0.12) * rich + lux * (parked ? 6 : 3.5);
+  m.super = (parked ? 0.25 : 0.12) * rich + lux * (parked ? 11 : 7);
   if (lux > 0) { m.sports += lux * 7; m.suv += lux * 10; m.compact *= 1 - 0.6 * lux; m.pickup *= 1 - 0.7 * lux; m.van *= 1 - 0.5 * lux; m.minivan *= 1 - 0.5 * lux; }
   return m;
 }
