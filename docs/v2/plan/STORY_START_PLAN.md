@@ -83,6 +83,19 @@ D3. Proximity voice: WebRTC audio between peers, signaled over the existing WebS
   steady stream of short, varied missions (deliveries, repo jobs, chases, boat runs, collections, escorts, races, odd jobs
   for locals), each one brief on the story framework, giving money, unlocks and new contacts.
 
+## Phase F: second protagonist, phone calls and switching (user, Nov 19)
+The user is making a female co-protagonist (Tripo model) who helps Nico. Name: TBD (options given to the user).
+- F1 **Phone contacts and calls**: a Contacts list on the phone (`src/ui/phone/**`): Vale, Dex, Lou, Cisco, her, and later
+  mission givers. Calling one plays a short voiced or subtitled call (random lines, mission hints, "come pick me up",
+  "need backup"). Missions can trigger incoming calls (the story framework's phone overlay). Calling her when she's not
+  playable asks her to meet you or help (she drives to you and joins as a follower who fights and drives).
+- F2 **Character switching**: switch between Nico and her (phone or a hold-key wheel). The camera flies up and over to the
+  other character (a short sky-cut, like the big games), the old one keeps living (AI idles, goes home, keeps their car and
+  wanted level). Each has their own money, wardrobe, weapons and position, saved separately.
+- F3 **Her missions**: some story steps are played from her side (e.g. she covers Nico from a boat or a rooftop, or she
+  does the inside part of a job). The story framework gets `protagonist` per step and forces a switch when needed.
+Owner: this account (it touches the player, camera, phone, saves and story); after Phase B.
+
 ## Schedule: a few days, both accounts in parallel
 Agents per account: at most 4–5 at once (more starved CPU and browser slots). Each account works on its own branch and
 merges through PRs, so two people never edit the same files at the same time.
