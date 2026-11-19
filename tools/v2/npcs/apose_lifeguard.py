@@ -216,6 +216,14 @@ LM = {
                       tip=None, palm=(1.0, 0.3, 0.0), pca=False, zone=0.095),
             'rmax': 1.25, 'skin_tol': 9,      # no skin-only shoulder rule here: it tore the tank-top armholes in the rig
             'contacts': [('L', (0.225, -0.065, 0.79), 0.045, 'cloth')]},
+    # Mari (player 2, tools/v2/player/build_mari.sh, 1.69 m): arms hang free of the body, tank top like c02; read from
+    # arm slices of mari_verts.npy (armpit ~1.13 m, finger tips ~0.69 m)
+    'mari': {'spine_y': 0.02, 'legx': 0.085,
+             'L': dict(sh=(0.168, 0.03, 1.33), el=(0.212, 0.026, 1.05), wr=(0.255, -0.035, 0.865), kn=(0.258, -0.058, 0.77),
+                       tip=None, palm=(-1.0, 0.3, 0.0), pca=False, zone=0.09),
+             'R': dict(sh=(-0.168, 0.03, 1.33), el=(-0.214, 0.026, 1.05), wr=(-0.258, -0.03, 0.865), kn=(-0.258, -0.058, 0.77),
+                       tip=None, palm=(1.0, 0.3, 0.0), pca=False, zone=0.09),
+             'rmax': 1.25, 'skin_tol': 9},
 }[PID]
 for k in ('L', 'R'):
     for j in ('sh', 'el', 'wr', 'kn', 'tip', 'palm'):
