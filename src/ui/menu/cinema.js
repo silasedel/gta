@@ -218,7 +218,7 @@ export function getCinema(game) {
       if (o.side) { const dx = tmpL.x - tmpP.x, dz = tmpL.z - tmpP.z, l = Math.hypot(dx, dz) || 1; tmpL.x -= (-dz / l) * o.side; tmpL.z -= (dx / l) * o.side; }
     }
     // never under the ground (crane moves that end low, sloped streets): cheap height query, cinematics only
-    if (s.clampGround !== false) { const g = game.city?.groundHeightAt?.(tmpP.x, tmpP.z, tmpP.y); if (Number.isFinite(g) && tmpP.y < g + 0.35) tmpP.y = g + 0.35; }
+    if (s.clampGround !== false && !state.stage) { const g = game.city?.groundHeightAt?.(tmpP.x, tmpP.z, tmpP.y); if (Number.isFinite(g) && tmpP.y < g + 0.35) tmpP.y = g + 0.35; }
     // handheld: an operator's slow drift as small rotations (layered incommensurate sines = no visible loop), not a
     // positional wobble; longer lenses magnify it the way a real one does, so it is scaled by the field of view
     shake.t += dt;
