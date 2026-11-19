@@ -42,31 +42,66 @@
   stroke: #f6f6f4;
   stroke-width: 8;
 }
-.ps-corner .hc-star.pop {
-  animation: hc-star-pop .45s cubic-bezier(.22, 1, .36, 1);
+/* police track (user: "smooth flash on gain, pulse while searching, fade on loss, gentle light-up timing"):
+   gain  = the star lights up from its gray slot with a soft white bloom and a small settle (staggered per star, --d),
+   search = earned stars breathe smoothly between white and dim while the police have lost sight of you,
+   loss  = the star fades back to its gray slot (escape: all together; cooling: one at a time). */
+.ps-corner .hc-star.pop,
+.ps-corner .hc-star.gain {
+  animation: hc-star-gain .75s cubic-bezier(.22, 1, .36, 1) var(--d, 0s) both;
 }
-/* GTA-style flash while the police have lost sight of you: earned stars blink back to empty */
+.ps-corner .hc-star-ol polygon.gain {
+  animation: hc-star-ol-gain .75s cubic-bezier(.22, 1, .36, 1) var(--d, 0s) both;
+}
+.ps-corner .hc-star.lose {
+  animation: hc-star-lose .7s cubic-bezier(.4, 0, .2, 1) var(--d, 0s) both;
+}
+.ps-corner .hc-star-ol polygon.lose {
+  animation: hc-star-ol-lose .7s cubic-bezier(.4, 0, .2, 1) var(--d, 0s) both;
+}
 .ps-corner.evading .hc-star.on {
-  animation: hc-star-flash .9s steps(1) infinite;
+  animation: hc-star-pulse 1.3s ease-in-out infinite;
 }
 .ps-corner.evading .hc-star-ol polygon.on {
-  animation: hc-star-ol-flash .9s steps(1) infinite;
+  animation: hc-star-ol-pulse 1.3s ease-in-out infinite;
+}
+/* back in sight: a short bright snap to solid */
+.ps-corner .hc-star.on.spotted {
+  animation: hc-star-spotted .35s ease-out;
 }
 .ps-corner .hc-stars.bump {
   animation: hc-bump .5s cubic-bezier(.22, 1, .36, 1);
 }
-@keyframes hc-star-pop {
-  0% { transform: scale(.55); }
-  55% { transform: scale(1.22); }
-  100% { transform: scale(1); }
+@keyframes hc-star-gain {
+  0% { transform: scale(.6); fill: rgba(60, 60, 62, .45); stroke: rgba(60, 60, 62, .45); filter: none; }
+  28% { transform: scale(1.2); fill: #fff; stroke: #fff; filter: drop-shadow(0 0 22px rgba(255, 255, 255, .95)); }
+  60% { transform: scale(.96); filter: drop-shadow(0 0 8px rgba(255, 255, 255, .5)); }
+  100% { transform: scale(1); fill: #f6f6f4; stroke: #f6f6f4; filter: none; }
 }
-@keyframes hc-star-flash {
-  0% { fill: #f6f6f4; stroke: #f6f6f4; }
-  50% { fill: rgba(60, 60, 62, .45); stroke: rgba(60, 60, 62, .45); }
+@keyframes hc-star-ol-gain {
+  0% { fill: none; stroke: rgba(0, 0, 0, .5); stroke-width: 16; }
+  28%, 100% { fill: #000; stroke: #000; stroke-width: 36; }
 }
-@keyframes hc-star-ol-flash {
+@keyframes hc-star-lose {
+  0% { transform: scale(1); fill: #f6f6f4; stroke: #f6f6f4; }
+  35% { transform: scale(1.06); fill: rgba(246, 246, 244, .8); stroke: rgba(246, 246, 244, .8); }
+  100% { transform: scale(1); fill: rgba(60, 60, 62, .45); stroke: rgba(60, 60, 62, .45); }
+}
+@keyframes hc-star-ol-lose {
   0% { fill: #000; stroke: #000; stroke-width: 36; }
-  50% { fill: none; stroke: rgba(0, 0, 0, .5); stroke-width: 16; }
+  100% { fill: none; stroke: rgba(0, 0, 0, .5); stroke-width: 16; }
+}
+@keyframes hc-star-pulse {
+  0%, 100% { fill: #f6f6f4; stroke: #f6f6f4; }
+  50% { fill: rgba(120, 120, 124, .5); stroke: rgba(120, 120, 124, .5); }
+}
+@keyframes hc-star-ol-pulse {
+  0%, 100% { fill: #000; stroke: #000; stroke-width: 36; }
+  50% { fill: rgba(0, 0, 0, .35); stroke: rgba(0, 0, 0, .45); stroke-width: 22; }
+}
+@keyframes hc-star-spotted {
+  0% { fill: #fff; stroke: #fff; filter: drop-shadow(0 0 14px rgba(255, 255, 255, .8)); }
+  100% { fill: #f6f6f4; stroke: #f6f6f4; filter: none; }
 }
 @keyframes hc-bump {
   0% { transform: translateX(0); }

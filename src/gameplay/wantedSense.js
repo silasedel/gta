@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { rand, clamp, sfx, tryCall, hasLOS, distXZ, warnOnce } from './util.js';
 import { colorName, vehicleLabel, compassOf, crimeName, weaponWord } from './evidenceWords.js';
 import { buildTrafficCamera, buildRecorder, buildWitnessMarker } from './police/models.js';
+import { fixedSignal } from '../vehicles/roadnet.js';
 
 const hash = (n) => { let x = (n | 0) ^ 0x9e3779b9; x = Math.imul(x ^ (x >>> 16), 0x85ebca6b); x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35); return (x ^ (x >>> 16)) >>> 0; };
 const strHash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return h >>> 0; };
@@ -66,7 +67,7 @@ export function createSense(game, G, law) {
     if (!o) { o = { garments: { ...localOutfit }, masked: !!localOutfit.mask, hat: !!localOutfit.head, glasses: !!localOutfit.eyes, uniform: localOutfit.uniform || null, sex: 'male' }; delete o.garments.mask; delete o.garments.eyes; delete o.garments.uniform; if (localOutfit.mask) o.garments.extra = localOutfit.mask; else if (localOutfit.eyes && !o.garments.extra) o.garments.extra = localOutfit.eyes; }
     outfitCache = o; return o;
   }
-  game.on?.('outfit:changed', () => { outfitT = -9; });
+  game.on?.('outfit:changed', () => { outfitT = -9; realT = -9; });
   // fallback wardrobe (used until the CHARACTER track's wardrobe exists; also handy for tests): slot = top|bottom|shoes|head|eyes|mask|extra
   function setGarment(slot, g) { if (g) localOutfit[slot] = garmentOf(g); else delete localOutfit[slot]; outfitT = -9; game.emit?.('outfit:changed', { slot, source: 'police-fallback' }); }
 
@@ -122,10 +123,11 @@ export function createSense(game, G, law) {
   // ---- traces ("seen at the crime": blood, dye, soot, soaked). A shower clears them (CORE-SYSTEMS calls game.wanted.shower()).
   const traces = new Map(); // id -> { label, t }
   const TRACE = { blood: 'blood on his clothes', dye: 'red dye stains', soot: 'soot and scorch marks', wet: 'soaking wet clothes' };
-  function addTrace(id) { if (!TRACE[id]) return; traces.set(id, { label: TRACE[id], t: now() }); }
+  function addTrace(id) { if (!TRACE[id]) return; traces.set(id, { label: TRACE[id], t: now() }); realT = -9; }
   function shower() { const had = traces.size > 0; traces.clear(); ev.forget('traces', 'showered'); game.emit?.('wanted:showered', { had }); return had; }
-  let swimT = 0;
+  let swimT = 0, lastCarHit = null;
   game.on?.('hit', (d) => {
+    if (d && d.target === 'ped' && d.kind === 'car' && P.state.inVehicle) lastCarHit = { t: now(), damage: d.damage || 0, ped: d.object };
     if (!d || d.target !== 'ped' || !d.byPlayer) return;
     const p = d.point || d.object?.pos; if (!p) return;
     const close = distXZ(p, P.position) < 3.2;
@@ -138,11 +140,16 @@ export function createSense(game, G, law) {
   // ---- the snapshot
   let lastVehicle = null, lastVehicleInfo = null;
   const R = { garments: {}, masked: false, faceCover: 0, weapons: [], weaponVisible: null, vehicle: null, lastVehicle: null, lastVehicleDist: 1e9, companions: 0, traces: [], uniform: null, sex: 'male' };
+  let realT = -9, realVeh = null, realWeapon = null;
   function reality() {
+    // refreshed 5 times a second (or at once when the vehicle or weapon changes): it is read every frame by the law tick
+    const t = now(), vNow = P.state.inVehicle ? P.state.vehicle : null;
+    if (t - realT < 0.2 && vNow === realVeh && P.weapon === realWeapon) return R;
+    realT = t; realVeh = vNow; realWeapon = P.weapon;
     const o = outfit();
     R.garments = o.garments; R.masked = !!o.masked; R.faceCover = (o.hat ? 0.5 : 0) + (o.glasses ? 0.5 : 0); R.uniform = o.uniform; R.sex = o.sex || 'male';
     const inv = P.inventory || [];
-    R.weapons = []; for (const k of inv) { const c = weaponCls(k); if (c && !R.weapons.includes(c)) R.weapons.push(c); }
+    R.weapons.length = 0; for (const k of inv) { const c = weaponCls(k); if (c && !R.weapons.includes(c)) R.weapons.push(c); }
     const v = P.state.inVehicle ? P.state.vehicle : null;
     R.weaponVisible = v ? null : weaponCls(P.weapon);
     if (v) { lastVehicle = v; }
@@ -152,7 +159,7 @@ export function createSense(game, G, law) {
     R.lastVehicle = lastVehicleInfo;
     R.lastVehicleDist = lastVehicle && !v ? tryCall('lvd', () => distXZ(lastVehicle.body.translation(), P.position), 1e9) : 0;
     R.companions = tryCall('companions', () => (game.crew?.following?.length || 0) + (game.pet?.following ? 1 : 0) + (v?.passengers?.length || 0), 0) || 0;
-    R.traces = [...traces.keys()];
+    R.traces.length = 0; for (const k of traces.keys()) R.traces.push(k);
     return R;
   }
   const hiddenNow = () => !!(P.state.indoor || P.headUnderwater || P.hiding || game.interiors?.current);
@@ -335,14 +342,15 @@ export function createSense(game, G, law) {
       const cx = Math.floor(n.x / TC.cell), cz = Math.floor(n.z / TC.cell), key = cx + ',' + cz;
       if (TC.grid.has(key)) continue;
       const w = Math.max(...ne.map((e) => e.width || 8));
-      const cam = { id: 'tc' + n.id, node: n, x: n.x, z: n.z, dir, name: `Traffic camera, ${name.slice(0, 2).join(' & ')}`, limit: spd, px: n.x + dir.x * (w * 0.5 + 6) - dir.z * (w * 0.5 + 2.2), pz: n.z + dir.z * (w * 0.5 + 6) + dir.x * (w * 0.5 + 2.2), cd: 0, hitCd: 0 };
+      const cam = { id: 'tc' + n.id, node: n, edges: ne, signal: n.control === 'signal' || !!n.signal, box: Math.max(7, w * 0.6), x: n.x, z: n.z, dir, name: `Traffic camera, ${name.slice(0, 2).join(' & ')}`, limit: spd, px: n.x + dir.x * (w * 0.5 + 6) - dir.z * (w * 0.5 + 2.2), pz: n.z + dir.z * (w * 0.5 + 6) + dir.x * (w * 0.5 + 2.2), cd: 0, hitCd: 0 };
       TC.grid.set(key, cam); TC.list.push(cam);
       registerCamera({ id: cam.id, kind: 'traffic', name: cam.name, position: { x: cam.px, y: 5.2, z: cam.pz }, range: 30, uploads: 'remote', quality: 0.98 });
     }
     TC.cursor = end; if (end >= nodes.length) { TC.built = true; game.trafficCams = TC.list; console.info(`[traffic cams] ${TC.list.length} placed (density >= ${TC.densMin})`); }
   }
-  function trafficCamsNear(x, z, r) {
-    const out = [], c0 = Math.floor((x - r) / TC.cell), c1 = Math.floor((x + r) / TC.cell), d0 = Math.floor((z - r) / TC.cell), d1 = Math.floor((z + r) / TC.cell);
+  const _tcOut = [];
+  function trafficCamsNear(x, z, r, out = []) {
+    out.length = 0; const c0 = Math.floor((x - r) / TC.cell), c1 = Math.floor((x + r) / TC.cell), d0 = Math.floor((z - r) / TC.cell), d1 = Math.floor((z + r) / TC.cell);
     for (let i = c0; i <= c1; i++) for (let j = d0; j <= d1; j++) { const c = TC.grid.get(i + ',' + j); if (c && Math.hypot(c.x - x, c.z - z) < r) out.push(c); }
     return out;
   }
@@ -365,11 +373,11 @@ export function createSense(game, G, law) {
     for (const [, m] of TC.models) m.update?.(dt);
     const v = P.state.inVehicle ? P.state.vehicle : null;
     if (!v || v.isBoat || v.isAircraft) return;
-    for (const c of trafficCamsNear(pp.x, pp.z, 30)) {
+    for (const c of trafficCamsNear(pp.x, pp.z, 30, _tcOut)) {
       c.cd -= dt; c.hitCd -= dt;
       const kmh = v.speedKmh || 0, wanted = core.S.level > 0;
       const over = kmh - (c.limit + 22);
-      const red = !!tryCall('signal', () => game.traffic?.ranRedLight?.(v, c.node.id), false);
+      const red = c.signal && !!tryCall('signal', () => ranRed(v, c, kmh), false);
       if ((over > 0 || red) && c.cd <= 0) {
         c.cd = 40; flash(c);
         issueTicket(v, red ? 'red_light' : 'speeding', c, kmh);
@@ -387,6 +395,30 @@ export function createSense(game, G, law) {
         game.emit?.('evidence:cameraHit', { camera: c.name, pos: { x: c.x, z: c.z } });
       }
     }
+  }
+  // red-light camera: the car crosses into the box of a signalized crossing while its own approach shows red.
+  // The approach is the edge the car came in on (the one pointing back along its velocity). Signals come from
+  // game.traffic.signalAt when a module drives them, else the same fixed-time plan the AI traffic obeys (roadnet.js).
+  const sigNode = new Map();
+  function ranRed(v, c, kmh) {
+    const pp = P.position, d = Math.hypot(pp.x - c.x, pp.z - c.z), inside = d < c.box;
+    const entered = inside && !c.inBox; c.inBox = inside;
+    if (!entered || kmh < 14) return false;
+    const vel = v.body.linvel(), sp = Math.hypot(vel.x, vel.z) || 1, bx = -vel.x / sp, bz = -vel.z / sp;
+    let best = null, bd = 0.5;
+    for (const e of c.edges) {
+      const p = e.pts; if (!p || p.length < 2) continue;
+      const atB = e.b === c.node.id, a = atB ? p[p.length - 1] : p[0], b = atB ? p[p.length - 2] : p[1];
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, dot = ((b[0] - a[0]) * bx + (b[1] - a[1]) * bz) / l;
+      if (dot > bd) { bd = dot; best = e; }
+    }
+    if (!best) return false;
+    let st = game.traffic?.signalAt?.(c.node.id, best.id);
+    if (st === undefined) {
+      let n = sigNode.get(c.node.id); if (!n) { n = { id: c.node.id, edges: c.edges }; sigNode.set(c.node.id, n); }
+      st = fixedSignal(null, n, best);
+    }
+    return st === 'red';
   }
   function flash(c) {
     const m = TC.models.get(c); tryCall('flash', () => m?.flash?.());
@@ -415,11 +447,28 @@ export function createSense(game, G, law) {
   // and game.emit('witness:silenced', { id, how }). Until that track emits them, the fallback below finds witnesses itself.
   game.on?.('witness', (d) => { try { extWitness(d); } catch (e) { warnOnce('witness event', e); } });
   game.on?.('witness:silenced', (d) => { if (d?.id) ev.cancelSource('witness:' + d.id, d.how || 'silenced'); });
+  // A 911 call from the crowd (src/npc emits one when a person who panicked at a shot, crash, punch or a drawn gun finishes
+  // dialing). The crowd does not know who did what: a traffic accident, a gang shooting or police gunfire also make people
+  // call. So a call can only CORROBORATE a crime the player really committed (an incident from onCrime, recent and close
+  // to where the caller looked); it never creates one. Playtest Nov 18: "a cop came after me with no crime committed" was
+  // a crash call turned into an 'assault' report here.
+  const CALL_MATCH_R = 45, CALL_MATCH_T = 75;
+  function playerIncidentNear(pos, what) {
+    const t = now(); let best = null, bd = 1e9;
+    for (const inc of S.incidents) {
+      if (!inc.byPlayer || t - inc.t > CALL_MATCH_T) continue;
+      if (what === 'crash' && inc.type !== 'hit_pedestrian' && inc.type !== 'murder') continue;   // a crash is only a crime if someone got hurt
+      const dd = distXZ(inc.pos, pos); if (dd < CALL_MATCH_R && dd < bd) { bd = dd; best = inc; }
+    }
+    return best;
+  }
   function extWitness(d) {
     if (!d) return;
-    S.extWitness = true;
-    const pos = d.where || d.position || P.position, id = 'witness:' + (d.id ?? d.ped?.id ?? Math.random().toString(36).slice(2, 8));
-    const inc = incidentFor(d.what || d.type || 'assault', pos);
+    const pos = d.where || d.position || P.position, id = 'witness:' + (d.id ?? d.witnessId ?? d.ped?.id ?? Math.random().toString(36).slice(2, 8));
+    const what = String(d.what || d.type || '');
+    const inc = playerIncidentNear(pos, what);
+    if (!inc) { S.stats.ignoredCalls = (S.stats.ignoredCalls || 0) + 1; game.emit?.('wanted:callIgnored', { what, where: pos }); return; }
+    if (inc.reported || inc.wits.some((w) => w.id === id || (w.ped && w.ped === d.ped)) || ev.source(id)) return;   // already known: the call adds nothing
     const src = ev.addSource({ id, type: 'witness', label: d.who || d.name || 'A witness', reliability: d.reliability ?? 0.6, pending: d.pending ?? 0, where: { x: pos.x, z: pos.z }, onDeliver: () => incidentReported(inc, 'witness', src) });
     const desc = d.description;
     if (desc && typeof desc === 'object') {
@@ -465,7 +514,9 @@ export function createSense(game, G, law) {
     // what they noticed, captured now (a witness reports what they saw at the time)
     observe(w.src, { dist: w.d, kind: 'witness', k: reliability, direction: false });
     tryCall('wit marker', () => { w.marker = buildWitnessMarker(THREE); game.scene.add(w.marker.sprite); });
-    if (ped) { ped.state = hasPhone ? (ped.char?.hasPhone ? 'film' : 'cower') : 'flee'; ped.stateT = callT + 1; ped.threat = { x: inc.pos.x, z: inc.pos.z }; ped.pending = null; ped.idleStyle = hasPhone ? 'phone' : null; if (!hasPhone) ped.fleeT = callT; }
+    // they run from the scene first (a few seconds, braver people less), then stop and dial; no phone: they keep running to find one
+    w.runT = hasPhone && !o.clerk ? clamp(callT * (0.55 - courage * 0.3), 1.2, 4) : 0;
+    if (ped) { ped.state = 'flee'; ped.stateT = callT + 1; ped.threat = { x: inc.pos.x, z: inc.pos.z }; ped.pending = null; ped.idleStyle = null; ped.fleeT = hasPhone ? w.runT : callT; }
     S.witnesses.push(w); inc.wits.push(w);
     return w;
   }
@@ -516,8 +567,12 @@ export function createSense(game, G, law) {
           else law.notify?.('Not enough cash.', 1600);
         }
       }
-      if (ped && ped.state !== 'film' && ped.state !== 'cower' && ped.state !== 'flee') { ped.state = w.hasPhone ? 'film' : 'flee'; ped.stateT = 2; if (!w.hasPhone) { ped.threat = { x: pp.x, z: pp.z }; ped.fleeT = 3; } }
-      if (w.marker && wp) { w.marker.sprite.position.set(wp.x, wp.y + 2.3 + Math.sin(t * 5) * 0.04, wp.z); w.marker.set(1 - src.eta / Math.max(0.1, src.total), w.hasPhone ? 'call' : 'run'); }
+      if (w.runT > 0) w.runT -= dt;
+      if (ped) {
+        if (!w.hasPhone || w.runT > 0) { if (ped.state !== 'flee' && ped.state !== 'cower') { ped.state = 'flee'; ped.stateT = 2; ped.threat = { x: w.inc.pos.x, z: w.inc.pos.z }; ped.fleeT = Math.max(1, w.runT || 3); } }
+        else if (ped.state !== 'film' && ped.state !== 'cower') { ped.state = 'film'; ped.stateT = 2; ped.idleStyle = 'phone'; ped.threat = null; }
+      }
+      if (w.marker && wp) { w.marker.sprite.position.set(wp.x, wp.y + 2.3 + Math.sin(t * 5) * 0.04, wp.z); w.marker.set(1 - src.eta / Math.max(0.1, src.total), w.hasPhone && !(w.runT > 0) ? 'call' : 'run'); }
     }
   }
 
@@ -556,8 +611,18 @@ export function createSense(game, G, law) {
     const victim = d.victim || null;
     if (victim && victim._gpCriminal && (type === 'assault' || type === 'murder')) { victim._gpHitByPlayer = true; return null; } // stopping a criminal is not a crime
     if (victim && victim.isCop) { if (type === 'murder') type = 'cop_murder'; else if (type === 'assault') type = 'cop_assault'; }
-    if (law.SEV[type] === undefined && d.severity != null) law.SEV[type] = clamp(d.severity, 0, 3);
-    const inc = incidentFor(type, pos);
+    // a nudge is not a hit-and-run: a person bumped at walking pace who stays on their feet (vehicles.js reports every
+    // contact from 5 km/h) is no crime; a real hit (about 20 km/h and up) or anyone who goes down still is
+    if (type === 'hit_pedestrian') {
+      const h = lastCarHit, fresh = h && now() - h.t < 0.25;
+      const down = fresh && (h.ped?.dead || h.ped?.rag || h.ped?.state === 'down' || h.ped?.state === 'dead');
+      if (fresh && h.damage < 30 && !down) { S.stats.bumps = (S.stats.bumps || 0) + 1; return null; }
+    }
+    if (law.SEV[type] === undefined) {
+      if (d.severity == null) { warnOnce('crime type ' + type, new Error(`unknown crime type '${type}' without a severity: ignored`)); return null; }
+      law.SEV[type] = clamp(d.severity, 0, 3);
+    }
+    const inc = incidentFor(type, pos); inc.byPlayer = true;
     const seenBy = { officer: false, witnesses: 0, cameras: 0, alarm: false };
     const nearPlayer = distXZ(pos, P.position) < 40;
     // 1. officers: anything aimed at police is known at once; otherwise an officer has to see it
@@ -584,8 +649,11 @@ export function createSense(game, G, law) {
         const clerkName = c?.persona?.name ? `${c.persona.name}, clerk at ${shop.name}` : `The clerk at ${shop.name}`;
         addWitness(inc, { ped: null, pos: cw ? new THREE.Vector3(cw.x, shop.counterPos?.y || P.position.y, cw.z) : shop.counterPos, d: 3 }, { clerk: true, name: clerkName, label: clerkName, reliability: 0.85, callT: type === 'robbery' ? rand(5, 7) : rand(3, 4.5), hasPhone: true });
         seenBy.witnesses++;
-      } else if (d.witnessed === true && !shop && !findWitnesses(pos, victim, 1).length && !inc.wits.length) {
-        // another module vouches for a witness we cannot see in the pedestrian list
+      } else if (type === 'hit_pedestrian' && lastCarHit?.ped && now() - lastCarHit.t < 0.5 && !lastCarHit.ped.dead && !lastCarHit.ped.rag && lastCarHit.ped.active !== false && !inc.wits.some((w) => w.ped === lastCarHit.ped)) {
+        // the person you hit is the first witness: once back on their feet they call it in
+        addWitness(inc, { ped: lastCarHit.ped, d: 3 }, { callT: rand(8, 12), reliability: 0.7 }); seenBy.witnesses++;
+      } else if (d.witnessed === true && !shop && (d.store || d.witnessName) && !findWitnesses(pos, victim, 1).length && !inc.wits.length) {
+        // another module vouches for a witness we cannot see in the pedestrian list (a named one: clerks, guards, mission NPCs)
         addWitness(inc, { ped: null, pos, d: 8 }, { name: d.witnessName || 'A bystander', reliability: 0.6 }); seenBy.witnesses++;
       }
       if (!S.extWitness) {

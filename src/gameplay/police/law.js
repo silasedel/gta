@@ -20,7 +20,7 @@ export function createLaw(game, G) {
     pay(n, why) { n = Math.round(n); if (n <= 0) return true; const w = game.wallet || game.money; if (w?.pay) return !!tryCall('wallet.pay', () => w.pay(n, why), false); if ((P.money || 0) < n) return false; P.money -= n; game.emit?.('money:spent', { amount: n, why }); return true; },
     take(n, why) { n = Math.round(Math.min(n, money.cash())); if (n <= 0) return 0; const w = game.wallet || game.money; if (w?.loseCash) { tryCall('wallet.lose', () => w.loseCash(n, why)); return n; } P.money = Math.max(0, (P.money || 0) - n); game.emit?.('money:lost', { amount: n, why }); return n; },
   };
-  const law = { ev, core, S, SEV, notify, money, radio: null, police: null, sense: null, hooks: [] };
+  const law = { ev, core, S, SEV, notify, money, radio: null, police: null, sense: null, hooks: [], crimeName };
   const sense = createSense(game, G, law); law.sense = sense;
 
   // ------------------------------------------------------------------ facade: game.wanted (v1 fields kept for the HUD, minimap and boats)
@@ -95,6 +95,7 @@ export function createLaw(game, G) {
 
   // ------------------------------------------------------------------ per-frame
   let obsT = 0, officerT = 0;
+  const _ctx = {}, _sInfo = { visual: true, by: 'officer' }, _mctx = { kind: 'foot', dist: 12, inVehicle: false, night: false }, _tick = { pos: null, seenNow: false, hidden: false, match: 0 };
   const callers = new Set();
   function tick(dt) {
     const R = sense.reality();
@@ -105,7 +106,7 @@ export function createLaw(game, G) {
     const list = law.police?.observers?.() || [];
     const night = (game.timeOfDay ?? 12) < 6.5 || (game.timeOfDay ?? 12) > 19.5;
     const armedVisible = !!R.weaponVisible && R.weaponVisible !== 'bat' && R.weaponVisible !== 'knife' && (P.aiming || now() - (G.lastShotT ?? -99) < 8 || S.level > 0);
-    const ctx = { armedVisible, sprinting: !!P.state.sprint, reckless: P.state.inVehicle && (P.state.vehicle?.speedKmh || 0) > 110, masked: R.masked };
+    const ctx = _ctx; ctx.armedVisible = armedVisible; ctx.sprinting = !!P.state.sprint; ctx.reckless = P.state.inVehicle && (P.state.vehicle?.speedKmh || 0) > 110; ctx.masked = R.masked;
     let nearest = 1e9, nearestObs = null;
     for (const ob of list) {
       const o = ob.o; ob.susp = o._susp || 0; ob.inVehicle = !!P.state.inVehicle; ob.night = night;
@@ -122,7 +123,7 @@ export function createLaw(game, G) {
         const stars = Math.max(1, Math.min(3, (S.peak || 1) - 1));
         core.reopen({ ...P.position }, stars); notify('An officer recognized you from the description on file.', 3200, { kind: 'crime' });
         tryCall('radio', () => law.radio?.say('recognized', { unit: nearestObs?.name }));
-      } else core.sighting({ x: P.position.x, y: P.position.y, z: P.position.z }, { visual: true, by: nearestObs?.kind === 'heli' ? 'heli' : 'officer' });
+      } else { _sInfo.by = nearestObs?.kind === 'heli' ? 'heli' : 'officer'; core.sighting(P.position, _sInfo); }
       officerT -= dt;
       if (officerT <= 0 && nearestObs) { // officers with eyes on keep the description current
         officerT = 0.8;
@@ -134,8 +135,10 @@ export function createLaw(game, G) {
         if (home && Number.isFinite(home.x) && distXZ(home, P.position) < 25) ev.observe(src, 'home', { label: home.name || 'your safehouse', x: home.x, z: home.z }, 1);
       }
     }
-    const m = ev.match(R, { kind: 'foot', dist: 12, inVehicle: !!P.state.inVehicle, night });
-    core.tick(dt, { pos: P.position, seenNow, hidden: sense.hiddenNow(), match: m.score });
+    _mctx.inVehicle = !!P.state.inVehicle; _mctx.night = night;
+    const m = ev.match(R, _mctx);
+    _tick.seenNow = seenNow; _tick.hidden = sense.hiddenNow(); _tick.match = m.score; _tick.pos = P.position;
+    core.tick(dt, _tick);
     // sustained violence in view of the police keeps adding heat
     if (S.seen && S.level >= 2 && now() - Math.max(G.copAggroT ?? -99, G.lastShotT ?? -99, G.lastConfirmedHit ?? -99) < 4) core.escalate(dt * 0.12);
     for (const h of law.hooks) tryCall('law.hook', () => h(dt));

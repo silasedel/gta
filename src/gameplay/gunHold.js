@@ -243,9 +243,32 @@ function wristFor(model, kind, origin, out, hs = 1, len = 0.17) {
   return out.addScaledVector(_Z, -g.a).addScaledVector(_X, -g.b * hs).addScaledVector(_Y, -g.c);
 }
 const _FL = new THREE.Vector3(), _SL = new THREE.Vector3(), _W = new THREE.Vector3(), _pole = new THREE.Vector3(), _lg = new THREE.Vector3(), _sm = new WeakMap();
+// The solve below rotates bones RELATIVE to their current pose (IK swing, hand orient, head look). It must start from the
+// animation pose every call. Characters animated only on some frames (police LOD, far crowd) would otherwise solve on top
+// of their own last result and the wrists / hands twist further each frame (REQUESTS.md, Nov 18). So: remember each touched
+// bone before (pre) and after (post) the solve; next call, a bone still holding exactly `post` was not re-posed by the
+// mixer, and goes back to `pre` first. A bone the mixer did write keeps the fresh animation value.
+const SOLVED = ['arm', 'fore', 'hand', 'larm', 'lfore', 'lhand', 'neck', 'head'];
+function solvedBones(r) {
+  if (r.solved) return r.solved;
+  const list = [];
+  for (const k of SOLVED) if (r[k]) list.push(r[k]);
+  for (const side of ['Right', 'Left']) for (const f of FING) for (let i = 1; i <= 3; i++) { const b = r[side + 'Hand' + f + i]; if (b) list.push(b); }
+  r.solved = list.map((b) => ({ b, pre: new THREE.Quaternion(), post: new THREE.Quaternion(), has: false }));
+  return r.solved;
+}
+function restorePose(r) {
+  for (const s of solvedBones(r)) if (s.has && s.b.quaternion.equals(s.post)) s.b.quaternion.copy(s.pre);
+}
+function snapPre(r) { for (const s of solvedBones(r)) s.pre.copy(s.b.quaternion); }
+function snapPost(r) { for (const s of solvedBones(r)) { s.post.copy(s.b.quaternion); s.has = true; } }
 // main entry. Returns true when the model was placed.
 export function holdWeapon(model, root, o = {}) {
   const r = rigOf(root); if (!r || !r.ok || !model) return false;
+  restorePose(r); snapPre(r);
+  try { return solveHold(model, root, r, o); } finally { snapPost(r); }
+}
+function solveHold(model, root, r, o) {
   const ud = model.userData, kind = ud.hold || 'pistol';
   root.updateMatrixWorld(true);
   // body forward: the feet point forward (toes); shoulders give a fallback and tell whether the rig names its sides
@@ -350,4 +373,33 @@ export function handFrame(root, side = 'R') {
   const r = rigOf(root); if (!r || !r.ok) return null;
   const f = frame(r, side, mkFrame());
   return { o: f.o.toArray(), F: f.F.toArray(), S: f.S.toArray(), N: f.N.toArray(), fingers: side === 'R' ? r.fingersR : r.fingersL, ax: (side === 'R' ? r.axR : r.axL)?.dbg || null };
+}
+
+// Hands up (surrender, robbery victims): both wrists above the shoulders, elbows out, palms forward. k = 0..1 blend from
+// the animated pose. Call after the animation update (the police code does, from gameplay.update).
+const _rw = new THREE.Vector3(), _rt = new THREE.Vector3(), _rp = new THREE.Vector3(), _rs = new THREE.Vector3(), _rf = new THREE.Vector3(), _rl = new THREE.Vector3();
+export function raiseHands(root, k = 1) {
+  const r = rigOf(root); if (!r || !r.ok || !r.lok || k <= 0.001) return false;
+  root.updateMatrixWorld(true);
+  if (r.hipsFwd) { r.hips.getWorldQuaternion(_q); _rf.copy(r.hipsFwd).applyQuaternion(_q).setY(0); }
+  else { root.getWorldQuaternion(_q); _rf.set(0, 0, 1).applyQuaternion(_q).setY(0); }
+  if (_rf.lengthSq() < 1e-6) _rf.set(0, 0, 1); _rf.normalize();
+  _rl.crossVectors(UP, _rf).normalize();          // toward the character's left
+  const hs = r.mirror ? -1 : 1;
+  for (const side of ['R', 'L']) {
+    const arm = side === 'R' ? r.arm : r.larm, fore = side === 'R' ? r.fore : r.lfore, hand = side === 'R' ? r.hand : r.lhand;
+    const out = (side === 'R' ? -1 : 1) * hs;      // anatomical outward direction along _rl
+    wp(arm, _rs); wp(hand, _rw);
+    _rt.copy(_rs).addScaledVector(UP, 0.4).addScaledVector(_rl, out * 0.2).addScaledVector(_rf, 0.06);
+    _rt.lerp(_rw, 1 - k);
+    _rp.copy(_rs).addScaledVector(_rl, out * 0.7).addScaledVector(UP, -0.05).addScaledVector(_rf, -0.1);
+    ik2(arm, fore, hand, _rt, _rp);
+    if (k > 0.35) {
+      // fingers up, palm toward the front: right N = S x F, left N = F x S
+      if ((side === 'R') !== !!r.mirror) _rs.crossVectors(UP, _rf); else _rs.crossVectors(_rf, UP);
+      orientHand(r, side, UP, _rs);
+    }
+    relax(r, side);
+  }
+  return true;
 }

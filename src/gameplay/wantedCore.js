@@ -13,6 +13,7 @@ export const GRACE = 2.5;        // s after the last sighting before the pursuit
 export const CONTINUITY = 3.0;   // s a unit keeps "eyes on" without needing the description again
 export const COOL_AFTER = 100;   // s of search without a sighting before the response scales back one star
 export const COOL_STEP = 70;     // s between further scale-backs
+export const BOUNTY_STAR6 = 50000;   // the six-star manhunt puts a public price on your head (added once per case)
 export const BOUNTY = { assault: 150, shoplift: 80, vehicle_theft: 300, carjack: 500, trespass: 60, vandalism: 80, weapon_display: 150, bribery: 250, evading: 400, resisting: 400,
   shooting: 600, robbery: 1500, hit_pedestrian: 900, cop_assault: 1200, cop_shot: 2500, murder: 4000, cop_murder: 8000 };
 
@@ -25,13 +26,18 @@ export function createWantedCore(o) {
     level: 0, heat: 0, phase: 'clean', seen: false, seenBy: null, visualT: -99, lastKnown: { x: 0, y: 0, z: 0 }, hasLastKnown: false,
     search: null, clearT: 0, clearProgress: 0, clearRate: 0, coolT: 0, unseenT: 0, scrutiny: 0, scrutinyBy: null, bounty: 0, peak: 0,
     incidents: [], record: { escapes: 0, arrests: 0, deaths: 0 }, startedT: 0, lastCrimeT: -99, hidden: false, outside: false, matchNow: 0, reportedT: -99,
+    history: [], charges: [], star6: false,
   };
+  // every star change with its reason (audit trail: stars never appear without a known crime; tests read it)
+  const log = (level, before, reason) => { S.history.push({ t: Math.round(now() * 10) / 10, level, before, reason }); if (S.history.length > 40) S.history.shift(); };
   const levelFromHeat = () => { let l = 0; for (let i = 1; i <= MAX_STARS; i++) if (S.heat >= HEAT_STEPS[i]) l = i; return l; };
   function setLevel(l, reason) {
     l = clamp(Math.round(l), 0, MAX_STARS);
     if (l === S.level) return;
     const before = S.level; S.level = l; S.peak = Math.max(S.peak, l);
     if (before === 0 && l > 0) { S.startedT = now(); S.peak = l; }
+    if (l >= MAX_STARS && !S.star6) { S.star6 = true; S.bounty += BOUNTY_STAR6; emit('wanted:manhunt', { bounty: S.bounty }); }
+    log(l, before, reason);
     emit('wantedChange', { level: l, before, reason });
   }
   function setPhase(p, why) { if (S.phase === p) return; const before = S.phase; S.phase = p; emit('wanted:phase', { phase: p, before, why }); }
@@ -52,6 +58,7 @@ export function createWantedCore(o) {
     S.bounty += BOUNTY[type] || 0;
     S.lastCrimeT = now(); S.reportedT = now();
     S.incidents.push({ type, t: now(), pos: { ...inc.pos }, by: inc.by || 'witness', sev }); if (S.incidents.length > 24) S.incidents.shift();
+    if (sev > 0) S.charges.push(type);
     const floor = Math.min(MAX_STARS, inc.stars ?? Math.min(3, sev));
     const before = S.level;
     setLevel(Math.max(S.level, floor, levelFromHeat()), type);
@@ -66,7 +73,7 @@ export function createWantedCore(o) {
   }
   // The police learned where the player is. visual = a unit has eyes on (pursuit); otherwise a camera, tip or plate reader (the search area moves).
   function sighting(pos, info = {}) {
-    S.lastKnown = { x: pos.x, y: pos.y || 0, z: pos.z }; S.hasLastKnown = true;
+    S.lastKnown.x = pos.x; S.lastKnown.y = pos.y || 0; S.lastKnown.z = pos.z; S.hasLastKnown = true;
     if (S.level === 0) return;
     if (info.visual) {
       S.visualT = now(); S.seen = true; S.seenBy = info.by || 'officer'; S.clearT = 0; S.clearProgress = 0; S.coolT = 0; S.search = null;
@@ -103,9 +110,11 @@ export function createWantedCore(o) {
     return { recognized: obs.susp >= 1, score: s, susp: obs.susp, best: m.best };
   }
   // An officer recognized the player while no case was active ("that's the guy from this morning"): reopen it.
+  // Warrant style (user, GTA V scale): an old description only ever brings back 1-2 stars; the officer stops and questions.
   function reopen(pos, stars) {
     if (S.level > 0) return;
-    S.heat = HEAT_STEPS[clamp(stars, 1, MAX_STARS)];
+    stars = clamp(Math.round(stars), 1, 2);
+    S.heat = HEAT_STEPS[stars]; S.charges.push('warrant');
     setLevel(stars, 'recognized');
     sighting(pos, { visual: true, by: 'officer' });
   }
@@ -116,7 +125,7 @@ export function createWantedCore(o) {
     S.hidden = !!sense.hidden; S.matchNow = sense.match ?? 0;
     if (S.level === 0) { S.seen = false; S.phase = 'clean'; S.search = null; S.clearProgress = 0; return; }
     const t = now(), L = S.level;
-    if (sense.seenNow) { S.visualT = t; S.lastKnown = { x: sense.pos.x, y: sense.pos.y || 0, z: sense.pos.z }; S.hasLastKnown = true; }
+    if (sense.seenNow) { S.visualT = t; S.lastKnown.x = sense.pos.x; S.lastKnown.y = sense.pos.y || 0; S.lastKnown.z = sense.pos.z; S.hasLastKnown = true; }
     const unseen = t - S.visualT; S.unseenT = unseen;
     S.seen = unseen < 0.75; // short memory: flickering line of sight is not "lost"
     if (S.seen) {
@@ -152,6 +161,7 @@ export function createWantedCore(o) {
     const had = S.level > 0;
     S.heat = 0; S.search = null; S.clearT = 0; S.clearProgress = 0; S.seen = false; S.coolT = 0; S.scrutiny = 0;
     if (had) setLevel(0, reason);
+    S.lastCharges = S.charges; S.charges = []; S.star6 = false;
     setPhase('clean', reason);
   }
   // sustained violence in view of the police keeps adding heat

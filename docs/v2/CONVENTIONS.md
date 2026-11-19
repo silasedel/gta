@@ -189,6 +189,33 @@ How the world and the systems connect. If something here is wrong, fix the code 
   library `src/npc/arch/anim.js` drives everybody (`src/npc/people/lib.js` shares one bound clip set).
 - Places (roles -> where they spawn, `src/npc/people/cast.js placesFor`): street, residential, keys, rural, farm, dock,
   fishing, port, work, industrial, business, nightlife, bar, tourist, beach, beach_walk, swim, sport, park, rough,
+## 4a. Police and wanted API (police track, Nov 19) — for missions, the heist and anything that needs the law
+Code: `src/gameplay/police.js` (units, cars, tactics), `src/gameplay/police/` (law glue, arrest, response, comms, radio,
+stations, models), `src/gameplay/wantedCore.js` (six-star state machine, pure), `wantedSense.js` (witnesses, cameras),
+`evidence.js` (what the police know). Tuning: `docs/gameplay/police_tuning.md`.
+- **Rule: stars only come from a known crime.** Report one with `game.emit('crime', { type, position, severity?, police?,
+  witnessed?, store?, witnessName?, victim? })`. `police: true` = an officer saw it (known at once); otherwise witnesses,
+  cameras or an alarm must report it first. Unknown types need a `severity` (0..3) or they are ignored. NPC 911 calls
+  (`'witness'` events from src/npc) only corroborate a recent player crime nearby; they never create one.
+- `game.wanted`: `level` (0..6), `phase` ('clean' | 'search' | 'pursuit'), `seen`, `evading` (stars flash), `searchArea()`
+  `{ x, z, radius, progress }`, `lastKnown()`, `bounty`, `heat`, `description()`, `evidence` / `snapshot()` (what they know),
+  `add(stars, pos)` (an officer-witnessed bump), `set(stars, pos, { visual })` (scripted: missions, heist alarm), `clear(reason)`,
+  `closeCase(why)`. `game.wanted.law.S.history` = every star change `{ t, level, before, reason }` (reason = crime type).
+- `game.police`: `dispatchUnit({ swat?, near? })` (send one more car), `spawnCop(pos, heading, car?, { swat? })`,
+  `units`, `cars`, `blocks`, `stations`, `hardReset()`, `perf` `{ ms, idle }`, `arrest` (below), `comms.shout(unit|null, text,
+  { who, priority })`, `response.stats` `{ helis, heliOn, spikes }`.
+- `game.police.arrest`: `setSurrender(bool)` (hands up; H on foot), `surrendered`, `holdFire()`, `startJail(info)`.
+- Events: `wantedChange` `{ level, before, reason }`, `wanted:phase` `{ phase, before }`, `wanted:report`, `wanted:escaped`
+  `{ peak, bounty }`, `wanted:manhunt` `{ bounty }` (6 stars), `wanted:callIgnored`, `crime:reported`, `police:radio`
+  `{ speaker, text, code, priority }`, `police:shout` `{ who, text }`, `police:stop` (1-star stop), `police:tased`,
+  `police:surrender`, `police:pit` `{ vehicle }`, `police:heli` `{ on, name }`, `police:released` (after the jail scene),
+  `arrest` `{ fee }` (gameplay.js), `playerDied`.
+- Star levels (GTA V scale): 1 = warrant-style stop (officers shout, 6.5 s to comply; run and it becomes 2), taser,
+  arrest; 2 = more units, taser, armed suspects get shot; 3 = shoot on sight, PIT, roadblocks + spike strips, helicopter;
+  4 = SWAT vans, rifles, heli marksman, window shooting; 5 = more of everything; 6 = TIDEWALL manhunt: second helicopter,
+  three SWAT vans, statewide $50,000 bounty. Escape = break line of sight, leave the flashing search circle, hide, or stop
+  matching the description (other car, mask).
+
   shop_staff, shop_guest, kitchen, hotel_staff, security, medic, lifeguard, police, police_swat, police_detective.
 - API: `game.npc.createPed({ zone, act, pos, gender })` (crowd; people first, archetypes as fallback, `?people=0` off),
   `game.npc.createCop({ pos })` (police model hook, SWAT armor at 4+ stars), `game.npc.spawnPosed({ place: 'cashier' |

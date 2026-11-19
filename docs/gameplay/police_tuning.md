@@ -1,70 +1,62 @@
-# Port Solana: wanted level and police tuning
+# Southline: wanted level and police tuning
 
-These are our own values, balanced to feel like the genre without copying any specific game.
+Our own values, built on GTA V's structure (user decision, BIG_UPDATE_PLAN sections 12-13). API: `docs/v2/CONVENTIONS.md` 4a.
 
-The code lives in two files:
-- `src/gameplay/gameplay.js` holds `SEV`, `MINOR`, `HEAT_STEPS`, `SEARCH_R`, `CLEAR_TIME` and `WITNESS_CALL`.
-- `src/gameplay/police.js` holds `SIGHT`, `CAR_TARGET` and `FOOT_TARGET`.
+Code:
+- `src/gameplay/wantedCore.js`: `SEV`, `HEAT_STEPS`, `SEARCH_R`, `CLEAR_TIME`, `GRACE`, `BOUNTY`, `BOUNTY_STAR6` (pure state machine).
+- `src/gameplay/wantedSense.js`: witnesses, store cameras, traffic cameras (speed and red light).
+- `src/gameplay/police.js`: `SIGHT`, `CAR_TARGET`, `FOOT_TARGET`, foot tactics, car tactics (PIT, box-in), roadblocks.
+- `src/gameplay/police/arrest.js`: compliance window, taser, cuffing, pull-out, jail scene. `response.js`: helicopter, spikes, SWAT.
 
-## 1. Crime → stars
+## 1. Stars only come from a known crime
 
-| Crime | Base stars | Reported when |
+| Crime (`type`) | Heat | Known when |
 |---|---|---|
-| Punching a civilian, shoplifting, stealing a parked car, carjacking | 1★ | A cop sees it, or a civilian witness finishes a 5–8 s call. You can stop the call by killing or threatening (aiming at) the witness. Parked-car theft counts only if a cop sees it. |
-| Gunfire in public | 2★ | Cop sight or witness call |
-| Assaulting a police officer (melee) | 2★ | Always (the officer is the witness) |
-| Hit-and-run (pedestrian) | 2★ | Cop sight or witness call |
-| Armed robbery (store or ATM break-in) | 2★ | Cop sight or witness call, or straight away if a store clerk witnesses it |
-| Taking a police car | 2★ | Always |
-| Shooting at police (bullet or explosion hits a cop or cruiser) | 3★ | Always |
-| Murder | 3★ | Cop sight or witness call |
-| Killing a cop | 3★, or current +1 when already at 3★ or more | Always |
+| assault, shoplift, vehicle_theft, carjack, weapon_display (aiming at an officer) | 1 | An officer sees it, a witness finishes the call, a camera's footage is pulled, or an alarm |
+| evading (running from a 1-star stop), shooting, robbery, hit_pedestrian, cop_assault, taking a police car | 2 | Same; anything against police is always known |
+| cop_shot, murder, cop_murder | 3 | Same |
+| speeding, red_light | 0 | Traffic cameras only: a ticket for your own car, never stars |
 
-**Escalation.** Every reported crime adds its stars to a heat pool. The heat thresholds for 1★ to 5★ are 1, 3, 7, 14 and 24. While a cop can see you, fighting back adds 0.12 heat per second. Fighting back means you shot, hit a person, or hit a cop in the last 4 s. Sustained violence therefore reaches 4★ and then 5★.
+- NPC 911 calls (`'witness'` from src/npc) only corroborate a player crime within 45 m and 75 s. A traffic accident,
+  someone else's gunfire or police shooting never starts a chase (fix for the Nov 18 playtest).
+- A car touching a pedestrian below about 20 km/h who stays standing is no crime.
+- Heat thresholds for 1..6 stars: 1, 3, 7, 14, 24, 38. While a unit sees you, fighting back adds 0.12 heat/s.
+- An old description on file can reopen a case on sight: warrant style, at most 2 stars.
 
-## 2. Police sight
+## 2. Witnesses and cameras
+- Up to 3 bystanders with a line of sight within 32 m. They run from the scene for 1-4 s, then stop and phone (5-8 s);
+  no phone: they run 13-20 s to find one. Kill, intimidate (aim at them) or bribe (B, next to them) to stop the call.
+- Store cameras record; the footage reaches the police only after the incident is reported (22-32 s, remote 6-9 s).
+  Smash the recorder first and it never does.
+- Traffic cameras: only at big signalized arterial crossings in the dense core, 1.3 km apart (none in suburbs, rural, Keys).
+  Speed: limit + 22 km/h. Red light: entering the crossing while your approach shows red. While wanted, a known plate
+  passing a camera moves the search area to it.
 
+## 3. Sight and escape
 | Parameter | Value |
 |---|---|
-| Vision cone | 110° (±55° from the officer's or car's heading) |
-| Range on foot | 60 m |
-| Range in a car | 90 m |
-| Close-range awareness (ignores the cone) | 8 m on foot, 15 m in a car |
-| Night (before 06:30 or after 19:30) | range ×0.65 |
-| You are in the water | range ×0.6 |
-| You are under cover, such as a bridge or overpass | range ×0.7 |
-| Line of sight | Ray against static world geometry; buildings and bridges block it |
+| Foot officer cone / range | 110 deg, 60 m (8 m all-round awareness) |
+| Car | 110 deg, 90 m (15 m awareness) |
+| Helicopter | all-round, 240 m (x0.8 at night), blocked only by roofs, bridges, interiors |
+| Night / water / under a bridge | range x0.65 / x0.6 / x0.7 |
 
-## 3. Search area and losing the police
+- After 2.5 s unseen the pursuit becomes a search: the stars pulse, a circle (150/250/400/600/800/1000 m by star) is
+  centred on the last known position and grows slowly while you are inside it.
+- Escape progress needed (s): 14, 22, 34, 46, 60, 80. Rate: outside the circle 1x (hidden too: 1.25x), hidden inside
+  0.55x, not matching the description (other car, mask, changed top) 0.4x.
+- 100 s of search without a sighting scales the response down one star, then every 70 s.
 
-| Stars | Search radius (start) | Grows to (slowly) | Unseen time outside the area to lose the cops |
-|---|---|---|---|
-| 1★ | 150 m | 202 m | 10 s |
-| 2★ | 250 m | 337 m | 15 s |
-| 3★ | 400 m | 540 m | 25 s |
-| 4★ | 600 m | 810 m | 35 s |
-| 5★ | 800 m | 1080 m | 45 s |
-
-- The circle starts once no officer or car has seen you for 2.5 s.
-- It is centred on the last-seen position, which follows you for that 2.5 s grace period.
-- Its radius grows by (1 + 0.6 × stars) m/s.
-- Inside the circle the escape timer runs back down.
-- If an officer sees you again, the circle disappears and both timers reset.
-- The HUD draws `game.wanted.searchCenter` and `searchRadius`. `game.wanted.clearProgress` (0..1) is available for a progress ring.
-
-## 4. Response
-
-| Stars | Cruisers | Foot officers | Shooting | Other |
+## 4. Response by star
+| Stars | Cars | Foot | Weapons / behavior | Extras |
 |---|---|---|---|---|
-| 1★ | 1 | – (cops step out of cars) | Only against an armed suspect (aiming a gun or fired in the last 10 s) | Arrest possible |
-| 2★ | 2 | up to 2 | Only against an armed suspect | Arrest possible |
-| 3★ | 3 | up to 4 | Shoot on sight; some officers carry shotguns or SMGs | |
-| 4★ | 4 | up to 6 | Shoot on sight; rifles, carbines; shooting from car windows | Roadblocks across the road ahead: two cruisers plus breakaway barriers, no spike strips |
-| 5★ | 6 (faster respawn) | up to 8 | Maximum aggression | Roadblocks, fastest reinforcements |
+| 1 | 1 | out of the car | Shout and a 6.5 s compliance window. Comply (H or stand still) = cuffed. Run = 2 stars. Taser 2.2-8.5 m. Guns only if you are armed. | Stopped in a car: officers walk to the door and pull you out |
+| 2 | 2 | 2 | Same, more units; taser; armed suspects get shot | |
+| 3 | 3 | 4 | Shoot on sight; shotguns, SMGs; cover behind the cruiser, flanking | PIT maneuvers, roadblocks with spike strips (60%), helicopter with searchlight (night) |
+| 4 | 4 | 6 | Rifles, carbines, window shooting, heli marksman | SWAT van (4 armored officers), spikes always |
+| 5 | 5 | 8 | All foot units are SWAT | 2 SWAT vans |
+| 6 | 6 | 10 | Maximum aggression | TIDEWALL: second helicopter, 3 SWAT vans, $50,000 statewide bounty, phone alert |
 
-**Arrest** is possible only at 1–2★, only on foot, and only while you are not resisting. An officer must stay within 1.6 m for 2 s. Resisting means any of these:
-- sprinting away;
-- hitting an officer in the last 4 s;
-- holding a gun aimed, or having fired in the last 10 s.
-
-If you are arrested you lose your weapons and pay a 10% cash fee, then respawn at the nearest precinct.
+Surrender: H on foot (any star). Officers hold fire at a surrendered, stunned or cuffed suspect and arrest him.
+Arrest: cuffed (1.6 s), DETAINED card, then the booking scene (mugshot against the height board), 3 + 2 x peak stars hours
+of holding (clock advances), 10% cash fee, weapons confiscated, release at the precinct.
+Death: LIGHTS OUT card, hospital, up to $500 bill.

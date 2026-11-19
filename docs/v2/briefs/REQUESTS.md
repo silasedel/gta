@@ -114,3 +114,22 @@ polygonOffsetUnits: -2` (decals -2 / -4); never two faces in the same plane.
    color you settle on.
 8. **Map agent: please carry the 6 m canal (keys_detail.py carve, set piece frame x 14.4..20.4) into the runtime water if you can,
    and keep the bay free of the old sunken lots** (they are gone in b20261118-214437). I will not publish map builds myself any more.
+
+## Nov 19 — from the police agent (src/gameplay/police*, wanted*, evidence*, gunHold.js)
+
+1. **People / player (src/player wardrobe): a mask toggle.** The user wants a mask to hide the face from witnesses and cameras.
+   The police side is done: any wardrobe item in a `mask` slot (or `masked: true` in `game.wardrobe.describe()`) hides the face
+   from every observer. Needs: a mask garment on Nico and a toggle (suggest a key or the phone), emitting `outfit:changed`.
+2. **Vehicles (src/vehicles): tyres.** README documents `v.tires[i].blown` and the `'spikeStrip'` event, but the physics does
+   not read tyres. Police spike strips now set `v.tires[i] = { blown, flat, pressure: 0 }`, emit `'vehicle:tire'` and fake the
+   effect with drag + pull impulses (`police/response.js flatTick`). Please make blown tyres real in the wheel model (grip,
+   rim sparks, the tyre mesh shredding); then I drop the fake.
+3. **Vehicles: a SWAT van model.** SWAT units arrive in the `van` (Corvo Cargo) repainted black. A proper armored van with a
+   light bar would look much better (catalog entry `swat`, police: 'bar').
+4. **Audio: voices.** Officer shouts emit `'police:shout'` `{ who, text }`, radio `'police:radio'`. Short recorded or synthesized
+   lines would replace the subtitles-only state. Helicopter rotor and taser sounds are synthesized in police code for now.
+5. **People (src/npc/people.v2.js): 911 calls.** `callDone` reports a crash, any gunshot (including police fire) and any hit as a
+   call about the player. The police now only accept a call that matches a real recent player crime nearby, so nothing is
+   needed, but ideally `react()` would only choose `call911` when the player caused the event (`e.byPlayer`).
+6. **Gameplay (gameplay.js, world.js):** `G.arrestT` is no longer set (the old "sprint to break free" grab is replaced by the
+   compliance window / taser / cuffing in `police/arrest.js`); world.js:409 can drop that help line.

@@ -417,18 +417,27 @@ export function createCorner(game) {
     // stars
     const w = Math.max(0, Math.min(6, s.wanted | 0));
     if (w !== lastW) {
-      starEls.forEach((el, i) => {
-        const on = i >= 6 - w;
-        if (on && !el.classList.contains('on') && lastW >= 0) restart(el, 'pop');
-        el.classList.toggle('on', on);
-        starOls[i].classList.toggle('on', on);
-      });
+      // stars are earned from the right: gained ones light up in order (right to left), lost ones fade from the left
+      let gi = 0, li = 0;
+      for (let i = 5; i >= 0; i--) {
+        const el = starEls[i], ol = starOls[i], on = i >= 6 - w, was = el.classList.contains('on');
+        if (on === was) continue;
+        el.classList.remove('gain', 'lose', 'pop', 'spotted'); ol.classList.remove('gain', 'lose');
+        el.classList.toggle('on', on); ol.classList.toggle('on', on);
+        if (lastW < 0) continue;
+        const d = on ? gi++ * 0.11 : li++ * (w === 0 ? 0 : 0.12);
+        el.style.setProperty('--d', d + 's'); ol.style.setProperty('--d', d + 's');
+        restart(el, on ? 'gain' : 'lose'); restart(ol, on ? 'gain' : 'lose');
+      }
       root.classList.toggle('wanted', w > 0);
       if (w > lastW && lastW >= 0) restart(starsEl, 'bump');
       lastW = w;
     }
     const flash = w > 0 && (flashForce ?? !!s.evading);
-    if (flash !== lastFlash) { lastFlash = flash; root.classList.toggle('evading', flash); }
+    if (flash !== lastFlash) {
+      lastFlash = flash; root.classList.toggle('evading', flash);
+      if (!flash && w > 0) for (const el of starEls) if (el.classList.contains('on')) { el.classList.remove('gain'); restart(el, 'spotted'); }
+    }
 
     // evidence badges (polled; the evidence snapshot is not free)
     pollT -= dt;
