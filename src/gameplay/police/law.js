@@ -67,6 +67,9 @@ export function createLaw(game, G) {
   function handleCrime(d) {
     if (!d || d._law) return; d._law = true;
     if (deadReal || G.busted) return;
+    // boot: src/render/warmup.v2.js fires a real pistol shot to compile the gun shaders before the game starts. Nothing
+    // that happens before game.ready (or while the title / an intro holds the player) is a crime.
+    if (game.ready !== true || P.script?.title) { law.bootIgnored = (law.bootIgnored || 0) + 1; return; }
     d._witnessed = d.witnessed;
     tryCall('law.crime', () => { const r = sense.onCrime(d); d.observed = r?.seenBy || null; });
     d.witnessed = false; // the HUD's "Crime reported" toast belongs to the moment somebody actually reports it

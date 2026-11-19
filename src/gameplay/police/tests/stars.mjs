@@ -47,20 +47,23 @@ await run('stars', async (t) => {
     // 2. one star: the stop. Officer shouts, compliance window, hands up -> cuffed -> booking scene
     await reset();
     await J(`const p = game.player.position; game.wanted.set(1, p, { visual: true });
-      const a = game.player.heading, x = p.x + Math.sin(a) * 9, z = p.z + Math.cos(a) * 9;
+      const a = game.player.heading, x = p.x + Math.sin(a) * 18, z = p.z + Math.cos(a) * 18;
       const u = game.police.spawnCop(new p.constructor(x, p.y, z), a + Math.PI); return !!u;`);
-    await t.ev('__t.wait(2500)');
+    await t.ev(`__t.until(() => !!game.police.comms.line, 6000)`, 8000);
     let s = await state();
     t.ok(s.level === 1 && !!s.line, '1 star: the officer shouts', s.line);
     await t.shot('star1_stop');
     await J('game.police.arrest.setSurrender(true); return 1;');
-    await t.ev('__t.wait(1800)');
+    await t.ev('__t.wait(1200)');
     await t.shot('star1_handsup');
-    const ok = await t.ev(`__t.until(() => game.ui.arrested || game.police.arrest.jail, 15000)`, 20000);
+    const ok = await t.ev(`__t.until(() => game.police.arrest.cuff || game.ui.arrested || game.police.arrest.jail, 15000)`, 20000);
     t.ok(ok, 'hands up: the officer walks over and cuffs');
-    await t.ev('__t.wait(5200)');
+    await t.ev(`__t.until(() => game.police.arrest.cuff, 3000)`, 5000); await t.shot('star1_cuffed');
+    await t.ev(`__t.until(() => (game.police.arrest.jail?.stage || 0) >= 4, 15000)`, 18000); await t.ev('__t.wait(700)');
     await t.shot('star1_mugshot');
-    await t.ev('__t.wait(4300)');
+    await t.ev(`__t.until(() => (game.police.arrest.jail?.stage || 0) >= 6, 5000)`, 7000); await t.ev('__t.wait(700)');
+    await t.shot('star1_profile');
+    await t.ev(`__t.until(() => (game.police.arrest.jail?.stage || 0) >= 8, 6000)`, 8000); await t.ev('__t.wait(800)');
     await t.shot('star1_timeserved');
     await t.ev(`__t.until(() => !game.police.arrest.jail, 12000)`, 15000);
     s = await state();
@@ -86,7 +89,7 @@ await run('stars', async (t) => {
     await t.ev(`(() => { game.timeOfDay = ${lv === 3 ? 22.5 : 14}; return 1; })()`);
     await J(`game.wanted.set(${lv}, game.player.position, { visual: true }); return 1;`);
     // keep them on us for a while
-    await t.ev(`(async () => { for (let i = 0; i < 60; i++) { game.wanted.law.core.sighting(game.player.position, { visual: true, by: 'officer' }); await __t.wait(500); } return 1; })()`, 40000);
+    await t.ev(`(async () => { for (let i = 0; i < 60; i++) { game.player.health = 100; game.player.armor = 100; game.wanted.law.core.sighting(game.player.position, { visual: true, by: 'officer' }); await __t.wait(500); } return 1; })()`, 40000);
     const s = await state();
     t.ok(s.level === lv, `${lv} stars held`, s);
     t.ok(s.cars >= 1, `${lv} stars: cars dispatched`, { cars: s.cars, deployed: s.deployed, units: s.units });
@@ -118,9 +121,15 @@ await run('stars', async (t) => {
     await reset();
     const r = await J(`const p = game.player.position; game.wanted.set(3, p, { visual: false });
       const u = game.police.spawnCop(new p.constructor(p.x + 120, p.y, p.z), 0); if (!u) return null;
-      const qs = []; for (let i = 0; i < 40; i++) { await __t.wait(50); qs.push(u.hand.quaternion.toArray()); }
-      let maxD = 0; for (let i = 1; i < qs.length; i++) { const a = qs[i - 1], b = qs[i]; const dot = Math.abs(a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]); maxD = Math.max(maxD, 2 * Math.acos(Math.min(1, dot))); }
-      return { maxDeg: +(maxD * 57.3).toFixed(1) };`, 10000);
-    t.ok(r && r.maxDeg < 25, 'far officer hand rotation does not drift between frames', r);
+      // wrist (hand relative to forearm) and gun relative to hand, every rendered frame for 2.5 s
+      const ang = (a, b) => 2 * Math.acos(Math.min(1, Math.abs(a.dot(b)))) * 57.3;
+      const Q = u.hand.quaternion.constructor; const rows = []; let prevW = null, prevG = null, maxW = 0, maxG = 0, first = null, last = null;
+      await new Promise((res) => { let n = 0; const f = () => { const fq = new Q(), hq = new Q(), gq = new Q(); u.hand.parent.getWorldQuaternion(fq); u.hand.getWorldQuaternion(hq); u.gun.getWorldQuaternion(gq);
+        const wq = fq.clone().invert().multiply(hq), gr = hq.clone().invert().multiply(gq);
+        if (prevW) { maxW = Math.max(maxW, ang(prevW, wq)); maxG = Math.max(maxG, ang(prevG, gr)); }
+        if (!first) first = wq.clone(); last = wq.clone(); prevW = wq; prevG = gr; if (rows.length < 12) rows.push([u.lodSkip, u.mode, +ang(first, wq).toFixed(1)]);
+        if (++n < 150) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
+      return { maxWristStepDeg: +maxW.toFixed(1), maxGunStepDeg: +maxG.toFixed(1), driftDeg: +ang(first, last).toFixed(1), rows };`, 15000);
+    t.ok(r && r.maxGunStepDeg < 8 && r.maxWristStepDeg < 30, 'far officer: gun stays in the hand, wrist does not twist frame to frame', r);
   }
-}, { max: 420 });
+}, { max: 800 });

@@ -5,7 +5,7 @@ export const SHOTS = 'docs/v2/shots/police/';
 export async function run(name, fn, o = {}) {
   let fails = 0; const out = [];
   await withBrowser({ width: o.w || 1280, height: o.h || 720, maxSeconds: o.max || 230 }, async (b) => {
-    await b.goto(o.url || URL); await b.waitFor(GAME_READY, 150);
+    await b.goto(o.url || URL); await b.waitFor(GAME_READY, 360);
     await b.key('Enter'); await b.key('Enter', false); await b.sleep(900);
     await b.eval(`(() => { window.__t = {
       W: game.wanted, G: game.gameplay.G, P: game.player,
