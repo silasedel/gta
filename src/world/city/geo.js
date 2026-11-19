@@ -59,7 +59,7 @@ export class Batch {
     g.setAttribute('normal', new THREE.Float32BufferAttribute(this.n, 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(this.uv, 2));
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.c, 3));
-    g.computeBoundingSphere(); g.computeBoundingBox();
+    g.computeBoundingBox(); g.boundingSphere = g.boundingBox.getBoundingSphere(new THREE.Sphere()); // perf: sphere from the box (one pass, not three)
     const m = new THREE.Mesh(g, material);
     m.castShadow = cast; m.receiveShadow = receive; m.matrixAutoUpdate = false; m.updateMatrix();
     return m;
