@@ -118,7 +118,7 @@ float psStaticShadow( sampler2D farMap, DirectionalLightShadow farS, vec4 farC )
         s0.slice(0, at) +
         '#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 )\n\t\tvec3 psC0 = directLight.color;\n\t\t#endif\n\t\t' +
         s0.slice(at, dynEnd + 6) +
-        '\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 0 ) && defined( PS_SUNVIS )\n\t\tpsSunVis = mix( 1.0, dot( directLight.color, vec3( 1.0 ) ) / max( dot( psC0, vec3( 1.0 ) ), 1e-6 ), smoothstep( 0.02, 0.2, dot( geometryNormal, directLight.direction ) ) ); // faces turned away from the sun: no cast-shadow term\n\t\t' +
+        '\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 0 ) && defined( PS_SUNVIS )\n\t\tpsSunVis = mix( 1.0, dot( psC0, vec3( 1.0 ) ) > 1e-4 ? dot( directLight.color, vec3( 1.0 ) ) / dot( psC0, vec3( 1.0 ) ) : 1.0, smoothstep( 0.02, 0.2, dot( geometryNormal, directLight.direction ) ) ); // faces turned away from the sun: no cast-shadow term; a sun at zero (night, heavy cloud) is not a shadow\n\t\t' +
         (FORM_BOUNCE
           ? 'psSunFace = smoothstep( 0.0, 0.25, dot( geometryNormal, directLight.direction ) );'
           : '') +

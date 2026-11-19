@@ -55,6 +55,27 @@ export function preloadNicoTripo() {
 // the form-shadow side. NICO_LIGHT: a soft toe lift of the darkest baked values (only below ~10 % linear; mid-tones and
 // highlights untouched), the people's normal strength (0.8) and a touch more sky fill (0.95). ?nicolight=0 = old.
 const NICO_LIGHT = !(typeof location !== 'undefined' && /[?&]nicolight=0\b/.test(location.search));
+// HERO_LIGHT (Nov 19, user: Nico "pitch black" on a rainy beach, "dark a lot of the time in the sun"). Root cause: in rain
+// his material was darkened twice, by its own wet term and by the global ground-wetness patch (wetSurfaces.js), and the
+// ground patch also treated his head and shoulders as flat ground: puddle mirror roughness (0.08) and normals bent to
+// world up, so a dark wet body showed only sky glints. On top of that the scan's albedo (baked folds, dark olive clothes)
+// sits below most people's, so under weak light (overcast, dusk, street lights) he read darker than the locals beside
+// him. Now: he opts out of the ground patch (NO_WET) and keeps his own milder wet look (satin, never a mirror), gets
+// a hero fill on the sky / bounce light (uFill: +12 % in sun, up to +45 % when the sun is weak) and a subtle backlit rim
+// from the sun (uRim). ?herolight=0 = old.
+const HERO_LIGHT = !(typeof location !== 'undefined' && /[?&]herolight=0\b/.test(location.search));
+
+// fragment code for the hero rim: sun behind the subject (seen from the camera) lights the silhouette edges that face it
+const RIM_GLSL = `
+{
+  vec3 rimV = normalize( vViewPosition );
+  vec3 rimL = normalize( ( viewMatrix * vec4( uRimDir, 0.0 ) ).xyz );
+  float rimF = pow( 1.0 - clamp( dot( normal, rimV ), 0.0, 1.0 ), 3.0 );
+  float rimBack = smoothstep( -0.1, 0.7, -dot( rimV, rimL ) );
+  float rimSide = smoothstep( -0.25, 0.35, dot( normal, rimL ) );
+  outgoingLight += uRim * ( rimF * rimBack * rimSide ) * mix( vec3( 1.0 ), diffuseColor.rgb * 2.5, 0.5 );
+}`;
+
 function makeMaterial(tex) {
   const m = new THREE.MeshStandardMaterial({
     // normalScale.y = -1: glTF UVs (flipY false) on a mesh without tangents (three's derivative tangent frame), the same
@@ -78,16 +99,22 @@ function makeMaterial(tex) {
       ],
     }, // rgb + amount per region
     uMask: { value: tex.mask },
+    uFill: { value: 1 },
+    uRim: { value: new THREE.Color(0, 0, 0) },
+    uRimDir: { value: new THREE.Vector3(0, 1, 0) },
   };
   m.userData.u = u;
-  m.customProgramCacheKey = () => 'nicoTripo' + (tex.mask ? 'M' : '') + (NICO_LIGHT ? 'L' : '');
+  if (HERO_LIGHT) m.defines = { NO_WET: '' };
+  m.customProgramCacheKey = () =>
+    'nicoTripo' + (tex.mask ? 'M' : '') + (NICO_LIGHT ? 'L' : '') + (HERO_LIGHT ? 'H' : '');
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.fragmentShader = sh.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
-uniform float uWet; uniform vec4 uTint[3];${tex.mask ? '\nuniform sampler2D uMask;' : ''}`,
+uniform float uWet; uniform vec4 uTint[3];${tex.mask ? '\nuniform sampler2D uMask;' : ''}
+uniform float uFill; uniform vec3 uRim; uniform vec3 uRimDir;`,
       )
       .replace(
         '#include <map_fragment>',
@@ -107,15 +134,47 @@ ${
     : ''
 }
 ${NICO_LIGHT ? 'diffuseColor.rgb += max(vec3(0.0), 0.022 - diffuseColor.rgb * 0.22);' : ''}
-diffuseColor.rgb *= 1.0 - 0.28 * uWet;`,
+diffuseColor.rgb *= 1.0 - ${HERO_LIGHT ? '0.2' : '0.28'} * uWet;`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
-        `#include <roughnessmap_fragment>
+        HERO_LIGHT
+          ? `#include <roughnessmap_fragment>
+roughnessFactor = mix(roughnessFactor, max(0.34, roughnessFactor * 0.6), uWet);`
+          : `#include <roughnessmap_fragment>
 roughnessFactor = mix(roughnessFactor, roughnessFactor * 0.55, uWet);`,
       );
+    if (HERO_LIGHT) {
+      sh.fragmentShader = sh.fragmentShader
+        .replace(
+          '#include <lights_fragment_end>',
+          `#if defined( RE_IndirectDiffuse )
+irradiance *= uFill;
+iblIrradiance *= uFill;
+#endif
+#include <lights_fragment_end>`,
+        )
+        .replace('#include <opaque_fragment>', RIM_GLSL + '\n#include <opaque_fragment>');
+    }
   };
   return m;
+}
+
+// Per-frame hero light (HERO_LIGHT): the sky / bounce fill rises as the direct sun weakens (overcast, low sun, night),
+// and the rim follows the sun's color and strength (outdoors, by day).
+function updateHeroLight(u, env) {
+  const sun = env?.sun;
+  if (!sun || !env.sunDir) {
+    u.uFill.value = 1.12;
+    u.uRim.value.setRGB(0, 0, 0);
+    return;
+  }
+  const outdoor = 1 - (env.indoor || 0);
+  const direct = THREE.MathUtils.clamp((sun.intensity * Math.max(0, env.sunDir.y)) / 2.5, 0, 1);
+  u.uFill.value = 1.12 + 0.33 * (1 - direct * outdoor);
+  const k = 0.14 * (env.dayFactor ?? 1) * outdoor * sun.intensity;
+  u.uRim.value.setRGB(sun.color.r * k, sun.color.g * k, sun.color.b * k);
+  u.uRimDir.value.copy(env.sunDir);
 }
 
 const _v = new THREE.Vector3(),
@@ -256,6 +315,7 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
     const wetT = inWater ? 1 : Math.min(1, rain * 0.9);
     skin.wetness += (wetT - skin.wetness) * Math.min(1, dt * (wetT > skin.wetness ? 1.6 : 0.03));
     mat.userData.u.uWet.value = skin.wetness;
+    if (HERO_LIGHT) updateHeroLight(mat.userData.u, game?.env);
     if (opts.meshLOD === undefined && game?.camera && (lodT -= dt) <= 0) {
       lodT = 0.25;
       const fovK = game.camera.fov
