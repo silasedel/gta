@@ -24,7 +24,8 @@ const load = () => execSync('uptime').toString().trim().replace(/.*load averages
 const l0 = load();
 console.log('load before', l0);
 try { fs.rmSync(out); } catch (e) { /* none */ }
-const p = spawn(cmd, args, { stdio: 'ignore' });
+// --gclog <file>: the app's stdout / stderr (with --jsflags "--trace-gc": every V8 GC of the run)
+const p = spawn(cmd, args, { stdio: o.gclog ? ['ignore', fs.openSync(o.gclog, 'w'), fs.openSync(o.gclog, 'a')] : 'ignore' });
 const kill = setTimeout(() => { console.log('timeout: killing'); p.kill('SIGKILL'); }, +(o.max || 1200) * 1000);
 p.on('exit', () => {
   clearTimeout(kill);

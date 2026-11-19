@@ -21,6 +21,9 @@ export function createSettings(game, opts = {}) {
     const old = ls.get('portsolana.settings', null);
     if (old) { if (isFinite(old.mouseSens)) saved.mouseSens = old.mouseSens; if (isFinite(old.fov)) saved.fov = old.fov; if (old.northUp) saved.minimapMode = 'north'; }
   }
+  // perf track (Nov 19): graphics settings saved while the game still stuttered (Low, 0.85 scale, near distance...) are
+  // reset once to the High preset, which now holds 60 fps on the target Mac (the user asked for High quality back)
+  if (ls.get('portsolana.v2.gfxrev', 0) < 3) { if (saved.gfxPreset && saved.gfxPreset !== 'high') { Object.assign(saved, PRESETS.high); saved.gfxPreset = 'high'; } ls.set('portsolana.v2.gfxrev', 3); }
   const values = { ...DEFAULTS };
   for (const [k, v] of Object.entries(saved)) if (items.has(k)) values[k] = coerce(items.get(k), v);
   values.fullscreen = false;

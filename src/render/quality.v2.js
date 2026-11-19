@@ -97,6 +97,9 @@ function load() {
     // r2-render: auto results from before Nov 17 15:30 are dropped (they stepped down on CPU-bound frames, which a lower
     // preset cannot speed up: the M3 Max landed on Medium / Low, soft and jagged); manual choices are kept
     if (v && !v.manual && v.rev !== 2) return null;
+    // perf track (Nov 19): presets chosen before the frame-time work (the user dropped to Low to fight the lag) are reset
+    // once; the game starts on High again (src/ui/settings/store.js resets its copy the same way)
+    if (v && v.manual && !v.rev3) return null;
     return v;
   } catch (e) {
     return null;
@@ -206,7 +209,7 @@ export async function initV2(game) {
     }
     if (opts.manual) {
       autoRun = false;
-      save({ name, gpu, manual: true });
+      save({ name, gpu, manual: true, rev3: true });
     }
     return true;
   }
