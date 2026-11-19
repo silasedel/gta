@@ -1,0 +1,177 @@
+{
+ "tag": "after",
+ "spots": [
+  {
+   "at": [
+    0,
+    1760
+   ],
+   "flag": true,
+   "bodies": 28,
+   "drawn": 19,
+   "rays": 152,
+   "rayMiss": 2,
+   "rayOther": 4,
+   "badOff": [
+    {
+     "kind": "royal_palm",
+     "x": 15,
+     "z": 1755,
+     "off": 0.1,
+     "shape": 6,
+     "why": "nonTrunkHit"
+    },
+    {
+     "kind": "royal_palm",
+     "x": 15,
+     "z": 1755,
+     "off": 0.17,
+     "shape": 6,
+     "why": "nonTrunkHit"
+    },
+    {
+     "kind": "royal_palm",
+     "x": 15,
+     "z": 1755,
+     "off": 0.07,
+     "shape": 6,
+     "why": "nonTrunkHit"
+    },
+    {
+     "kind": "royal_palm",
+     "x": 35.4,
+     "z": 1784.7,
+     "off": 0.26,
+     "shape": 6,
+     "why": "nonTrunkHit"
+    }
+   ],
+   "phantoms": [
+    {
+     "x": -12.5,
+     "y": 0.6,
+     "z": 1743.3,
+     "shape": 10,
+     "tag": null,
+     "near": 0.74
+    }
+   ],
+   "crowns": 19,
+   "crownHits": [],
+   "nPhantom": 1,
+   "vg": {
+    "checked": 828,
+    "dropped": {
+     "water": 0,
+     "road": 0,
+     "building": 1,
+     "solid": 7,
+     "crown": 13,
+     "wall": 4
+    },
+    "msMax": 2.8,
+    "msAvg": 0.732
+   },
+   "offMean": 0.015,
+   "offMax": 0.015
+  },
+  {
+   "at": [
+    2398,
+    660
+   ],
+   "flag": true,
+   "bodies": 23,
+   "drawn": 14,
+   "rays": 112,
+   "rayMiss": 7,
+   "rayOther": 0,
+   "badOff": [
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.21
+    }
+   ],
+   "phantoms": [
+    {
+     "x": 2413.7,
+     "y": 0.6,
+     "z": 629.5,
+     "shape": 10,
+     "tag": null,
+     "near": 9
+    }
+   ],
+   "crowns": 12,
+   "crownHits": [],
+   "nPhantom": 1,
+   "vg": {
+    "checked": 1507,
+    "dropped": {
+     "water": 0,
+     "road": 0,
+     "building": 1,
+     "solid": 7,
+     "crown": 13,
+     "wall": 4
+    },
+    "msMax": 3.7,
+    "msAvg": 0.736
+   },
+   "offMean": 0.018,
+   "offMax": 0.206
+  },
+  {
+   "at": [
+    -400,
+    -600
+   ],
+   "flag": true,
+   "bodies": 9,
+   "drawn": 1,
+   "rays": 8,
+   "rayMiss": 0,
+   "rayOther": 0,
+   "badOff": [],
+   "phantoms": [
+    {
+     "x": -405,
+     "y": 0.6,
+     "z": -605,
+     "shape": 10,
+     "tag": null,
+     "near": 9
+    },
+    {
+     "x": -425,
+     "y": 0.6,
+     "z": -575,
+     "shape": 10,
+     "tag": null,
+     "near": 9
+    }
+   ],
+   "crowns": 1,
+   "crownHits": [],
+   "nPhantom": 2,
+   "vg": {
+    "checked": 1930,
+    "dropped": {
+     "water": 0,
+     "road": 0,
+     "building": 1,
+     "solid": 7,
+     "crown": 13,
+     "wall": 4
+    },
+    "msMax": 4.2,
+    "msAvg": 0.749
+   },
+   "offMean": 0.015,
+   "offMax": 0.015
+  }
+ ],
+ "errors": []
+}

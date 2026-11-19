@@ -44,13 +44,57 @@ export async function initV2(game) {
   const isW = (x, z) => { try { return !!game.city?.isWater?.(x, z); } catch (e) { return false; } };
   const nearShore = (x, z) => { for (let a = 0; a < 8; a++) for (const d of [3, 6, 8]) if (!isW(x + Math.cos(a * 0.785) * d, z + Math.sin(a * 0.785) * d)) return true; return false; };
 
+  // first static non-trunk hit along a horizontal ray -> distance or Infinity
+  let hray = null;
+  function side(x, y, z, dx, dz, len) {
+    const W = game.world;
+    if (!W || !R) return Infinity;
+    hray ||= new R.Ray({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 });
+    filt ||= R.QueryFilterFlags.EXCLUDE_DYNAMIC | R.QueryFilterFlags.EXCLUDE_KINEMATIC;
+    filt |= R.QueryFilterFlags.EXCLUDE_SENSORS;
+    hray.origin = { x, y, z };
+    hray.dir = { x: dx, y: 0, z: dz };
+    let h = null;
+    try {
+      h = W.castRay(hray, len, true, filt, undefined, undefined, undefined, notTrunk);
+    } catch (e) {
+      return Infinity;
+    }
+    return h ? (h.timeOfImpact ?? h.toi) : Infinity;
+  }
+  // W4 (Nov 19 playtest: "palms colliding with things"): a wall / facade beside the trunk or through the crown. Trimesh buildings
+  // are hollow, so the down rays above (started inside a tall building) never saw them: 12 horizontal rays at trunk height
+  // (anything within bark + 0.1 m: the trunk is in it) and at two crown heights (55 % of the model's crown radius; a wall spans
+  // >= 2 neighbouring rays of 8, a lone pole (lamp, sign) at most one, so poles never drop a crown). ?vegwall=0 = old.
+  const WALL = !(typeof location !== 'undefined' && /[?&]vegwall=0\b/.test(location.search));
+  const DIRS = [...Array(8).keys()].map((k) => {
+    const a = (k / 8) * Math.PI * 2;
+    return [Math.cos(a), Math.sin(a)];
+  });
+  // a wall: two neighbouring rays of 8 hit within len
+  function walled(x, y, z, len) {
+    const hits = DIRS.map(([dx, dz]) => side(x, y, z, dx, dz, len) < len);
+    for (let k = 0; k < 8; k++) {
+      if (hits[k] && hits[(k + 1) % 8]) return true;
+    }
+    return false;
+  }
+  // anything at all within len
+  function touching(x, y, z, len) {
+    for (const [dx, dz] of DIRS) {
+      if (side(x, y, z, dx, dz, len) < len) return true;
+    }
+    return false;
+  }
+
   // judge one plant base: -> { st: 'ok' | 'fix' | 'drop' | 'wait', y?, why?, g?, d? }
-  function judge(x, y, z, s, cls, key, mv = false) {
-    const mangrove = /mangrove/.test(key || ''), H = (H_OF[cls] || 4) * s;
+  function judge(x, y, z, s, cls, key, mv = false, nr = false) {
+    const md = WALL ? game.city?.flora?.models?.[key] : null; // the model's real size (royal palms are 17 m, a rubber fig 4 m)
+    const mangrove = /mangrove/.test(key || ''), H = (md?.height > 1 ? md.height : (H_OF[cls] || 4)) * s;
     if (isW(x, z) && !(mangrove && nearShore(x, z)) && !WET_OK.test(key || '')) return { st: 'drop', why: 'water' };
-    if (cls !== 'shrub' && game.placement?.onRoad?.(x, z, 0.25 * s)) return { st: 'drop', why: 'road' };
+    if (cls !== 'shrub' && !nr && game.placement?.onRoad?.(x, z, 0.25 * s)) return { st: 'drop', why: 'road' };
     if (cls !== 'shrub' && inMapBuilding(game, x, z, 0.3)) return { st: 'drop', why: 'building' };
-    if (cls !== 'shrub' && !mv) { // (QA: a car pinned against palms at a Keys road edge) trunks keep ~1.5 m from a carriageway edge
+    if (cls !== 'shrub' && !mv && !nr) { // (QA: a car pinned against palms at a Keys road edge) trunks keep ~1.5 m from a carriageway edge
       const q = roadGap(x, z), need = q && (/sidewalk|pavers|concrete|plaza|tile/.test(surf(x, z)) ? 0.8 : 1.5); // behind a curb / on a sidewalk: 0.8 m
       if (q && q.gap < need) { const dx = x - q.px, dz = z - q.pz, l = Math.hypot(dx, dz) || 1, sh = need - q.gap + 0.05;
         if (sh > 2.2) return { st: 'drop', why: 'road' };
@@ -63,7 +107,18 @@ export async function initV2(game) {
     if (!Number.isFinite(gC)) return { st: 'wait' };
     const over = L.find((h) => h > gC + 0.4 && h < y + H * 0.92); // something solid across the trunk / crown
     if (over !== undefined) return { st: 'drop', why: 'solid', over: +(over - y).toFixed(2) };
-    const cr = (CROWN_R[cls] || 0) * s * 0.6; // crown against a roof / wall top / awning next to the trunk
+    if (md && cls !== 'shrub' && !mangrove) {
+      // trunk against a wall, crown through a facade
+      const bark = (md.trunk?.[1]?.[3] || md.trunkR || 0.3) * s;
+      const crownY = (md.crownY > 0 ? md.crownY : (H * 0.6) / s) * s;
+      const crownR = (md.radius || CROWN_R[cls] || 2) * s;
+      if (touching(x, gC + 1.2, z, bark + 0.1)) return { st: 'drop', why: 'wall' };
+      const reach = Math.max(bark + 0.4, crownR * 0.55);
+      for (const yy of [gC + crownY + 0.4, gC + (crownY + H) * 0.5]) {
+        if (walled(x, yy, z, reach)) return { st: 'drop', why: 'crown' };
+      }
+    }
+    const cr = (md?.radius ? md.radius * 0.6 : (CROWN_R[cls] || 0)) * s * 0.6; // crown against a roof / wall top / awning next to the trunk
     if (cr > 0) for (const [dx, dz] of [[cr, 0], [-cr, 0], [0, cr], [0, -cr]]) { const h = down(x + dx, y + H, z + dz, H * 0.45); if (Number.isFinite(h) && h > gC + 2.2) return { st: 'drop', why: 'crown' }; }
     // footprint: lowest ground under the trunk (no gap on the downhill side)
     const r = mangrove ? 0.9 : cls === 'shrub' ? 0.18 * s : Math.min(0.45, 0.3 * s); let g = gC;
@@ -77,10 +132,10 @@ export async function initV2(game) {
 
   // decisions keyed by plant position (every LOD / part of a plant shares the instance position -> the same decision)
   const memo = new Map(); const kq = (x, z) => Math.round(x * 20) + ',' + Math.round(z * 20);
-  const stats = { checked: 0, fixed: 0, moved: 0, dropped: { water: 0, road: 0, building: 0, solid: 0, crown: 0 }, waits: 0, msMax: 0, msSum: 0, frames: 0 };
-  function decide(x, y, z, s, cls, key) {
+  const stats = { checked: 0, fixed: 0, moved: 0, dropped: { water: 0, road: 0, building: 0, solid: 0, crown: 0, wall: 0 }, waits: 0, msMax: 0, msSum: 0, frames: 0 };
+  function decide(x, y, z, s, cls, key, nr = false) {
     const k = kq(x, z); let r = memo.get(k); if (r && r.y0 === y) return r; if (r) return (r.st === 'fix' || r.st === 'move') && Math.abs(r.y - y) < 1e-3 ? { st: 'ok' } : r;
-    r = judge(x, y, z, s, cls, key); if (r.st === 'wait') return r; r.y0 = y; memo.set(k, r); stats.checked++;
+    r = judge(x, y, z, s, cls, key, false, nr); if (r.st === 'wait') return r; r.y0 = y; memo.set(k, r); stats.checked++;
     if (r.st === 'fix') stats.fixed++; else if (r.st === 'move') stats.moved = (stats.moved || 0) + 1; else if (r.st === 'drop') stats.dropped[r.why] = (stats.dropped[r.why] || 0) + 1;
     if (memo.size > 60000) memo.clear();
     return r;
@@ -92,7 +147,7 @@ export async function initV2(game) {
   function* fieldJobs() {
     for (const f of game.vegetation?._fields || []) { if (!f.mats4 || !f.items) continue; const ud = f.variants?.[0]?.parts?.[0]?.im?.material?.userData, cls = clsOf(ud); if (!cls) continue;
       const done = f._gfx ||= new Uint8Array(f.items.length);
-      for (let i = 0; i < f.items.length; i++) { if (done[i]) continue; const e = f.mats4[i].elements; yield { x: e[12], y: e[13], z: e[14], s: Math.hypot(e[0], e[1], e[2]), cls, key: ud.vegKey, apply(r) { done[i] = 1; if (r.st === 'move') { e[12] = r.x; e[14] = r.z; f.items[i].x = r.x; f.items[i].z = r.z; } if (r.st === 'fix' || r.st === 'move') { e[13] = r.y; f.items[i].y = r.y; } else if (r.st === 'drop') { f.mats4[i].makeScale(0, 0, 0); } } }; } }
+      for (let i = 0; i < f.items.length; i++) { if (done[i]) continue; const e = f.mats4[i].elements; yield { x: e[12], y: e[13], z: e[14], s: Math.hypot(e[0], e[1], e[2]), cls, key: ud.vegKey, nr: !!f.items[i].noRoad, apply(r) { done[i] = 1; if (r.st === 'move') { e[12] = r.x; e[14] = r.z; f.items[i].x = r.x; f.items[i].z = r.z; } if (r.st === 'fix' || r.st === 'move') { e[13] = r.y; f.items[i].y = r.y; } else if (r.st === 'drop') { f.mats4[i].makeScale(0, 0, 0); } } }; } }
   }
   // (2) countryside streamer: sealed per-cell lists
   function* csJobs() {
@@ -125,8 +180,8 @@ export async function initV2(game) {
     for (;;) { if ((++it & 63) === 0 && performance.now() - t0 > BUDGET_MS) break;
       const r = gen.next(); if (r.done) { gen = null; break; } const j = r.value; if ((j.x - cam.x) ** 2 + (j.z - cam.z) ** 2 > R_FIX * R_FIX) continue;
       const wk = kq(j.x, j.z), wt = waitT.get(wk); if (wt !== undefined && t0 - wt < 2000) continue; // no collider there yet: retry in 2 s
-      const d = decide(j.x, j.y, j.z, j.s, j.cls, j.key); if (d.st === 'wait') { stats.waits++; waitT.set(wk, t0); if (waitT.size > 20000) waitT.clear(); continue; } j.apply(d);
-      if ((++n & 3) === 0 && performance.now() - t0 > BUDGET_MS) break; }
+      const d = decide(j.x, j.y, j.z, j.s, j.cls, j.key, j.nr); if (d.st === 'wait') { stats.waits++; waitT.set(wk, t0); if (waitT.size > 20000) waitT.clear(); continue; } j.apply(d);
+      ++n; if (performance.now() - t0 > BUDGET_MS) break; } // every plant (a judged plant casts up to ~30 rays)
     const ms = performance.now() - t0; stats.frames++; stats.msSum += ms; if (ms > stats.msMax) stats.msMax = ms;
   }
   if (!OFF) game.updaters.push(() => { try { step(); } catch (e) { /* never take the frame down */ } });

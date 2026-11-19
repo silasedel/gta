@@ -1,0 +1,229 @@
+{
+ "tag": "before",
+ "spots": [
+  {
+   "at": [
+    0,
+    1760
+   ],
+   "flag": true,
+   "bodies": 28,
+   "drawn": 19,
+   "rays": 152,
+   "rayMiss": 2,
+   "rayOther": 4,
+   "badOff": [
+    {
+     "kind": "royal_palm",
+     "x": 15,
+     "z": 1755,
+     "off": 0.1,
+     "shape": 6,
+     "why": "nonTrunkHit"
+    },
+    {
+     "kind": "royal_palm",
+     "x": 15,
+     "z": 1755,
+     "off": 0.17,
+     "shape": 6,
+     "why": "nonTrunkHit"
+    },
+    {
+     "kind": "royal_palm",
+     "x": 15,
+     "z": 1755,
+     "off": 0.07,
+     "shape": 6,
+     "why": "nonTrunkHit"
+    },
+    {
+     "kind": "royal_palm",
+     "x": 35.4,
+     "z": 1784.7,
+     "off": 0.26,
+     "shape": 6,
+     "why": "nonTrunkHit"
+    }
+   ],
+   "phantoms": [
+    {
+     "x": -12.5,
+     "y": 0.6,
+     "z": 1743.3,
+     "shape": 10,
+     "tag": null,
+     "near": 0.74
+    }
+   ],
+   "crowns": 19,
+   "crownHits": [],
+   "nPhantom": 1,
+   "offMean": 0.015,
+   "offMax": 0.015
+  },
+  {
+   "at": [
+    2398,
+    660
+   ],
+   "flag": true,
+   "bodies": 23,
+   "drawn": 14,
+   "rays": 112,
+   "rayMiss": 0,
+   "rayOther": 0,
+   "badOff": [
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.45
+    },
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.42
+    },
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.49
+    },
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.63
+    },
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.78
+    },
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.83
+    },
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.73
+    },
+    {
+     "kind": "rubber_fig",
+     "x": 2410.5,
+     "z": 642,
+     "off": 0.56
+    }
+   ],
+   "phantoms": [
+    {
+     "x": 2413.7,
+     "y": 0.6,
+     "z": 629.5,
+     "shape": 10,
+     "tag": null,
+     "near": 9
+    },
+    {
+     "x": 2435.1,
+     "y": 9.7,
+     "z": 635.2,
+     "shape": 2,
+     "tag": "trunk:fanpalm_rob2",
+     "near": 8.21
+    },
+    {
+     "x": 2435.2,
+     "y": 6.9,
+     "z": 634.9,
+     "shape": 2,
+     "tag": "trunk:fanpalm_rob2",
+     "near": 8.14
+    },
+    {
+     "x": 2435.4,
+     "y": 4.1,
+     "z": 634.6,
+     "shape": 2,
+     "tag": "trunk:fanpalm_rob2",
+     "near": 9
+    }
+   ],
+   "crowns": 12,
+   "crownHits": [],
+   "nPhantom": 4,
+   "offMean": 0.061,
+   "offMax": 0.829
+  },
+  {
+   "at": [
+    -400,
+    -600
+   ],
+   "flag": true,
+   "bodies": 26,
+   "drawn": 9,
+   "rays": 72,
+   "rayMiss": 0,
+   "rayOther": 0,
+   "badOff": [],
+   "phantoms": [
+    {
+     "x": -405,
+     "y": 0.6,
+     "z": -605,
+     "shape": 10,
+     "tag": null,
+     "near": 9
+    },
+    {
+     "x": -425,
+     "y": 0.6,
+     "z": -575,
+     "shape": 10,
+     "tag": null,
+     "near": 9
+    }
+   ],
+   "crowns": 9,
+   "crownHits": [
+    {
+     "kind": "tropical_palm",
+     "x": -424.4,
+     "z": -565.8,
+     "top": 8.1,
+     "cr": 3.6,
+     "hit": {
+      "dx": 3.5744914148448466,
+      "dz": 0,
+      "y": 7.3
+     }
+    },
+    {
+     "kind": "weathered_a",
+     "x": -384.6,
+     "z": -595,
+     "top": 3.8,
+     "cr": 1.9,
+     "hit": {
+      "dx": -1.8566873113269593,
+      "dz": 0,
+      "y": 4.2
+     }
+    }
+   ],
+   "nPhantom": 2,
+   "offMean": 0.02,
+   "offMax": 0.041
+  }
+ ],
+ "errors": []
+}
