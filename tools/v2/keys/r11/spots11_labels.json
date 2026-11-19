@@ -1,0 +1,48 @@
+{
+ "TOPL": {
+  "ref": null,
+  "eye": [
+   0,
+   42,
+   6
+  ],
+  "top": true,
+  "fov": 50,
+  "tod": 12,
+  "eval": "(() => { const T = game.THREE, NH = game.nicoHouse; const yy = NH.group.userData.yardY || (() => 0); for (let x = -27; x <= 15; x += 3) for (let z = -6; z <= 30; z += 3) { const gx = x, gz = z; const cv = document.createElement('canvas'); cv.width = 160; cv.height = 64; const g = cv.getContext('2d'); g.fillStyle = 'rgba(120,0,90,0.75)'; g.fillRect(0, 0, 160, 64); g.fillStyle = '#fff'; g.font = 'bold 44px monospace'; g.textAlign = 'center'; g.fillText(x + ' ' + z, 80, 48); const sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(cv), depthTest: false })); sp.renderOrder = 999; sp.scale.set(2.0, 0.8, 1); sp.position.set(gx, yy(gx, gz) + 0.5, gz); NH.group.add(sp); } })()"
+ },
+ "B": {
+  "ref": "r8/B_front_low_facing_N.webp",
+  "eye": [
+   -1.5,
+   0.9,
+   18.5
+  ],
+  "hdg": 0,
+  "pitch": 9,
+  "fov": 66,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "D": {
+  "ref": "r8/D_driveway_head_height_facing_N.webp",
+  "eye": [
+   1.5,
+   1.7,
+   19.0
+  ],
+  "hdg": 0,
+  "pitch": 4,
+  "fov": 62,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ }
+}

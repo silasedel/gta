@@ -139,14 +139,34 @@ export function build(ctx) {
     Fr.col.box((xa + xb) / 2, F + 0.45, zB - d / 2, xb - xa, 0.9, d, { tag: 'furniture' }); };
   baseRun(stoveX + 0.34, runX1, { sinkAt: sinkX });
   // countertop: speckled laminate with a cut-out for the sink (two slabs and two strips around it)
-  { const cy = F + 0.88, sw = 1.05, sd = 0.47, sx0 = sinkX - sw / 2, sx1 = sinkX + sw / 2, zc = zB - d / 2;
+  { const cy = F + 0.88, sw = 0.77, sd = 0.5, sx0 = sinkX - sw / 2, sx1 = sinkX + sw / 2, zc = zB - d / 2;
     for (const [a, b] of [[stoveX + 0.33, sx0], [sx1, runX1 + 0.03]]) box(LAM, b - a, 0.035, d + 0.03, (a + b) / 2, cy, zc - 0.015, { color: 0xffffff, bevel: 0.006 });
     box(LAM, sw, 0.035, (d + 0.03 - sd) / 2, sinkX, cy, zB - 0.015 - (d + 0.03 - sd) / 4 + 0.015, { color: 0xffffff, bevel: 0.004 }); box(LAM, sw, 0.035, (d + 0.03 - sd) / 2, sinkX, cy, zF - 0.015 + (d + 0.03 - sd) / 4, { color: 0xffffff, bevel: 0.004 });
     box(LAM, runX1 - stoveX, 0.1, 0.012, (stoveX + runX1) / 2, cy + 0.068, zB - 0.006, { color: 0xffffff, bevel: 0.002 });   // backsplash
     // the user's sink (kitchen-appliances download, double basin with drainboard and faucet): cut to the bay, aged (duller steel, scale)
     // r10 (playtest: the sink read as a blue-green slab): its metal / roughness map is magenta (roughness 0, metal 1: a mirror of the room), so the
     // maps go and it is brushed stainless; nothing hangs over it any more (the utensil rail moved right of the window)
-    GLB('kitchen/sink.glb', { parent: Fr.groups.int, pos: [sinkX, cy - 0.185, zc], scale: [0.72, 1.0, 0.78], mat: (m) => { m.metalnessMap = null; m.roughnessMap = null; m.metalness = 0.45; m.roughness = 0.42; m.envMapIntensity = 0.3; m.color.setRGB(0.8, 0.81, 0.82); m.needsUpdate = true; } }); }
+    // r11 (user downloads): the double-basin drop-in sink (tools/v2/keys/r11/sink11.py), real size, its flange on the
+    // counter around a cut-out 3 cm inside it, faucet at the back; brushed stainless basins, bright chrome faucet
+    GLB('kitchen/sink2.glb', {
+      parent: Fr.groups.int,
+      pos: [sinkX, cy + 0.0185, zc],
+      ry: PI,
+      mat: (m) => {
+        // the room's env map is mostly blue sky: a sharp full-metal mirror reads blue, so the chrome is a little
+        // blurred (it averages sky, walls and floor) and the basins are part-metal brushed steel
+        if (m.name === 'sink_chrome') {
+          m.color.setRGB(0.96, 0.95, 0.93);
+          m.metalness = 1;
+          m.roughness = 0.16;
+          m.envMapIntensity = 0.85;
+        } else {
+          m.metalness = 0.55;
+          m.envMapIntensity = 0.3;
+        }
+        m.needsUpdate = true;
+      },
+    }); }
   // the stove (the user's white range) under the hood, the fridge (the user's, resized to a real 1.7 m top-freezer and aged)
   const lib = loadKeysModels(THREE, ['stove_white', 'bath_set']);
   { const HD = im.metalPaint(); box(HD, 0.76, 0.16, 0.5, stoveX, F + 1.62, zB - 0.25, { color: 0xdedbd2, bevel: 0.01 }); hexa(I, HD, [[stoveX - 0.38, F + 1.7, zB], [stoveX + 0.38, F + 1.7, zB], [stoveX + 0.38, F + 1.7, zB - 0.5], [stoveX - 0.38, F + 1.7, zB - 0.5], [stoveX - 0.15, F + 2.1, zB], [stoveX + 0.15, F + 2.1, zB], [stoveX + 0.15, F + 2.1, zB - 0.22], [stoveX - 0.15, F + 2.1, zB - 0.22]], { color: 0xdedbd2 });
@@ -317,7 +337,8 @@ export function build(ctx) {
       Fr.col.box(cx, F + 0.4, cz, 0.45, 0.8, 1.55, { tag: 'furniture' });
       const lz = cz - 1.05; LI.cyl(im.metalPaint(), 0.012, 0.012, 1.5, M(cx - 0.05, F + 0.75, lz), { color: 0x2a2622, seg: 8 }); LI.cyl(im.metalPaint(), 0.14, 0.15, 0.02, M(cx - 0.05, F + 0.01, lz), { color: 0x2a2622, seg: 16 });
       lathe(LI, BSK, [[0.12, 0], [0.2, 0.0], [0.17, 0.3], [0.1, 0.3]], M(cx - 0.05, F + 1.4, lz), { color: 0xcaa874, seg: 18 }); Fr.col.cyl(cx - 0.05, F + 0.75, lz, 0.18, 1.5, { tag: 'prop' });
-      userPot(ctx, Fr, 'palmS', cx - 0.05, F, cz + 1.05, { interior: true, s: 0.95, ry: 0.4 });   // r10: the user's potted palm (was a strut plant)
+      // r11: the user's snake plant (was the small potted palm)
+      userPot(ctx, Fr, 'snake', cx - 0.05, F, cz + 1.05, { interior: true, s: 1.3, ry: 0.4 });
       LI.box(im.plasticGloss(), 0.06, 1.0, 0.52, M(cx + 0.02, F + 0.5, cz + 1.4, 0, 0, 0.12), { color: 0xe8c22a, bevel: 0.08 }); }
     // the north corner (15): stacked cardboard boxes, a fishing rod leaning, a small black chest (no loose boards)
     { const CB = im.matte(); LI.box(CB, 0.45, 0.32, 0.4, M(x1 - 0.3, F + 0.16, z0 + 0.3), { color: 0xa07f56, bevel: 0.01 }); LI.box(CB, 0.4, 0.26, 0.35, M(x1 - 0.32, F + 0.45, z0 + 0.32, 0, 0.2, 0), { color: 0xb18d61, bevel: 0.01 });
@@ -376,8 +397,10 @@ export function build(ctx) {
       vegIn.push([x, F + 0.26 * s2, z, tall ? 'tropical_bed' : 'tropical_leaf', (tall ? 0.95 : 0.6) * s2]);   // the vegetation library's real plant in the pot
       Fr.col.cyl(x, F + 0.4, z, 0.2 * s2, 0.8, { tag: 'prop' }); };
     void potPlant;   // r10 (playtest: random floor plants, glitching library plants): the user's potted plants, in the corners and on the counters
-    userPot(ctx, Fr, 'ficus', 5.25, F, z1 - 0.42, { interior: true, s: 0.72, ry: 0.6 });          // living room, against the SE wall between the window and the console
-    userPot(ctx, Fr, 'palmS', xP + 0.3, F, z0 + 0.32, { interior: true, s: 1.0, ry: 2.1 });         // living room, the corner by the bedroom wall
+    // r11: living room, against the SE wall between the window and the console: the user's monstera (was the ficus)
+    userPot(ctx, Fr, 'monstera', 5.25, F, z1 - 0.42, { interior: true, s: 0.8, ry: 0.6 });
+    // r11: living room, the corner by the bedroom wall: the tall sansevieria (was the small potted palm)
+    userPot(ctx, Fr, 'sansevieria', xP + 0.3, F, z0 + 0.32, { interior: true, s: 1.4, ry: 2.1 });
     userPot(ctx, Fr, 'succulent', penX + 0.2, F + 0.917, -5.35, { interior: true, s: 1.1, noCol: true });   // on the peninsula
     userPot(ctx, Fr, 'succulent', -2.35, F + 0.92 + 0.0, z1 - 0.3, { interior: true, s: 0.9, noCol: true, ry: 1.2 });   // kitchen counter end by the hall
     // a basket by the armchair, magazines on the coffee table

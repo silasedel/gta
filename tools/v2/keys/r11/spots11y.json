@@ -1,0 +1,101 @@
+{
+ "YW": {
+  "ref": null,
+  "eye": [
+   0,
+   1.7,
+   0
+  ],
+  "hdg": 0,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "eval": "(() => { const T = game.THREE, NH = game.nicoHouse, yy = NH.group.userData.yardY || (() => 0); const w = (x, y, z) => NH.toWorld(new T.Vector3(x, yy(x, z) + y, z)); const tgt = w(-12.5, 0.6, -0.5), eye = w(-18.5, 2.2, 5.5); game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.up.set(0, 1, 0); cam.lookAt(tgt); if (cam.fov !== 62) { cam.fov = 62; cam.updateProjectionMatrix(); } return true; }; })()"
+ },
+ "YS": {
+  "ref": null,
+  "eye": [
+   0,
+   1.7,
+   0
+  ],
+  "hdg": 0,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "eval": "(() => { const T = game.THREE, NH = game.nicoHouse, yy = NH.group.userData.yardY || (() => 0); const w = (x, y, z) => NH.toWorld(new T.Vector3(x, yy(x, z) + y, z)); const tgt = w(0, 0.6, 26), eye = w(-1, 2.0, 18.5); game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.up.set(0, 1, 0); cam.lookAt(tgt); if (cam.fov !== 62) { cam.fov = 62; cam.updateProjectionMatrix(); } return true; }; })()"
+ },
+ "YC": {
+  "ref": null,
+  "eye": [
+   0,
+   1.7,
+   0
+  ],
+  "hdg": 0,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "eval": "(() => { const T = game.THREE, NH = game.nicoHouse, yy = NH.group.userData.yardY || (() => 0); const w = (x, y, z) => NH.toWorld(new T.Vector3(x, yy(x, z) + y, z)); const tgt = w(8.0, 0.8, 11.5), eye = w(2.5, 2.2, 7.0); game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.up.set(0, 1, 0); cam.lookAt(tgt); if (cam.fov !== 62) { cam.fov = 62; cam.updateProjectionMatrix(); } return true; }; })()"
+ },
+ "D": {
+  "ref": "r8/D_driveway_head_height_facing_N.webp",
+  "eye": [
+   1.5,
+   1.7,
+   19.0
+  ],
+  "hdg": 0,
+  "pitch": 4,
+  "fov": 62,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "DRV": {
+  "ref": null,
+  "eye": [
+   1.4,
+   1.7,
+   10.76
+  ],
+  "hdg": 159.9,
+  "pitch": -2,
+  "fov": 70,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "C": {
+  "ref": "r8/C_under_house_hoop.webp",
+  "eye": [
+   5.17,
+   1.5,
+   2.03
+  ],
+  "hdg": 305,
+  "pitch": 8,
+  "fov": 74,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ }
+}

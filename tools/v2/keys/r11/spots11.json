@@ -1,0 +1,173 @@
+{
+ "L15": {
+  "ref": "r4/15_MAIN_living_room_looking_north.webp",
+  "eye": [
+   3.11,
+   5.15,
+   -0.26
+  ],
+  "hdg": 350,
+  "pitch": -8,
+  "fov": 75,
+  "tod": 10
+ },
+ "K16": {
+  "ref": "r4/16_MAIN_kitchen_wide_looking_south.webp",
+  "eye": [
+   2.99,
+   5.6,
+   -3.4
+  ],
+  "hdg": 215,
+  "pitch": -15,
+  "fov": 80,
+  "tod": 10
+ },
+ "K2": {
+  "ref": null,
+  "eye": [
+   1.34,
+   5.25,
+   1.06
+  ],
+  "hdg": 125.0,
+  "pitch": -38,
+  "fov": 70,
+  "tod": 10,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "C": {
+  "ref": "r8/C_under_house_hoop.webp",
+  "eye": [
+   5.17,
+   1.5,
+   2.03
+  ],
+  "hdg": 305,
+  "pitch": 8,
+  "fov": 74,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "G": {
+  "ref": "r8/G_front_walkway_view_facing_S_driveway_street.webp",
+  "eye": [
+   -2.26,
+   5.2,
+   7.9
+  ],
+  "hdg": 165,
+  "pitch": -22,
+  "fov": 72,
+  "tod": 12,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "E": {
+  "ref": "r8/E_back_deck_sunset_canal_size.webp",
+  "eye": [
+   2.23,
+   5.2,
+   -7.72
+  ],
+  "hdg": 125,
+  "pitch": -12,
+  "fov": 74,
+  "tod": 18.6,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "B": {
+  "ref": "r8/B_front_low_facing_N.webp",
+  "eye": [
+   -1.5,
+   0.9,
+   18.5
+  ],
+  "hdg": 0,
+  "pitch": 9,
+  "fov": 66,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "D": {
+  "ref": "r8/D_driveway_head_height_facing_N.webp",
+  "eye": [
+   1.5,
+   1.7,
+   19.0
+  ],
+  "hdg": 0,
+  "pitch": 4,
+  "fov": 62,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "Y": {
+  "ref": null,
+  "eye": [
+   -14,
+   9,
+   14
+  ],
+  "hdg": 45,
+  "pitch": -22,
+  "fov": 70,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "DRV": {
+  "ref": null,
+  "eye": [
+   1.4,
+   1.7,
+   10.76
+  ],
+  "hdg": 159.9,
+  "pitch": -2,
+  "fov": 70,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "TOP": {
+  "ref": null,
+  "eye": [
+   0,
+   42,
+   6
+  ],
+  "top": true,
+  "fov": 50,
+  "tod": 12
+ }
+}

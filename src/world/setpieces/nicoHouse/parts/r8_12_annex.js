@@ -72,7 +72,7 @@ export function build(ctx) {
       for (let k = 0; k < 9; k++) { const a = k * 2.4 + u, l = (0.35 + (k % 3) * 0.12) * s; B.strut(LEAF, [x, 0.08 + 0.27 * s, z], [x + Math.cos(a) * l * 0.55, 0.08 + 0.27 * s + l, z + Math.sin(a) * l * 0.55], 0.06 * s, 0.006, { color: kit.vary(0x3f7a34, r, 0.15), rand: r }); }
       Fr.col.cyl(x, 0.25, z, 0.18 * s, 0.4, { tag: 'prop' }); };
     void pot;   // r10 (playtest: the strut plants looked bad): the user's potted palm beside the door
-    { const [px, pz] = pt(door.u + 0.85, 0.42); userPot(ctx, Fr, 'palmS', px, 0.08, pz, { s: 1.05, ry: 0.8 }); }
+    { const [px, pz] = pt(door.u + 0.85, 0.42); userPot(ctx, Fr, 'gardenCroton', px, 0.08, pz, { s: 1.0, ry: 0.8 }); }   // r11: the scanned croton
     // lattice panel over the door between the annex top and the beam (C), the wall lamp, the meter boxes and conduit
     { const xw = A.x0 - 0.03, dz0 = A.z0 + door.u, LTW = mat.paint({ peel: 'a', fade: 0.6, gloss: 0.9 }), yb = beamBot - 0.02;
       for (const sg of [1, -1]) for (let k = -8; k < 16; k++) { const c0 = dz0 - 0.9 + k * 0.12, a0 = [c0, H], a1 = [c0 + sg * (yb - H), yb];
@@ -211,8 +211,9 @@ export function build(ctx) {
       TB.strut(GR, [bx, gy, bz], [bx + Math.cos(a) * lean * h, gy + h, bz + Math.sin(a) * lean * h], 0.018, 0.003, { color: kit.vary(k % 5 ? 0x6f8a3a : 0x9a9a52, q, 0.12), rand: q });
       if (k % 3 === 0) TD.geo(FL, new THREE.SphereGeometry(0.028, 6, 5), M(bx + Math.cos(a) * lean * h, gy + h + 0.02, bz + Math.sin(a) * lean * h), { color: kit.vary(0x8e4fb5, q, 0.1) }); } }
   // r10: the user's potted palms on the decks: the dead end of the front walkway (past the door) and the SE end of the upper back strip
-  userPot(ctx, Fr, 'palmL', P.walk.x0 + 0.55, P.F, P.walk.z0 + 0.5, { s: 0.95, ry: 1.3 });
-  userPot(ctx, Fr, 'palmS', P.upper.x1 - 0.4, P.F, P.upper.z1 - 0.38, { s: 1.1, ry: 2.4 });
+  // r11: the user's flowering urn and caladium bowl replace the palms
+  userPot(ctx, Fr, 'urn', P.walk.x0 + 0.55, P.F, P.walk.z0 + 0.5, { s: 1.0, ry: 1.3 });
+  userPot(ctx, Fr, 'caladium', P.upper.x1 - 0.4, P.F, P.upper.z1 - 0.38, { s: 1.0, ry: 2.4 });
   Fr.anchor('annexDoor', A.x0 - 0.8, 0, A.door, -Math.PI / 2);
   B.build(Fr.groups.ext); D.build(Fr.groups.detail); TB.build(Fs.groups.ext); TD.build(Fs.groups.detail);
   for (const g of [Fr.groups.ext, Fr.groups.detail, Fs.groups.ext, Fs.groups.detail]) g.traverse((o) => { const m = o.material; if (!m || m.userData?.r4matte || m.transparent) return; m.userData.r4matte = true; m.envMapIntensity = Math.min(m.envMapIntensity ?? 1, m.metalness > 0.5 ? 0.6 : 0.35); });

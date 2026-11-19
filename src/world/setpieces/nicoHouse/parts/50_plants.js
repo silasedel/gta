@@ -606,7 +606,14 @@ gl_Position = projectionMatrix * mvPosition;
   buttonwood(-19.4, -7.6, 3.1, 51); buttonwood(-12.5, 20.5, 2.5, 52); buttonwood(-23.0, 0.5, 2.1, 53); buttonwood(-14.7, -1.6, 2.3, 54);
   // crotons and ti plants toward the street
   { const r = kit.rng(55);
-    for (const [x, z, k] of [[-8.4, 25.6, 'c'], [-7.3, 25.4, 't'], [-4.6, 26.0, 'c'], [-1.8, 26.2, 'c'], [-0.6, 26.0, 't'], [2.4, 26.3, 'c'], [4.2, 26.1, 't'], [6.8, 26.0, 'c'], [7.9, 25.7, 'c']]) { if (r4Out(x, z, 0.8)) continue; if (k === 'c') croton(x, 0, z, 1.25 + r() * 0.4, r); else { tiPlant(x, 0, z, 1.4 + r() * 0.4, r); tiPlant(x + 0.2, 0, z + 0.15, 1.0, r); } for (let i = 0; i < 3; i++) tuft(x + (r() - 0.5) * 0.8, 0, z + (r() - 0.5) * 0.6, 0.15 + r() * 0.15, 0.2, grassC(r), 0.02, r); } }
+    for (const [x, z, k] of [[-8.4, 25.6, 'c'], [-7.3, 25.4, 't'], [-4.6, 26.0, 'c'], [-1.8, 26.2, 'c'], [-0.6, 26.0, 't'], [2.4, 26.3, 'c'], [4.2, 26.1, 't'], [6.8, 26.0, 'c'], [7.9, 25.7, 'c']]) {
+      if (r4Out(x, z, 0.8)) continue;
+      // r11: the r8 yard plants this row with the user's plant models (part r11_56_yardplants)
+      if (R8) {
+        (ctx.streetRow ||= []).push([x, z, k]);
+        continue;
+      }
+      if (k === 'c') croton(x, 0, z, 1.25 + r() * 0.4, r); else { tiPlant(x, 0, z, 1.4 + r() * 0.4, r); tiPlant(x + 0.2, 0, z + 0.15, 1.0, r); } for (let i = 0; i < 3; i++) tuft(x + (r() - 0.5) * 0.8, 0, z + (r() - 0.5) * 0.6, 0.15 + r() * 0.15, 0.2, grassC(r), 0.02, r); } }
   // railroad vine runners along the seawall edges
   const vine = (pts, r) => {
     stems.tube(pts, () => 0.006, { seg: 4, col: () => cv([0.32, 0.3, 0.14], r, 0.15), sw: NOSW, vLen: 0.3 });
