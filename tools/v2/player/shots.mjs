@@ -8,56 +8,125 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'p';
-const DIR = path.resolve('docs/v2/shots/player'); fs.mkdirSync(DIR, { recursive: true });
+const DIR = path.resolve('docs/v2/shots/player');
+fs.mkdirSync(DIR, { recursive: true });
 // camera relative to the player: [yaw from his facing (0 = in front, looking at him), distance, eye height, look height]
 const ORBIT = {
-  front: [0, 3.0, 1.25, 0.95], side: [Math.PI / 2, 3.0, 1.25, 0.95], back: [Math.PI, 3.0, 1.25, 0.95], q34: [0.7, 2.6, 1.45, 1.0],
-  face: [0.25, 0.85, 1.68, 1.64], feet: [0.9, 1.4, 0.45, 0.12],
+  front: [0, 3.0, 1.25, 0.95],
+  side: [Math.PI / 2, 3.0, 1.25, 0.95],
+  back: [Math.PI, 3.0, 1.25, 0.95],
+  q34: [0.7, 2.6, 1.45, 1.0],
+  face: [0.25, 0.85, 1.68, 1.64],
+  feet: [0.9, 1.4, 0.45, 0.12],
 };
 const STEPS = {
-  front: { orbit: 'front' }, side: { orbit: 'side' }, back: { orbit: 'back' }, q34: { orbit: 'q34' }, face: { orbit: 'face' }, feet: { orbit: 'feet' },
+  front: { orbit: 'front' },
+  side: { orbit: 'side' },
+  back: { orbit: 'back' },
+  q34: { orbit: 'q34' },
+  face: { orbit: 'face' },
+  feet: { orbit: 'feet' },
   walk: { move: { key: 'KeyW', secs: 2.5 }, orbit: 'side', follow: true },
   run: { move: { key: 'KeyW', shift: true, secs: 1.4 }, orbit: 'side', follow: true },
   sprint: { move: { key: 'KeyW', shift: true, secs: 3.2 }, orbit: 'side', follow: true },
   jump: { move: { key: 'Space', secs: 0.5 }, orbit: 'side' },
   land: { move: { key: 'Space', secs: 0.86 }, orbit: 'side' },
-  hitzones: { orbit: 'front', eval: 'window.__hz = (await import("/src/gameplay/hitZones.js")).hitZoneDebug(game, [game.playerCharacter, ...(game.peds?.list || []).filter((p) => p.char && p.pos && p.pos.distanceTo(game.player.position) < 25).map((p) => p.char)]);', after: 'window.__hz?.dispose?.()' },
-  hitzones_side: { orbit: 'side', eval: 'window.__hz = (await import("/src/gameplay/hitZones.js")).hitZoneDebug(game, [game.playerCharacter, ...(game.peds?.list || []).filter((p) => p.char && p.pos && p.pos.distanceTo(game.player.position) < 25).map((p) => p.char)]);', after: 'window.__hz?.dispose?.()' },
-  disguise: { orbit: 'q34', eval: 'game.wardrobe.wear("uniform_lifeguard_shirt"); game.wardrobe.wear("shorts_navy"); game.wardrobe.wear("sneakers_black"); window.__desc = game.wardrobe.describe();',
-    after: 'const m = await import("/src/player/wardrobe/outfit.js"); game.playerCharacter.outfit.set(m.DEFAULT_OUTFIT);' },
-  security: { orbit: 'front', eval: 'game.wardrobe.wear("uniform_security_shirt"); game.wardrobe.wear("pants_cargo_khaki");', after: 'const m = await import("/src/player/wardrobe/outfit.js"); game.playerCharacter.outfit.set(m.DEFAULT_OUTFIT);' },
-  aim: { orbit: 'side', eval: 'game.weapons.give("pistol", 60); game.weapons.select?.("pistol"); game.combatInput.aim = true; const P = game.player; game.combat = game.combat || {}; (game.combat).aimTarget = new game.THREE.Vector3(P.position.x + Math.sin(P.heading) * 10, P.position.y + 1.45, P.position.z + Math.cos(P.heading) * 10);',
-    after: 'game.combatInput.aim = null; if (game.combat) game.combat.aimTarget = null;' },
-  aim_q: { orbit: 'q34', eval: 'game.combatInput.aim = true; const P = game.player; game.combat.aimTarget = new game.THREE.Vector3(P.position.x + Math.sin(P.heading) * 10, P.position.y + 1.45, P.position.z + Math.cos(P.heading) * 10);',
-    after: 'game.combatInput.aim = null; game.combat.aimTarget = null;' },
-  car: { orbit: 'side', wait: 3500, eval: `const P = game.player; const v = game.vehicles.nearest?.(P.position, 60); window.__car = v; if (v) game.enterVehicle(v);
+  hitzones: {
+    orbit: 'front',
+    eval: 'window.__hz = (await import("/src/gameplay/hitZones.js")).hitZoneDebug(game, [game.playerCharacter, ...(game.peds?.list || []).filter((p) => p.char && p.pos && p.pos.distanceTo(game.player.position) < 25).map((p) => p.char)]);',
+    after: 'window.__hz?.dispose?.()',
+  },
+  hitzones_side: {
+    orbit: 'side',
+    eval: 'window.__hz = (await import("/src/gameplay/hitZones.js")).hitZoneDebug(game, [game.playerCharacter, ...(game.peds?.list || []).filter((p) => p.char && p.pos && p.pos.distanceTo(game.player.position) < 25).map((p) => p.char)]);',
+    after: 'window.__hz?.dispose?.()',
+  },
+  disguise: {
+    orbit: 'q34',
+    eval: 'game.wardrobe.wear("uniform_lifeguard_shirt"); game.wardrobe.wear("shorts_navy"); game.wardrobe.wear("sneakers_black"); window.__desc = game.wardrobe.describe();',
+    after:
+      'const m = await import("/src/player/wardrobe/outfit.js"); game.playerCharacter.outfit.set(m.DEFAULT_OUTFIT);',
+  },
+  security: {
+    orbit: 'front',
+    eval: 'game.wardrobe.wear("uniform_security_shirt"); game.wardrobe.wear("pants_cargo_khaki");',
+    after:
+      'const m = await import("/src/player/wardrobe/outfit.js"); game.playerCharacter.outfit.set(m.DEFAULT_OUTFIT);',
+  },
+  aim: {
+    orbit: 'side',
+    eval: 'game.weapons.give("pistol", 60); game.weapons.select?.("pistol"); game.combatInput.aim = true; const P = game.player; game.combat = game.combat || {}; (game.combat).aimTarget = new game.THREE.Vector3(P.position.x + Math.sin(P.heading) * 10, P.position.y + 1.45, P.position.z + Math.cos(P.heading) * 10);',
+    after: 'game.combatInput.aim = null; if (game.combat) game.combat.aimTarget = null;',
+  },
+  aim_q: {
+    orbit: 'q34',
+    eval: 'game.combatInput.aim = true; const P = game.player; game.combat.aimTarget = new game.THREE.Vector3(P.position.x + Math.sin(P.heading) * 10, P.position.y + 1.45, P.position.z + Math.cos(P.heading) * 10);',
+    after: 'game.combatInput.aim = null; game.combat.aimTarget = null;',
+  },
+  car: {
+    orbit: 'side',
+    wait: 3500,
+    eval: `const P = game.player; const v = game.vehicles.nearest?.(P.position, 60); window.__car = v; if (v) game.enterVehicle(v);
       game.cameraOverride = (dt, cam) => { const m = v.mesh || v.car?.shell; const q = m.getWorldQuaternion(new game.THREE.Quaternion()); const p = m.getWorldPosition(new game.THREE.Vector3());
         const left = new game.THREE.Vector3(1, 0, 0).applyQuaternion(q), fwd = new game.THREE.Vector3(0, 0, 1).applyQuaternion(q);
         cam.position.copy(p).addScaledVector(left, 3.2).addScaledVector(fwd, 0.9).add(new game.THREE.Vector3(0, 1.5, 0)); cam.lookAt(p.clone().addScaledVector(left, 0.35).add(new game.THREE.Vector3(0, 1.0, 0))); return true; };`,
-    noOrbit: true, after: 'if (window.__car) game.exitVehicle();' },
-  ragdoll: { orbit: 'q34', wait: 2600, eval: `const R = await import('/src/npc/ragdoll.js'); const ch = game.playerCharacter; window.__rag = window.__rag || R.createRagdollSystem(game, 2);
+    noOrbit: true,
+    after: 'if (window.__car) game.exitVehicle();',
+  },
+  ragdoll: {
+    orbit: 'q34',
+    wait: 2600,
+    eval: `const R = await import('/src/npc/ragdoll.js'); const ch = game.playerCharacter; window.__rag = window.__rag || R.createRagdollSystem(game, 2);
       const P = game.player; ch.__upd = ch.update; ch.update = () => {}; window.__orb.p0 = P.position.clone(); window.__orb.dist = 3.4;
       const rd = window.__rag.start(ch, { vel: { x: Math.sin(P.heading) * -3, y: 1.2, z: Math.cos(P.heading) * -3 }, kind: 'melee', strength: 0.4, lethal: true });
       window.__ragUpd = (dt) => { try { window.__rag.update(dt); } catch (e) {} }; game.updaters.push(window.__ragUpd);`,
-    after: `const ch = game.playerCharacter; ch.update = ch.__upd; const i = game.updaters.indexOf(window.__ragUpd); if (i >= 0) game.updaters.splice(i, 1); ch.snapshotPose?.(0.3);` },
+    after: `const ch = game.playerCharacter; ch.update = ch.__upd; const i = game.updaters.indexOf(window.__ragUpd); if (i >= 0) game.updaters.splice(i, 1); ch.snapshotPose?.(0.3);`,
+  },
   // in the driver's seat: from just outside the driver window, then the real chase camera behind the car
-  car_window: { orbit: 'front', noOrbit: true, wait: 3000, eval: `const P = game.player, T = game.THREE; const v = game.vehicles.nearest?.(P.position, 60); window.__car = v; if (v) game.enterVehicle(v);
+  car_window: {
+    orbit: 'front',
+    noOrbit: true,
+    wait: 3000,
+    eval: `const P = game.player, T = game.THREE; const v = game.vehicles.nearest?.(P.position, 60); window.__car = v; if (v) game.enterVehicle(v);
       game.cameraOverride = (dt, cam) => { const m = v.car?.shell || v.mesh; const q = m.getWorldQuaternion(new T.Quaternion()), p = m.getWorldPosition(new T.Vector3());
         const left = new T.Vector3(1, 0, 0).applyQuaternion(q), fwd = new T.Vector3(0, 0, 1).applyQuaternion(q), up = new T.Vector3(0, 1, 0).applyQuaternion(q);
         const seat = p.clone().addScaledVector(left, 0.38).addScaledVector(up, (v.spec?.belt ?? 1) - 0.05).addScaledVector(fwd, (v.spec?.zA ?? 1.4) - 1.1);
-        cam.position.copy(seat).addScaledVector(left, 1.55).addScaledVector(fwd, 0.35).addScaledVector(up, 0.12); cam.lookAt(seat.x, seat.y + 0.05, seat.z); return true; };`, after: '' },
-  car_truck: { orbit: 'front', noOrbit: true, wait: 3000, eval: `const P = game.player, T = game.THREE; const tp = game.nicoHouse?.anchors?.truck?.pos || P.position; const v = (game.vehicles.list || []).filter((x) => x.body && !x.disposed).sort((a, b) => a.body.translation().x - b.body.translation().x).reduce((best, x) => { const t = x.body.translation(), d = Math.hypot(t.x - tp.x, t.z - tp.z); return !best || d < best[1] ? [x, d] : best; }, null)?.[0]; window.__car = v; if (v) game.enterVehicle(v);
+        cam.position.copy(seat).addScaledVector(left, 1.55).addScaledVector(fwd, 0.35).addScaledVector(up, 0.12); cam.lookAt(seat.x, seat.y + 0.05, seat.z); return true; };`,
+    after: '',
+  },
+  car_truck: {
+    orbit: 'front',
+    noOrbit: true,
+    wait: 3000,
+    eval: `const P = game.player, T = game.THREE; const tp = game.nicoHouse?.anchors?.truck?.pos || P.position; const v = (game.vehicles.list || []).filter((x) => x.body && !x.disposed).sort((a, b) => a.body.translation().x - b.body.translation().x).reduce((best, x) => { const t = x.body.translation(), d = Math.hypot(t.x - tp.x, t.z - tp.z); return !best || d < best[1] ? [x, d] : best; }, null)?.[0]; window.__car = v; if (v) game.enterVehicle(v);
       game.cameraOverride = (dt, cam) => { const m = v.car?.shell || v.mesh; const q = m.getWorldQuaternion(new T.Quaternion()), p = m.getWorldPosition(new T.Vector3());
         const left = new T.Vector3(1, 0, 0).applyQuaternion(q), fwd = new T.Vector3(0, 0, 1).applyQuaternion(q), up = new T.Vector3(0, 1, 0).applyQuaternion(q);
         const seat = p.clone().addScaledVector(left, 0.38).addScaledVector(up, (v.spec?.belt ?? 1) - 0.05).addScaledVector(fwd, (v.spec?.zA ?? 1.4) - 1.1);
-        cam.position.copy(seat).addScaledVector(left, 2.4).addScaledVector(fwd, 0.6).addScaledVector(up, 0.75); cam.lookAt(seat.x, seat.y + 0.3, seat.z); return true; };`, after: '' },
-  car_chase: { orbit: 'front', noOrbit: true, wait: 3000, reset: false, eval: `game.cameraOverride = null; const v = window.__car; if (v) { const r = v.body.rotation(), q = new game.THREE.Quaternion(r.x, r.y, r.z, r.w), f = new game.THREE.Vector3(0, 0, 1).applyQuaternion(q); game.cameraYaw = Math.atan2(f.x, f.z) + Math.PI; game.cameraPitch = 0.16; }`,
-    after: 'if (window.__car) game.exitVehicle();' },
+        cam.position.copy(seat).addScaledVector(left, 2.4).addScaledVector(fwd, 0.6).addScaledVector(up, 0.75); cam.lookAt(seat.x, seat.y + 0.3, seat.z); return true; };`,
+    after: '',
+  },
+  car_chase: {
+    orbit: 'front',
+    noOrbit: true,
+    wait: 3000,
+    reset: false,
+    eval: `game.cameraOverride = null; const v = window.__car; if (v) { const r = v.body.rotation(), q = new game.THREE.Quaternion(r.x, r.y, r.z, r.w), f = new game.THREE.Vector3(0, 0, 1).applyQuaternion(q); game.cameraYaw = Math.atan2(f.x, f.z) + Math.PI; game.cameraPitch = 0.16; }`,
+    after: 'if (window.__car) game.exitVehicle();',
+  },
   // vault: find a low wall / fence / rail he can hop (0.5 - 1.2 m) near the spot, run at it, press jump
-  vault: { orbit: 'front', noOrbit: true, wait: 1880, eval: `const T = game.THREE, P = game.player, V = game.playerVault, c0 = P.position.clone(); let best = null;
+  vault: {
+    orbit: 'front',
+    noOrbit: true,
+    wait: 1880,
+    eval: `const T = game.THREE, P = game.player, V = game.playerVault, c0 = P.position.clone(); let best = null;
       for (let r = 2; r <= 45 && !best; r += 1.5) for (let k = 0; k < Math.max(8, r * 3) && !best; k++) { const a = k / Math.max(8, r * 3) * Math.PI * 2, x = c0.x + Math.sin(a) * r, z = c0.z + Math.cos(a) * r, y = game.city.groundHeightAt(x, z);
         if (!Number.isFinite(y) || game.city.isWater?.(x, z)) continue; for (let j = 0; j < 12 && !best; j++) { const h = j / 12 * Math.PI * 2; const pr = V?.probe(new T.Vector3(x, y, z), h); if (pr && pr.kind === 'vault' && pr.dist > 1.2 && pr.dist < 2.2) best = { x, y, z, h, pr }; } }
       window.__vault = best ? { at: [+best.x.toFixed(1), +best.z.toFixed(1)], h: +best.pr.hgt.toFixed(2), thick: +best.pr.thick.toFixed(2) } : null;
@@ -65,36 +134,106 @@ const STEPS = {
         const sx = best.x + Math.sin(best.h) * 1.5 + Math.cos(best.h) * 4.2, sz = best.z + Math.cos(best.h) * 1.5 - Math.sin(best.h) * 4.2;
         game.cameraOverride = (dt, cam) => { cam.position.set(sx, best.y + 1.5, sz); cam.lookAt(game.player.position.x, game.player.position.y + 0.9, game.player.position.z); return true; };
         const key = (c, d) => dispatchEvent(new KeyboardEvent(d ? 'keydown' : 'keyup', { code: c, key: c }));
-        setTimeout(() => key('KeyW', true), 1200); setTimeout(() => { key('Space', true); }, 1200 + 420); setTimeout(() => key('Space', false), 1200 + 520); setTimeout(() => key('KeyW', false), 1200 + 1500); }`, after: '' },
+        setTimeout(() => key('KeyW', true), 1200); setTimeout(() => { key('Space', true); }, 1200 + 420); setTimeout(() => key('Space', false), 1200 + 520); setTimeout(() => key('KeyW', false), 1200 + 1500); }`,
+    after: '',
+  },
   vault_mid: { orbit: 'front', noOrbit: true, reset: false, wait: 260, eval: '', after: '' },
-  vault_end: { orbit: 'front', noOrbit: true, reset: false, wait: 1100, eval: '', after: 'window.__vaultStats = JSON.stringify(game.playerVault?.stats);' },
+  vault_end: {
+    orbit: 'front',
+    noOrbit: true,
+    reset: false,
+    wait: 1100,
+    eval: '',
+    after: 'window.__vaultStats = JSON.stringify(game.playerVault?.stats);',
+  },
   // pivot: run, then reverse the stick (S) -> plant and turn around
-  pivot: { orbit: 'side', noOrbit: true, wait: 2000, eval: `const P = game.player; game.cameraYaw = P.heading + Math.PI; const c = P.position.clone(), h = P.heading;
+  pivot: {
+    orbit: 'side',
+    noOrbit: true,
+    wait: 2000,
+    eval: `const P = game.player; game.cameraYaw = P.heading + Math.PI; const c = P.position.clone(), h = P.heading;
       game.cameraOverride = (dt, cam) => { cam.position.set(c.x + Math.sin(h) * 4 + Math.cos(h) * 6, c.y + 1.8, c.z + Math.cos(h) * 4 - Math.sin(h) * 6); cam.lookAt(P.position.x, P.position.y + 0.9, P.position.z); return true; };
       const key = (k, d) => dispatchEvent(new KeyboardEvent(d ? 'keydown' : 'keyup', { code: k, key: k })); window.__piv = [];
       const t0 = performance.now(); const rec = () => { const t = performance.now() - t0; window.__piv.push([Math.round(t), +P.state.speed.toFixed(2), +P.heading.toFixed(2)]); if (t < 3200) setTimeout(rec, 80); }; rec();
-      key('ShiftLeft', true); key('KeyW', true); setTimeout(() => { key('KeyW', false); key('KeyS', true); }, 1500); setTimeout(() => { key('KeyS', false); key('ShiftLeft', false); }, 3200);`, after: '' },
+      key('ShiftLeft', true); key('KeyW', true); setTimeout(() => { key('KeyW', false); key('KeyS', true); }, 1500); setTimeout(() => { key('KeyS', false); key('ShiftLeft', false); }, 3200);`,
+    after: '',
+  },
   pivot_end: { orbit: 'side', noOrbit: true, reset: false, wait: 1500, eval: '', after: '' },
   // the real game camera (no override): a parked car between the camera and Nico, and under the stilt house beams
-  cam_car: { orbit: 'front', noOrbit: true, wait: 2500, eval: `game.cameraOverride = null; const P = game.player, T = game.THREE;
+  cam_car: {
+    orbit: 'front',
+    noOrbit: true,
+    wait: 2500,
+    eval: `game.cameraOverride = null; const P = game.player, T = game.THREE;
       const v = (game.vehicles?.list || []).filter((x) => x.body && !x.disposed).sort((a, b) => a.body.translation().x - P.position.x)[0] && (game.vehicles.list.filter((x) => x.body).map((x) => [x, Math.hypot(x.body.translation().x - P.position.x, x.body.translation().z - P.position.z)]).sort((a, b) => a[1] - b[1])[0] || [])[0];
       if (v) { const t = v.body.translation(), r = v.body.rotation(), q = new T.Quaternion(r.x, r.y, r.z, r.w), side = new T.Vector3(1, 0, 0).applyQuaternion(q).setY(0).normalize();
         const p = new T.Vector3(t.x, 0, t.z).addScaledVector(side, 2.3); game.teleport(p.x, undefined, p.z, Math.atan2(side.x, side.z));
-        game.cameraYaw = Math.atan2(-side.x, -side.z); game.cameraPitch = 0.12; window.__camcar = { car: v.name || v.typeKey, at: [t.x, t.z] }; }`, after: '' },
-  cam_house: { orbit: 'front', noOrbit: true, wait: 2500, reset: false, eval: `game.cameraOverride = null; const H = game.nicoHouse, T = game.THREE; const p = H.toWorld(new T.Vector3(-2.2, 0, 1.3));
-      game.teleport(p.x, undefined, p.z, (H.spot?.heading || 0) + Math.PI / 2); game.cameraYaw = (H.spot?.heading || 0) - Math.PI / 2; game.cameraPitch = 0.35;`, after: '' },
-  cam_house2: { orbit: 'front', noOrbit: true, wait: 2500, reset: false, eval: `game.cameraOverride = null; const H = game.nicoHouse; game.cameraYaw += 1.6; game.cameraPitch = 0.6;`, after: '' },
+        game.cameraYaw = Math.atan2(-side.x, -side.z); game.cameraPitch = 0.12; window.__camcar = { car: v.name || v.typeKey, at: [t.x, t.z] }; }`,
+    after: '',
+  },
+  cam_house: {
+    orbit: 'front',
+    noOrbit: true,
+    wait: 2500,
+    reset: false,
+    eval: `game.cameraOverride = null; const H = game.nicoHouse, T = game.THREE; const p = H.toWorld(new T.Vector3(-2.2, 0, 1.3));
+      game.teleport(p.x, undefined, p.z, (H.spot?.heading || 0) + Math.PI / 2); game.cameraYaw = (H.spot?.heading || 0) - Math.PI / 2; game.cameraPitch = 0.35;`,
+    after: '',
+  },
+  cam_house2: {
+    orbit: 'front',
+    noOrbit: true,
+    wait: 2500,
+    reset: false,
+    eval: `game.cameraOverride = null; const H = game.nicoHouse; game.cameraYaw += 1.6; game.cameraPitch = 0.6;`,
+    after: '',
+  },
 };
-const DEFAULT_ONLY = ['front', 'side', 'back', 'q34', 'face', 'feet', 'walk', 'run', 'sprint', 'hitzones', 'hitzones_side', 'aim', 'aim_q', 'disguise', 'car', 'ragdoll', 'jump', 'land', 'cam_car', 'cam_house', 'cam_house2'];
+const DEFAULT_ONLY = [
+  'front',
+  'side',
+  'back',
+  'q34',
+  'face',
+  'feet',
+  'walk',
+  'run',
+  'sprint',
+  'hitzones',
+  'hitzones_side',
+  'aim',
+  'aim_q',
+  'disguise',
+  'car',
+  'ragdoll',
+  'jump',
+  'land',
+  'cam_car',
+  'cam_house',
+  'cam_house2',
+];
 const rep = { set: SET, when: new Date().toISOString(), shots: {} };
-
 
 // run the shot steps in an already running game page (used by walktest.mjs --shots to share one browser slot)
 export async function shotsIn(b, o2 = o, rep2 = rep) {
-  const o = o2, rep = rep2, SET = o.set || 'p';
+  const o = o2,
+    rep = rep2,
+    SET = o.set || 'p';
   // every page call gets a time limit: a frame that never arrives (GPU busy on the shared machine) must not hang the run
-  const lim = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout ' + what)), ms))]);
-  const b0 = b; b = { ...b0, eval: (e, t) => lim(b0.eval(e, t), 60000, 'eval'), screenshot: (f, op) => lim(b0.screenshot(f, op), 45000, 'screenshot'), key: (...a) => lim(b0.key(...a), 10000, 'key'), sleep: b0.sleep, errors: b0.errors };
+  const lim = (p, ms, what) =>
+    Promise.race([
+      p,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout ' + what)), ms)),
+    ]);
+  const b0 = b;
+  b = {
+    ...b0,
+    eval: (e, t) => lim(b0.eval(e, t), 60000, 'eval'),
+    screenshot: (f, op) => lim(b0.screenshot(f, op), 45000, 'screenshot'),
+    key: (...a) => lim(b0.key(...a), 10000, 'key'),
+    sleep: b0.sleep,
+    errors: b0.errors,
+  };
   const only = o.only ? String(o.only).split(',') : DEFAULT_ONLY;
   const at = o.at ? o.at.split(',').map(Number) : null;
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = ${+(o.tod || 11)};
@@ -103,7 +242,10 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
     return 1; })()`);
   await b.sleep(3000);
   // move to open ground nearby (no car / wall / prop within ~1.5 m of a 9 m walk ahead and the camera ring)
-  if (!o.noclear) console.log('spot', await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, ball = new R.Ball(1.6), P = game.player;
+  if (!o.noclear)
+    console.log(
+      'spot',
+      await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, ball = new R.Ball(1.6), P = game.player;
     const c0 = P.position.clone(); const city = game.city;
     const cars = (game.vehicles?.list || []).map((v) => { try { const t = v.body.translation(); return [t.x, t.z]; } catch (e) { return null; } }).filter(Boolean);
     const free = (x, z, h) => { for (let k = -1; k <= 8; k++) { const px = x + Math.sin(h) * k * 2.2, pz = z + Math.cos(h) * k * 2.2; const y = city.groundHeightAt(px, pz);
@@ -111,42 +253,70 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
       if (W.intersectionWithShape({ x: px, y: y + 1.95, z: pz }, { x: 0, y: 0, z: 0, w: 1 }, ball, QF.EXCLUDE_SENSORS, undefined, P.collider)) return false; } return true; };
     for (let r = 0; r <= 90; r += 3) for (let i = 0; i < Math.max(1, r * 1.5); i++) { const a = i / Math.max(1, r * 1.5) * Math.PI * 2; const x = c0.x + Math.sin(a) * r, z = c0.z + Math.cos(a) * r;
       for (const h of [P.heading, P.heading + Math.PI / 2, P.heading + Math.PI, P.heading - Math.PI / 2]) if (free(x, z, h)) { game.teleport(x, undefined, z, h); window.__spot = [x, z, h]; return JSON.stringify([+x.toFixed(1), +z.toFixed(1), +h.toFixed(2)]); } }
-    return 'none'; })()`));
+    return 'none'; })()`),
+    );
   await b.sleep(6000);
   for (const id of only) {
-    const s = STEPS[id]; if (!s) continue;
+    const s = STEPS[id];
+    if (!s) continue;
     try {
-    const [yaw, dist, eh, lh] = ORBIT[s.orbit];
-    if (s.reset !== false) { await b.eval(`(() => { const s = window.__spot; if (s && (game.player.position.distanceTo(new game.THREE.Vector3(s[0], game.player.position.y, s[1])) > 0.5 || game.player.swimming)) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`); await b.sleep(700); }
-    await b.eval(`(async () => {
+      const [yaw, dist, eh, lh] = ORBIT[s.orbit];
+      if (s.reset !== false) {
+        await b.eval(
+          `(() => { const s = window.__spot; if (s && (game.player.position.distanceTo(new game.THREE.Vector3(s[0], game.player.position.y, s[1])) > 0.5 || game.player.swimming)) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`,
+        );
+        await b.sleep(700);
+      }
+      await b.eval(`(async () => {
       { const P = game.player; window.__orb = { yaw: ${yaw}, dist: ${dist}, eh: ${eh}, lh: ${lh}, follow: ${!!s.follow}, h0: P.heading, p0: P.position.clone() };
       if (!${!!s.noOrbit}) game.cameraOverride = (dt, cam) => { const O = window.__orb, p = O.follow ? P.position : O.p0, h = O.follow ? O.h0 : P.heading, a = h + O.yaw;
         cam.position.set(p.x + Math.sin(a) * O.dist, p.y + O.eh, p.z + Math.cos(a) * O.dist); cam.lookAt(p.x, p.y + O.lh, p.z); return true; };
       if (${!!s.move}) game.cameraYaw = P.heading + Math.PI; }
       ${s.eval || ''}
       return 1; })()`);
-    if (s.move) {
-      if (s.move.shift) await b.key('ShiftLeft', true, 'Shift');
-      await b.key(s.move.key, true);
-      await b.sleep(s.move.secs * 1000);
-    } else await b.sleep(s.wait || 1500);
-    const info = await b.eval(`JSON.stringify({ pos: game.player.position.toArray().map((v) => +v.toFixed(2)), speed: +(game.player.state.speed || 0).toFixed(2), lod: game.playerCharacter?.meshLOD, foot: game.playerCharacter?.footIK?.stats, model: game.playerCharacter?.tripo ? 'tripo' : 'old', vault: window.__vault, vaultStats: game.playerVault?.stats, stamina: game.player.stamina, piv: window.__piv?.filter((x, i) => i % 3 === 0), desc: game.wardrobe?.describe?.(), disguise: game.wardrobe?.disguise?.() })`);
-    await b.screenshot(path.join(DIR, `${SET}_${id}.png`));
-    if (s.move) { await b.key(s.move.key, false); if (s.move.shift) await b.key('ShiftLeft', false, 'Shift'); await b.sleep(800); await b.eval(`(() => { const s = window.__spot; if (s) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`); await b.sleep(1200); }
-    if (s.after) await b.eval(`(async () => { ${s.after}; return 1; })()`);
-    rep.shots[id] = JSON.parse(info); console.log(id, info);
-    } catch (e) { console.log(id, 'FAILED', String(e).slice(0, 200)); rep.shots[id] = { failed: String(e).slice(0, 200) }; }
+      if (s.move) {
+        if (s.move.shift) await b.key('ShiftLeft', true, 'Shift');
+        await b.key(s.move.key, true);
+        await b.sleep(s.move.secs * 1000);
+      } else await b.sleep(s.wait || 1500);
+      const info = await b.eval(
+        `JSON.stringify({ pos: game.player.position.toArray().map((v) => +v.toFixed(2)), speed: +(game.player.state.speed || 0).toFixed(2), lod: game.playerCharacter?.meshLOD, foot: game.playerCharacter?.footIK?.stats, model: game.playerCharacter?.tripo ? 'tripo' : 'old', vault: window.__vault, vaultStats: game.playerVault?.stats, stamina: game.player.stamina, piv: window.__piv?.filter((x, i) => i % 3 === 0), desc: game.wardrobe?.describe?.(), disguise: game.wardrobe?.disguise?.() })`,
+      );
+      await b.screenshot(path.join(DIR, `${SET}_${id}.png`));
+      if (s.move) {
+        await b.key(s.move.key, false);
+        if (s.move.shift) await b.key('ShiftLeft', false, 'Shift');
+        await b.sleep(800);
+        await b.eval(
+          `(() => { const s = window.__spot; if (s) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`,
+        );
+        await b.sleep(1200);
+      }
+      if (s.after) await b.eval(`(async () => { ${s.after}; return 1; })()`);
+      rep.shots[id] = JSON.parse(info);
+      console.log(id, info);
+    } catch (e) {
+      console.log(id, 'FAILED', String(e).slice(0, 200));
+      rep.shots[id] = { failed: String(e).slice(0, 200) };
+    }
   }
-  if (b.errors.length) { rep.errors = [...new Set(b.errors)].slice(0, 30); console.log('ERRORS', rep.errors.join('\n')); }}
+  if (b.errors.length) {
+    rep.errors = [...new Set(b.errors)].slice(0, 30);
+    console.log('ERRORS', rep.errors.join('\n'));
+  }
+}
 
 const isMain = import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
 if (isMain) {
-  await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 600) }, async (b) => {
-  await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
-  await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
-  if (!(await startGame(b))) console.log('WARN: title did not close');
-    await shotsIn(b, o, rep);
-  });
+  await withBrowser(
+    { width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 600) },
+    async (b) => {
+      await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
+      await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
+      if (!(await startGame(b))) console.log('WARN: title did not close');
+      await shotsIn(b, o, rep);
+    },
+  );
   fs.mkdirSync('docs/v2/reports', { recursive: true });
   fs.writeFileSync(`docs/v2/reports/player-${SET}.json`, JSON.stringify(rep, null, 2));
 }

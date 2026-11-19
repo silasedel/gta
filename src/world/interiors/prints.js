@@ -7,62 +7,552 @@ import { getBrand, getProduct } from './items/catalog.js';
 import { drawLogo, ICONS } from './items/labels.js';
 
 const NOTICES = {
-  wecard: ['WE CARD', 'Under 21? No alcohol, no tobacco. ID required.', '#f2d21f', '#111'], camera: ['SMILE', 'You are on camera. This store is under 24-hour video surveillance.', '#fff', '#111'], restroom: ['RESTROOM', 'For paying customers only. Ask the cashier for the key.', '#fff', '#1c4fa0'],
-  nocash: ['NOTICE', 'Cashier has less than $50 in the drawer. The safe is on a time lock.', '#fff', '#b01515'], help: ['NOW HIRING', 'Nights and weekends. Ask inside for an application.', '#ffe14d', '#111'], bills: ['SORRY', 'No bills larger than $20 after 10 PM.', '#fff', '#111'],
-  wetfloor: ['CUIDADO', 'Piso mojado · Wet floor', '#ffd21f', '#111'], employees: ['EMPLOYEES', 'Must wash hands before returning to work.', '#fff', '#1c4fa0'], lotto: ['WINNER!', 'A $5,000 ticket was sold at this store.', '#0c8a5a', '#ffd21f'], shirt: ['NO SHIRT', 'No shoes, no service.', '#fff', '#111'],
-  license: ['CITY OF MIAMI', 'Local Business Tax Receipt · Post in a conspicuous place', '#f6f1e2', '#333'], inspection: ['INSPECTED', 'Division of Hotels and Restaurants · Met inspection standards', '#eaf4ea', '#1d6b29'], exit: ['EXIT', '', '#0d5a2c', '#d8ffe6'], atm: ['ATM', 'Cash here · $3.50 fee', '#1554c0', '#fff'], propane: ['ICE', 'Bagged ice · pay inside', '#dff3ff', '#0b4ea2'],
+  wecard: ['WE CARD', 'Under 21? No alcohol, no tobacco. ID required.', '#f2d21f', '#111'],
+  camera: [
+    'SMILE',
+    'You are on camera. This store is under 24-hour video surveillance.',
+    '#fff',
+    '#111',
+  ],
+  restroom: [
+    'RESTROOM',
+    'For paying customers only. Ask the cashier for the key.',
+    '#fff',
+    '#1c4fa0',
+  ],
+  nocash: [
+    'NOTICE',
+    'Cashier has less than $50 in the drawer. The safe is on a time lock.',
+    '#fff',
+    '#b01515',
+  ],
+  help: ['NOW HIRING', 'Nights and weekends. Ask inside for an application.', '#ffe14d', '#111'],
+  bills: ['SORRY', 'No bills larger than $20 after 10 PM.', '#fff', '#111'],
+  wetfloor: ['CUIDADO', 'Piso mojado · Wet floor', '#ffd21f', '#111'],
+  employees: ['EMPLOYEES', 'Must wash hands before returning to work.', '#fff', '#1c4fa0'],
+  lotto: ['WINNER!', 'A $5,000 ticket was sold at this store.', '#0c8a5a', '#ffd21f'],
+  shirt: ['NO SHIRT', 'No shoes, no service.', '#fff', '#111'],
+  license: [
+    'CITY OF MIAMI',
+    'Local Business Tax Receipt · Post in a conspicuous place',
+    '#f6f1e2',
+    '#333',
+  ],
+  inspection: [
+    'INSPECTED',
+    'Division of Hotels and Restaurants · Met inspection standards',
+    '#eaf4ea',
+    '#1d6b29',
+  ],
+  exit: ['EXIT', '', '#0d5a2c', '#d8ffe6'],
+  atm: ['ATM', 'Cash here · $3.50 fee', '#1554c0', '#fff'],
+  propane: ['ICE', 'Bagged ice · pay inside', '#dff3ff', '#0b4ea2'],
 };
 
 export class Prints {
-  constructor(M, store) { this.M = M; this.store = store; this.local = new Atlas(1024, 3); this.local.deferQ = []; /* r7: drawn by engine flushes, not inside build steps */ this.R = rng(store.seed, 'prints'); }
+  constructor(M, store) {
+    this.M = M;
+    this.store = store;
+    this.local = new Atlas(1024, 3);
+    this.local.deferQ = [];
+    /* r7: drawn by engine flushes, not inside build steps */ this.R = rng(store.seed, 'prints');
+  }
   // generic: draw(g, w, h). o: { global, lit (emissive strength), alpha, decal, ch, rough }
-  make(key, w, h, draw, o = {}) { const at = o.global ? GLOBAL : this.local, cl = at.cell(key, w, h, draw); return { cell: cl, rect: cl.rect, mat: this.M.page(cl.tex, { lit: o.lit, alpha: o.alpha, decal: o.decal, ch: o.ch, rough: o.rough }), w, h, atlas: at }; }
-  get mat() { return this.M.page((this.local.pages[0] || this.local._page()).tex, {}); }
-  plaque(str) { return this.make('plq:' + str, 240, 68, (g, w, h) => { g.fillStyle = '#1b1d21'; g.fillRect(0, 0, w, h); g.strokeStyle = '#8f9499'; g.lineWidth = 3; g.strokeRect(3, 3, w - 6, h - 6); text(g, str, 10, 12, w - 20, h - 24, { role: 'sans', color: '#e9eaec', upper: true }); }, { global: true }).cell; }
-  stripes(c1, c2, n = 8) { return this.make(`str:${css(c1)}:${css(c2)}:${n}`, 256, 64, (g, w, h) => { for (let i = 0; i < n; i++) { g.fillStyle = css(i % 2 ? c2 : c1); g.fillRect(i * w / n, 0, w / n + 1, h); } g.fillStyle = 'rgba(0,0,0,0.08)'; for (let i = 0; i < 60; i++) g.fillRect(0, i * h / 60, w, 0.5); }, { global: true }); }
-  notice(kind, o = {}) { const n = NOTICES[kind] || NOTICES.camera, R = rng(this.store.seed, 'n' + kind), hand = o.hand ?? (this.store.profile.tier === 'budget' && R.chance(0.5));
-    return this.make(`not:${kind}:${hand ? 1 : 0}`, 260, 200, (g, w, h) => { g.fillStyle = css(hand ? '#f7f4ea' : n[2]); g.fillRect(0, 0, w, h); if (!hand) { g.strokeStyle = css(n[3]); g.lineWidth = 6; g.strokeRect(6, 6, w - 12, h - 12); }
-      text(g, n[0], 14, 16, w - 28, h * 0.36, { role: hand ? 'marker' : 'block', color: hand ? '#b01515' : n[3], upper: true }); text(g, n[1], 18, h * 0.5, w - 36, h * 0.42, { role: hand ? 'marker' : 'sans', color: hand ? '#1b2a6b' : n[3], maxLines: 4 }); weather(g, w, h, R, this.store.profile.wear); }, { global: true }); }
+  make(key, w, h, draw, o = {}) {
+    const at = o.global ? GLOBAL : this.local,
+      cl = at.cell(key, w, h, draw);
+    return {
+      cell: cl,
+      rect: cl.rect,
+      mat: this.M.page(cl.tex, {
+        lit: o.lit,
+        alpha: o.alpha,
+        decal: o.decal,
+        ch: o.ch,
+        rough: o.rough,
+      }),
+      w,
+      h,
+      atlas: at,
+    };
+  }
+  get mat() {
+    return this.M.page((this.local.pages[0] || this.local._page()).tex, {});
+  }
+  plaque(str) {
+    return this.make(
+      'plq:' + str,
+      240,
+      68,
+      (g, w, h) => {
+        g.fillStyle = '#1b1d21';
+        g.fillRect(0, 0, w, h);
+        g.strokeStyle = '#8f9499';
+        g.lineWidth = 3;
+        g.strokeRect(3, 3, w - 6, h - 6);
+        text(g, str, 10, 12, w - 20, h - 24, { role: 'sans', color: '#e9eaec', upper: true });
+      },
+      { global: true },
+    ).cell;
+  }
+  stripes(c1, c2, n = 8) {
+    return this.make(
+      `str:${css(c1)}:${css(c2)}:${n}`,
+      256,
+      64,
+      (g, w, h) => {
+        for (let i = 0; i < n; i++) {
+          g.fillStyle = css(i % 2 ? c2 : c1);
+          g.fillRect((i * w) / n, 0, w / n + 1, h);
+        }
+        g.fillStyle = 'rgba(0,0,0,0.08)';
+        for (let i = 0; i < 60; i++) g.fillRect(0, (i * h) / 60, w, 0.5);
+      },
+      { global: true },
+    );
+  }
+  notice(kind, o = {}) {
+    const n = NOTICES[kind] || NOTICES.camera,
+      R = rng(this.store.seed, 'n' + kind),
+      hand = o.hand ?? (this.store.profile.tier === 'budget' && R.chance(0.5));
+    return this.make(
+      `not:${kind}:${hand ? 1 : 0}`,
+      260,
+      200,
+      (g, w, h) => {
+        g.fillStyle = css(hand ? '#f7f4ea' : n[2]);
+        g.fillRect(0, 0, w, h);
+        if (!hand) {
+          g.strokeStyle = css(n[3]);
+          g.lineWidth = 6;
+          g.strokeRect(6, 6, w - 12, h - 12);
+        }
+        text(g, n[0], 14, 16, w - 28, h * 0.36, {
+          role: hand ? 'marker' : 'block',
+          color: hand ? '#b01515' : n[3],
+          upper: true,
+        });
+        text(g, n[1], 18, h * 0.5, w - 36, h * 0.42, {
+          role: hand ? 'marker' : 'sans',
+          color: hand ? '#1b2a6b' : n[3],
+          maxLines: 4,
+        });
+        weather(g, w, h, R, this.store.profile.wear);
+      },
+      { global: true },
+    );
+  }
   // product promo poster. o: { price, headline, portrait }
-  poster(pid, o = {}) { const p = getProduct(pid), b = getBrand(p.brand), key = `pos:${pid}:${o.headline || ''}:${o.price || ''}`, wear = this.store.profile.wear;
-    return this.make(key, 300, 420, (g, w, h) => { const P = b.palette, bg = p.art?.bg || P.primary, R = rng(key); const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, css(shade(bg, 0.2))); gr.addColorStop(1, css(shade(bg, -0.3))); g.fillStyle = gr; g.fillRect(0, 0, w, h);
-      for (let i = 0; i < 14; i++) { g.strokeStyle = css(shade(bg, 0.4), 0.12); g.lineWidth = 14; g.beginPath(); g.moveTo(w / 2, h * 0.55); g.lineTo(w / 2 + Math.cos(i * 0.45) * w, h * 0.55 + Math.sin(i * 0.45) * w); g.stroke(); }
-      drawLogo(g, b, w * 0.1, h * 0.06, w * 0.8, h * 0.2, { bg }); const ic = ICONS[p.art?.icon] ? p.art.icon : p.category === 'drink' ? 'drop' : 'star'; ICONS[ic](g, w * 0.5, h * 0.52, w * 0.26, p.art?.iconC || P.accent || '#fff', bg);
-      text(g, o.headline || p.art?.flavor || p.name, w * 0.06, h * 0.72, w * 0.88, h * 0.1, { role: 'impact', color: inkOn(bg), upper: true, stroke: shade(bg, -0.5), strokeW: 3 });
-      if (o.price !== false) { starburst(g, w * 0.78, h * 0.86, w * 0.13, w * 0.19, 14, '#ffd21f'); text(g, o.price || money(p.price * this.store.profile.priceK), w * 0.63, h * 0.82, w * 0.3, h * 0.085, { role: 'impact', color: '#b01515' }); }
-      text(g, b.tagline || '', w * 0.06, h * 0.9, w * 0.5, h * 0.045, { role: 'sans', color: inkOn(bg), align: 'left' }); weather(g, w, h, R, wear * 0.8); }, { global: wear < 0.5 }); }
+  poster(pid, o = {}) {
+    const p = getProduct(pid),
+      b = getBrand(p.brand),
+      key = `pos:${pid}:${o.headline || ''}:${o.price || ''}`,
+      wear = this.store.profile.wear;
+    return this.make(
+      key,
+      300,
+      420,
+      (g, w, h) => {
+        const P = b.palette,
+          bg = p.art?.bg || P.primary,
+          R = rng(key);
+        const gr = g.createLinearGradient(0, 0, w, h);
+        gr.addColorStop(0, css(shade(bg, 0.2)));
+        gr.addColorStop(1, css(shade(bg, -0.3)));
+        g.fillStyle = gr;
+        g.fillRect(0, 0, w, h);
+        for (let i = 0; i < 14; i++) {
+          g.strokeStyle = css(shade(bg, 0.4), 0.12);
+          g.lineWidth = 14;
+          g.beginPath();
+          g.moveTo(w / 2, h * 0.55);
+          g.lineTo(w / 2 + Math.cos(i * 0.45) * w, h * 0.55 + Math.sin(i * 0.45) * w);
+          g.stroke();
+        }
+        drawLogo(g, b, w * 0.1, h * 0.06, w * 0.8, h * 0.2, { bg });
+        const ic = ICONS[p.art?.icon] ? p.art.icon : p.category === 'drink' ? 'drop' : 'star';
+        ICONS[ic](g, w * 0.5, h * 0.52, w * 0.26, p.art?.iconC || P.accent || '#fff', bg);
+        text(g, o.headline || p.art?.flavor || p.name, w * 0.06, h * 0.72, w * 0.88, h * 0.1, {
+          role: 'impact',
+          color: inkOn(bg),
+          upper: true,
+          stroke: shade(bg, -0.5),
+          strokeW: 3,
+        });
+        if (o.price !== false) {
+          starburst(g, w * 0.78, h * 0.86, w * 0.13, w * 0.19, 14, '#ffd21f');
+          text(
+            g,
+            o.price || money(p.price * this.store.profile.priceK),
+            w * 0.63,
+            h * 0.82,
+            w * 0.3,
+            h * 0.085,
+            { role: 'impact', color: '#b01515' },
+          );
+        }
+        text(g, b.tagline || '', w * 0.06, h * 0.9, w * 0.5, h * 0.045, {
+          role: 'sans',
+          color: inkOn(bg),
+          align: 'left',
+        });
+        weather(g, w, h, R, wear * 0.8);
+      },
+      { global: wear < 0.5 },
+    );
+  }
   // deal sign: big price and two lines ("2 FOR $4", "ANY 20 OZ SODA"). o: { bg, ink, shape: 'rect' | 'burst' }
-  promo(top, big, bottom, o = {}) { const key = `pro:${top}:${big}:${bottom}:${css(o.bg || '#ffd21f')}`; return this.make(key, 320, 220, (g, w, h) => { g.fillStyle = css(o.bg || '#ffd21f'); g.fillRect(0, 0, w, h); g.fillStyle = css(o.band || '#d81e2c'); g.fillRect(0, 0, w, h * 0.24); text(g, top, 10, h * 0.03, w - 20, h * 0.18, { role: 'impact', color: '#fff', upper: true }); text(g, big, 10, h * 0.27, w - 20, h * 0.5, { role: 'impact', color: css(o.ink || '#d81e2c'), stroke: '#fff', strokeW: 5 }); text(g, bottom, 10, h * 0.78, w - 20, h * 0.16, { role: 'cond', color: '#111', upper: true }); weather(g, w, h, rng(key), this.store.profile.wear * 0.6); }, { global: true }); }
+  promo(top, big, bottom, o = {}) {
+    const key = `pro:${top}:${big}:${bottom}:${css(o.bg || '#ffd21f')}`;
+    return this.make(
+      key,
+      320,
+      220,
+      (g, w, h) => {
+        g.fillStyle = css(o.bg || '#ffd21f');
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = css(o.band || '#d81e2c');
+        g.fillRect(0, 0, w, h * 0.24);
+        text(g, top, 10, h * 0.03, w - 20, h * 0.18, {
+          role: 'impact',
+          color: '#fff',
+          upper: true,
+        });
+        text(g, big, 10, h * 0.27, w - 20, h * 0.5, {
+          role: 'impact',
+          color: css(o.ink || '#d81e2c'),
+          stroke: '#fff',
+          strokeW: 5,
+        });
+        text(g, bottom, 10, h * 0.78, w - 20, h * 0.16, {
+          role: 'cond',
+          color: '#111',
+          upper: true,
+        });
+        weather(g, w, h, rng(key), this.store.profile.wear * 0.6);
+      },
+      { global: true },
+    );
+  }
   // shelf-edge price tag for a product at this store's price
-  tag(pid) { const p = getProduct(pid), price = this.store.priceOf(pid), b = getBrand(p.brand); return this.make(`tag:${pid}:${price}`, 96, 60, (g, w, h) => { g.fillStyle = p.sale ? '#ffe14d' : '#fdfdf8'; g.fillRect(0, 0, w, h); g.fillStyle = css(b.palette.primary); g.fillRect(0, 0, w, 5); text(g, p.name, 4, 8, w - 8, 12, { role: 'cond', color: '#111', align: 'left' }); text(g, money(price), 4, 21, w * 0.66, 27, { role: 'block', color: '#111', align: 'left' }); barcode(g, w * 0.66, 26, w * 0.3, 22, p.id.length * 7919 + price * 100); text(g, p.net || '', 4, 49, w - 8, 9, { role: 'light', color: '#444', align: 'left' }); }, { global: true }); }
-  hours(o = {}) { const s = this.store, h24 = s.profile.open24, [a, b] = s.profile.hours; return this.make('hours', 220, 260, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = 'rgba(255,255,255,0.94)'; text(g, s.name, 0, 4, w, 34, { role: 'cond', color: '#fff', upper: true }); g.fillRect(10, 44, w - 20, 3); text(g, 'HOURS', 0, 52, w, 30, { role: 'block', color: '#fff' });
-      if (h24) { text(g, 'OPEN', 0, 92, w, 56, { role: 'impact', color: '#fff' }); text(g, '24 HOURS', 0, 150, w, 50, { role: 'impact', color: '#fff' }); text(g, '7 DAYS A WEEK', 0, 208, w, 24, { role: 'cond', color: '#fff' }); }
-      else { const rows = [['MON - FRI', `${clockText(a, false)} - ${clockText(b, false)}`], ['SATURDAY', `${clockText(a + (o.late ? 1 : 0), false)} - ${clockText(b, false)}`], ['SUNDAY', `${clockText(a + 1, false)} - ${clockText(b - 1, false)}`]]; rows.forEach((r, i) => { text(g, r[0], 8, 92 + i * 50, w - 16, 20, { role: 'cond', color: '#fff', align: 'left' }); text(g, r[1], 8, 113 + i * 50, w - 16, 24, { role: 'sans', color: '#fff', align: 'left' }); }); } }, { alpha: true }); }
+  tag(pid) {
+    const p = getProduct(pid),
+      price = this.store.priceOf(pid),
+      b = getBrand(p.brand);
+    return this.make(
+      `tag:${pid}:${price}`,
+      96,
+      60,
+      (g, w, h) => {
+        g.fillStyle = p.sale ? '#ffe14d' : '#fdfdf8';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = css(b.palette.primary);
+        g.fillRect(0, 0, w, 5);
+        text(g, p.name, 4, 8, w - 8, 12, { role: 'cond', color: '#111', align: 'left' });
+        text(g, money(price), 4, 21, w * 0.66, 27, { role: 'block', color: '#111', align: 'left' });
+        barcode(g, w * 0.66, 26, w * 0.3, 22, p.id.length * 7919 + price * 100);
+        text(g, p.net || '', 4, 49, w - 8, 9, { role: 'light', color: '#444', align: 'left' });
+      },
+      { global: true },
+    );
+  }
+  hours(o = {}) {
+    const s = this.store,
+      h24 = s.profile.open24,
+      [a, b] = s.profile.hours;
+    return this.make(
+      'hours',
+      220,
+      260,
+      (g, w, h) => {
+        g.clearRect(0, 0, w, h);
+        g.fillStyle = 'rgba(255,255,255,0.94)';
+        text(g, s.name, 0, 4, w, 34, { role: 'cond', color: '#fff', upper: true });
+        g.fillRect(10, 44, w - 20, 3);
+        text(g, 'HOURS', 0, 52, w, 30, { role: 'block', color: '#fff' });
+        if (h24) {
+          text(g, 'OPEN', 0, 92, w, 56, { role: 'impact', color: '#fff' });
+          text(g, '24 HOURS', 0, 150, w, 50, { role: 'impact', color: '#fff' });
+          text(g, '7 DAYS A WEEK', 0, 208, w, 24, { role: 'cond', color: '#fff' });
+        } else {
+          const rows = [
+            ['MON - FRI', `${clockText(a, false)} - ${clockText(b, false)}`],
+            ['SATURDAY', `${clockText(a + (o.late ? 1 : 0), false)} - ${clockText(b, false)}`],
+            ['SUNDAY', `${clockText(a + 1, false)} - ${clockText(b - 1, false)}`],
+          ];
+          rows.forEach((r, i) => {
+            text(g, r[0], 8, 92 + i * 50, w - 16, 20, {
+              role: 'cond',
+              color: '#fff',
+              align: 'left',
+            });
+            text(g, r[1], 8, 113 + i * 50, w - 16, 24, {
+              role: 'sans',
+              color: '#fff',
+              align: 'left',
+            });
+          });
+        }
+      },
+      { alpha: true },
+    );
+  }
   // neon-style lit sign on a transparent field (OPEN, ATM, COLD BEER ...). o: { color, color2, role, border }
-  neon(str, o = {}) { const col = o.color || '#ff3b5c', key = `neon:${str}:${css(col)}:${o.role || ''}`; return this.make(key, Math.max(160, str.length * 62), 130, (g, w, h) => { g.clearRect(0, 0, w, h); for (const [lw, a] of [[16, 0.18], [9, 0.4], [4.5, 1]]) { g.shadowColor = css(col); g.shadowBlur = lw * 2; if (o.border !== false) { g.strokeStyle = css(o.color2 || col, a); g.lineWidth = lw * 0.7; rrect(g, 12, 12, w - 24, h - 24, 24); g.stroke(); } g.font = font(o.role || 'round', h * 0.5); g.textAlign = 'center'; g.textBaseline = 'middle'; g.strokeStyle = css(lw < 5 ? mixc(col, [255, 255, 255], 0.55) : col, a); g.lineWidth = lw * 0.55; g.lineJoin = 'round'; g.strokeText(str, w / 2, h / 2 + 2, w - 60); } g.shadowBlur = 0; }, { global: true, lit: o.k ?? 1.6, alpha: true, ch: o.ch ?? 1 }); }
+  neon(str, o = {}) {
+    const col = o.color || '#ff3b5c',
+      key = `neon:${str}:${css(col)}:${o.role || ''}`;
+    return this.make(
+      key,
+      Math.max(160, str.length * 62),
+      130,
+      (g, w, h) => {
+        g.clearRect(0, 0, w, h);
+        for (const [lw, a] of [
+          [16, 0.18],
+          [9, 0.4],
+          [4.5, 1],
+        ]) {
+          g.shadowColor = css(col);
+          g.shadowBlur = lw * 2;
+          if (o.border !== false) {
+            g.strokeStyle = css(o.color2 || col, a);
+            g.lineWidth = lw * 0.7;
+            rrect(g, 12, 12, w - 24, h - 24, 24);
+            g.stroke();
+          }
+          g.font = font(o.role || 'round', h * 0.5);
+          g.textAlign = 'center';
+          g.textBaseline = 'middle';
+          g.strokeStyle = css(lw < 5 ? mixc(col, [255, 255, 255], 0.55) : col, a);
+          g.lineWidth = lw * 0.55;
+          g.lineJoin = 'round';
+          g.strokeText(str, w / 2, h / 2 + 2, w - 60);
+        }
+        g.shadowBlur = 0;
+      },
+      { global: true, lit: o.k ?? 1.6, alpha: true, ch: o.ch ?? 1 },
+    );
+  }
   // the store's own sign face (fascia). style: 'box' (backlit), 'channel' (letters on the wall), 'painted', 'neon'
-  storeSign(o = {}) { const s = this.store, b = s.profile.brand || { name: s.name, palette: { primary: css(s.profile.accent), secondary: '#ffffff', accent: css(s.profile.secondary) }, logo: { font: o.font || 'block', shape: 'plain' }, prov: true }, style = o.style || 'box', asp = o.aspect || 5.2, hpx = 150, wpx = Math.round(hpx * asp);
-    return this.make('sign:' + style, wpx, hpx, (g, w, h) => { const P = b.palette; if (style === 'channel' || style === 'neon') g.clearRect(0, 0, w, h); else { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, css(shade(P.primary, 0.1))); gr.addColorStop(1, css(shade(P.primary, -0.12))); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = css(P.accent || P.secondary); g.fillRect(0, h * 0.9, w, h * 0.1); }
-      const nm = { ...b, name: o.text || s.name, logo: { ...(b.logo || {}), text: o.text || s.name } }; if (style === 'painted') { text(g, nm.name, w * 0.04, h * 0.12, w * 0.92, h * 0.6, { role: o.font || 'slab', color: P.secondary, stroke: shade(P.primary, -0.5), strokeW: 6 }); if (o.sub) text(g, o.sub, w * 0.1, h * 0.72, w * 0.8, h * 0.16, { role: 'cond', color: P.accent || P.secondary, upper: true }); weather(g, w, h, rng(s.seed, 'sg'), s.profile.wear); }
-      else if (style === 'channel' || style === 'neon') text(g, nm.name, w * 0.02, h * 0.1, w * 0.96, h * 0.8, { role: o.font || b.logo?.font || 'block', color: o.color || P.primary, stroke: style === 'neon' ? null : shade(o.color || P.primary, -0.4), strokeW: 4, upper: o.upper });
-      else { drawLogo(g, nm, w * 0.04, h * 0.1, w * (o.sub ? 0.6 : 0.92), h * 0.74, { bg: P.primary }); if (o.sub) text(g, o.sub, w * 0.66, h * 0.2, w * 0.3, h * 0.5, { role: 'cond', color: P.onPrimary || inkOn(P.primary), upper: true, maxLines: 2 }); } }, { lit: style === 'painted' ? 0 : (o.k ?? 1.25), alpha: style === 'channel' || style === 'neon', ch: 2 }); }
+  storeSign(o = {}) {
+    const s = this.store,
+      b = s.profile.brand || {
+        name: s.name,
+        palette: {
+          primary: css(s.profile.accent),
+          secondary: '#ffffff',
+          accent: css(s.profile.secondary),
+        },
+        logo: { font: o.font || 'block', shape: 'plain' },
+        prov: true,
+      },
+      style = o.style || 'box',
+      asp = o.aspect || 5.2,
+      hpx = 150,
+      wpx = Math.round(hpx * asp);
+    return this.make(
+      'sign:' + style,
+      wpx,
+      hpx,
+      (g, w, h) => {
+        const P = b.palette;
+        if (style === 'channel' || style === 'neon') g.clearRect(0, 0, w, h);
+        else {
+          const gr = g.createLinearGradient(0, 0, 0, h);
+          gr.addColorStop(0, css(shade(P.primary, 0.1)));
+          gr.addColorStop(1, css(shade(P.primary, -0.12)));
+          g.fillStyle = gr;
+          g.fillRect(0, 0, w, h);
+          g.fillStyle = css(P.accent || P.secondary);
+          g.fillRect(0, h * 0.9, w, h * 0.1);
+        }
+        const nm = {
+          ...b,
+          name: o.text || s.name,
+          logo: { ...(b.logo || {}), text: o.text || s.name },
+        };
+        if (style === 'painted') {
+          text(g, nm.name, w * 0.04, h * 0.12, w * 0.92, h * 0.6, {
+            role: o.font || 'slab',
+            color: P.secondary,
+            stroke: shade(P.primary, -0.5),
+            strokeW: 6,
+          });
+          if (o.sub)
+            text(g, o.sub, w * 0.1, h * 0.72, w * 0.8, h * 0.16, {
+              role: 'cond',
+              color: P.accent || P.secondary,
+              upper: true,
+            });
+          weather(g, w, h, rng(s.seed, 'sg'), s.profile.wear);
+        } else if (style === 'channel' || style === 'neon')
+          text(g, nm.name, w * 0.02, h * 0.1, w * 0.96, h * 0.8, {
+            role: o.font || b.logo?.font || 'block',
+            color: o.color || P.primary,
+            stroke: style === 'neon' ? null : shade(o.color || P.primary, -0.4),
+            strokeW: 4,
+            upper: o.upper,
+          });
+        else {
+          drawLogo(g, nm, w * 0.04, h * 0.1, w * (o.sub ? 0.6 : 0.92), h * 0.74, { bg: P.primary });
+          if (o.sub)
+            text(g, o.sub, w * 0.66, h * 0.2, w * 0.3, h * 0.5, {
+              role: 'cond',
+              color: P.onPrimary || inkOn(P.primary),
+              upper: true,
+              maxLines: 2,
+            });
+        }
+      },
+      {
+        lit: style === 'painted' ? 0 : (o.k ?? 1.25),
+        alpha: style === 'channel' || style === 'neon',
+        ch: 2,
+      },
+    );
+  }
   // menu / price board. sections: [{ title, items: [[name, price], ...] }]. o: { bg, ink, accent, title, cols, role, lit, w, h (px) }
-  menu(key, sections, o = {}) { const s = this.store; return this.make('menu:' + key, o.w || 520, o.h || 300, (g, w, h) => { const bg = o.bg || '#16181c', ink = o.ink || '#f4efe2', acc = o.accent || css(s.profile.accent); g.fillStyle = css(bg); g.fillRect(0, 0, w, h); let y0 = 8; if (o.title) { text(g, o.title, 10, 6, w - 20, h * 0.13, { role: o.role || 'impact', color: acc, upper: true }); y0 = h * 0.17; }
-      const cols = o.cols || sections.length, cw = w / cols; sections.forEach((sec, ci) => { const x = (ci % cols) * cw + 12, rows = sec.items.length + 1.4, lh = Math.min(h * 0.11, (h - y0 - 8) / rows); text(g, sec.title, x, y0, cw - 24, lh * 1.1, { role: 'cond', color: acc, align: 'left', upper: true }); g.fillStyle = css(acc); g.fillRect(x, y0 + lh * 1.2, cw - 24, 2);
-        sec.items.forEach((it, i) => { const y = y0 + lh * (1.4 + i); text(g, it[0], x, y, cw * 0.62, lh * 0.8, { role: o.itemRole || 'sans', color: ink, align: 'left' }); text(g, typeof it[1] === 'number' ? money(it[1]) : it[1], x + cw * 0.62, y, cw * 0.38 - 24, lh * 0.8, { role: 'sans', color: ink, align: 'right' }); }); }); if (!o.lit) weather(g, w, h, rng(s.seed, key), s.profile.wear * 0.5); }, { lit: o.lit || 0, ch: 1 }); }
+  menu(key, sections, o = {}) {
+    const s = this.store;
+    return this.make(
+      'menu:' + key,
+      o.w || 520,
+      o.h || 300,
+      (g, w, h) => {
+        const bg = o.bg || '#16181c',
+          ink = o.ink || '#f4efe2',
+          acc = o.accent || css(s.profile.accent);
+        g.fillStyle = css(bg);
+        g.fillRect(0, 0, w, h);
+        let y0 = 8;
+        if (o.title) {
+          text(g, o.title, 10, 6, w - 20, h * 0.13, {
+            role: o.role || 'impact',
+            color: acc,
+            upper: true,
+          });
+          y0 = h * 0.17;
+        }
+        const cols = o.cols || sections.length,
+          cw = w / cols;
+        sections.forEach((sec, ci) => {
+          const x = (ci % cols) * cw + 12,
+            rows = sec.items.length + 1.4,
+            lh = Math.min(h * 0.11, (h - y0 - 8) / rows);
+          text(g, sec.title, x, y0, cw - 24, lh * 1.1, {
+            role: 'cond',
+            color: acc,
+            align: 'left',
+            upper: true,
+          });
+          g.fillStyle = css(acc);
+          g.fillRect(x, y0 + lh * 1.2, cw - 24, 2);
+          sec.items.forEach((it, i) => {
+            const y = y0 + lh * (1.4 + i);
+            text(g, it[0], x, y, cw * 0.62, lh * 0.8, {
+              role: o.itemRole || 'sans',
+              color: ink,
+              align: 'left',
+            });
+            text(
+              g,
+              typeof it[1] === 'number' ? money(it[1]) : it[1],
+              x + cw * 0.62,
+              y,
+              cw * 0.38 - 24,
+              lh * 0.8,
+              { role: 'sans', color: ink, align: 'right' },
+            );
+          });
+        });
+        if (!o.lit) weather(g, w, h, rng(s.seed, key), s.profile.wear * 0.5);
+      },
+      { lit: o.lit || 0, ch: 1 },
+    );
+  }
   // a redrawable screen (POS, lottery terminal, CCTV, TV). Returns { ...print, redraw(draw) }
-  screen(key, w, h, draw, o = {}) { const p = this.make('scr:' + key, w, h, draw, { lit: o.k ?? 1.3, ch: o.ch ?? 1 }); p.redraw = (d) => this.local.redraw(p.cell, d); return p; }
-  dispose() { this.local.dispose(); }
+  screen(key, w, h, draw, o = {}) {
+    const p = this.make('scr:' + key, w, h, draw, { lit: o.k ?? 1.3, ch: o.ch ?? 1 });
+    p.redraw = (d) => this.local.redraw(p.cell, d);
+    return p;
+  }
+  dispose() {
+    this.local.dispose();
+  }
 }
 // receipt as a canvas (HUD preview and the paper in the bag). lines: [{ name, qty, price }]
 export function receiptCanvas(store, lines, o = {}) {
-  const c = document.createElement('canvas'), w = 300, rowH = 22, h = 250 + lines.length * rowH; c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#fbfaf5'; g.fillRect(0, 0, w, h);
-  text(g, store.name, 10, 10, w - 20, 30, { role: 'block', color: '#111', upper: true }); text(g, store.address || 'Southline, FL', 10, 42, w - 20, 14, { role: 'mono', color: '#333' }); text(g, `${o.date || 'DAY ' + (o.day || 1)}  ${clockText(o.hour ?? 12)}`, 10, 58, w - 20, 14, { role: 'mono', color: '#333' }); text(g, `CASHIER: ${(o.cashier || 'SELF').toUpperCase()}   REG 0${o.reg || 1}`, 10, 74, w - 20, 14, { role: 'mono', color: '#333' });
-  g.fillStyle = '#111'; for (let x = 10; x < w - 10; x += 8) g.fillRect(x, 96, 5, 1.5); let y = 106, sub = 0;
-  for (const l of lines) { const t = l.price * (l.qty || 1); sub += t; text(g, `${l.qty > 1 ? l.qty + ' x ' : ''}${l.name}`.toUpperCase(), 10, y, w * 0.68, 16, { role: 'mono', color: '#111', align: 'left' }); text(g, t.toFixed(2), w * 0.7, y, w * 0.3 - 10, 16, { role: 'mono', color: '#111', align: 'right' }); y += rowH; }
-  const tax = Math.round(sub * 0.07 * 100) / 100, total = sub + tax; for (let x = 10; x < w - 10; x += 8) g.fillRect(x, y + 2, 5, 1.5); y += 10;
-  for (const [k, v, big] of [['SUBTOTAL', sub], ['SALES TAX 7%', tax], ['TOTAL', total, true], [o.method === 'card' ? 'CARD ****' + (o.last4 || '4471') : 'CASH', o.tendered ?? total], ...(o.method === 'card' ? [] : [['CHANGE', (o.tendered ?? total) - total]])]) { text(g, k, 10, y, w * 0.6, big ? 22 : 16, { role: big ? 'block' : 'mono', color: '#111', align: 'left' }); text(g, '$' + v.toFixed(2), w * 0.6, y, w * 0.4 - 10, big ? 22 : 16, { role: big ? 'block' : 'mono', color: '#111', align: 'right' }); y += big ? 28 : 20; }
-  text(g, o.footer || 'THANK YOU · GRACIAS', 10, y + 6, w - 20, 16, { role: 'mono', color: '#111' }); barcode(g, w * 0.2, y + 30, w * 0.6, 40, Math.round(total * 100) + lines.length * 977);
+  const c = document.createElement('canvas'),
+    w = 300,
+    rowH = 22,
+    h = 250 + lines.length * rowH;
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fbfaf5';
+  g.fillRect(0, 0, w, h);
+  text(g, store.name, 10, 10, w - 20, 30, { role: 'block', color: '#111', upper: true });
+  text(g, store.address || 'Southline, FL', 10, 42, w - 20, 14, { role: 'mono', color: '#333' });
+  text(g, `${o.date || 'DAY ' + (o.day || 1)}  ${clockText(o.hour ?? 12)}`, 10, 58, w - 20, 14, {
+    role: 'mono',
+    color: '#333',
+  });
+  text(
+    g,
+    `CASHIER: ${(o.cashier || 'SELF').toUpperCase()}   REG 0${o.reg || 1}`,
+    10,
+    74,
+    w - 20,
+    14,
+    { role: 'mono', color: '#333' },
+  );
+  g.fillStyle = '#111';
+  for (let x = 10; x < w - 10; x += 8) g.fillRect(x, 96, 5, 1.5);
+  let y = 106,
+    sub = 0;
+  for (const l of lines) {
+    const t = l.price * (l.qty || 1);
+    sub += t;
+    text(g, `${l.qty > 1 ? l.qty + ' x ' : ''}${l.name}`.toUpperCase(), 10, y, w * 0.68, 16, {
+      role: 'mono',
+      color: '#111',
+      align: 'left',
+    });
+    text(g, t.toFixed(2), w * 0.7, y, w * 0.3 - 10, 16, {
+      role: 'mono',
+      color: '#111',
+      align: 'right',
+    });
+    y += rowH;
+  }
+  const tax = Math.round(sub * 0.07 * 100) / 100,
+    total = sub + tax;
+  for (let x = 10; x < w - 10; x += 8) g.fillRect(x, y + 2, 5, 1.5);
+  y += 10;
+  for (const [k, v, big] of [
+    ['SUBTOTAL', sub],
+    ['SALES TAX 7%', tax],
+    ['TOTAL', total, true],
+    [o.method === 'card' ? 'CARD ****' + (o.last4 || '4471') : 'CASH', o.tendered ?? total],
+    ...(o.method === 'card' ? [] : [['CHANGE', (o.tendered ?? total) - total]]),
+  ]) {
+    text(g, k, 10, y, w * 0.6, big ? 22 : 16, {
+      role: big ? 'block' : 'mono',
+      color: '#111',
+      align: 'left',
+    });
+    text(g, '$' + v.toFixed(2), w * 0.6, y, w * 0.4 - 10, big ? 22 : 16, {
+      role: big ? 'block' : 'mono',
+      color: '#111',
+      align: 'right',
+    });
+    y += big ? 28 : 20;
+  }
+  text(g, o.footer || 'THANK YOU · GRACIAS', 10, y + 6, w - 20, 16, {
+    role: 'mono',
+    color: '#111',
+  });
+  barcode(g, w * 0.2, y + 30, w * 0.6, 40, Math.round(total * 100) + lines.length * 977);
   return { canvas: c, sub, tax, total };
 }
 export { NOTICES };

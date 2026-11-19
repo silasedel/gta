@@ -1,11 +1,27 @@
 // paint audit: every car (traffic + parked) seen at 4 spots over ~3 minutes -> histogram by color family
-const SPOTS = [[407, -110], [600, 300], [-866.1, 4836.4], [120, 900]];
-const steps = [{ eval: `(() => { window.__seenCars = new Map(); game.timeOfDay = 12; return 1; })()` }];
+const SPOTS = [
+  [407, -110],
+  [600, 300],
+  [-866.1, 4836.4],
+  [120, 900],
+];
+const steps = [
+  { eval: `(() => { window.__seenCars = new Map(); game.timeOfDay = 12; return 1; })()` },
+];
 for (const [x, z] of SPOTS) {
-  steps.push({ eval: `(() => { game.teleport(${x}, undefined, ${z}, 0); return 1; })()`, sleep: 20000 });
-  for (let k = 0; k < 2; k++) steps.push({ sleep: 12000, eval: `(() => { for (const v of game.vehicles.list) { const c = v.car?.paint?.color; if (!c || !v.car.glb) continue; window.__seenCars.set(v.uid || v.id, { k: v.typeKey, hex: c.getHexString(), rolled: v.look?.color, fin: v.look?.finish, ai: !!v.ai }); } return window.__seenCars.size; })()` });
+  steps.push({
+    eval: `(() => { game.teleport(${x}, undefined, ${z}, 0); return 1; })()`,
+    sleep: 20000,
+  });
+  for (let k = 0; k < 2; k++)
+    steps.push({
+      sleep: 12000,
+      eval: `(() => { for (const v of game.vehicles.list) { const c = v.car?.paint?.color; if (!c || !v.car.glb) continue; window.__seenCars.set(v.uid || v.id, { k: v.typeKey, hex: c.getHexString(), rolled: v.look?.color, fin: v.look?.finish, ai: !!v.ai }); } return window.__seenCars.size; })()`,
+    });
 }
-steps.push({ log: 'hist', eval: `(async () => {
+steps.push({
+  log: 'hist',
+  eval: `(async () => {
   // the rolled paint (look.color) is binned by the US table bucket it came from; anything not in the table (rare cars'
   // factory colors) by hue.  The shaded material color is NOT used: wear / fade / tone drift move dark paints into 'earth'.
   const { US_MIX } = await import('/src/vehicles/glb/fleet.js');
@@ -22,5 +38,6 @@ steps.push({ log: 'hist', eval: `(async () => {
     if (!f) { off++; f = 'factory:' + fam(typeof e.rolled === 'number' ? e.rolled.toString(16).padStart(6, '0') : e.hex); X[e.k] = f; }
     H[f] = (H[f] || 0) + 1; F[e.fin] = (F[e.fin] || 0) + 1; n++; }
   const pct = Object.fromEntries(Object.entries(H).sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, +(v * 100 / n).toFixed(1)]));
-  return JSON.stringify({ n, offTable: off, pct, finish: F, factory: X }); })()` });
+  return JSON.stringify({ n, offTable: off, pct, finish: F, factory: X }); })()`,
+});
 export default steps;

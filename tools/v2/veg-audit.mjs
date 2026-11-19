@@ -7,10 +7,24 @@
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from './browser.mjs';
 
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const SET = o.set || 'after', R = +(o.r || 260);
-const SPOTS = { clewiston: [-1540, -2805], keylargo: [-873.6, 4825.2], downtown: [407, -110], beach: [2332, -660], everglades: [-2386, 2660], homestead: [-1320, 3190], brickell: [0, 1760] };
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const SET = o.set || 'after',
+  R = +(o.r || 260);
+const SPOTS = {
+  clewiston: [-1540, -2805],
+  keylargo: [-873.6, 4825.2],
+  downtown: [407, -110],
+  beach: [2332, -660],
+  everglades: [-2386, 2660],
+  homestead: [-1320, 3190],
+  brickell: [0, 1760],
+};
 const AUDIT = (cx, cz) => `(() => {
   const C = game.city, G = C.roadGraph, out = { n: 0, bySrc: {}, road: [], crown: [], sidewalk: [], building: [], counts: { road: 0, crown: 0, sidewalk: 0, building: 0 } };
   const D = game.miamiData, TS = C.streamer?.tileSize || 200, CURB = 0.15;
@@ -37,11 +51,18 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 1200 }, async (b) => {
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
   for (const [id, [x, z]] of Object.entries(SPOTS)) {
-    await b.eval(`(() => { game.cameraOverride = null; game.teleport(${x}, undefined, ${z}, 0); return 1; })()`);
+    await b.eval(
+      `(() => { game.cameraOverride = null; game.teleport(${x}, undefined, ${z}, 0); return 1; })()`,
+    );
     await b.sleep(6000);
-    for (let i = 0; i < +(o.stream || 60); i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
+    for (let i = 0; i < +(o.stream || 60); i++) {
+      const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)');
+      if (q < 3) break;
+      await b.sleep(1000);
+    }
     await b.sleep(2000);
-    const r = await b.eval(AUDIT(x, z)); rep.spots[id] = r;
+    const r = await b.eval(AUDIT(x, z));
+    rep.spots[id] = r;
     console.log(id, JSON.stringify({ n: r.n, bySrc: r.bySrc, counts: r.counts }));
   }
   if (b.errors.length) rep.errors = [...new Set(b.errors)].slice(0, 20);

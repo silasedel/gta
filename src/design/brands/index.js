@@ -23,27 +23,67 @@ import marine_air from './data/marine_air.js';
 import makers_building from './data/makers_building.js';
 import makers_street from './data/makers_street.js';
 import retail_misc from './data/retail_misc.js';
-const SOURCES = { core, main, fuel_grocery, fastfood, cuban_local_food, restaurants, nightlife_hotels, fashion, luxury_beauty, drinks, spirits, snacks_tobacco, pantry_household, tech_media, finance_services, civic_travel, leisure_transport, auto, marine_air, makers_building, makers_street, retail_misc };
+const SOURCES = {
+  core,
+  main,
+  fuel_grocery,
+  fastfood,
+  cuban_local_food,
+  restaurants,
+  nightlife_hotels,
+  fashion,
+  luxury_beauty,
+  drinks,
+  spirits,
+  snacks_tobacco,
+  pantry_household,
+  tech_media,
+  finance_services,
+  civic_travel,
+  leisure_transport,
+  auto,
+  marine_air,
+  makers_building,
+  makers_street,
+  retail_misc,
+};
 
 export const brands = [];
 const byId = new Map();
 export const brandErrors = [];
 for (const [file, list] of Object.entries(SOURCES)) {
   for (const b of list || []) {
-    if (!b || !b.id) { brandErrors.push(`${file}: brand without id`); continue; }
-    if (byId.has(b.id)) { brandErrors.push(`${file}: duplicate brand id ${b.id} (also in ${byId.get(b.id).file})`); continue; }
-    if (!CATEGORIES[b.category]) brandErrors.push(`${file}: ${b.id} has unknown category "${b.category}"`);
-    b.file = file; byId.set(b.id, b); brands.push(b);
+    if (!b || !b.id) {
+      brandErrors.push(`${file}: brand without id`);
+      continue;
+    }
+    if (byId.has(b.id)) {
+      brandErrors.push(`${file}: duplicate brand id ${b.id} (also in ${byId.get(b.id).file})`);
+      continue;
+    }
+    if (!CATEGORIES[b.category])
+      brandErrors.push(`${file}: ${b.id} has unknown category "${b.category}"`);
+    b.file = file;
+    byId.set(b.id, b);
+    brands.push(b);
   }
 }
-if (brandErrors.length && typeof console !== 'undefined') console.warn('[design] brand data problems:\n' + brandErrors.join('\n'));
+if (brandErrors.length && typeof console !== 'undefined')
+  console.warn('[design] brand data problems:\n' + brandErrors.join('\n'));
 
 export { CATEGORIES, categories };
-export function getBrand(id) { return byId.get(id) || null; }
+export function getBrand(id) {
+  return byId.get(id) || null;
+}
 
 const asList = (v) => (v == null ? null : Array.isArray(v) ? v : [v]);
 function matches(b, q) {
-  const cat = asList(q.category), sub = asList(q.sub), tier = asList(q.tier), pres = asList(q.presence), tag = asList(q.tag), group = asList(q.group);
+  const cat = asList(q.category),
+    sub = asList(q.sub),
+    tier = asList(q.tier),
+    pres = asList(q.presence),
+    tag = asList(q.tag),
+    group = asList(q.group);
   if (cat && !cat.includes(b.category)) return false;
   if (group && !group.includes(CATEGORIES[b.category]?.group)) return false;
   if (sub && !sub.includes(b.sub)) return false;
@@ -57,20 +97,31 @@ function matches(b, q) {
   return true;
 }
 // Every brand matching the query. query: { category, sub, tier, district, presence, tag, group, storefront, filter } (each may be a list).
-export function brandsFor(query = {}) { return brands.filter((b) => matches(b, query)); }
+export function brandsFor(query = {}) {
+  return brands.filter((b) => matches(b, query));
+}
 
 // Deterministic weighted pick: the same seed and query always give the same brand. Brands named for the district
 // get a boost, so local independents show up at home. opts.exclude = ids already used nearby (no identical neighbors).
 export function pickBrand(seed, query = {}, opts = {}) {
   let list = brandsFor(query);
   if (!list.length && query.tier) list = brandsFor({ ...query, tier: undefined });
-  if (!list.length && query.district) list = brandsFor({ ...query, district: undefined, tier: undefined });
+  if (!list.length && query.district)
+    list = brandsFor({ ...query, district: undefined, tier: undefined });
   if (!list.length) return null;
   const ex = opts.exclude ? new Set(opts.exclude) : null;
-  if (ex) { const l2 = list.filter((b) => !ex.has(b.id)); if (l2.length) list = l2; }
+  if (ex) {
+    const l2 = list.filter((b) => !ex.has(b.id));
+    if (l2.length) list = l2;
+  }
   const r = rng(seed);
-  const w = list.map((b) => (b.weight || 1) * (query.district && b.districts.includes(query.district) ? 3 : 1));
+  const w = list.map(
+    (b) => (b.weight || 1) * (query.district && b.districts.includes(query.district) ? 3 : 1),
+  );
   let t = r() * w.reduce((a, c) => a + c, 0);
-  for (let i = 0; i < list.length; i++) { t -= w[i]; if (t <= 0) return list[i]; }
+  for (let i = 0; i < list.length; i++) {
+    t -= w[i];
+    if (t <= 0) return list[i];
+  }
   return list[list.length - 1];
 }

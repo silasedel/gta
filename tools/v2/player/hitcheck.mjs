@@ -7,10 +7,16 @@
 //   node tools/v2/player/hitcheck.mjs [--npcs 4] [--set h1]  -> docs/v2/reports/player-hitcheck-<set>.json
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'h';
-const lim = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+const lim = (p, ms) =>
+  Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 const CHECK = `(async () => {
   const T = game.THREE, HZ = await import('/src/gameplay/hitZones.js');
   const chars = [{ name: 'player', ch: game.playerCharacter }];
@@ -76,7 +82,10 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 600 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 400);
   await startGame(b);
-  if (o.at) { const [x, z] = o.at.split(',').map(Number); await b.eval(`(() => { game.teleport(${x}, undefined, ${z}, 0); return 1; })()`); }
+  if (o.at) {
+    const [x, z] = o.at.split(',').map(Number);
+    await b.eval(`(() => { game.teleport(${x}, undefined, ${z}, 0); return 1; })()`);
+  }
   await b.sleep(6000);
   const r = JSON.parse(await lim(b.eval(CHECK, 300000), 320000));
   for (const c of r) console.log(c.name, JSON.stringify({ front: c.front, side: c.side }));

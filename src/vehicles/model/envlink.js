@@ -15,5 +15,8 @@ export function linkEnv(m) {
 export function syncEnv(tex) {
   if (tex === _env) return;
   _env = tex || null;
-  for (const m of ENV_MATS) { m.envMap = _env; m.needsUpdate = true; }
+  for (const m of ENV_MATS) {
+    m.envMap = _env;
+    m.needsUpdate = true;
+  }
 }

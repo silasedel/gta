@@ -2,14 +2,23 @@
 // Crowd uniqueness debug: who spawned whom, twins, shared character objects.
 //   node tools/v2/npcs/crowd-debug.mjs [--at 407,-110] [--wait 30]
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const AT = String(o.at || '407,-110').split(',').map(Number);
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const AT = String(o.at || '407,-110')
+  .split(',')
+  .map(Number);
 await withBrowser({ width: 1280, height: 720, maxSeconds: 600 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   await startGame(b);
-  await b.eval(`(() => { window.__log = []; const cp = game.npc.createPed; game.npc.createPed = (op) => { const c = cp(op); window.__log.push([performance.now() | 0, op.zone, op.act, op.pos ? [op.pos.x | 0, op.pos.z | 0] : null, c ? (c.npcArch || '?') : null, c?.human?.person ? 1 : 0]); return c; }; game.teleport(${AT[0]}, undefined, ${AT[1]}, 0); return 1; })()`);
+  await b.eval(
+    `(() => { window.__log = []; const cp = game.npc.createPed; game.npc.createPed = (op) => { const c = cp(op); window.__log.push([performance.now() | 0, op.zone, op.act, op.pos ? [op.pos.x | 0, op.pos.z | 0] : null, c ? (c.npcArch || '?') : null, c?.human?.person ? 1 : 0]); return c; }; game.teleport(${AT[0]}, undefined, ${AT[1]}, 0); return 1; })()`,
+  );
   await b.sleep(+(o.wait || 30) * 1000);
   const r = await b.eval(`JSON.stringify((() => {
     const L = game.peds.list.filter((p) => p.active && p.char);

@@ -57,7 +57,10 @@ const camAt = (lx, ly, lz, look) => `(() => {
 const files = [];
 await withBrowser({ width: 960, height: 540, maxSeconds: 280 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (opt.q ? '&' + opt.q : ''));
-  await b.waitFor(GAME_READY + " && typeof game.teleport === 'function' && game.vehicles?.spawnBoat", 200);
+  await b.waitFor(
+    GAME_READY + " && typeof game.teleport === 'function' && game.vehicles?.spawnBoat",
+    200,
+  );
   await startGame(b);
   const spot = JSON.parse(await b.eval(FIND_SPOT));
   console.log('spot', spot);
@@ -91,7 +94,10 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 280 }, async (b) => {
         rFoot: loc('RightFoot'), anchor: ch._seat?.anchor && { hip: ch._seat.anchor.hip?.toArray?.(), recline: ch._seat.anchor.recline, standing: ch._seat.anchor.standing }, lHand: loc('LeftHand'), rHand: loc('RightHand'), head: loc('Head') });
     })()`);
     console.log(key, info);
-    if (opt.probe) console.log('profile', await b.eval(`(() => {
+    if (opt.probe)
+      console.log(
+        'profile',
+        await b.eval(`(() => {
       const v = window.__boat, T = game.THREE, root = v.mesh, wh = v.visual?.parts?.wheel;
       if (!wh) return 'no wheel';
       root.updateWorldMatrix(true, true);
@@ -111,7 +117,8 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 280 }, async (b) => {
       }
       game.playerCharacter.root.visible = true;
       return out.join(' | ');
-    })()`));
+    })()`),
+      );
     if (opt.probe) {
       await b.eval('(() => { game.playerCharacter.root.visible = false; return 1; })()');
       await b.eval(camAt(1.3, 1.9, -2.6, [0, 0.8, -0.9]));
@@ -148,5 +155,11 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 280 }, async (b) => {
   }
   if (b.errors.length) console.log('CONSOLE ERRORS', b.errors.slice(0, 6));
 });
-execFileSync('python3', ['tools/v2/montage.py', path.join(DIR, `${SET}_sheet.jpg`), '--w', '480', ...files]);
+execFileSync('python3', [
+  'tools/v2/montage.py',
+  path.join(DIR, `${SET}_sheet.jpg`),
+  '--w',
+  '480',
+  ...files,
+]);
 console.log('sheet', path.join(DIR, `${SET}_sheet.jpg`));

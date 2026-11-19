@@ -18,7 +18,9 @@ import { createI18n } from './i18n.js';
 const LAYERS = ['world', 'hud', 'toast', 'phone', 'screen', 'modal', 'top'];
 
 // Fonts are bundled (src/ui/styles/fonts.css, OFL): nothing is fetched from a font CDN (the desktop app is offline).
-export function injectFonts() { /* kept for callers: fonts.css is imported above */ }
+export function injectFonts() {
+  /* kept for callers: fonts.css is imported above */
+}
 
 export function createUIContext(game, opts = {}) {
   if (game.uiContext && !opts.fresh) return game.uiContext;
@@ -26,7 +28,10 @@ export function createUIContext(game, opts = {}) {
   const root = opts.root || el('div', { class: 'ps-ui', id: 'ps-ui' });
   if (!root.isConnected) document.body.appendChild(root);
   const layers = {};
-  for (const n of LAYERS) { layers[n] = el('div', { class: 'ps-layer ps-layer-' + n }); root.appendChild(layers[n]); }
+  for (const n of LAYERS) {
+    layers[n] = el('div', { class: 'ps-layer ps-layer-' + n });
+    root.appendChild(layers[n]);
+  }
   const bindings = createBindings(game, opts.bindings);
   const settings = createSettings(game, { bindings });
   settings.attach(root);
@@ -36,11 +41,23 @@ export function createUIContext(game, opts = {}) {
   const t = createI18n(() => settings.get('language'));
   const bus = emitter();
   const ctx = {
-    game, root, layers, layer: (n) => layers[n] || layers.hud, bindings, settings, nav, svc, t, sfx, bus,
+    game,
+    root,
+    layers,
+    layer: (n) => layers[n] || layers.hud,
+    bindings,
+    settings,
+    nav,
+    svc,
+    t,
+    sfx,
+    bus,
     notify: (text, ms, o) => game.hud?.notify?.(text, ms, o),
     reduced: () => !!settings.get('reducedMotion'),
   };
-  game.uiContext = ctx; game.bindings = bindings; game.uiSettings = settings;
+  game.uiContext = ctx;
+  game.bindings = bindings;
+  game.uiSettings = settings;
   settings.applyAll();
   return ctx;
 }

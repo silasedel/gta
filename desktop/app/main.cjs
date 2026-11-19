@@ -10,15 +10,7 @@
 //   --ps-test-profile      use the separate "Port Solana Test" profile (implied by --ps-size)
 const fs = require('node:fs');
 const path = require('node:path');
-const {
-  app,
-  BrowserWindow,
-  Menu,
-  screen,
-  session,
-  shell,
-  crashReporter,
-} = require('electron');
+const { app, BrowserWindow, Menu, screen, session, shell, crashReporter } = require('electron');
 const log = require('./log.cjs');
 const protocolMod = require('./protocol.cjs');
 const crashGuard = require('./crashGuard.cjs');
@@ -55,7 +47,10 @@ sw.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
 sw.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 // Large V8 heap for the renderer (the browser tab caps lower).
 // --ps-js-flags="..." adds V8 flags for measurement runs (A/B of GC settings with the in-game benchmark).
-sw.appendSwitch('js-flags', ['--max-old-space-size=8192', argValue('ps-js-flags') || ''].join(' ').trim());
+sw.appendSwitch(
+  'js-flags',
+  ['--max-old-space-size=8192', argValue('ps-js-flags') || ''].join(' ').trim(),
+);
 if (process.platform === 'darwin') {
   // ANGLE on Metal: Chromium's fastest WebGL path on Apple silicon.
   sw.appendSwitch('use-angle', 'metal');
@@ -188,11 +183,7 @@ function buildMenu() {
     },
     {
       label: 'Edit',
-      submenu: [
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'selectAll' },
-      ],
+      submenu: [{ role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }],
     },
     {
       label: 'View',
@@ -237,14 +228,17 @@ function lockDown(ses) {
   // Google Fonts); Chromium's HTTP cache keeps them, so later launches work offline too.
   ses.webRequest.onBeforeRequest((details, cb) => {
     const u = details.url;
-    const font = details.method === 'GET'
-      && (u.startsWith('https://fonts.googleapis.com/') || u.startsWith('https://fonts.gstatic.com/'));
-    const ok = u.startsWith(protocolMod.ORIGIN + '/')
-      || font
-      || u.startsWith('devtools:')
-      || u.startsWith('data:')
-      || u.startsWith('blob:')
-      || u.startsWith('ws://') || u.startsWith('wss://');   // multiplayer server (?mp=)
+    const font =
+      details.method === 'GET' &&
+      (u.startsWith('https://fonts.googleapis.com/') || u.startsWith('https://fonts.gstatic.com/'));
+    const ok =
+      u.startsWith(protocolMod.ORIGIN + '/') ||
+      font ||
+      u.startsWith('devtools:') ||
+      u.startsWith('data:') ||
+      u.startsWith('blob:') ||
+      u.startsWith('ws://') ||
+      u.startsWith('wss://'); // multiplayer server (?mp=)
     if (!ok) {
       log.info('blocked request ' + u.slice(0, 200));
     }
@@ -349,7 +343,9 @@ function createWindow() {
   const logSize = (what) => {
     const [w, h] = win.getContentSize();
     const d = screen.getDisplayMatching(win.getBounds());
-    log.info(`${what}: content ${w}x${h}, display ${d.size.width}x${d.size.height} @${d.scaleFactor}x ${d.displayFrequency}Hz`);
+    log.info(
+      `${what}: content ${w}x${h}, display ${d.size.width}x${d.size.height} @${d.scaleFactor}x ${d.displayFrequency}Hz`,
+    );
   };
   win.on('enter-full-screen', () => logSize('fullscreen on'));
   win.on('leave-full-screen', () => logSize('fullscreen off'));
@@ -397,7 +393,9 @@ function createWindow() {
 
 // Benchmark: poll the page for its report, write it, log the summary, quit (unless --ps-bench-stay).
 function watchBench(wc) {
-  const out = argValue('ps-bench-out') || path.join(app.getPath('userData'), 'logs', `bench-${benchLabel}.json`);
+  const out =
+    argValue('ps-bench-out') ||
+    path.join(app.getPath('userData'), 'logs', `bench-${benchLabel}.json`);
   log.info(`bench ${benchLabel} started -> ${out}`);
   const timer = setInterval(async () => {
     if (!win || win.isDestroyed()) {
@@ -423,12 +421,23 @@ function watchBench(wc) {
     try {
       const r = JSON.parse(rep);
       const g = r.gate || {};
-      log.info(`bench ${benchLabel}: p50 ${g.p50} p95 ${g.p95} p99 ${g.p99} max ${g.max} over16.7 ${g.over16_7} over25 ${g.over25} over33 ${g.over33} over50 ${g.over50} over100 ${g.over100} pass ${g.pass} preset ${r.quality && r.quality.preset} canvas ${r.display && r.display.canvas}`);
+      log.info(
+        `bench ${benchLabel}: p50 ${g.p50} p95 ${g.p95} p99 ${g.p99} max ${g.max} over16.7 ${g.over16_7} over25 ${g.over25} over33 ${g.over33} over50 ${g.over50} over100 ${g.over100} pass ${g.pass} preset ${r.quality && r.quality.preset} canvas ${r.display && r.display.canvas}`,
+      );
       for (const sgm of r.segments || []) {
-        log.info(`bench ${benchLabel} ${sgm.id}: p50 ${sgm.p50} p99 ${sgm.p99} max ${sgm.max} >33 ${sgm.over33} cpuP99 ${sgm.cpuP99} calls ${sgm.calls} gc ${sgm.gc} top ${(sgm.sys || []).slice(0, 5).map((x) => x.join(' ')).join(', ')}`);
+        log.info(
+          `bench ${benchLabel} ${sgm.id}: p50 ${sgm.p50} p99 ${sgm.p99} max ${sgm.max} >33 ${sgm.over33} cpuP99 ${sgm.cpuP99} calls ${sgm.calls} gc ${sgm.gc} top ${(
+            sgm.sys || []
+          )
+            .slice(0, 5)
+            .map((x) => x.join(' '))
+            .join(', ')}`,
+        );
       }
       for (const w of (r.worst || []).slice(0, 8)) {
-        log.info(`bench ${benchLabel} worst ${w.seg} +${w.t}s gap ${w.gap} work ${w.work} prog ${w.newPrograms} gc ${w.gcMB} top ${(w.top || []).map((x) => x.join(' ')).join(', ')}`);
+        log.info(
+          `bench ${benchLabel} worst ${w.seg} +${w.t}s gap ${w.gap} work ${w.work} prog ${w.newPrograms} gc ${w.gcMB} top ${(w.top || []).map((x) => x.join(' ')).join(', ')}`,
+        );
       }
     } catch (e) {
       log.info('bench report unreadable: ' + e.message);
@@ -463,7 +472,9 @@ app.on('second-instance', () => {
 app.whenReady().then(async () => {
   log.init(app.getPath('userData'));
   const root = webRoot();
-  log.info(`start v${app.getVersion()} electron ${process.versions.electron} chrome ${process.versions.chrome} packaged=${app.isPackaged} webRoot=${root}`);
+  log.info(
+    `start v${app.getVersion()} electron ${process.versions.electron} chrome ${process.versions.chrome} packaged=${app.isPackaged} webRoot=${root}`,
+  );
   if (!fs.existsSync(path.join(root, 'index.html'))) {
     log.crash('missing web build at ' + root);
   }
@@ -472,7 +483,12 @@ app.whenReady().then(async () => {
   buildMenu();
   // About panel and (unpackaged dev runs) the Dock icon carry the Southline brand
   try {
-    app.setAboutPanelOptions({ applicationName: 'Southline', applicationVersion: app.getVersion(), copyright: 'Southline', credits: 'An original open-world Florida story.' });
+    app.setAboutPanelOptions({
+      applicationName: 'Southline',
+      applicationVersion: app.getVersion(),
+      copyright: 'Southline',
+      credits: 'An original open-world Florida story.',
+    });
     if (process.platform === 'darwin' && !app.isPackaged && app.dock) {
       const devIcon = path.join(__dirname, '..', 'build', 'icon.png');
       if (fs.existsSync(devIcon)) app.dock.setIcon(devIcon);
@@ -486,8 +502,12 @@ app.whenReady().then(async () => {
   setTimeout(async () => {
     try {
       const gpu = await app.getGPUInfo('basic');
-      const devices = (gpu.gpuDevice || []).map((d) => `${d.vendorId}:${d.deviceId}${d.active ? '*' : ''}`);
-      log.info('gpu ' + JSON.stringify(app.getGPUFeatureStatus()) + ' devices ' + devices.join(','));
+      const devices = (gpu.gpuDevice || []).map(
+        (d) => `${d.vendorId}:${d.deviceId}${d.active ? '*' : ''}`,
+      );
+      log.info(
+        'gpu ' + JSON.stringify(app.getGPUFeatureStatus()) + ' devices ' + devices.join(','),
+      );
     } catch (e) {
       log.info('gpu info unavailable');
     }
@@ -503,13 +523,16 @@ app.on('before-quit', () => {
     // ignore
   }
 });
-setInterval(() => {
-  try {
-    session.defaultSession.flushStorageData();
-  } catch (e) {
-    // ignore
-  }
-}, 2 * 60 * 1000).unref();
+setInterval(
+  () => {
+    try {
+      session.defaultSession.flushStorageData();
+    } catch (e) {
+      // ignore
+    }
+  },
+  2 * 60 * 1000,
+).unref();
 
 app.on('window-all-closed', () => {
   app.quit();

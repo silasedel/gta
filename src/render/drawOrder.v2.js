@@ -12,7 +12,7 @@ export const order = 5;
 export async function initV2(game) {
   const r = game.renderer;
   const props = r.properties;
-  const cfg = game.drawOrder = { on: true, stats: { switches: 0 } };
+  const cfg = (game.drawOrder = { on: true, stats: { switches: 0 } });
   // program id per material (the program it was last drawn with); new materials sort by id among themselves
   function progOf(m) {
     const p = props.get(m).currentProgram;
@@ -22,7 +22,8 @@ export async function initV2(game) {
     if (a.groupOrder !== b.groupOrder) return a.groupOrder - b.groupOrder;
     if (a.renderOrder !== b.renderOrder) return a.renderOrder - b.renderOrder;
     if (a.material !== b.material) {
-      const pa = a.material.__pid, pb = b.material.__pid;
+      const pa = a.material.__pid,
+        pb = b.material.__pid;
       if (pa !== pb) return pa - pb;
       return a.material.id - b.material.id;
     }
@@ -38,7 +39,9 @@ export async function initV2(game) {
   }
   // the sort function only sees render items: stamp each material's program id once per sort (cheap: one WeakMap
   // lookup per opaque item instead of one per comparison)
-  r.setOpaqueSort(function sortOpaque(a, b) { return cfg.on ? byProgram(a, b) : painterSortStable(a, b); });
+  r.setOpaqueSort(function sortOpaque(a, b) {
+    return cfg.on ? byProgram(a, b) : painterSortStable(a, b);
+  });
   const rl = r.renderLists;
   const get = rl.get.bind(rl);
   rl.get = (scene, depth) => {
@@ -49,7 +52,10 @@ export async function initV2(game) {
       list.sort = (o, t) => {
         if (cfg.on) {
           const op = list.opaque;
-          for (let i = 0; i < op.length; i++) { const m = op[i].material; m.__pid = progOf(m); }
+          for (let i = 0; i < op.length; i++) {
+            const m = op[i].material;
+            m.__pid = progOf(m);
+          }
         }
         return sort(o, t);
       };

@@ -11,7 +11,12 @@ export const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // r2: the shared subtle GTA-style marker (../gameplay/markers.js): soft ground ring, knee-high glow, small floating
 // chevron. No light pillar. opts.r scales the ring like before; userData.ring.material.color still recolors it.
 export function makeMarker(game, pos, color = 0xffd25a, opts = {}) {
-  const g = createMarker(THREE, { color, radius: opts.radius ?? 1.8 * (opts.r || 1), icon: opts.icon, iconY: opts.iconY });
+  const g = createMarker(THREE, {
+    color,
+    radius: opts.radius ?? 1.8 * (opts.r || 1),
+    icon: opts.icon,
+    iconY: opts.iconY,
+  });
   const y = pos.y ?? groundY(game, pos.x, pos.z);
   g.position.set(pos.x, y + 0.03, pos.z);
   game.scene.add(g);
@@ -49,7 +54,14 @@ export const notify = (game, text, ms = 3200) => {
 };
 export const canAct = (game) => {
   const ui = game.ui || {};
-  return !ui.paused && !ui.phoneOpen && !ui.dead && !ui.arrested && !ui.weaponWheel && !game.v21Panel?.open;
+  return (
+    !ui.paused &&
+    !ui.phoneOpen &&
+    !ui.dead &&
+    !ui.arrested &&
+    !ui.weaponWheel &&
+    !game.v21Panel?.open
+  );
 };
 
 // ---------------------------------------------------------------- panel (one shared DOM panel for the v2.1 menus)
@@ -86,7 +98,15 @@ export function getPanel(game) {
     show(owner, html, actions = []) {
       P.owner = owner;
       P.actions = actions;
-      el.innerHTML = html + actions.map((a, i) => `<button data-i="${i}" ${a.disabled ? 'disabled' : ''}><span class="key">${i + 1}</span>${a.label}${a.price ? `<b>${a.price}</b>` : ''}</button>`).join('') + '<div class="foot">Number keys or click · Esc to close</div>';
+      el.innerHTML =
+        html +
+        actions
+          .map(
+            (a, i) =>
+              `<button data-i="${i}" ${a.disabled ? 'disabled' : ''}><span class="key">${i + 1}</span>${a.label}${a.price ? `<b>${a.price}</b>` : ''}</button>`,
+          )
+          .join('') +
+        '<div class="foot">Number keys or click · Esc to close</div>';
       el.style.display = 'block';
       if (!P.open) {
         P.open = true;
@@ -119,19 +139,23 @@ export function getPanel(game) {
     const b = e.target.closest('button');
     if (b) P.run(Number(b.dataset.i));
   });
-  addEventListener('keydown', (e) => {
-    if (!P.open) return;
-    if (e.code === 'Escape') {
-      e.stopPropagation();
-      P.hide();
-      return;
-    }
-    const m = /^Digit([1-9])$/.exec(e.code);
-    if (m) {
-      e.preventDefault();
-      P.run(Number(m[1]) - 1);
-    }
-  }, true);
+  addEventListener(
+    'keydown',
+    (e) => {
+      if (!P.open) return;
+      if (e.code === 'Escape') {
+        e.stopPropagation();
+        P.hide();
+        return;
+      }
+      const m = /^Digit([1-9])$/.exec(e.code);
+      if (m) {
+        e.preventDefault();
+        P.run(Number(m[1]) - 1);
+      }
+    },
+    true,
+  );
   game.v21Panel = P;
   return P;
 }
@@ -143,8 +167,10 @@ export function applyKit(game, ped, kit, seed = 1) {
   if (!L || !ped.char) return false;
   const pick = (a, k) => a[(seed * 7 + k) % a.length];
   const acc = L.acc.filter((a) => a.slot !== 'head' && a.slot !== 'handL' && a.slot !== 'chest');
-  if (kit.hats?.length && seed % 3 !== 0) acc.push({ slot: 'head', kind: 'hat', arg: pick(kit.hats, 1), seed: 1000 + seed });
-  if ((kit.chain || 0) > 0 && (seed % 10) / 10 < kit.chain && !acc.some((a) => a.slot === 'neck')) acc.push({ slot: 'neck', kind: 'chain', seed: 2000 + seed });
+  if (kit.hats?.length && seed % 3 !== 0)
+    acc.push({ slot: 'head', kind: 'hat', arg: pick(kit.hats, 1), seed: 1000 + seed });
+  if ((kit.chain || 0) > 0 && (seed % 10) / 10 < kit.chain && !acc.some((a) => a.slot === 'neck'))
+    acc.push({ slot: 'neck', kind: 'chain', seed: 2000 + seed });
   const L2 = {
     ...L,
     cls: 'street',
@@ -172,7 +198,10 @@ export function spawnKitPed(game, pos, kit, seed, opts = {}) {
   const peds = game.peds;
   if (!peds?.spawnAt) return null;
   // gang crews wear the user's gang-member people (r2-people cast place 'gang'); everyone else a person of the area
-  const p = peds.spawnAt(new THREE.Vector3(pos.x, pos.y ?? groundY(game, pos.x, pos.z), pos.z), opts.tag?.gang ? { outfit: 'gang' } : {});
+  const p = peds.spawnAt(
+    new THREE.Vector3(pos.x, pos.y ?? groundY(game, pos.x, pos.z), pos.z),
+    opts.tag?.gang ? { outfit: 'gang' } : {},
+  );
   if (!p) return null;
   applyKit(game, p, kit, seed);
   p.pinned = 1e9;
@@ -189,7 +218,8 @@ export function spawnKitPed(game, pos, kit, seed, opts = {}) {
   }
   return p;
 }
-export const pedOut = (p) => !p || !p.active || p.dead || p.state === 'dead' || (p.health ?? 100) <= 0;
+export const pedOut = (p) =>
+  !p || !p.active || p.dead || p.state === 'dead' || (p.health ?? 100) <= 0;
 export function release(p) {
   if (!p) return;
   p.pinned = 0;
@@ -222,7 +252,11 @@ export function fireAtPlayer(game, from, accuracy = 0.3, damage = 7) {
   _a.set(from.x, (from.y || 0) + 1.35, from.z);
   const hit = Math.random() < accuracy;
   const miss = hit ? 0 : 1.2 + Math.random() * 1.5;
-  _b.set(P.position.x + (Math.random() - 0.5) * miss * 2, P.position.y + 1.2 + (Math.random() - 0.5) * miss, P.position.z + (Math.random() - 0.5) * miss * 2);
+  _b.set(
+    P.position.x + (Math.random() - 0.5) * miss * 2,
+    P.position.y + 1.2 + (Math.random() - 0.5) * miss,
+    P.position.z + (Math.random() - 0.5) * miss * 2,
+  );
   try {
     if (G?.tracer) G.tracer(_a.clone(), _b.clone(), { speed: 380 });
     else game.combat?.gfx?.tracer?.(_a.clone(), _b.clone(), { speed: 380 });

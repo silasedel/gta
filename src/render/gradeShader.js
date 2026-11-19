@@ -32,10 +32,10 @@ export const GradeShader = {
     uLutMix: { value: 0 },
     uChromaKnee: { value: 0 }, // r2-look: soft chroma roll-off above ~0.4 (bougainvillea, lawn greens read neon)
   },
-  vertexShader: /* glsl */`
+  vertexShader: /* glsl */ `
     varying vec2 vUv;
     void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
-  fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse;
     uniform sampler2D tLut;
     uniform float uLutMix;

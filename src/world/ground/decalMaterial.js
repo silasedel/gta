@@ -12,14 +12,38 @@
 //   arrows: worn paint over the asphalt
 // makeDecalMaterial(THREE, asphalt, { col, nrm, arm }) -> material (wrap with groundWear(..., 'a') like the asphalt afterwards)
 export function makeDecalMaterial(THREE, asphalt, atlas) {
-  const m = new THREE.MeshStandardMaterial({ map: asphalt.map, normalMap: asphalt.normalMap, roughnessMap: asphalt.roughnessMap, aoMap: asphalt.aoMap, roughness: 1, metalness: 0,
-    vertexColors: true, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -10 });
-  m.color.copy(asphalt.color); if (asphalt.normalScale) m.normalScale.copy(asphalt.normalScale);
-  m.name = 'roadDecals'; m.userData.mipBias = asphalt.userData.mipBias ?? 0.35; m.userData.decal = true;
-  const U = { uDecRep: { value: asphalt.map ? asphalt.map.repeat : new THREE.Vector2(1, 1) }, tDecC: { value: atlas.col }, tDecN: { value: atlas.nrm }, tDecA: { value: atlas.arm } };
+  const m = new THREE.MeshStandardMaterial({
+    map: asphalt.map,
+    normalMap: asphalt.normalMap,
+    roughnessMap: asphalt.roughnessMap,
+    aoMap: asphalt.aoMap,
+    roughness: 1,
+    metalness: 0,
+    vertexColors: true,
+    transparent: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -3,
+    polygonOffsetUnits: -10,
+  });
+  m.color.copy(asphalt.color);
+  if (asphalt.normalScale) m.normalScale.copy(asphalt.normalScale);
+  m.name = 'roadDecals';
+  m.userData.mipBias = asphalt.userData.mipBias ?? 0.35;
+  m.userData.decal = true;
+  const U = {
+    uDecRep: { value: asphalt.map ? asphalt.map.repeat : new THREE.Vector2(1, 1) },
+    tDecC: { value: atlas.col },
+    tDecN: { value: atlas.nrm },
+    tDecA: { value: atlas.arm },
+  };
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
-    sh.vertexShader = 'varying vec2 vDecUv;\nvarying vec3 vDecW;\n' + sh.vertexShader.replace('#include <uv_vertex>', `#include <uv_vertex>
+    sh.vertexShader =
+      'varying vec2 vDecUv;\nvarying vec3 vDecW;\n' +
+      sh.vertexShader.replace(
+        '#include <uv_vertex>',
+        `#include <uv_vertex>
       {
         vec4 dW4 = modelMatrix * vec4(position, 1.0); vDecW = dW4.xyz; vDecUv = uv;
         vec2 dWuv = dW4.xz / 7.0;
@@ -35,8 +59,10 @@ export function makeDecalMaterial(THREE, asphalt, atlas) {
         #ifdef USE_AOMAP
           vAoMapUv = (aoMapTransform * vec3(dWuv, 1.0)).xy;
         #endif
-      }`);
-    sh.fragmentShader = /* glsl */`uniform vec2 uDecRep; uniform sampler2D tDecC; uniform sampler2D tDecN; uniform sampler2D tDecA;
+      }`,
+      );
+    sh.fragmentShader =
+      /* glsl */ `uniform vec2 uDecRep; uniform sampler2D tDecC; uniform sampler2D tDecN; uniform sampler2D tDecA;
 varying vec2 vDecUv; varying vec3 vDecW;
 float dH1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float dN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(dH1(i), dH1(i + vec2(1.0, 0.0)), f.x), mix(dH1(i + vec2(0.0, 1.0)), dH1(i + vec2(1.0, 1.0)), f.x), f.y); }
@@ -44,8 +70,11 @@ float dN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
 float dBlob(vec2 lc, vec2 w, float rough) { vec2 q = (lc - 0.5) * 2.0; float r = length(q);
   float a = atan(q.y, q.x); float lobe = sin(a * 3.0 + dH1(floor(w * 0.2)) * 6.0) * 0.07 + sin(a * 5.0 + 1.3) * 0.04;
   return r + lobe + (dN(w * 1.15) - 0.5) * 0.42 * rough + (dN(w * 3.7 + 5.1) - 0.5) * 0.16 * rough + (dN(w * 11.0) - 0.5) * 0.05; }
-` + sh.fragmentShader
-      .replace('void main() {', /* glsl */`void main() {
+` +
+      sh.fragmentShader
+        .replace(
+          'void main() {',
+          /* glsl */ `void main() {
         // decal frame: cell + local coords, world <-> local jacobian (affine on the quad, so screen derivatives are exact)
         vec2 dCell = floor(vDecUv * 4.0); float dId = dCell.y * 4.0 + dCell.x;
         vec2 dLc = clamp((vDecUv - dCell * 0.25 - 0.002) / 0.246, 0.0, 1.0);
@@ -61,11 +90,17 @@ float dBlob(vec2 lc, vec2 w, float rough) { vec2 q = (lc - 0.5) * 2.0; float r =
             float e = dBlob(lc2, vDecW.xz + ow, 1.0); float hd = D * (1.0 - smoothstep(0.42, 0.66, e)) * (0.82 + 0.18 * dN((vDecW.xz + ow) * 6.0));
             if (d >= hd) { hit = d; dOffW = ow; break; } } // first step where the ray is at / below the bowl surface
           dDepth = hit / D; dHole = hit > 0.0 ? 1.0 : 0.0;
-        }`)
-      .replace('#include <map_fragment>', `#ifdef USE_MAP
-        diffuseColor *= texture2D(map, vMapUv + dOffW / 7.0 * uDecRep, ${(m.userData.mipBias).toFixed(2)});
-      #endif`)
-      .replace('#include <normal_fragment_begin>', /* glsl */`{
+        }`,
+        )
+        .replace(
+          '#include <map_fragment>',
+          `#ifdef USE_MAP
+        diffuseColor *= texture2D(map, vMapUv + dOffW / 7.0 * uDecRep, ${m.userData.mipBias.toFixed(2)});
+      #endif`,
+        )
+        .replace(
+          '#include <normal_fragment_begin>',
+          /* glsl */ `{
         vec2 lcH = dLc + dW2L * dOffW; vec2 wH = vDecW.xz + dOffW;
         vec4 dc = texture2D(tDecC, (dCell + 0.002 / 0.25 + lcH * (0.246 / 0.25)) * 0.25);
         vec4 da = texture2D(tDecA, (dCell + 0.002 / 0.25 + lcH * (0.246 / 0.25)) * 0.25);
@@ -119,10 +154,14 @@ float dBlob(vec2 lc, vec2 w, float rough) { vec2 q = (lc - 0.5) * 2.0; float r =
         diffuseColor.rgb = alb; diffuseColor.a = clamp(A, 0.0, 1.0) * opacity; roughnessFactor = rgh; metalnessFactor = met;
         vDecRim = rim;
       }
-      #include <normal_fragment_begin>`)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-      normal = normalize(normal + (viewMatrix * vec4(vDecRim.x, 0.0, vDecRim.y, 0.0)).xyz);`)
-      .replace('void main() {', 'vec2 vDecRim;\nvoid main() {');
+      #include <normal_fragment_begin>`,
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          `#include <normal_fragment_maps>
+      normal = normalize(normal + (viewMatrix * vec4(vDecRim.x, 0.0, vDecRim.y, 0.0)).xyz);`,
+        )
+        .replace('void main() {', 'vec2 vDecRim;\nvoid main() {');
   };
   m.customProgramCacheKey = () => 'ground-decal-v1';
   return m;

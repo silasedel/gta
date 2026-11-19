@@ -21,20 +21,37 @@ const ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 let btn = null;
 export function mountMusicMute() {
   if (btn || typeof document === 'undefined' || !document.body) return btn;
-  const st = document.createElement('style'); st.id = 'sl-mute-css'; st.textContent = CSS; document.head.appendChild(st);
+  const st = document.createElement('style');
+  st.id = 'sl-mute-css';
+  st.textContent = CSS;
+  document.head.appendChild(st);
   btn = document.createElement('button');
-  btn.className = 'sl-mute'; btn.type = 'button'; btn.tabIndex = -1; btn.innerHTML = ICON;
+  btn.className = 'sl-mute';
+  btn.type = 'button';
+  btn.tabIndex = -1;
+  btn.innerHTML = ICON;
   const paint = () => {
     const m = loadingMusic.isMuted();
     btn.classList.toggle('muted', m);
-    btn.title = m ? 'Unmute music' : 'Mute music'; btn.setAttribute('aria-label', btn.title);
+    btn.title = m ? 'Unmute music' : 'Mute music';
+    btn.setAttribute('aria-label', btn.title);
   };
   // the click must not reach the menus / the title underneath
-  for (const ev of ['pointerdown', 'mousedown']) btn.addEventListener(ev, (e) => e.stopPropagation());
-  btn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); loadingMusic.setMuted(!loadingMusic.isMuted()); paint(); btn.blur(); });
+  for (const ev of ['pointerdown', 'mousedown'])
+    btn.addEventListener(ev, (e) => e.stopPropagation());
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    loadingMusic.setMuted(!loadingMusic.isMuted());
+    paint();
+    btn.blur();
+  });
   document.body.appendChild(btn);
   paint();
   // visible only while the menu / loading loop is playing (it stops when gameplay starts)
-  setInterval(() => { const on = loadingMusic.playing(); if (on !== btn.classList.contains('show')) btn.classList.toggle('show', on); }, 300);
+  setInterval(() => {
+    const on = loadingMusic.playing();
+    if (on !== btn.classList.contains('show')) btn.classList.toggle('show', on);
+  }, 300);
   return btn;
 }

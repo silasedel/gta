@@ -9,7 +9,8 @@
     "preview": "vite preview --host 127.0.0.1 --port 5201 --strictPort",
     "desktop:build": "node desktop/scripts/build.mjs",
     "desktop:dev": "node desktop/scripts/dev.mjs",
-    "server": "node server/server.js"
+    "server": "node server/server.js",
+    "format": "prettier --write \"src/**/*.{js,mjs,cjs,css}\" \"tools/**/*.{js,mjs,cjs}\" \"desktop/app/**/*.{js,cjs}\" \"desktop/scripts/**/*.{js,mjs,cjs}\" \"server/**/*.js\""
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
@@ -19,6 +20,7 @@
   "devDependencies": {
     "electron": "45.2.1",
     "electron-builder": "26.18.1",
+    "prettier": "^3.10.1",
     "vite": "^5.4.0"
   },
   "version": "2.0.0-dev"

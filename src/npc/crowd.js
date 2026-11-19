@@ -7,89 +7,411 @@ import * as THREE from 'three';
 import { FRAME_NOISE, RENDER_R2, IGN_R2_GLSL } from '../render/frameNoise.js';
 import { hexToRgb01 } from './rand.js';
 
-export const POSE = { stand: 0, walk: 1, run: 2, sit: 3, sitGround: 4, lie: 5, talk: 6, phone: 7, call: 8, dance: 9, cower: 10, film: 11, kneel: 12, push: 13, swim: 14, lean: 15, wave: 16, dead: 17, ride: 18, volley: 19, work: 20, panic: 21, carry: 22, sitEat: 23, lounge: 24, bike: 25, sip: 26, lieFront: 27, argue: 28, fish: 29 };
+export const POSE = {
+  stand: 0,
+  walk: 1,
+  run: 2,
+  sit: 3,
+  sitGround: 4,
+  lie: 5,
+  talk: 6,
+  phone: 7,
+  call: 8,
+  dance: 9,
+  cower: 10,
+  film: 11,
+  kneel: 12,
+  push: 13,
+  swim: 14,
+  lean: 15,
+  wave: 16,
+  dead: 17,
+  ride: 18,
+  volley: 19,
+  work: 20,
+  panic: 21,
+  carry: 22,
+  sitEat: 23,
+  lounge: 24,
+  bike: 25,
+  sip: 26,
+  lieFront: 27,
+  argue: 28,
+  fish: 29,
+};
 const REF_H = 1.75;
 // joints of the reference body (meters, T-shirt mannequin 1.75 m tall, facing +Z, left side is +X)
-const J = { hipY: 0.93, hipX: 0.092, kneeY: 0.50, ankleY: 0.075, waistY: 1.03, shY: 1.435, shX: 0.19, elY: 1.15, wrY: 0.885, neckY: 1.5, headY: 1.635 };
+const J = {
+  hipY: 0.93,
+  hipX: 0.092,
+  kneeY: 0.5,
+  ankleY: 0.075,
+  waistY: 1.03,
+  shY: 1.435,
+  shX: 0.19,
+  elY: 1.15,
+  wrY: 0.885,
+  neckY: 1.5,
+  headY: 1.635,
+};
 
 // ---------------------------------------------------------------- geometry
 function buildBody() {
-  const pos = [], nor = [], info = [], idx = [];
-  const v = (x, y, z, nx, ny, nz, part, region, len, piece) => { pos.push(x, y, z); const l = Math.hypot(nx, ny, nz) || 1; nor.push(nx / l, ny / l, nz / l); info.push(part, region, len, piece); return pos.length / 3 - 1; };
+  const pos = [],
+    nor = [],
+    info = [],
+    idx = [];
+  const v = (x, y, z, nx, ny, nz, part, region, len, piece) => {
+    pos.push(x, y, z);
+    const l = Math.hypot(nx, ny, nz) || 1;
+    nor.push(nx / l, ny / l, nz / l);
+    info.push(part, region, len, piece);
+    return pos.length / 3 - 1;
+  };
   // tapered tube along Y from y0 (top) to y1 (bottom) centered at (cx, cz), elliptical section rx/rz per ring
   function tube(part, region, rings, radial, lenOf, piece = 0, capTop = true, capBot = true) {
     const base = pos.length / 3;
     for (let i = 0; i < rings.length; i++) {
       const [cx, y, cz, rx, rz] = rings[i];
-      const prev = rings[Math.max(0, i - 1)], next = rings[Math.min(rings.length - 1, i + 1)];
-      const slope = ((next[3] + next[4]) - (prev[3] + prev[4])) * 0.5 / ((next[1] - prev[1]) || -1e-3);
+      const prev = rings[Math.max(0, i - 1)],
+        next = rings[Math.min(rings.length - 1, i + 1)];
+      const slope =
+        ((next[3] + next[4] - (prev[3] + prev[4])) * 0.5) / (next[1] - prev[1] || -1e-3);
       for (let k = 0; k < radial; k++) {
-        const a = (k / radial) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
-        v(cx + c * rx, y, cz + s * rz, c * rz, -slope * Math.hypot(rx, rz) * 0.7, s * rx, part, typeof region === 'function' ? region(i) : region, lenOf(y, i), piece);
+        const a = (k / radial) * Math.PI * 2,
+          c = Math.cos(a),
+          s = Math.sin(a);
+        v(
+          cx + c * rx,
+          y,
+          cz + s * rz,
+          c * rz,
+          -slope * Math.hypot(rx, rz) * 0.7,
+          s * rx,
+          part,
+          typeof region === 'function' ? region(i) : region,
+          lenOf(y, i),
+          piece,
+        );
       }
     }
-    for (let i = 0; i < rings.length - 1; i++) for (let k = 0; k < radial; k++) {
-      const a = base + i * radial + k, b = base + i * radial + (k + 1) % radial, c = a + radial, d = b + radial;
-      idx.push(a, b, c, b, d, c);
-    }
-    const cap = (ri, ny) => { const [cx, y, cz] = rings[ri]; const c = v(cx, y + ny * 0.012, cz, 0, ny, 0, part, typeof region === 'function' ? region(ri) : region, lenOf(y, ri), piece); for (let k = 0; k < radial; k++) { const a = base + ri * radial + k, b = base + ri * radial + (k + 1) % radial; if (ny > 0) idx.push(c, b, a); else idx.push(c, a, b); } };
-    if (capTop) cap(0, 1); if (capBot) cap(rings.length - 1, -1);
+    for (let i = 0; i < rings.length - 1; i++)
+      for (let k = 0; k < radial; k++) {
+        const a = base + i * radial + k,
+          b = base + i * radial + ((k + 1) % radial),
+          c = a + radial,
+          d = b + radial;
+        idx.push(a, b, c, b, d, c);
+      }
+    const cap = (ri, ny) => {
+      const [cx, y, cz] = rings[ri];
+      const c = v(
+        cx,
+        y + ny * 0.012,
+        cz,
+        0,
+        ny,
+        0,
+        part,
+        typeof region === 'function' ? region(ri) : region,
+        lenOf(y, ri),
+        piece,
+      );
+      for (let k = 0; k < radial; k++) {
+        const a = base + ri * radial + k,
+          b = base + ri * radial + ((k + 1) % radial);
+        if (ny > 0) idx.push(c, b, a);
+        else idx.push(c, a, b);
+      }
+    };
+    if (capTop) cap(0, 1);
+    if (capBot) cap(rings.length - 1, -1);
   }
-  function ellipsoid(part, region, cx, cy, cz, rx, ry, rz, ws, hs, piece = 0, th0 = 0, th1 = Math.PI, lenV = 0) {
+  function ellipsoid(
+    part,
+    region,
+    cx,
+    cy,
+    cz,
+    rx,
+    ry,
+    rz,
+    ws,
+    hs,
+    piece = 0,
+    th0 = 0,
+    th1 = Math.PI,
+    lenV = 0,
+  ) {
     const base = pos.length / 3;
-    for (let j = 0; j <= hs; j++) { const th = th0 + (th1 - th0) * (j / hs), st = Math.sin(th), ct = Math.cos(th);
-      for (let k = 0; k <= ws; k++) { const ph = (k / ws) * Math.PI * 2, c = Math.cos(ph), s = Math.sin(ph); v(cx + rx * st * c, cy + ry * ct, cz + rz * st * s, st * c / rx, ct / ry, st * s / rz, part, region, lenV, piece); } }
-    for (let j = 0; j < hs; j++) for (let k = 0; k < ws; k++) { const a = base + j * (ws + 1) + k, b = a + 1, c = a + ws + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
+    for (let j = 0; j <= hs; j++) {
+      const th = th0 + (th1 - th0) * (j / hs),
+        st = Math.sin(th),
+        ct = Math.cos(th);
+      for (let k = 0; k <= ws; k++) {
+        const ph = (k / ws) * Math.PI * 2,
+          c = Math.cos(ph),
+          s = Math.sin(ph);
+        v(
+          cx + rx * st * c,
+          cy + ry * ct,
+          cz + rz * st * s,
+          (st * c) / rx,
+          ct / ry,
+          (st * s) / rz,
+          part,
+          region,
+          lenV,
+          piece,
+        );
+      }
+    }
+    for (let j = 0; j < hs; j++)
+      for (let k = 0; k < ws; k++) {
+        const a = base + j * (ws + 1) + k,
+          b = a + 1,
+          c = a + ws + 1,
+          d = c + 1;
+        idx.push(a, b, c, b, d, c);
+      }
   }
   function box(part, region, cx, cy, cz, sx, sy, sz, piece = 0, lenV = 0) {
-    const F = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    const F = [
+      [1, 0, 0],
+      [-1, 0, 0],
+      [0, 1, 0],
+      [0, -1, 0],
+      [0, 0, 1],
+      [0, 0, -1],
+    ];
     for (const n of F) {
-      const u = [n[1], n[2], n[0]], w = [n[1] * u[2] - n[2] * u[1], n[2] * u[0] - n[0] * u[2], n[0] * u[1] - n[1] * u[0]];
+      const u = [n[1], n[2], n[0]],
+        w = [n[1] * u[2] - n[2] * u[1], n[2] * u[0] - n[0] * u[2], n[0] * u[1] - n[1] * u[0]];
       const q = [];
-      for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) q.push(v(cx + (n[0] + u[0] * a + w[0] * b) * sx / 2, cy + (n[1] + u[1] * a + w[1] * b) * sy / 2, cz + (n[2] + u[2] * a + w[2] * b) * sz / 2, n[0], n[1], n[2], part, region, lenV, piece));
+      for (const [a, b] of [
+        [-1, -1],
+        [1, -1],
+        [1, 1],
+        [-1, 1],
+      ])
+        q.push(
+          v(
+            cx + ((n[0] + u[0] * a + w[0] * b) * sx) / 2,
+            cy + ((n[1] + u[1] * a + w[1] * b) * sy) / 2,
+            cz + ((n[2] + u[2] * a + w[2] * b) * sz) / 2,
+            n[0],
+            n[1],
+            n[2],
+            part,
+            region,
+            lenV,
+            piece,
+          ),
+        );
       idx.push(q[0], q[1], q[2], q[0], q[2], q[3]);
     }
   }
   const R = 8;
   // pelvis (part 0): waistband down to crotch, bottom color
-  tube(0, 2, [[0, J.waistY + 0.02, 0, 0.155, 0.105], [0, J.hipY + 0.02, 0, 0.175, 0.118], [0, J.hipY - 0.1, 0, 0.165, 0.112], [0, J.hipY - 0.17, 0, 0.09, 0.08]], 10, () => 0, 0, true, true);
+  tube(
+    0,
+    2,
+    [
+      [0, J.waistY + 0.02, 0, 0.155, 0.105],
+      [0, J.hipY + 0.02, 0, 0.175, 0.118],
+      [0, J.hipY - 0.1, 0, 0.165, 0.112],
+      [0, J.hipY - 0.17, 0, 0.09, 0.08],
+    ],
+    10,
+    () => 0,
+    0,
+    true,
+    true,
+  );
   // torso (part 1): region 1 = top; len = 0 at waist .. 1 at shoulders (crop tops, bikini band)
   const tl = (y) => (y - J.waistY) / (J.shY - J.waistY);
-  tube(1, 1, [[0, J.shY + 0.045, 0, 0.075, 0.07], [0, J.shY + 0.01, 0.0, 0.2, 0.1], [0, J.shY - 0.1, 0.012, 0.185, 0.118], [0, J.shY - 0.22, 0.012, 0.162, 0.112], [0, J.waistY + 0.06, 0.006, 0.15, 0.1], [0, J.waistY - 0.02, 0, 0.152, 0.102]], 10, tl, 0, true, false);
+  tube(
+    1,
+    1,
+    [
+      [0, J.shY + 0.045, 0, 0.075, 0.07],
+      [0, J.shY + 0.01, 0.0, 0.2, 0.1],
+      [0, J.shY - 0.1, 0.012, 0.185, 0.118],
+      [0, J.shY - 0.22, 0.012, 0.162, 0.112],
+      [0, J.waistY + 0.06, 0.006, 0.15, 0.1],
+      [0, J.waistY - 0.02, 0, 0.152, 0.102],
+    ],
+    10,
+    tl,
+    0,
+    true,
+    false,
+  );
   // neck + head (part 2)
-  tube(2, 0, [[0, J.neckY + 0.07, 0.005, 0.048, 0.05], [0, J.neckY - 0.03, 0, 0.052, 0.054]], 7, () => 0, 0, false, false);
+  tube(
+    2,
+    0,
+    [
+      [0, J.neckY + 0.07, 0.005, 0.048, 0.05],
+      [0, J.neckY - 0.03, 0, 0.052, 0.054],
+    ],
+    7,
+    () => 0,
+    0,
+    false,
+    false,
+  );
   ellipsoid(2, 0, 0, J.headY, 0.012, 0.084, 0.115, 0.1, 9, 6, 0);
   box(2, 0, 0, J.headY - 0.012, 0.108, 0.026, 0.04, 0.03, 0); // nose
   // hair pieces (piece = 10 + style): 1 short, 2 bob, 3 long, 4 ponytail / bun, 5 afro, 6 receding
   ellipsoid(2, 4, 0, J.headY + 0.012, -0.004, 0.088, 0.112, 0.105, 10, 5, 11, 0, Math.PI * 0.55);
   ellipsoid(2, 4, 0, J.headY - 0.005, -0.012, 0.1, 0.125, 0.112, 10, 6, 12, 0, Math.PI * 0.74);
   ellipsoid(2, 4, 0, J.headY + 0.01, -0.006, 0.09, 0.114, 0.106, 10, 5, 13, 0, Math.PI * 0.56);
-  tube(2, 4, [[0, J.headY + 0.02, -0.07, 0.085, 0.05], [0, J.headY - 0.14, -0.085, 0.092, 0.045], [0, J.headY - 0.32, -0.09, 0.075, 0.03]], 8, () => 0, 13, true, true);
+  tube(
+    2,
+    4,
+    [
+      [0, J.headY + 0.02, -0.07, 0.085, 0.05],
+      [0, J.headY - 0.14, -0.085, 0.092, 0.045],
+      [0, J.headY - 0.32, -0.09, 0.075, 0.03],
+    ],
+    8,
+    () => 0,
+    13,
+    true,
+    true,
+  );
   ellipsoid(2, 4, 0, J.headY + 0.012, -0.004, 0.088, 0.112, 0.104, 10, 5, 14, 0, Math.PI * 0.55);
   ellipsoid(2, 4, 0, J.headY + 0.05, -0.13, 0.045, 0.045, 0.05, 7, 5, 14);
-  tube(2, 4, [[0, J.headY + 0.02, -0.15, 0.03, 0.03], [0, J.headY - 0.2, -0.17, 0.022, 0.022]], 6, () => 0, 14, true, true);
+  tube(
+    2,
+    4,
+    [
+      [0, J.headY + 0.02, -0.15, 0.03, 0.03],
+      [0, J.headY - 0.2, -0.17, 0.022, 0.022],
+    ],
+    6,
+    () => 0,
+    14,
+    true,
+    true,
+  );
   ellipsoid(2, 4, 0, J.headY + 0.035, -0.008, 0.125, 0.13, 0.13, 10, 6, 15, 0, Math.PI * 0.68);
-  ellipsoid(2, 4, 0, J.headY + 0.0, -0.03, 0.086, 0.1, 0.09, 10, 4, 16, Math.PI * 0.22, Math.PI * 0.6);
+  ellipsoid(
+    2,
+    4,
+    0,
+    J.headY + 0.0,
+    -0.03,
+    0.086,
+    0.1,
+    0.09,
+    10,
+    4,
+    16,
+    Math.PI * 0.22,
+    Math.PI * 0.6,
+  );
   // hats (piece = 20 + hat): 1 cap, 2 wide brim, 3 hard hat, 4 beanie / wrap
   ellipsoid(2, 5, 0, J.headY + 0.03, 0, 0.094, 0.1, 0.108, 10, 4, 21, 0, Math.PI * 0.5);
   box(2, 5, 0, J.headY + 0.034, 0.14, 0.15, 0.012, 0.1, 21);
   ellipsoid(2, 5, 0, J.headY + 0.04, 0, 0.092, 0.095, 0.104, 10, 4, 22, 0, Math.PI * 0.5);
-  tube(2, 5, [[0, J.headY + 0.05, 0, 0.1, 0.11], [0, J.headY + 0.035, 0, 0.21, 0.22]], 12, () => 0, 22, false, true);
+  tube(
+    2,
+    5,
+    [
+      [0, J.headY + 0.05, 0, 0.1, 0.11],
+      [0, J.headY + 0.035, 0, 0.21, 0.22],
+    ],
+    12,
+    () => 0,
+    22,
+    false,
+    true,
+  );
   ellipsoid(2, 5, 0, J.headY + 0.035, 0, 0.105, 0.105, 0.118, 10, 4, 23, 0, Math.PI * 0.5);
-  tube(2, 5, [[0, J.headY + 0.045, 0.01, 0.105, 0.12], [0, J.headY + 0.035, 0.02, 0.125, 0.15]], 10, () => 0, 23, false, true);
+  tube(
+    2,
+    5,
+    [
+      [0, J.headY + 0.045, 0.01, 0.105, 0.12],
+      [0, J.headY + 0.035, 0.02, 0.125, 0.15],
+    ],
+    10,
+    () => 0,
+    23,
+    false,
+    true,
+  );
   ellipsoid(2, 5, 0, J.headY + 0.02, -0.004, 0.092, 0.118, 0.108, 10, 5, 24, 0, Math.PI * 0.52);
   // arms: region 6 = sleeve-or-skin by len (0 shoulder .. 1 wrist); hands always skin
   for (const s of [1, -1]) {
-    const up = s > 0 ? 3 : 5, lo = s > 0 ? 4 : 6, x = s * J.shX;
-    tube(up, 6, [[x, J.shY + 0.01, 0, 0.052, 0.054], [x, J.shY - 0.1, 0, 0.047, 0.05], [x, J.elY, 0, 0.04, 0.042]], R, (y) => 0.5 * (J.shY - y) / (J.shY - J.elY), 0, true, true);
-    tube(lo, 6, [[x, J.elY + 0.01, 0, 0.04, 0.041], [x, J.elY - 0.1, 0, 0.038, 0.04], [x, J.wrY, 0, 0.028, 0.03]], R, (y) => 0.5 + 0.5 * (J.elY - y) / (J.elY - J.wrY), 0, true, false);
+    const up = s > 0 ? 3 : 5,
+      lo = s > 0 ? 4 : 6,
+      x = s * J.shX;
+    tube(
+      up,
+      6,
+      [
+        [x, J.shY + 0.01, 0, 0.052, 0.054],
+        [x, J.shY - 0.1, 0, 0.047, 0.05],
+        [x, J.elY, 0, 0.04, 0.042],
+      ],
+      R,
+      (y) => (0.5 * (J.shY - y)) / (J.shY - J.elY),
+      0,
+      true,
+      true,
+    );
+    tube(
+      lo,
+      6,
+      [
+        [x, J.elY + 0.01, 0, 0.04, 0.041],
+        [x, J.elY - 0.1, 0, 0.038, 0.04],
+        [x, J.wrY, 0, 0.028, 0.03],
+      ],
+      R,
+      (y) => 0.5 + (0.5 * (J.elY - y)) / (J.elY - J.wrY),
+      0,
+      true,
+      false,
+    );
     ellipsoid(lo, 0, x, J.wrY - 0.052, 0.008, 0.021, 0.062, 0.04, 6, 4, 0);
   }
   // legs: region 7 = pants-or-skin by len (0 hip .. 1 ankle); feet = shoes
   for (const s of [1, -1]) {
-    const th = s > 0 ? 7 : 9, sh = s > 0 ? 8 : 10, x = s * J.hipX;
-    tube(th, 7, [[x, J.hipY - 0.02, 0, 0.085, 0.09], [x, J.hipY - 0.2, 0, 0.074, 0.08], [x, J.kneeY, 0, 0.055, 0.058]], R, (y) => 0.5 * (J.hipY - y) / (J.hipY - J.kneeY), 0, true, true);
-    tube(sh, 7, [[x, J.kneeY + 0.01, 0, 0.055, 0.057], [x, J.kneeY - 0.13, -0.008, 0.052, 0.056], [x, J.ankleY + 0.02, 0, 0.036, 0.04]], R, (y) => 0.5 + 0.5 * (J.kneeY - y) / (J.kneeY - J.ankleY), 0, true, false);
+    const th = s > 0 ? 7 : 9,
+      sh = s > 0 ? 8 : 10,
+      x = s * J.hipX;
+    tube(
+      th,
+      7,
+      [
+        [x, J.hipY - 0.02, 0, 0.085, 0.09],
+        [x, J.hipY - 0.2, 0, 0.074, 0.08],
+        [x, J.kneeY, 0, 0.055, 0.058],
+      ],
+      R,
+      (y) => (0.5 * (J.hipY - y)) / (J.hipY - J.kneeY),
+      0,
+      true,
+      true,
+    );
+    tube(
+      sh,
+      7,
+      [
+        [x, J.kneeY + 0.01, 0, 0.055, 0.057],
+        [x, J.kneeY - 0.13, -0.008, 0.052, 0.056],
+        [x, J.ankleY + 0.02, 0, 0.036, 0.04],
+      ],
+      R,
+      (y) => 0.5 + (0.5 * (J.kneeY - y)) / (J.kneeY - J.ankleY),
+      0,
+      true,
+      false,
+    );
     ellipsoid(sh, 3, x, 0.03, 0.05, 0.05, 0.055, 0.135, 7, 4, 0, 0, Math.PI * 0.62);
   }
   const g = new THREE.BufferGeometry();
@@ -102,7 +424,7 @@ function buildBody() {
 }
 
 // ---------------------------------------------------------------- shader
-const VERT_PARS = /* glsl */`
+const VERT_PARS = /* glsl */ `
 attribute vec4 aInfo;      // part, region, len, piece
 attribute vec4 iPose;      // pose id, cadence (rad/s), phase offset, amplitude
 attribute vec4 iShape;     // girth, shoulder width, hip width, bust (0 = male chest)
@@ -232,7 +554,7 @@ void npcPose() {
   vNpcA = A; vNpcB = B; vNpcCut = cut; vNpcObj = position;
 }
 `;
-const FRAG_PARS = /* glsl */`
+const FRAG_PARS = /* glsl */ `
 varying vec3 vNpcA; varying vec3 vNpcB; varying vec3 vNpcObj; varying vec3 vNpcCut;
 varying float vNpcFade;
 uniform vec4 uNpcBands; uniform float uFrameN; uniform float uRenderR2;
@@ -244,14 +566,14 @@ float npcBayer(vec2 f) {
 }
 float npcHash(vec3 p) { p = fract(p * vec3(127.1, 311.7, 74.7)); p += dot(p, p.yzx + 19.19); return fract((p.x + p.y) * p.z); }
 `;
-const FRAG_DITHER = /* glsl */`
+const FRAG_DITHER = /* glsl */ `
   {
     float dCam = length(vViewPosition);
     float a = vNpcFade * smoothstep(uNpcBands.x, uNpcBands.y, dCam) * (1.0 - smoothstep(uNpcBands.z, uNpcBands.w, dCam));
     if (a < 0.999 && a <= psIgnT(gl_FragCoord.xy)) discard; // stage 1: temporal IGN (TAA resolves it); r2-render: golden-ratio stepped
   }
 `;
-const FRAG_COLOR = /* glsl */`
+const FRAG_COLOR = /* glsl */ `
   {
     bool useA = vNpcCut.x < vNpcCut.y; vec3 c = useA ? vNpcA : vNpcB; float vNpcRegion = useA ? vNpcCut.z : 0.0;
     float fw = max(length(dFdx(vNpcObj)), length(dFdy(vNpcObj)));
@@ -270,58 +592,141 @@ export function createCrowd(game, opts = {}) {
   const MAX = opts.max || 640;
   const geo = buildBody();
   const ig = new THREE.InstancedBufferGeometry();
-  ig.index = geo.index; ig.attributes.position = geo.attributes.position; ig.attributes.normal = geo.attributes.normal; ig.attributes.aInfo = geo.attributes.aInfo;
+  ig.index = geo.index;
+  ig.attributes.position = geo.attributes.position;
+  ig.attributes.normal = geo.attributes.normal;
+  ig.attributes.aInfo = geo.attributes.aInfo;
   ig.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-  const mk = (n, size) => { const a = new THREE.InstancedBufferAttribute(new Float32Array(n * size), size); a.setUsage(THREE.DynamicDrawUsage); return a; };
-  const aPose = mk(MAX, 4), aShape = mk(MAX, 4), aFlags = mk(MAX, 4), aColA = mk(MAX, 3), aColB = mk(MAX, 3);
+  const mk = (n, size) => {
+    const a = new THREE.InstancedBufferAttribute(new Float32Array(n * size), size);
+    a.setUsage(THREE.DynamicDrawUsage);
+    return a;
+  };
+  const aPose = mk(MAX, 4),
+    aShape = mk(MAX, 4),
+    aFlags = mk(MAX, 4),
+    aColA = mk(MAX, 3),
+    aColB = mk(MAX, 3);
   const aFade = mk(MAX, 1);
   ig.setAttribute('iFade', aFade);
-  const uBands = { value: new THREE.Vector4(opts.nearFade0 ?? 0, opts.nearFade1 ?? 0.01, opts.farFade0 ?? 1e5, opts.farFade1 ?? 1e5 + 1) };
-  ig.setAttribute('iPose', aPose); ig.setAttribute('iShape', aShape); ig.setAttribute('iFlags', aFlags); ig.setAttribute('iColA', aColA); ig.setAttribute('iColB', aColB);
+  const uBands = {
+    value: new THREE.Vector4(
+      opts.nearFade0 ?? 0,
+      opts.nearFade1 ?? 0.01,
+      opts.farFade0 ?? 1e5,
+      opts.farFade1 ?? 1e5 + 1,
+    ),
+  };
+  ig.setAttribute('iPose', aPose);
+  ig.setAttribute('iShape', aShape);
+  ig.setAttribute('iFlags', aFlags);
+  ig.setAttribute('iColA', aColA);
+  ig.setAttribute('iColB', aColB);
   const uTime = { value: 0 };
   const hook = (sh, depthOnly) => {
     sh.uniforms.uNpcTime = uTime;
-    sh.uniforms.uNpcBands = uBands; sh.uniforms.uFrameN = FRAME_NOISE; sh.uniforms.uRenderR2 = RENDER_R2;
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + VERT_PARS)
+    sh.uniforms.uNpcBands = uBands;
+    sh.uniforms.uFrameN = FRAME_NOISE;
+    sh.uniforms.uRenderR2 = RENDER_R2;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\n' + VERT_PARS)
       .replace('#include <begin_vertex>', 'vec3 transformed = npcP;');
-    if (!depthOnly) sh.vertexShader = sh.vertexShader.replace('#include <beginnormal_vertex>', 'npcPose();\nvec3 objectNormal = npcN;\n#ifdef USE_TANGENT\nvec3 objectTangent = vec3(tangent.xyz);\n#endif');
-    else sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', '').replace('vec3 transformed = npcP;', 'npcPose();\nvec3 transformed = npcP;');
-    if (!depthOnly) sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + FRAG_PARS).replace('#include <color_fragment>', '#include <color_fragment>\n' + FRAG_COLOR).replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n' + FRAG_DITHER);
+    if (!depthOnly)
+      sh.vertexShader = sh.vertexShader.replace(
+        '#include <beginnormal_vertex>',
+        'npcPose();\nvec3 objectNormal = npcN;\n#ifdef USE_TANGENT\nvec3 objectTangent = vec3(tangent.xyz);\n#endif',
+      );
+    else
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <begin_vertex>', '')
+        .replace('vec3 transformed = npcP;', 'npcPose();\nvec3 transformed = npcP;');
+    if (!depthOnly)
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\n' + FRAG_PARS)
+        .replace('#include <color_fragment>', '#include <color_fragment>\n' + FRAG_COLOR)
+        .replace(
+          '#include <clipping_planes_fragment>',
+          '#include <clipping_planes_fragment>\n' + FRAG_DITHER,
+        );
   };
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.82, metalness: 0, name: 'npcCrowd' });
   mat.onBeforeCompile = (sh) => hook(sh, false);
   mat.customProgramCacheKey = () => 'npcCrowd2';
   const mesh = new THREE.InstancedMesh(ig, mat, MAX);
-  mesh.name = 'npc-crowd'; mesh.frustumCulled = false; mesh.castShadow = !!opts.castShadow; mesh.receiveShadow = true; mesh.count = 0;
+  mesh.name = 'npc-crowd';
+  mesh.frustumCulled = false;
+  mesh.castShadow = !!opts.castShadow;
+  mesh.receiveShadow = true;
+  mesh.count = 0;
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
-  depth.onBeforeCompile = (sh) => hook(sh, true); depth.customProgramCacheKey = () => 'npcCrowdDepth1';
+  depth.onBeforeCompile = (sh) => hook(sh, true);
+  depth.customProgramCacheKey = () => 'npcCrowdDepth1';
   mesh.customDepthMaterial = depth;
   (opts.scene || game.scene).add(mesh);
 
   // soft contact shadows (one more draw call)
-  const sg = new THREE.PlaneGeometry(1, 1); sg.rotateX(-Math.PI / 2);
-  const smat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, depthWrite: false, opacity: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, name: 'npcCrowdBlob' });
+  const sg = new THREE.PlaneGeometry(1, 1);
+  sg.rotateX(-Math.PI / 2);
+  const smat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    transparent: true,
+    depthWrite: false,
+    opacity: 1,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
+    name: 'npcCrowdBlob',
+  });
   smat.onBeforeCompile = (sh) => {
-    sh.vertexShader = 'varying vec2 vBlobUv;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vBlobUv = uv;');
-    sh.fragmentShader = 'varying vec2 vBlobUv;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n float bd = length(vBlobUv - 0.5) * 2.0; diffuseColor.a = 0.34 * (1.0 - smoothstep(0.25, 1.0, bd));');
+    sh.vertexShader =
+      'varying vec2 vBlobUv;\n' +
+      sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vBlobUv = uv;');
+    sh.fragmentShader =
+      'varying vec2 vBlobUv;\n' +
+      sh.fragmentShader.replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\n float bd = length(vBlobUv - 0.5) * 2.0; diffuseColor.a = 0.34 * (1.0 - smoothstep(0.25, 1.0, bd));',
+      );
   };
-  const blobs = new THREE.InstancedMesh(sg, smat, MAX); blobs.name = 'npc-crowd-blobs'; blobs.frustumCulled = false; blobs.count = 0; blobs.renderOrder = 1;
+  const blobs = new THREE.InstancedMesh(sg, smat, MAX);
+  blobs.name = 'npc-crowd-blobs';
+  blobs.frustumCulled = false;
+  blobs.count = 0;
+  blobs.renderOrder = 1;
   blobs.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   (opts.scene || game.scene).add(blobs);
 
-  const free = []; let high = 0;
+  const free = [];
+  let high = 0;
   const used = new Uint8Array(MAX);
-  const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
+  const _m = new THREE.Matrix4(),
+    _q = new THREE.Quaternion(),
+    _s = new THREE.Vector3(),
+    _p = new THREE.Vector3(),
+    _e = new THREE.Euler();
   const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
   const dirty = { pose: false, look: false, mat: false, fade: false };
-  const pack = (rgb) => { // [r,g,b] 0..1 sRGB or hex
+  const pack = (rgb) => {
+    // [r,g,b] 0..1 sRGB or hex
     if (typeof rgb === 'number') return rgb & 0xffffff;
-    return (Math.round(rgb[0] * 255) << 16) | (Math.round(rgb[1] * 255) << 8) | Math.round(rgb[2] * 255);
+    return (
+      (Math.round(rgb[0] * 255) << 16) | (Math.round(rgb[1] * 255) << 8) | Math.round(rgb[2] * 255)
+    );
   };
   const api = {
-    mesh, blobs, max: MAX, POSE,
-    alloc() { let i = free.length ? free.pop() : (high < MAX ? high++ : -1); if (i < 0) return -1; used[i] = 1; mesh.count = high; blobs.count = high; return i; },
+    mesh,
+    blobs,
+    max: MAX,
+    POSE,
+    alloc() {
+      let i = free.length ? free.pop() : high < MAX ? high++ : -1;
+      if (i < 0) return -1;
+      used[i] = 1;
+      mesh.count = high;
+      blobs.count = high;
+      return i;
+    },
     /** 0..1 fade for one person (dithered; the caller ramps it over about 0.5 s) */
     setFade(i, f) {
       if (i < 0) {
@@ -336,42 +741,85 @@ export function createCrowd(game, opts = {}) {
     setBands(n0, n1, f0, f1) {
       uBands.value.set(n0, n1, f0, f1);
     },
-    release(i) { if (i < 0 || !used[i]) return; used[i] = 0; mesh.setMatrixAt(i, ZERO); blobs.setMatrixAt(i, ZERO); dirty.mat = true; free.push(i); },
+    release(i) {
+      if (i < 0 || !used[i]) return;
+      used[i] = 0;
+      mesh.setMatrixAt(i, ZERO);
+      blobs.setMatrixAt(i, ZERO);
+      dirty.mat = true;
+      free.push(i);
+    },
     // look: { skin, top, bottom, hair, shoes, hat (hex colors), sleeve, leg, hairStyle, hatKind, girth, shoulders, hips, bust }
     setLook(i, L) {
-      aColA.setXYZ(i, pack(L.skin), pack(L.top), pack(L.bottom)); aColB.setXYZ(i, pack(L.hair), pack(L.shoes), pack(L.hat ?? 0x222222));
+      aColA.setXYZ(i, pack(L.skin), pack(L.top), pack(L.bottom));
+      aColB.setXYZ(i, pack(L.hair), pack(L.shoes), pack(L.hat ?? 0x222222));
       aShape.setXYZW(i, L.girth ?? 1, L.shoulders ?? 1, L.hips ?? 1, L.bust ?? 0);
       aFlags.setXYZW(i, L.sleeve ?? 0.35, L.leg ?? 1, L.hairStyle ?? 1, L.hatKind ?? 0);
       dirty.look = true;
     },
     // phase(t) = t * cadence + offset. Pass phase = null to keep the running cycle (speed changes, walk <-> run).
     setPose(i, id, cadence = 1, phase = null, amp = 1) {
-      const oi = aPose.getX(i), oc = aPose.getY(i), oo = aPose.getZ(i);
+      const oi = aPose.getX(i),
+        oc = aPose.getY(i),
+        oo = aPose.getZ(i);
       if (oi === id && oc === cadence && aPose.getW(i) === amp && phase === null) return;
       const t = uTime.value;
       const cur = phase === null ? t * oc + oo : phase;
-      aPose.setXYZW(i, id, cadence, (cur % 6283.185307) - t * cadence, amp); dirty.pose = true;
+      aPose.setXYZW(i, id, cadence, (cur % 6283.185307) - t * cadence, amp);
+      dirty.pose = true;
     },
     setTransform(i, x, y, z, heading, height, blobScale = 1) {
       const sc = height / REF_H;
-      _q.setFromEuler(_e.set(0, heading, 0)); _m.compose(_p.set(x, y, z), _q, _s.set(sc, sc, sc)); mesh.setMatrixAt(i, _m);
-      _m.compose(_p.set(x, y + 0.03, z), _q, _s.set(0.95 * blobScale, 1, 0.95 * blobScale * (blobScale > 1.2 ? 1.6 : 1))); blobs.setMatrixAt(i, _m);
+      _q.setFromEuler(_e.set(0, heading, 0));
+      _m.compose(_p.set(x, y, z), _q, _s.set(sc, sc, sc));
+      mesh.setMatrixAt(i, _m);
+      _m.compose(
+        _p.set(x, y + 0.03, z),
+        _q,
+        _s.set(0.95 * blobScale, 1, 0.95 * blobScale * (blobScale > 1.2 ? 1.6 : 1)),
+      );
+      blobs.setMatrixAt(i, _m);
       dirty.mat = true;
     },
     update(dt) {
       uTime.value += dt;
-      if (dirty.mat) { mesh.instanceMatrix.needsUpdate = true; blobs.instanceMatrix.needsUpdate = true; dirty.mat = false; }
-      if (dirty.pose) { aPose.needsUpdate = true; dirty.pose = false; }
+      if (dirty.mat) {
+        mesh.instanceMatrix.needsUpdate = true;
+        blobs.instanceMatrix.needsUpdate = true;
+        dirty.mat = false;
+      }
+      if (dirty.pose) {
+        aPose.needsUpdate = true;
+        dirty.pose = false;
+      }
       if (dirty.fade) {
         aFade.needsUpdate = true;
         dirty.fade = false;
       }
-      if (dirty.look) { aColA.needsUpdate = true; aColB.needsUpdate = true; aShape.needsUpdate = true; aFlags.needsUpdate = true; dirty.look = false; }
+      if (dirty.look) {
+        aColA.needsUpdate = true;
+        aColB.needsUpdate = true;
+        aShape.needsUpdate = true;
+        aFlags.needsUpdate = true;
+        dirty.look = false;
+      }
     },
-    get time() { return uTime.value; },
-    get active() { return high - free.length; },
+    get time() {
+      return uTime.value;
+    },
+    get active() {
+      return high - free.length;
+    },
     tris: geo.index.count / 3,
-    dispose() { mesh.parent?.remove(mesh); blobs.parent?.remove(blobs); ig.dispose(); mat.dispose(); depth.dispose(); sg.dispose(); smat.dispose(); },
+    dispose() {
+      mesh.parent?.remove(mesh);
+      blobs.parent?.remove(blobs);
+      ig.dispose();
+      mat.dispose();
+      depth.dispose();
+      sg.dispose();
+      smat.dispose();
+    },
   };
   return api;
 }

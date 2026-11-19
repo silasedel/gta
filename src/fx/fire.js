@@ -18,7 +18,7 @@ const FLAME_MAX = 96;
 const SMOKE_MAX = 220;
 const EMBER_MAX = 320;
 
-const NOISE_GLSL = /* glsl */`
+const NOISE_GLSL = /* glsl */ `
 float fHash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -46,7 +46,7 @@ float fFbm(vec2 p) {
 }
 `;
 
-const BILLBOARD_VERT = /* glsl */`
+const BILLBOARD_VERT = /* glsl */ `
 attribute vec4 iPosSize;   // xyz position (base of a flame, center of smoke), w = width
 attribute vec4 iParams;    // x height, y seed, z intensity / opacity, w mode or age
 varying vec2 vUv;
@@ -64,7 +64,7 @@ void main() {
 }
 `;
 
-const FLAME_FRAG = /* glsl */`
+const FLAME_FRAG = /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
 varying vec4 vParams;
@@ -122,7 +122,7 @@ void main() {
 }
 `;
 
-const SMOKE_FRAG = /* glsl */`
+const SMOKE_FRAG = /* glsl */ `
 uniform float uTime;
 uniform vec3 uSmokeLight;
 varying vec2 vUv;
@@ -147,7 +147,7 @@ void main() {
 }
 `;
 
-const EMBER_VERT = /* glsl */`
+const EMBER_VERT = /* glsl */ `
 attribute float aSize;
 attribute float aGlow;
 uniform float uScale;
@@ -159,7 +159,7 @@ void main() {
   gl_PointSize = max(1.0, aSize * uScale / max(0.5, -mv.z));
 }
 `;
-const EMBER_FRAG = /* glsl */`
+const EMBER_FRAG = /* glsl */ `
 varying float vGlow;
 void main() {
   vec2 d = gl_PointCoord - 0.5;
@@ -190,7 +190,12 @@ function makeBillboards(THREE, max, fragmentShader, blending, uniforms, up) {
   geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e7);
   const mat = new THREE.ShaderMaterial({
     uniforms,
-    vertexShader: BILLBOARD_VERT.replace('BILLBOARD_UP', up === 'flame' ? 'vec3(0.0, 1.0, 0.0)' : 'normalize(vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]))'),
+    vertexShader: BILLBOARD_VERT.replace(
+      'BILLBOARD_UP',
+      up === 'flame'
+        ? 'vec3(0.0, 1.0, 0.0)'
+        : 'normalize(vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]))',
+    ),
     fragmentShader,
     transparent: true,
     depthWrite: false,
@@ -212,10 +217,24 @@ function makeBillboards(THREE, max, fragmentShader, blending, uniforms, up) {
 export function createFireSystem(THREE, scene, opts = {}) {
   const uTime = { value: 0 };
   const uSmokeLight = { value: new THREE.Vector3(1, 1, 1) };
-  const flames = makeBillboards(THREE, FLAME_MAX, FLAME_FRAG, THREE.CustomBlending, { uTime }, 'flame');
+  const flames = makeBillboards(
+    THREE,
+    FLAME_MAX,
+    FLAME_FRAG,
+    THREE.CustomBlending,
+    { uTime },
+    'flame',
+  );
   flames.mesh.name = 'fx-fire-flames';
   flames.mesh.renderOrder = 6;
-  const smoke = makeBillboards(THREE, SMOKE_MAX, SMOKE_FRAG, THREE.NormalBlending, { uTime, uSmokeLight }, 'smoke');
+  const smoke = makeBillboards(
+    THREE,
+    SMOKE_MAX,
+    SMOKE_FRAG,
+    THREE.NormalBlending,
+    { uTime, uSmokeLight },
+    'smoke',
+  );
   smoke.mesh.name = 'fx-fire-smoke';
   smoke.mesh.renderOrder = 5;
 
@@ -226,7 +245,10 @@ export function createFireSystem(THREE, scene, opts = {}) {
   const eLife = new Float32Array(EMBER_MAX);
   const eMax = new Float32Array(EMBER_MAX);
   const eGeo = new THREE.BufferGeometry();
-  eGeo.setAttribute('position', new THREE.BufferAttribute(ePos, 3).setUsage(THREE.DynamicDrawUsage));
+  eGeo.setAttribute(
+    'position',
+    new THREE.BufferAttribute(ePos, 3).setUsage(THREE.DynamicDrawUsage),
+  );
   eGeo.setAttribute('aSize', new THREE.BufferAttribute(eSize, 1).setUsage(THREE.DynamicDrawUsage));
   eGeo.setAttribute('aGlow', new THREE.BufferAttribute(eGlow, 1).setUsage(THREE.DynamicDrawUsage));
   eGeo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e7);
@@ -256,7 +278,21 @@ export function createFireSystem(THREE, scene, opts = {}) {
   const fires = new Map();
   const smokeP = [];
   for (let i = 0; i < SMOKE_MAX; i++) {
-    smokeP.push({ alive: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, s0: 1, s1: 3, life: 0, max: 1, op: 0.5, seed: Math.random() });
+    smokeP.push({
+      alive: false,
+      x: 0,
+      y: 0,
+      z: 0,
+      vx: 0,
+      vy: 0,
+      vz: 0,
+      s0: 1,
+      s1: 3,
+      life: 0,
+      max: 1,
+      op: 0.5,
+      seed: Math.random(),
+    });
   }
   let smokeNext = 0;
   let emberNext = 0;
@@ -314,7 +350,17 @@ export function createFireSystem(THREE, scene, opts = {}) {
   function burn(key, pos, size = 1) {
     let f = fires.get(key);
     if (!f) {
-      f = { x: pos.x, y: pos.y, z: pos.z, size, k: 0, last: time, smokeAcc: 0, emberAcc: 0, tongues: [] };
+      f = {
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
+        size,
+        k: 0,
+        last: time,
+        smokeAcc: 0,
+        emberAcc: 0,
+        tongues: [],
+      };
       const n = 4 + Math.round(size * 3);
       for (let i = 0; i < n; i++) {
         const lead = i < 2;
@@ -353,7 +399,15 @@ export function createFireSystem(THREE, scene, opts = {}) {
     }
     // the cloud left behind: thick black smoke, then a lingering column
     for (let i = 0; i < 16 * k; i++) {
-      puff(pos.x + rnd(-2, 2) * k, pos.y + rnd(1, 4) * k, pos.z + rnd(-2, 2) * k, rnd(1.6, 2.6) * k, 0.8, rnd(3.5, 6.5), rnd(0.8, 2.2));
+      puff(
+        pos.x + rnd(-2, 2) * k,
+        pos.y + rnd(1, 4) * k,
+        pos.z + rnd(-2, 2) * k,
+        rnd(1.6, 2.6) * k,
+        0.8,
+        rnd(3.5, 6.5),
+        rnd(0.8, 2.2),
+      );
     }
   }
 
@@ -365,7 +419,7 @@ export function createFireSystem(THREE, scene, opts = {}) {
     readWind();
     if (camera) {
       const h = opts.viewportHeight?.() || 1080;
-      uScale.value = h / (2 * Math.tan((camera.fov * Math.PI / 180) / 2));
+      uScale.value = h / (2 * Math.tan((camera.fov * Math.PI) / 180 / 2));
     }
     const dayLight = opts.dayLight?.() ?? 1;
     uSmokeLight.value.setScalar(0.35 + 0.65 * dayLight);
@@ -387,7 +441,13 @@ export function createFireSystem(THREE, scene, opts = {}) {
           break;
         }
         const pulse = 0.82 + 0.18 * Math.sin(time * (3.1 + tg.seed * 2) + tg.phase);
-        flames.posSize.setXYZW(fi, f.x + tg.ox + windV.x * 0.03, f.y, f.z + tg.oz + windV.z * 0.03, tg.w * (0.85 + 0.15 * f.k));
+        flames.posSize.setXYZW(
+          fi,
+          f.x + tg.ox + windV.x * 0.03,
+          f.y,
+          f.z + tg.oz + windV.z * 0.03,
+          tg.w * (0.85 + 0.15 * f.k),
+        );
         flames.params.setXYZW(fi, tg.h * pulse * f.k, tg.seed, 0.95 * f.k * flick, 0);
         fi++;
       }
@@ -395,12 +455,25 @@ export function createFireSystem(THREE, scene, opts = {}) {
       f.smokeAcc += dt * (5 + 6 * f.size) * f.k;
       while (f.smokeAcc >= 1) {
         f.smokeAcc -= 1;
-        puff(f.x + rnd(-0.4, 0.4) * f.size, f.y + 1.1 * f.size + rnd(0, 0.6), f.z + rnd(-0.4, 0.4) * f.size, 0.8 * f.size, 0.7, rnd(3.5, 6.5), rnd(1.1, 2.0));
+        puff(
+          f.x + rnd(-0.4, 0.4) * f.size,
+          f.y + 1.1 * f.size + rnd(0, 0.6),
+          f.z + rnd(-0.4, 0.4) * f.size,
+          0.8 * f.size,
+          0.7,
+          rnd(3.5, 6.5),
+          rnd(1.1, 2.0),
+        );
       }
       f.emberAcc += dt * 9 * f.size * f.k;
       while (f.emberAcc >= 1) {
         f.emberAcc -= 1;
-        ember(f.x + rnd(-0.4, 0.4) * f.size, f.y + rnd(0.2, 1.0) * f.size, f.z + rnd(-0.4, 0.4) * f.size, 1);
+        ember(
+          f.x + rnd(-0.4, 0.4) * f.size,
+          f.y + rnd(0.2, 1.0) * f.size,
+          f.z + rnd(-0.4, 0.4) * f.size,
+          1,
+        );
       }
       if (camera) {
         const d = Math.hypot(f.x - camera.position.x, f.z - camera.position.z);
@@ -482,7 +555,8 @@ export function createFireSystem(THREE, scene, opts = {}) {
         continue;
       }
       eVel[i * 3] += (windV.x * 0.6 - eVel[i * 3]) * dt * 0.8 + (Math.random() - 0.5) * dt * 3;
-      eVel[i * 3 + 2] += (windV.z * 0.6 - eVel[i * 3 + 2]) * dt * 0.8 + (Math.random() - 0.5) * dt * 3;
+      eVel[i * 3 + 2] +=
+        (windV.z * 0.6 - eVel[i * 3 + 2]) * dt * 0.8 + (Math.random() - 0.5) * dt * 3;
       eVel[i * 3 + 1] -= dt * 0.6;
       ePos[i * 3] += eVel[i * 3] * dt;
       ePos[i * 3 + 1] += eVel[i * 3 + 1] * dt;
@@ -496,7 +570,8 @@ export function createFireSystem(THREE, scene, opts = {}) {
     // ---- warm flickering light from the nearest fire
     if (_hd.s > 0.01 && _hd.d < 120) {
       light.position.set(_hd.x, _hd.y, _hd.z);
-      light.intensity = (9 + 4 * Math.sin(time * 19) * Math.sin(time * 31 + 1.3)) * Math.min(2.5, _hd.s);
+      light.intensity =
+        (9 + 4 * Math.sin(time * 19) * Math.sin(time * 31 + 1.3)) * Math.min(2.5, _hd.s);
     } else {
       light.intensity = 0;
     }

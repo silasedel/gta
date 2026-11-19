@@ -109,7 +109,15 @@ async function runPass(label, link) {
       truth(b.i, t + 0.01, b2);
       if (b.i === 0 && a.car && !vehSent) {
         vehSent = true;
-        b.c.sendJSON({ t: 'veh', id: vehId, key: 'sedan', kind: 'car', color: 0x2a6f9e, p: [a.x, 0, a.z], r: [0, 0, 0] });
+        b.c.sendJSON({
+          t: 'veh',
+          id: vehId,
+          key: 'sedan',
+          kind: 'car',
+          color: 0x2a6f9e,
+          p: [a.x, 0, a.z],
+          r: [0, 0, 0],
+        });
       }
       if (b.i === 2 && t >= 11.9 && !tpSent) {
         tpSent = true;
@@ -155,7 +163,15 @@ async function runPass(label, link) {
     truth(1, t, a);
     const o = [a.x, 1.4, a.z];
     const d = [view.x - o[0], view.y + 1.2 - o[1], view.z - o[2]];
-    sh.c.sendJSON({ t: 'shot', o, d, w: 'pistol', ct: performance.now() >>> 0, ip: Math.round(sh.c.interpDelay), vt: Math.round(sh.c.renderT) });
+    sh.c.sendJSON({
+      t: 'shot',
+      o,
+      d,
+      w: 'pistol',
+      ct: performance.now() >>> 0,
+      ip: Math.round(sh.c.interpDelay),
+      vt: Math.round(sh.c.renderT),
+    });
   }, 500);
   // render loop: 60 Hz; every bot renders the other two and we compare with ground truth
   const errs = [];
@@ -197,8 +213,8 @@ async function runPass(label, link) {
         if (p) {
           // snap: how far this frame's step strays from the true step over the same render interval
           truth(tb.i, T(p.rt - sp.offset), tr2);
-          const dx = (view.x - p.x) - (tr.x - tr2.x);
-          const dz = (view.z - p.z) - (tr.z - tr2.z);
+          const dx = view.x - p.x - (tr.x - tr2.x);
+          const dz = view.z - p.z - (tr.z - tr2.z);
           snaps.push(Math.hypot(dx, dz));
         }
         prev.set(key, { x: view.x, z: view.z, rt });
@@ -220,7 +236,11 @@ async function runPass(label, link) {
     }
   }
   const secs = (performance.now() - t0) / 1000;
-  const bw = bots.map((b) => ({ bot: b.i, downBps: Math.round(b.c.bytesIn / secs), upBps: Math.round(b.c.bytesOut / secs) }));
+  const bw = bots.map((b) => ({
+    bot: b.i,
+    downBps: Math.round(b.c.bytesIn / secs),
+    upBps: Math.round(b.c.bytesOut / secs),
+  }));
   const statsRes = await fetch(`http://127.0.0.1:${port}/stats`).then((r) => r.json());
   const res = {
     label,
@@ -259,15 +279,29 @@ function pct(a) {
   }
   const s = [...a].sort((x, y) => x - y);
   const q = (p) => +s[Math.min(s.length - 1, Math.floor(p * s.length))].toFixed(3);
-  return { mean: +(a.reduce((x, y) => x + y, 0) / a.length).toFixed(3), p50: q(0.5), p95: q(0.95), p99: q(0.99), max: +s[s.length - 1].toFixed(3) };
+  return {
+    mean: +(a.reduce((x, y) => x + y, 0) / a.length).toFixed(3),
+    p50: q(0.5),
+    p95: q(0.95),
+    p99: q(0.99),
+    max: +s[s.length - 1].toFixed(3),
+  };
 }
 
 const results = [];
 results.push(await runPass('clean link', {}));
-results.push(await runPass('100 ms lag, 30 ms jitter, 2 % loss', { lag: 100, jitter: 30, loss: 0.02 }));
+results.push(
+  await runPass('100 ms lag, 30 ms jitter, 2 % loss', { lag: 100, jitter: 30, loss: 0.02 }),
+);
 let ok = true;
 for (const r of results) {
-  const pass = r.convergedMax < 0.5 && r.hits > 0 && r.speedHackCorrections > 0 && r.declaredTeleportsAccepted > 0 && r.finalBot3X > 200 && r.vehicleFramesSeen > 0;
+  const pass =
+    r.convergedMax < 0.5 &&
+    r.hits > 0 &&
+    r.speedHackCorrections > 0 &&
+    r.declaredTeleportsAccepted > 0 &&
+    r.finalBot3X > 200 &&
+    r.vehicleFramesSeen > 0;
   r.pass = pass;
   ok &&= pass;
   console.log(JSON.stringify(r, null, 1));

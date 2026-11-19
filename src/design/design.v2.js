@@ -11,7 +11,14 @@ export async function initV2(game) {
     product: (id, opts) => design.buildProduct(THREE, id, opts),
     material: (name, opts) => design.materials.get(THREE, name, opts),
     logo: (brandId, size, opts) => design.getBrand(brandId)?.logoTexture(THREE, size, opts) || null,
-    sign: (brandId, opts) => { const b = design.getBrand(brandId); return b ? design.signs.build(THREE, b, opts) : null; },
+    sign: (brandId, opts) => {
+      const b = design.getBrand(brandId);
+      return b ? design.signs.build(THREE, b, opts) : null;
+    },
   };
-  game.emit?.('design:ready', { brands: design.brands.length, products: design.products.length, materials: design.materials.names().length });
+  game.emit?.('design:ready', {
+    brands: design.brands.length,
+    products: design.products.length,
+    materials: design.materials.names().length,
+  });
 }

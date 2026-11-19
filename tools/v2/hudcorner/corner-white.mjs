@@ -15,12 +15,19 @@ const STATES = [
   ['smg', 'wanted=5&weapon=smg&clip=35&reserve=105'],
 ];
 await withBrowser({ width: 1920, height: 1080, maxSeconds: 900 }, async (b) => {
-  await b.send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 2, mobile: false });
+  await b.send('Emulation.setDeviceMetricsOverride', {
+    width: 1920,
+    height: 1080,
+    deviceScaleFactor: 2,
+    mobile: false,
+  });
   for (const [name, q] of STATES) {
     await b.goto('http://127.0.0.1:5200/tools/v2/hudcorner/corner.html?' + q);
     await b.waitFor('window.cornerReady === true', 120);
     await b.sleep(900);
-    await b.screenshot(`${OUT}/white_${TAG}_${name}.png`, { clip: { x: 1440, y: 0, width: 480, height: 470 } });
+    await b.screenshot(`${OUT}/white_${TAG}_${name}.png`, {
+      clip: { x: 1440, y: 0, width: 480, height: 470 },
+    });
   }
   console.log('errors', b.errors.filter((e) => !/favicon/.test(e)).slice(0, 8));
 });

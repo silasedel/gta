@@ -14,12 +14,45 @@ import { installSolidCars } from './solidCars.js';
 export const order = 5;
 
 export async function initV2(game) {
-  try { installRelief(game); } catch (e) { console.error('[r2-physics] relief', e); }
-  try { installShrubs(game); } catch (e) { console.error('[r2-physics] shrubs', e); }
-  try { installTrunks(game); } catch (e) { console.error('[r2-physics] trunks', e); }
-  try { installRocks(game); } catch (e) { console.error('[r2-physics] rocks', e); }
-  try { installSolidCars(game); } catch (e) { console.error('[r2-physics] solid cars', e); }
-  try { installImpacts(game); } catch (e) { console.error('[r2-physics] impacts', e); }
-  try { installClearance(game); } catch (e) { console.error('[r2-physics] clearance', e); }
-  try { const { installOverlay } = await import('./overlay.js'); installOverlay(game); } catch (e) { console.warn('[r2-physics] overlay', e); }
+  try {
+    installRelief(game);
+  } catch (e) {
+    console.error('[r2-physics] relief', e);
+  }
+  try {
+    installShrubs(game);
+  } catch (e) {
+    console.error('[r2-physics] shrubs', e);
+  }
+  try {
+    installTrunks(game);
+  } catch (e) {
+    console.error('[r2-physics] trunks', e);
+  }
+  try {
+    installRocks(game);
+  } catch (e) {
+    console.error('[r2-physics] rocks', e);
+  }
+  try {
+    installSolidCars(game);
+  } catch (e) {
+    console.error('[r2-physics] solid cars', e);
+  }
+  try {
+    installImpacts(game);
+  } catch (e) {
+    console.error('[r2-physics] impacts', e);
+  }
+  try {
+    installClearance(game);
+  } catch (e) {
+    console.error('[r2-physics] clearance', e);
+  }
+  try {
+    const { installOverlay } = await import('./overlay.js');
+    installOverlay(game);
+  } catch (e) {
+    console.warn('[r2-physics] overlay', e);
+  }
 }

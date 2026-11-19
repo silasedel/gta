@@ -63,28 +63,44 @@ const MEASURE = `new Promise((res) => {
 })`;
 console.log('uptime', execSync('uptime').toString().trim());
 let bad = false;
-await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 235) }, async (b) => {
-  await b.goto('http://127.0.0.1:5200/?mute');
-  await b.waitFor(GAME_READY, 150);
-  // first frames after ready can still show the title card: stage once and give the page a few seconds
-  await b.eval(STAGE(VIEWS[want[0]], hours[0]));
-  await b.sleep(5000);
-  for (const id of want) {
-    for (const hour of hours) {
-      await b.waitFor(GAME_READY, 120); // the shared dev server may have hot-reloaded the page
-      await b.eval(STAGE(VIEWS[id], hour));
-      await b.sleep(1500);
-      try { await b.waitFor(SETTLED, +(o.settleWait || 50)); } catch (e) { console.log('  (stream not settled)', id); }
-      await b.sleep(+(o.settle || 2500));
-      const m = await b.eval(MEASURE);
-      const file = path.join(OUT, `${id}_${TAG}_${String(hour).replace('.', 'h')}.png`);
-      let ok = false;
-      for (let k = 0; k < 4 && !ok; k++) {
-        try { await b.screenshot(file); ok = true; } catch (e) { console.log('  screenshot retry', id, k); await b.sleep(2500); }
+await withBrowser(
+  { width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 235) },
+  async (b) => {
+    await b.goto('http://127.0.0.1:5200/?mute');
+    await b.waitFor(GAME_READY, 150);
+    // first frames after ready can still show the title card: stage once and give the page a few seconds
+    await b.eval(STAGE(VIEWS[want[0]], hours[0]));
+    await b.sleep(5000);
+    for (const id of want) {
+      for (const hour of hours) {
+        await b.waitFor(GAME_READY, 120); // the shared dev server may have hot-reloaded the page
+        await b.eval(STAGE(VIEWS[id], hour));
+        await b.sleep(1500);
+        try {
+          await b.waitFor(SETTLED, +(o.settleWait || 50));
+        } catch (e) {
+          console.log('  (stream not settled)', id);
+        }
+        await b.sleep(+(o.settle || 2500));
+        const m = await b.eval(MEASURE);
+        const file = path.join(OUT, `${id}_${TAG}_${String(hour).replace('.', 'h')}.png`);
+        let ok = false;
+        for (let k = 0; k < 4 && !ok; k++) {
+          try {
+            await b.screenshot(file);
+            ok = true;
+          } catch (e) {
+            console.log('  screenshot retry', id, k);
+            await b.sleep(2500);
+          }
+        }
+        console.log(id, hour, JSON.stringify(m));
       }
-      console.log(id, hour, JSON.stringify(m));
     }
-  }
-  if (b.errors.length) { console.log('CONSOLE ERRORS:\n' + [...new Set(b.errors)].slice(0, 20).join('\n')); bad = !o.allowErrors; }
-});
+    if (b.errors.length) {
+      console.log('CONSOLE ERRORS:\n' + [...new Set(b.errors)].slice(0, 20).join('\n'));
+      bad = !o.allowErrors;
+    }
+  },
+);
 process.exit(bad ? 1 : 0);

@@ -22,9 +22,13 @@ await withBrowser({ width: 1000, height: 600, maxSeconds: 400 }, async (b) => {
   })()`);
   console.log('entered + exited', r1);
   await b.sleep(3000);
-  await b.eval(`(() => { const t = window.__car.body.translation(); game.teleport(t.x + 80, undefined, t.z + 10, 0); return 1; })()`);
+  await b.eval(
+    `(() => { const t = window.__car.body.translation(); game.teleport(t.x + 80, undefined, t.z + 10, 0); return 1; })()`,
+  );
   await b.sleep(25000);
-  const r2 = await b.eval(`(() => { const V = game.vehicles, v = window.__car; const before = V.list.includes(v); const refused = V.remove(v) === false; return JSON.stringify({ stillThere: before, removeRefused: refused, stillAfter: V.list.includes(v), sweep: V.sweepStats?.() }); })()`);
+  const r2 = await b.eval(
+    `(() => { const V = game.vehicles, v = window.__car; const before = V.list.includes(v); const refused = V.remove(v) === false; return JSON.stringify({ stillThere: before, removeRefused: refused, stillAfter: V.list.includes(v), sweep: V.sweepStats?.() }); })()`,
+  );
   console.log('after walking away', r2);
   const errs = [...new Set(b.errors)].filter((e) => !/favicon/.test(e));
   console.log('ERRORS', errs.length, JSON.stringify(errs.slice(0, 6)));

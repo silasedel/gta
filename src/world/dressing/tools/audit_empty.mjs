@@ -47,7 +47,18 @@ const cls = new Uint8Array(N);
 const why = new Uint8Array(N); // cause code for empty cells
 const content = new Uint16Array(N);
 const kindOf = new Uint8Array(N);
-const KINDS = ['none', 'land', 'paved', 'parking', 'grass', 'park', 'beach', 'dirt', 'wood', 'natural'];
+const KINDS = [
+  'none',
+  'land',
+  'paved',
+  'parking',
+  'grass',
+  'park',
+  'beach',
+  'dirt',
+  'wood',
+  'natural',
+];
 const kIdx = (k) => Math.max(0, KINDS.indexOf(k));
 const ci = (x, z) => {
   const i = Math.floor((x - B.minX) / CELL);
@@ -60,7 +71,7 @@ function pip(ring, x, z) {
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const a = ring[i];
     const b = ring[j];
-    if ((a[1] > z) !== (b[1] > z) && x < ((b[0] - a[0]) * (z - a[1])) / (b[1] - a[1]) + a[0]) c = !c;
+    if (a[1] > z !== b[1] > z && x < ((b[0] - a[0]) * (z - a[1])) / (b[1] - a[1]) + a[0]) c = !c;
   }
   return c;
 }
@@ -102,7 +113,21 @@ function mark(x, z, add = 1) {
 // 1. ground kind per cell (areas), building and road cells
 const isBld = new Uint8Array(N);
 const isRoad = new Uint8Array(N);
-const NATURAL = new Set(['scrub', 'forest', 'pine', 'sawgrass', 'wetland', 'mangrove', 'farmland', 'grove', 'wild', 'island', 'golf', 'campground', 'dune']);
+const NATURAL = new Set([
+  'scrub',
+  'forest',
+  'pine',
+  'sawgrass',
+  'wetland',
+  'mangrove',
+  'farmland',
+  'grove',
+  'wild',
+  'island',
+  'golf',
+  'campground',
+  'dune',
+]);
 let tiles = 0;
 for (const key of man.tiles) {
   const [tx, tz] = key.split('_').map(Number);
@@ -112,7 +137,8 @@ for (const key of man.tiles) {
   for (const a of t.areas) {
     let k = a.kind;
     if (NATURAL.has(a.cls) && !data.inRealMiami(a.rings[0][0][0], a.rings[0][0][1])) k = 'natural';
-    if (a.cls === 'dirt' || a.cls === 'construction' || a.cls === 'gravel' || a.cls === 'rock') k = 'dirt';
+    if (a.cls === 'dirt' || a.cls === 'construction' || a.cls === 'gravel' || a.cls === 'rock')
+      k = 'dirt';
     const kk = kIdx(k);
     eachCellIn(a.rings, (c) => {
       // later, more specific areas win over the plain land polygon
@@ -135,7 +161,13 @@ for (const key of man.tiles) {
       for (let s = 0; s <= n; s++) {
         const x = ax + ((bx - ax) * s) / n;
         const z = az + ((bz - az) * s) / n;
-        for (const [ox, oz] of [[0, 0], [hw, 0], [-hw, 0], [0, hw], [0, -hw]]) {
+        for (const [ox, oz] of [
+          [0, 0],
+          [hw, 0],
+          [-hw, 0],
+          [0, hw],
+          [0, -hw],
+        ]) {
           const c = ci(x + ox, z + oz);
           if (c >= 0) isRoad[c] = 1;
         }
@@ -161,7 +193,15 @@ if (DRESSED) {
 }
 
 // 3. classify
-const CAUSE = ['', 'plain land, no land use (M.land gray)', 'paved / plaza with nothing on it', 'parking lot with nothing on it', 'dirt / gravel / construction', 'synthetic land with no cover', 'bare lawn (grass, no trees or props)'];
+const CAUSE = [
+  '',
+  'plain land, no land use (M.land gray)',
+  'paved / plaza with nothing on it',
+  'parking lot with nothing on it',
+  'dirt / gravel / construction',
+  'synthetic land with no cover',
+  'bare lawn (grass, no trees or props)',
+];
 let land = 0;
 for (let j = 0; j < H; j++) {
   for (let i = 0; i < W; i++) {
@@ -184,7 +224,13 @@ for (let j = 0; j < H; j++) {
     const k = KINDS[kindOf[c]];
     const real = data.inRealMiami(x, z);
     const cover = data.coverAt(x, z);
-    if (content[c] > 0 || k === 'natural' || k === 'beach' || k === 'wood' || (!real && NATURAL.has(cover))) {
+    if (
+      content[c] > 0 ||
+      k === 'natural' ||
+      k === 'beach' ||
+      k === 'wood' ||
+      (!real && NATURAL.has(cover))
+    ) {
       cls[c] = 5;
       continue;
     }
@@ -194,7 +240,20 @@ for (let j = 0; j < H; j++) {
       continue;
     }
     cls[c] = 1;
-    why[c] = k === 'land' ? 1 : k === 'paved' ? 2 : k === 'parking' ? 3 : k === 'dirt' ? 4 : k === 'none' ? (real ? 1 : 5) : 1;
+    why[c] =
+      k === 'land'
+        ? 1
+        : k === 'paved'
+          ? 2
+          : k === 'parking'
+            ? 3
+            : k === 'dirt'
+              ? 4
+              : k === 'none'
+                ? real
+                  ? 1
+                  : 5
+                : 1;
   }
 }
 
@@ -205,7 +264,19 @@ const stack = new Int32Array(N);
 for (let c0 = 0; c0 < N; c0++) {
   if ((cls[c0] !== 1 && cls[c0] !== 2) || reg[c0] >= 0) continue;
   const id = regions.length;
-  const r = { id, cells: 0, gray: 0, lawn: 0, sx: 0, sz: 0, x0: Infinity, z0: Infinity, x1: -Infinity, z1: -Infinity, causes: {} };
+  const r = {
+    id,
+    cells: 0,
+    gray: 0,
+    lawn: 0,
+    sx: 0,
+    sz: 0,
+    x0: Infinity,
+    z0: Infinity,
+    x1: -Infinity,
+    z1: -Infinity,
+    causes: {},
+  };
   let sp = 0;
   stack[sp++] = c0;
   reg[c0] = id;
@@ -225,7 +296,12 @@ for (let c0 = 0; c0 < N; c0++) {
     r.z0 = Math.min(r.z0, z);
     r.z1 = Math.max(r.z1, z);
     r.causes[why[c]] = (r.causes[why[c]] || 0) + 1;
-    for (const n of [i > 0 ? c - 1 : -1, i < W - 1 ? c + 1 : -1, j > 0 ? c - W : -1, j < H - 1 ? c + W : -1]) {
+    for (const n of [
+      i > 0 ? c - 1 : -1,
+      i < W - 1 ? c + 1 : -1,
+      j > 0 ? c - W : -1,
+      j < H - 1 ? c + W : -1,
+    ]) {
       if (n >= 0 && reg[n] < 0 && (cls[n] === 1 || cls[n] === 2)) {
         reg[n] = id;
         stack[sp++] = n;
@@ -278,7 +354,9 @@ const out = {
   emptyGrayKm2: +(grayA / 1e6).toFixed(2),
   emptyGrayRealMiamiKm2: +(realGray / 1e6).toFixed(2),
   bareLawnKm2: +(lawnA / 1e6).toFixed(2),
-  byCauseKm2: Object.fromEntries(Object.entries(totals).map(([k, v]) => [k, +(v / 1e6).toFixed(3)])),
+  byCauseKm2: Object.fromEntries(
+    Object.entries(totals).map(([k, v]) => [k, +(v / 1e6).toFixed(3)]),
+  ),
   regionsOver2000m2: regions.filter((r) => r.area >= 2000).length,
   ranked: regions.slice(0, 60).map((r, i) => ({
     rank: i + 1,
@@ -295,9 +373,26 @@ const out = {
     causes: r.causes,
   })),
 };
-const outJ = path.join(ROOT, `docs/v2/reports/world-dressing-empty${TAG === 'before' ? '' : '-' + TAG}.json`);
+const outJ = path.join(
+  ROOT,
+  `docs/v2/reports/world-dressing-empty${TAG === 'before' ? '' : '-' + TAG}.json`,
+);
 fs.writeFileSync(outJ, JSON.stringify(out, null, 1));
-console.log(JSON.stringify({ ...out, ranked: out.ranked.slice(0, 20).map((r) => `${r.rank}. (${r.x}, ${r.z}) ${Math.round(r.areaM2)} m2 ${r.district}/${r.zone} ${r.real ? 'real' : 'synth'} - ${r.cause}`) }, null, 1));
+console.log(
+  JSON.stringify(
+    {
+      ...out,
+      ranked: out.ranked
+        .slice(0, 20)
+        .map(
+          (r) =>
+            `${r.rank}. (${r.x}, ${r.z}) ${Math.round(r.areaM2)} m2 ${r.district}/${r.zone} ${r.real ? 'real' : 'synth'} - ${r.cause}`,
+        ),
+    },
+    null,
+    1,
+  ),
+);
 
 // 5. heatmaps
 function png(file, w, h, rgb) {
@@ -329,9 +424,24 @@ function png(file, w, h, rgb) {
   ihdr.writeUInt32BE(h, 4);
   ihdr[8] = 8;
   ihdr[9] = 2;
-  fs.writeFileSync(file, Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw, { level: 6 })), chunk('IEND', Buffer.alloc(0))]));
+  fs.writeFileSync(
+    file,
+    Buffer.concat([
+      Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+      chunk('IHDR', ihdr),
+      chunk('IDAT', zlib.deflateSync(raw, { level: 6 })),
+      chunk('IEND', Buffer.alloc(0)),
+    ]),
+  );
 }
-const COL = [[22, 52, 88], [235, 40, 30], [245, 170, 40], [60, 60, 66], [150, 110, 80], [70, 130, 70]];
+const COL = [
+  [22, 52, 88],
+  [235, 40, 30],
+  [245, 170, 40],
+  [60, 60, 66],
+  [150, 110, 80],
+  [70, 130, 70],
+];
 function render(file, x0, z0, x1, z1, step) {
   const w = Math.floor((x1 - x0) / step);
   const h = Math.floor((z1 - z0) / step);
@@ -367,9 +477,34 @@ function render(file, x0, z0, x1, z1, step) {
 const shots = path.join(ROOT, 'docs/v2/shots/world-dressing');
 fs.mkdirSync(shots, { recursive: true });
 const suf = TAG === 'before' ? '' : '_' + TAG;
-console.log('heatmap', render(path.join(shots, `heatmap${suf}.png`), B.minX, B.minZ, B.maxX, B.maxZ, CELL * 2));
+console.log(
+  'heatmap',
+  render(path.join(shots, `heatmap${suf}.png`), B.minX, B.minZ, B.maxX, B.maxZ, CELL * 2),
+);
 const RR = data.realRect;
-console.log('heatmap_real', render(path.join(shots, `heatmap_real${suf}.png`), RR.minX, RR.minZ, RR.maxX, RR.maxZ, CELL / 2 > 5 ? CELL / 2 : CELL));
+console.log(
+  'heatmap_real',
+  render(
+    path.join(shots, `heatmap_real${suf}.png`),
+    RR.minX,
+    RR.minZ,
+    RR.maxX,
+    RR.maxZ,
+    CELL / 2 > 5 ? CELL / 2 : CELL,
+  ),
+);
 // Key Paloma around the spawn
 const sp = (data.setpieces || []).find((s) => s.id === 'nico_house');
-if (sp) console.log('heatmap_spawn', render(path.join(shots, `heatmap_spawn${suf}.png`), sp.x - 1200, sp.z - 1200, sp.x + 1200, sp.z + 1200, CELL / 2 > 5 ? CELL / 2 : CELL), sp);
+if (sp)
+  console.log(
+    'heatmap_spawn',
+    render(
+      path.join(shots, `heatmap_spawn${suf}.png`),
+      sp.x - 1200,
+      sp.z - 1200,
+      sp.x + 1200,
+      sp.z + 1200,
+      CELL / 2 > 5 ? CELL / 2 : CELL,
+    ),
+    sp,
+  );

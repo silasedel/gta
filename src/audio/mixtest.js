@@ -100,7 +100,7 @@ function traffic(game, n, x0) {
       z: -dir * (60 + i * 45),
       dir,
     });
-    c.speed = (40 + (i * 7) % 25) / 3.6;
+    c.speed = (40 + ((i * 7) % 25)) / 3.6;
     c.speedKmh = c.speed * 3.6;
     c.throttle = 0.35;
     game.vehicles.list.push(c);
@@ -110,7 +110,8 @@ function moveTraffic(game, dt) {
   for (const c of game.vehicles.list) {
     if (!c.ai) continue;
     c.mesh.position.z += c.dir * c.speed * dt;
-    if (Math.abs(c.mesh.position.z - game.camera.position.z) > 260) c.mesh.position.z -= c.dir * 500;
+    if (Math.abs(c.mesh.position.z - game.camera.position.z) > 260)
+      c.mesh.position.z -= c.dir * 500;
   }
 }
 function chase(game, car) {
@@ -170,7 +171,8 @@ const SCENES = {
         pc.speedKmh = 0;
         pc.throttle = 0;
       }
-      if (t > 15 && t < 15.05) g.emit('crash', { vehicle: pc, point: pc.mesh.position.clone(), impulse: 6000 });
+      if (t > 15 && t < 15.05)
+        g.emit('crash', { vehicle: pc, point: pc.mesh.position.clone(), impulse: 6000 });
       moveTraffic(g, dt);
       chase(g, pc);
     },
@@ -188,7 +190,11 @@ const SCENES = {
       stepT -= dt;
       if (stepT <= 0) {
         stepT = 7;
-        g.emit('pedVoice', { kind: 'greet', position: new THREE.Vector3(3, 0, 4), gender: 'female' });
+        g.emit('pedVoice', {
+          kind: 'greet',
+          position: new THREE.Vector3(3, 0, 4),
+          gender: 'female',
+        });
       }
     },
   },
@@ -209,7 +215,10 @@ const SCENES = {
       stepT -= dt;
       if (stepT <= 0) {
         stepT = 0.55;
-        g.emit('footstep', { position: g.player.position.clone(), surface: t > 15 ? 'grass' : 'concrete' });
+        g.emit('footstep', {
+          position: g.player.position.clone(),
+          surface: t > 15 ? 'grass' : 'concrete',
+        });
       }
     },
   },
@@ -272,7 +281,8 @@ function toB64(buf) {
   }
   const bytes = new Uint8Array(out.buffer);
   let s = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  for (let i = 0; i < bytes.length; i += 0x8000)
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
   return btoa(s);
 }
 
@@ -280,7 +290,7 @@ function toB64(buf) {
 function seedRandom(seed) {
   let a = seed >>> 0;
   Math.random = () => {
-    a = (a + 0x6D2B79F5) | 0;
+    a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -297,7 +307,9 @@ async function run() {
   const game = makeGame();
   const scene = SCENES[SC];
   scene.setup(game);
-  const createAudio = q.get('impl') ? (await import(/* @vite-ignore */ q.get('impl'))).createAudio : liveCreateAudio;
+  const createAudio = q.get('impl')
+    ? (await import(/* @vite-ignore */ q.get('impl'))).createAudio
+    : liveCreateAudio;
   const audio = createAudio(game);
   game.audio = audio;
   if (q.has('vol')) audio.setVolume(+q.get('vol'));
@@ -354,5 +366,5 @@ async function run() {
   window.ready = true;
 }
 run().catch((e) => {
-  window.failed = String(e && e.stack || e);
+  window.failed = String((e && e.stack) || e);
 });

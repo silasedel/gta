@@ -8,10 +8,19 @@
 //  - LOD cross-fade: uFade = (inNear, inFar, outNear, outFar) in m; a screen-space dither makes LOD swaps invisible.
 import * as THREE from 'three';
 import { barkAtlas, leafAtlas } from './textures.js';
-import { FRAME_NOISE, RENDER_R2, IGN_R2_GLSL, A2C_R2T_GLSL, CAM_FOCUS } from '../../render/frameNoise.js';
+import {
+  FRAME_NOISE,
+  RENDER_R2,
+  IGN_R2_GLSL,
+  A2C_R2T_GLSL,
+  CAM_FOCUS,
+} from '../../render/frameNoise.js';
 
 const Q = typeof location === 'undefined' ? '' : location.search;
-const qn = (k, d) => { const m = new RegExp('[?&]' + k + '=([\\w.-]+)').exec(Q); return m ? (isNaN(+m[1]) ? m[1] : +m[1]) : d; };
+const qn = (k, d) => {
+  const m = new RegExp('[?&]' + k + '=([\\w.-]+)').exec(Q);
+  return m ? (isNaN(+m[1]) ? m[1] : +m[1]) : d;
+};
 // round 2 (r2-veg): ?vegr2=0 = the overnight look (A/B); ?vegaa=1 hard alpha cut instead of alpha-to-coverage (A/B)
 export const VEG_R2 = qn('vegr2', 1) !== 0;
 const VEG_AA = qn('vegaa', 0); // A2C stays the default: under camera motion it holds leaf edges better than a hard cut (TAA alone shows stair steps on fronds; a4 m_bench)
@@ -19,10 +28,16 @@ export const vegUniforms = {
   uRenderR2: RENDER_R2, // r2-render: golden-ratio stepped LOD dither (frameNoise.js)
   uVegFocus: CAM_FOCUS, // r2-render: camera-proximity fade (player chest)
   uFrameN: FRAME_NOISE, // stage 1: temporal dither offset (TAA resolves the LOD cross-fade instead of a fixed dot pattern)
-  uVegTime: { value: 0 }, uVegGust: { value: 0.45 },
+  uVegTime: { value: 0 },
+  uVegGust: { value: 0.45 },
   uSunDir: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
   // shared wind (copied every frame from game.wind when it exists): direction the air moves to, mean speed, clock of the gust field
-  uVegWindDir: { value: new THREE.Vector2(-1, 0) }, uVegCam: { value: new THREE.Vector3() }, uVegCamOn: { value: 0 }, uVegWindSpeed: { value: 3 }, uVegWindT: { value: 0 }, uSunCol: { value: new THREE.Color(1, 0.95, 0.85) },
+  uVegWindDir: { value: new THREE.Vector2(-1, 0) },
+  uVegCam: { value: new THREE.Vector3() },
+  uVegCamOn: { value: 0 },
+  uVegWindSpeed: { value: 3 },
+  uVegWindT: { value: 0 },
+  uSunCol: { value: new THREE.Color(1, 0.95, 0.85) },
 };
 
 const VERT_HEAD = `
@@ -340,53 +355,171 @@ function patch(kind, local) {
   return (sh) => {
     Object.assign(sh.uniforms, vegUniforms, local);
     if (kind === 'imp') {
-      sh.vertexShader = IMP_VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', IMP_NORMAL).replace('#include <begin_vertex>', IMP_POS);
-      sh.fragmentShader = IMP_FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment_imp>');
+      sh.vertexShader =
+        IMP_VERT_HEAD +
+        sh.vertexShader
+          .replace('#include <beginnormal_vertex>', IMP_NORMAL)
+          .replace('#include <begin_vertex>', IMP_POS);
+      sh.fragmentShader =
+        IMP_FRAG_HEAD +
+        sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment_imp>');
     }
-    sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + VERT_MIRROR_N).replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY).replace(IMP_POS, IMP_POS + VERT_BODY);
-    if (sh.fragmentShader.includes('#include <map_fragment>') || sh.fragmentShader.includes('#include <map_fragment_imp>')) {
-      sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', (kind === 'leaf' && VEG_R2 ? MAP_SHARP : '#include <map_fragment>') + '\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
-      sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO).replace('#include <alphatest_fragment>', A2C_R2T_GLSL + NEAR_FADE); // r2-render: no fixed A2C checkerboard; camera-proximity fade
-      if (kind === 'leaf') sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + FRAG_ROUGH);
-      if (kind === 'leaf' || kind === 'imp') sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + FRAG_TRANSL)
-        .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // foliage: keep the authored (outward / upward) normal on both faces
-      else if (local.uMirrorOn && local.uMirrorOn.value) sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // mirrored bark: winding flips, keep the transformed normal
-    } else { // depth material: dither only
-      sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <alphatest_fragment>', `#include <alphatest_fragment>
-        { float dn = vegDitherS(); if (uFade.y > 0.0 && dn >= smoothstep(uFade.x, uFade.y, vVegDist)) discard; if (uFade.w > 0.0 && dn < smoothstep(uFade.z, uFade.w, vVegDist)) discard; }`);
+    sh.vertexShader =
+      VERT_HEAD +
+      sh.vertexShader
+        .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + VERT_MIRROR_N)
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY)
+        .replace(IMP_POS, IMP_POS + VERT_BODY);
+    if (
+      sh.fragmentShader.includes('#include <map_fragment>') ||
+      sh.fragmentShader.includes('#include <map_fragment_imp>')
+    ) {
+      sh.fragmentShader =
+        FRAG_HEAD +
+        sh.fragmentShader
+          .replace(
+            '#include <map_fragment>',
+            (kind === 'leaf' && VEG_R2 ? MAP_SHARP : '#include <map_fragment>') + '\n' + FRAG_COLOR,
+          )
+          .replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO)
+        .replace('#include <alphatest_fragment>', A2C_R2T_GLSL + NEAR_FADE); // r2-render: no fixed A2C checkerboard; camera-proximity fade
+      if (kind === 'leaf')
+        sh.fragmentShader = sh.fragmentShader.replace(
+          '#include <roughnessmap_fragment>',
+          '#include <roughnessmap_fragment>\n' + FRAG_ROUGH,
+        );
+      if (kind === 'leaf' || kind === 'imp')
+        sh.fragmentShader = sh.fragmentShader
+          .replace(
+            '#include <emissivemap_fragment>',
+            '#include <emissivemap_fragment>\n' + FRAG_TRANSL,
+          )
+          .replace(
+            '#include <normal_fragment_maps>',
+            '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif',
+          ); // foliage: keep the authored (outward / upward) normal on both faces
+      else if (local.uMirrorOn && local.uMirrorOn.value)
+        sh.fragmentShader = sh.fragmentShader.replace(
+          '#include <normal_fragment_maps>',
+          '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif',
+        ); // mirrored bark: winding flips, keep the transformed normal
+    } else {
+      // depth material: dither only
+      sh.fragmentShader =
+        FRAG_HEAD +
+        sh.fragmentShader.replace(
+          '#include <alphatest_fragment>',
+          `#include <alphatest_fragment>
+        { float dn = vegDitherS(); if (uFade.y > 0.0 && dn >= smoothstep(uFade.x, uFade.y, vVegDist)) discard; if (uFade.w > 0.0 && dn < smoothstep(uFade.z, uFade.w, vVegDist)) discard; }`,
+        );
     }
   };
 }
 
 function localUniforms(o) {
   const im = o.map && o.map.userData && o.map.userData.impostor;
-  return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uImpA: { value: new THREE.Vector4(im && im.cols ? im.cols : im ? im.views : 8, im && im.rows ? im.rows : 1, im && im.fy ? im.fy : 1, 0) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
-    uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) },
-    uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) }, uCrownY: { value: o.crownY ?? 1e4 }, uCrownC: { value: new THREE.Vector2(...(o.crownC || [0, 0])) }, uSpread: { value: o.spread ?? 0.18 }, uMirrorOn: { value: o.mirror ? 1 : 0 },
-    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uBaseAO: { value: o.baseAO ?? 0 }, uBarkDet: { value: o.barkDet ?? 0 }, uBloom: { value: o.bloom ? 1 : 0 }, uBaseClamp: { value: new THREE.Vector3(...(o.baseClamp || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
+  return {
+    uImp: {
+      value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1),
+    },
+    uImpA: {
+      value: new THREE.Vector4(
+        im && im.cols ? im.cols : im ? im.views : 8,
+        im && im.rows ? im.rows : 1,
+        im && im.fy ? im.fy : 1,
+        0,
+      ),
+    },
+    uLean: { value: o.lean ?? 0.012 },
+    uSway: { value: o.sway ?? 0.006 },
+    uTransl: { value: o.transl ?? 0.55 },
+    uWear: { value: o.wear ?? 0.5 },
+    uTintAmt: { value: o.tint ?? 1 },
+    uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) },
+    uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) },
+    uCrownY: { value: o.crownY ?? 1e4 },
+    uCrownC: { value: new THREE.Vector2(...(o.crownC || [0, 0])) },
+    uSpread: { value: o.spread ?? 0.18 },
+    uMirrorOn: { value: o.mirror ? 1 : 0 },
+    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) },
+    uBaseAO: { value: o.baseAO ?? 0 },
+    uBarkDet: { value: o.barkDet ?? 0 },
+    uBloom: { value: o.bloom ? 1 : 0 },
+    uBaseClamp: { value: new THREE.Vector3(...(o.baseClamp || [0, 0, 0])) },
+    uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) },
+  };
 }
 
 // family: 'bark' | 'leaf' | 'imp' (impostor, map given). Returns { mat, depth, u } where u holds the per-material uniforms.
 export function makeVegMaterial(family, o = {}) {
   const u = localUniforms(o);
   let mat;
-  if (family === 'plain') { // untextured vertex-colour parts (flowers, rocks, pebbles)
-    mat = new THREE.MeshStandardMaterial({ roughness: o.roughness ?? 0.88, metalness: 0, vertexColors: true, side: o.side ?? THREE.DoubleSide });
+  if (family === 'plain') {
+    // untextured vertex-colour parts (flowers, rocks, pebbles)
+    mat = new THREE.MeshStandardMaterial({
+      roughness: o.roughness ?? 0.88,
+      metalness: 0,
+      vertexColors: true,
+      side: o.side ?? THREE.DoubleSide,
+    });
   } else if (family === 'bark') {
     const B = o.map ? null : barkAtlas(); // o.map: a library model's own bark texture (models.js)
-    mat = new THREE.MeshStandardMaterial({ map: o.map || B.map, normalMap: o.map ? (o.normalMap || null) : B.normalMap, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1.1, 1.1), roughnessMap: o.map ? null : B.roughnessMap, roughness: o.map ? (o.roughness ?? 0.9) : 1, metalness: 0, vertexColors: true, side: o.side ?? THREE.FrontSide });
+    mat = new THREE.MeshStandardMaterial({
+      map: o.map || B.map,
+      normalMap: o.map ? o.normalMap || null : B.normalMap,
+      normalScale: o.normalScale
+        ? new THREE.Vector2(...o.normalScale)
+        : new THREE.Vector2(1.1, 1.1),
+      roughnessMap: o.map ? null : B.roughnessMap,
+      roughness: o.map ? (o.roughness ?? 0.9) : 1,
+      metalness: 0,
+      vertexColors: true,
+      side: o.side ?? THREE.FrontSide,
+    });
   } else {
     const map = family === 'imp' || o.map ? o.map : leafAtlas().map;
-    mat = new THREE.MeshStandardMaterial({ map, normalMap: family !== 'imp' && o.normalMap ? o.normalMap : null, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1, 1), alphaTest: o.alphaTest ?? (VEG_AA ? 0.5 : 0.42), side: THREE.DoubleSide, roughness: o.roughness ?? 0.8, metalness: 0, envMapIntensity: 0.55, vertexColors: family !== 'imp', alphaToCoverage: !VEG_AA });
+    mat = new THREE.MeshStandardMaterial({
+      map,
+      normalMap: family !== 'imp' && o.normalMap ? o.normalMap : null,
+      normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1, 1),
+      alphaTest: o.alphaTest ?? (VEG_AA ? 0.5 : 0.42),
+      side: THREE.DoubleSide,
+      roughness: o.roughness ?? 0.8,
+      metalness: 0,
+      envMapIntensity: 0.55,
+      vertexColors: family !== 'imp',
+      alphaToCoverage: !VEG_AA,
+    });
   }
-  const defs = {}; if (o.mirror) defs.VEG_MIRROR = ''; if (family === 'imp') defs.VEG_IMP = ''; if (o.ao && family !== 'imp') defs.VEG_AO = ''; if (o.vgrade && family !== 'imp') defs.VEG_VGRADE = ''; if (VEG_R2) { defs.VEG_R2MIP = ''; defs.VEG_R2IMP = ''; }
+  const defs = {};
+  if (o.mirror) defs.VEG_MIRROR = '';
+  if (family === 'imp') defs.VEG_IMP = '';
+  if (o.ao && family !== 'imp') defs.VEG_AO = '';
+  if (o.vgrade && family !== 'imp') defs.VEG_VGRADE = '';
+  if (VEG_R2) {
+    defs.VEG_R2MIP = '';
+    defs.VEG_R2IMP = '';
+  }
   if (o.mirror && family === 'bark') mat.side = THREE.DoubleSide; // mirrored instances flip the winding
   mat.defines = { ...(mat.defines || {}), ...defs };
-  const pk = 'veg-' + family + (o.mirror ? '-m' : '') + (defs.VEG_AO !== undefined ? '-ao' : '') + (defs.VEG_VGRADE !== undefined ? '-vg' : '');
+  const pk =
+    'veg-' +
+    family +
+    (o.mirror ? '-m' : '') +
+    (defs.VEG_AO !== undefined ? '-ao' : '') +
+    (defs.VEG_VGRADE !== undefined ? '-vg' : '');
   mat.onBeforeCompile = patch(family, u);
   mat.customProgramCacheKey = () => pk;
-  const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: family === 'bark' || family === 'plain' ? null : mat.map, alphaTest: family === 'bark' || family === 'plain' ? 0 : (o.alphaTest ?? 0.42), side: family === 'bark' ? THREE.FrontSide : THREE.DoubleSide });
-  depth.defines = { ...(depth.defines || {}), ...defs }; if (o.mirror) depth.side = THREE.DoubleSide;
+  const depth = new THREE.MeshDepthMaterial({
+    depthPacking: THREE.RGBADepthPacking,
+    map: family === 'bark' || family === 'plain' ? null : mat.map,
+    alphaTest: family === 'bark' || family === 'plain' ? 0 : (o.alphaTest ?? 0.42),
+    side: family === 'bark' ? THREE.FrontSide : THREE.DoubleSide,
+  });
+  depth.defines = { ...(depth.defines || {}), ...defs };
+  if (o.mirror) depth.side = THREE.DoubleSide;
   depth.onBeforeCompile = patch('depth', u);
   depth.customProgramCacheKey = () => 'veg-depth-' + family + (o.mirror ? '-m' : '');
   mat.userData.veg = { family, u, depth };
@@ -397,7 +530,8 @@ let _shared = null;
 // shared full-detail materials (used by palmGeometry call sites and the old city builders)
 export function sharedVegMaterials() {
   if (_shared) return _shared;
-  const bark = makeVegMaterial('bark', { lean: 0.006, sway: 0.0035, wear: 0.6 }), leaf = makeVegMaterial('leaf', { lean: 0.006, sway: 0.0035, wear: 0.55 });
+  const bark = makeVegMaterial('bark', { lean: 0.006, sway: 0.0035, wear: 0.6 }),
+    leaf = makeVegMaterial('leaf', { lean: 0.006, sway: 0.0035, wear: 0.55 });
   _shared = { bark: bark.mat, barkDepth: bark.depth, leaf: leaf.mat, leafDepth: leaf.depth };
   return _shared;
 }
@@ -405,18 +539,40 @@ export function sharedVegMaterials() {
 // per-frame: wind clock and sun (pass a DirectionalLight, or find the strongest one in the scene)
 let _sun = null;
 // view camera for the LOD dither (so shadow-map passes fade exactly like the visible pass)
-export function setVegCamera(cam) { if (cam) { vegUniforms.uVegCam.value.copy(cam.position); vegUniforms.uVegCamOn.value = 1; } }
+export function setVegCamera(cam) {
+  if (cam) {
+    vegUniforms.uVegCam.value.copy(cam.position);
+    vegUniforms.uVegCamOn.value = 1;
+  }
+}
 export function updateVegetation(t, scene, sun, wind) {
   vegUniforms.uVegTime.value = t;
-  if (wind && wind.dir) { vegUniforms.uVegWindDir.value.copy(wind.dir); vegUniforms.uVegWindSpeed.value = wind.speed ?? 3; vegUniforms.uVegWindT.value = wind.time ?? t; }
-  else vegUniforms.uVegWindT.value = t;
-  vegUniforms.uVegGust.value = 0.25 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.13)) + 0.35 * Math.max(0, Math.sin(t * 0.41) * Math.sin(t * 0.067 + 1.3));
+  if (wind && wind.dir) {
+    vegUniforms.uVegWindDir.value.copy(wind.dir);
+    vegUniforms.uVegWindSpeed.value = wind.speed ?? 3;
+    vegUniforms.uVegWindT.value = wind.time ?? t;
+  } else vegUniforms.uVegWindT.value = t;
+  vegUniforms.uVegGust.value =
+    0.25 +
+    0.3 * (0.5 + 0.5 * Math.sin(t * 0.13)) +
+    0.35 * Math.max(0, Math.sin(t * 0.41) * Math.sin(t * 0.067 + 1.3));
   if (!sun && scene) {
-    if (!_sun || !_sun.parent) { _sun = null; let best = 0; scene.traverse((o) => { if (o.isDirectionalLight && o.intensity > best) { best = o.intensity; _sun = o; } }); }
+    if (!_sun || !_sun.parent) {
+      _sun = null;
+      let best = 0;
+      scene.traverse((o) => {
+        if (o.isDirectionalLight && o.intensity > best) {
+          best = o.intensity;
+          _sun = o;
+        }
+      });
+    }
     sun = _sun;
   }
   if (sun) {
-    const d = vegUniforms.uSunDir.value.copy(sun.position); if (sun.target) d.sub(sun.target.position); d.normalize();
+    const d = vegUniforms.uSunDir.value.copy(sun.position);
+    if (sun.target) d.sub(sun.target.position);
+    d.normalize();
     vegUniforms.uSunCol.value.copy(sun.color).multiplyScalar(Math.min(1.5, sun.intensity * 0.35));
   }
 }
@@ -428,37 +584,87 @@ export function updateVegetation(t, scene, sun, wind) {
 // are per material); chains an existing onBeforeCompile.
 export function foliageVolume(mat, { center, radius = 1, k = 0.7 } = {}) {
   const R = typeof radius === 'number' ? new THREE.Vector3(radius, radius, radius) : radius.clone();
-  const U = { uFvC: { value: center.clone() }, uFvR: { value: R }, uFvK: { value: k } }, prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey?.bind(mat);
-  mat.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); Object.assign(sh.uniforms, U, { uSunDir: vegUniforms.uSunDir, uSunCol: vegUniforms.uSunCol });
-    sh.vertexShader = 'varying vec3 vFvW;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n  vFvW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = 'uniform vec3 uFvC; uniform vec3 uFvR; uniform float uFvK; uniform vec3 uSunDir; uniform vec3 uSunCol; varying vec3 vFvW;\n' + sh.fragmentShader
-      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+  const U = { uFvC: { value: center.clone() }, uFvR: { value: R }, uFvK: { value: k } },
+    prev = mat.onBeforeCompile,
+    prevKey = mat.customProgramCacheKey?.bind(mat);
+  mat.onBeforeCompile = (sh, r) => {
+    if (prev) prev(sh, r);
+    Object.assign(sh.uniforms, U, { uSunDir: vegUniforms.uSunDir, uSunCol: vegUniforms.uSunCol });
+    sh.vertexShader =
+      'varying vec3 vFvW;\n' +
+      sh.vertexShader.replace(
+        '#include <worldpos_vertex>',
+        '#include <worldpos_vertex>\n  vFvW = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+      );
+    sh.fragmentShader =
+      'uniform vec3 uFvC; uniform vec3 uFvR; uniform float uFvK; uniform vec3 uSunDir; uniform vec3 uSunCol; varying vec3 vFvW;\n' +
+      sh.fragmentShader
+        .replace(
+          '#include <roughnessmap_fragment>',
+          `#include <roughnessmap_fragment>
   vec3 fvD = (vFvW - uFvC) / uFvR; float fvE = length(fvD), fvAO = (0.42 + 0.58 * smoothstep(0.15, 1.0, fvE)) * (0.72 + 0.28 * smoothstep(-1.0, 1.0, fvD.y));
   { vec3 cw = floor(vFvW * 4.0); float lh = fract(sin(dot(cw, vec3(12.9898, 78.233, 37.719))) * 43758.5453), lh2 = fract(lh * 91.37 + 0.21);
     diffuseColor.rgb *= vec3(0.94 + 0.12 * lh, 0.95 + 0.1 * lh2, 0.93 + 0.12 * lh) * (0.9 + 0.2 * lh2);
-    float sl = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)); diffuseColor.rgb = mix(vec3(sl), diffuseColor.rgb, mix(0.88, 1.0, fvAO)); }`)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-  { vec3 vn = normalize((viewMatrix * vec4((vFvW - uFvC) / (uFvR * uFvR), 0.0)).xyz); normal = normalize(mix(normal * (dot(normal, vn) < 0.0 ? -1.0 : 1.0), vn, uFvK)); }`)
-      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+    float sl = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)); diffuseColor.rgb = mix(vec3(sl), diffuseColor.rgb, mix(0.88, 1.0, fvAO)); }`,
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          `#include <normal_fragment_maps>
+  { vec3 vn = normalize((viewMatrix * vec4((vFvW - uFvC) / (uFvR * uFvR), 0.0)).xyz); normal = normalize(mix(normal * (dot(normal, vn) < 0.0 ? -1.0 : 1.0), vn, uFvK)); }`,
+        )
+        .replace(
+          '#include <lights_fragment_end>',
+          `#include <lights_fragment_end>
   reflectedLight.indirectDiffuse *= fvAO; reflectedLight.directDiffuse *= mix(0.55, 1.0, fvAO);
-  { vec3 Vd = normalize(vFvW - cameraPosition); float bk = pow(max(dot(Vd, normalize(uSunDir)), 0.0), 2.0); totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (bk * 0.65 + 0.05) * clamp(uSunDir.y * 2.0, 0.0, 1.0) * vec3(0.9, 1.05, 0.55) * mix(0.3, 1.0, fvAO); }`); };
+  { vec3 Vd = normalize(vFvW - cameraPosition); float bk = pow(max(dot(Vd, normalize(uSunDir)), 0.0), 2.0); totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (bk * 0.65 + 0.05) * clamp(uSunDir.y * 2.0, 0.0, 1.0) * vec3(0.9, 1.05, 0.55) * mix(0.3, 1.0, fvAO); }`,
+        );
+  };
   mat.customProgramCacheKey = () => (prevKey ? prevKey() : '') + '|fvol';
-  mat.userData.foliageVolume = U; mat.needsUpdate = true; return mat;
+  mat.userData.foliageVolume = U;
+  mat.needsUpdate = true;
+  return mat;
 }
 
 // CPU twin of the shader's vegH12 (float32 steps), and the per-instance trunk deformation of VERT_BODY (mirror, twist, S-bend, lean;
 // no wind): trunk colliders follow the drawn trunk. Returns the deformed local point [x, y, z].
-const f32 = Math.fround, fr = (x) => f32(x - Math.floor(x));
+const f32 = Math.fround,
+  fr = (x) => f32(x - Math.floor(x));
 export function vegHash(x, z) {
-  let a = fr(f32(f32(x) * f32(0.1031))), b = fr(f32(f32(z) * f32(0.1031))), c = a;
-  const d = f32(f32(f32(a * f32(b + f32(33.33))) + f32(b * f32(c + f32(33.33)))) + f32(c * f32(a + f32(33.33))));
-  a = f32(a + d); b = f32(b + d); c = f32(c + d); return fr(f32(f32(a + b) * c));
+  let a = fr(f32(f32(x) * f32(0.1031))),
+    b = fr(f32(f32(z) * f32(0.1031))),
+    c = a;
+  const d = f32(
+    f32(f32(a * f32(b + f32(33.33))) + f32(b * f32(c + f32(33.33)))) + f32(c * f32(a + f32(33.33))),
+  );
+  a = f32(a + d);
+  b = f32(b + d);
+  c = f32(c + d);
+  return fr(f32(f32(a + b) * c));
 }
 export function vegTrunkPoint(px, py, pz, vh, shape, lean, mirror = true) {
-  const frc = (x) => x - Math.floor(x), vh2 = frc(vh * 91.7 + 0.13), vh3 = frc(vh * 37.13 + 0.61), vh4 = frc(vh * 251.9 + 0.37), vh5 = frc(vh * 13.71 + 0.83);
-  let x = mirror && frc(vh * 173.31 + 0.27) > 0.5 ? -px : px, z = pz; const y = py;
-  if (shape && shape[0] > 0) { const st = Math.min(1, Math.max(0, y / shape[0])), tw = shape[2] * (vh5 - 0.5) * 2 * st, ct = Math.cos(tw), sn = Math.sin(tw); const x2 = ct * x - sn * z, z2 = sn * x + ct * z; x = x2; z = z2;
-    const k = shape[1] * shape[0] * (vh4 - 0.35) * (st * st - 0.35 * st * st * st); x += Math.cos(vh3 * 6.2831) * k; z += Math.sin(vh3 * 6.2831) * k; }
-  const bend = Math.pow(Math.max(y, 0), 1.6) * lean * (vh2 - 0.25); x += Math.cos(vh * 6.2831) * bend; z += Math.sin(vh * 6.2831) * bend;
+  const frc = (x) => x - Math.floor(x),
+    vh2 = frc(vh * 91.7 + 0.13),
+    vh3 = frc(vh * 37.13 + 0.61),
+    vh4 = frc(vh * 251.9 + 0.37),
+    vh5 = frc(vh * 13.71 + 0.83);
+  let x = mirror && frc(vh * 173.31 + 0.27) > 0.5 ? -px : px,
+    z = pz;
+  const y = py;
+  if (shape && shape[0] > 0) {
+    const st = Math.min(1, Math.max(0, y / shape[0])),
+      tw = shape[2] * (vh5 - 0.5) * 2 * st,
+      ct = Math.cos(tw),
+      sn = Math.sin(tw);
+    const x2 = ct * x - sn * z,
+      z2 = sn * x + ct * z;
+    x = x2;
+    z = z2;
+    const k = shape[1] * shape[0] * (vh4 - 0.35) * (st * st - 0.35 * st * st * st);
+    x += Math.cos(vh3 * 6.2831) * k;
+    z += Math.sin(vh3 * 6.2831) * k;
+  }
+  const bend = Math.pow(Math.max(y, 0), 1.6) * lean * (vh2 - 0.25);
+  x += Math.cos(vh * 6.2831) * bend;
+  z += Math.sin(vh * 6.2831) * bend;
   return [x, y, z];
 }

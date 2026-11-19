@@ -5,8 +5,13 @@
 //   node tools/v2/cars/accel.mjs [--keys sedan1,coupe3,...]   -> docs/v2/reports/cars-accel.json
 import fs from 'node:fs';
 import { withBrowser } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 await withBrowser({ width: 640, height: 360, maxSeconds: 280 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/src/vehicles/drive.html?t=12&preload=all');
   await b.waitFor('window.game && game.vehicles && game.vehicles.list.length > 0', 120);
@@ -44,7 +49,12 @@ await withBrowser({ width: 640, height: 360, maxSeconds: 280 }, async (b) => {
     return JSON.stringify(out);
   })()`);
   const rows = JSON.parse(res);
-  for (const r of rows) console.log(r.err ? `${r.key}: ${r.err}` : `${r.key.padEnd(8)} 0-100 ${String(r.t100).padStart(5)} (target ${r.target})  0-160 ${String(r.t160).padStart(5)}  top ${r.top} (${r.targetTop})  brake100 ${r.brake100} m  dev ${r.dev}  F ${r.force} N  ${r.mass} kg ${r.drive}`);
+  for (const r of rows)
+    console.log(
+      r.err
+        ? `${r.key}: ${r.err}`
+        : `${r.key.padEnd(8)} 0-100 ${String(r.t100).padStart(5)} (target ${r.target})  0-160 ${String(r.t160).padStart(5)}  top ${r.top} (${r.targetTop})  brake100 ${r.brake100} m  dev ${r.dev}  F ${r.force} N  ${r.mass} kg ${r.drive}`,
+    );
   fs.mkdirSync('docs/v2/reports', { recursive: true });
   fs.writeFileSync('docs/v2/reports/cars-accel.json', JSON.stringify(rows, null, 1));
   if (b.errors.length) console.log('CONSOLE ERRORS', b.errors.slice(0, 8));

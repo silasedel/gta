@@ -8,12 +8,18 @@ await withBrowser({ width: +W, height: +H, maxSeconds: 230 }, async (b) => {
   await b.waitFor('window.ready === true', 120);
   await b.sleep(600);
   const n = idx === 'all' ? await b.eval('cars.length') : 1;
-  for (let i = 0; i < n; i++) for (const v of views.split(',')) {
-    const k = idx === 'all' ? i : +idx;
-    if (v !== 'none') await b.eval(`view('${v}', ${k})`);
-    await b.sleep(400);
-    console.log('SHOT', await b.screenshot(idx === 'all' ? `${prefix}_${i}_${v}.jpg` : `${prefix}_${v}.jpg`, { quality: 82 }));
-  }
+  for (let i = 0; i < n; i++)
+    for (const v of views.split(',')) {
+      const k = idx === 'all' ? i : +idx;
+      if (v !== 'none') await b.eval(`view('${v}', ${k})`);
+      await b.sleep(400);
+      console.log(
+        'SHOT',
+        await b.screenshot(idx === 'all' ? `${prefix}_${i}_${v}.jpg` : `${prefix}_${v}.jpg`, {
+          quality: 82,
+        }),
+      );
+    }
   console.log('STATS', JSON.stringify(await b.eval('JSON.stringify(stats())')));
   if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].slice(0, 12).join('\n'));
 });

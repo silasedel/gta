@@ -17,7 +17,13 @@ export function smoothAiControls(v, dt) {
     return;
   }
   // chases, crashes and panic keep their raw, twitchy controls on purpose
-  if (v.chaseTarget || ai.fleeT > 0 || ai.state === 'accident' || ai.state === 'flee' || ai.state === 'rage') {
+  if (
+    v.chaseTarget ||
+    ai.fleeT > 0 ||
+    ai.state === 'accident' ||
+    ai.state === 'flee' ||
+    ai.state === 'rage'
+  ) {
     ai._sm = null;
     return;
   }
@@ -37,19 +43,19 @@ export function smoothAiControls(v, dt) {
     yawRate = 0;
   }
   const want = clamp((c.steer || 0) - yawRate * clamp(spd / 30, 0, 0.35), -1, 1);
-  const tau = spd > 12 ? 0.22 : 0.12;                       // seconds; slower hands at speed
+  const tau = spd > 12 ? 0.22 : 0.12; // seconds; slower hands at speed
   const k = 1 - Math.exp(-dt / tau);
   let next = sm.steer + (want - sm.steer) * k;
-  const rate = spd > 12 ? 1.4 : 2.6;                        // full lock per second
+  const rate = spd > 12 ? 1.4 : 2.6; // full lock per second
   next = clamp(next, sm.steer - rate * dt, sm.steer + rate * dt);
   sm.steer = next;
   c.steer = next;
 
   // ---- pedals
   const raw = (c.throttle || 0) - (c.brake || 0);
-  const hardStop = (c.brake || 0) >= 0.95 && spd > 6;      // real emergency: allow fast brake build-up
-  const up = 1.6;                                           // demand change per second toward more throttle
-  const down = hardStop ? 6 : 2.4;                          // toward more brake
+  const hardStop = (c.brake || 0) >= 0.95 && spd > 6; // real emergency: allow fast brake build-up
+  const up = 1.6; // demand change per second toward more throttle
+  const down = hardStop ? 6 : 2.4; // toward more brake
   let lon = sm.lon;
   if (raw > lon) {
     lon = Math.min(raw, lon + up * dt);

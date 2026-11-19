@@ -11,14 +11,30 @@ export function initV2(game) {
   const w = game.world;
   if (!w || typeof w.updateSceneQueries !== 'function') return;
   const st = (game.sceneQueryGuard = { dirty: true, runs: 0, skipped: 0 });
-  const mark = (name) => { const f = w[name]; if (typeof f !== 'function') return; w[name] = function (...a) { st.dirty = true; return f.apply(this, a); }; };
-  for (const n of ['createCollider', 'removeCollider', 'createRigidBody', 'removeRigidBody']) mark(n);
+  const mark = (name) => {
+    const f = w[name];
+    if (typeof f !== 'function') return;
+    w[name] = function (...a) {
+      st.dirty = true;
+      return f.apply(this, a);
+    };
+  };
+  for (const n of ['createCollider', 'removeCollider', 'createRigidBody', 'removeRigidBody'])
+    mark(n);
   const step = w.step;
-  w.step = function (...a) { const r = step.apply(this, a); st.dirty = false; return r; };
+  w.step = function (...a) {
+    const r = step.apply(this, a);
+    st.dirty = false;
+    return r;
+  };
   const upd = w.updateSceneQueries;
   w.updateSceneQueries = function (...a) {
-    if (!st.dirty) { st.skipped++; return; }
-    st.dirty = false; st.runs++;
+    if (!st.dirty) {
+      st.skipped++;
+      return;
+    }
+    st.dirty = false;
+    st.runs++;
     return upd.apply(this, a);
   };
   // teleported bodies (setTranslation / setRotation outside the step) also need a refresh before the next query
@@ -26,8 +42,29 @@ export function initV2(game) {
   const P = R?.RigidBody?.prototype;
   if (P && !P.__psSqGuard) {
     P.__psSqGuard = true;
-    for (const n of ['setTranslation', 'setRotation']) { const f = P[n]; if (typeof f === 'function') P[n] = function (...a) { st.dirty = true; return f.apply(this, a); }; }
+    for (const n of ['setTranslation', 'setRotation']) {
+      const f = P[n];
+      if (typeof f === 'function')
+        P[n] = function (...a) {
+          st.dirty = true;
+          return f.apply(this, a);
+        };
+    }
     const fc = R.Collider?.prototype;
-    if (fc) for (const n of ['setTranslation', 'setRotation', 'setTranslationWrtParent', 'setShape', 'setEnabled']) { const f = fc[n]; if (typeof f === 'function') fc[n] = function (...a) { st.dirty = true; return f.apply(this, a); }; }
+    if (fc)
+      for (const n of [
+        'setTranslation',
+        'setRotation',
+        'setTranslationWrtParent',
+        'setShape',
+        'setEnabled',
+      ]) {
+        const f = fc[n];
+        if (typeof f === 'function')
+          fc[n] = function (...a) {
+            st.dirty = true;
+            return f.apply(this, a);
+          };
+      }
   }
 }

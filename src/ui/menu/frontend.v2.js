@@ -38,15 +38,25 @@ const TIPS = [
 ];
 // menu music (user, Nov 18): the loading loop (src/audio/loadingMusic.js) plays through the title, the menus and both
 // loading screens. The old title theme (port_solana_theme.aac) is now the Mission Passed sting (src/audio/passed.v2.js).
-const NOW_PLAYING = { station: 'Main menu', title: 'Sleepwalking (Instrumental)', artist: 'Mindme' };
+const NOW_PLAYING = {
+  station: 'Main menu',
+  title: 'Sleepwalking (Instrumental)',
+  artist: 'Mindme',
+};
 const TITLE_HOURS_FALLBACK = 18.4;
 
 export async function initV2(game) {
   const params = new URLSearchParams(location.search);
   const forced = params.get('menu');
-  const enabled = forced === '1' || (forced !== '0' && !params.has('nomenu') && !navigator.webdriver);
+  const enabled =
+    forced === '1' || (forced !== '0' && !params.has('nomenu') && !navigator.webdriver);
   const ctx = createUIContext(game);
-  try { if (game.quality?.name && ctx.settings.get('gfxPreset') !== 'custom') ctx.settings.values.gfxPreset = game.quality.name; } catch (e) { /* */ }
+  try {
+    if (game.quality?.name && ctx.settings.get('gfxPreset') !== 'custom')
+      ctx.settings.values.gfxPreset = game.quality.name;
+  } catch (e) {
+    /* */
+  }
   const gfx = createGraphics(game, ctx.settings);
   const cin = getCinema(game);
   registerWardrobeSlice(game);
@@ -55,7 +65,13 @@ export async function initV2(game) {
   const overPause = (o, open) => {
     if (o.from !== 'pause') return open(o);
     document.body.classList.add('pm-over-pause');
-    return open({ ...o, onClose() { document.body.classList.remove('pm-over-pause'); o.onClose?.(); } });
+    return open({
+      ...o,
+      onClose() {
+        document.body.classList.remove('pm-over-pause');
+        o.onClose?.();
+      },
+    });
   };
   fe.openSettings = (o = {}) => overPause(o, (x) => openSettingsScreen(game, ctx, x));
   fe.openWardrobe = (o = {}) => overPause(o, (x) => openWardrobeStage(game, ctx, cin, x));
@@ -64,14 +80,30 @@ export async function initV2(game) {
 
 // ---- the outfit rides in the save game too (the wardrobe also keeps it on this device)
 function registerWardrobeSlice(game) {
-  const S = game.save; if (!S?.register || !game.wardrobe) return;
+  const S = game.save;
+  if (!S?.register || !game.wardrobe) return;
   try {
     S.register('wardrobe', {
-      version: 1, order: 60,
-      save: () => { const c = game.wardrobe.current?.() || {}; return { ids: Object.values(c).filter(Boolean) }; },
-      load: (d) => { if (!d?.ids?.length) return; for (const id of d.ids) { try { game.wardrobe.wear(id); } catch (e) { /* piece missing */ } } },
+      version: 1,
+      order: 60,
+      save: () => {
+        const c = game.wardrobe.current?.() || {};
+        return { ids: Object.values(c).filter(Boolean) };
+      },
+      load: (d) => {
+        if (!d?.ids?.length) return;
+        for (const id of d.ids) {
+          try {
+            game.wardrobe.wear(id);
+          } catch (e) {
+            /* piece missing */
+          }
+        }
+      },
     });
-  } catch (e) { console.warn('[frontend] wardrobe save slice', e); }
+  } catch (e) {
+    console.warn('[frontend] wardrobe save slice', e);
+  }
 }
 
 // ---- pause menu: Wardrobe and Settings are tabs of the pause menu itself (src/ui/hud.js, user Nov 19); the extra
@@ -79,7 +111,8 @@ function registerWardrobeSlice(game) {
 // fe.openWardrobe({ from: 'pause' }); fe.openSettings stays for the title menu.
 
 function startTitle(game, ctx, cin, fe, params) {
-  const P = game.player, layer = ctx.layer('screen');
+  const P = game.player,
+    layer = ctx.layer('screen');
   fe.active = true;
   document.body.classList.add('pm-front');
   game.ui.title = true;
@@ -87,7 +120,17 @@ function startTitle(game, ctx, cin, fe, params) {
   if (game.save) game.save.manualBoot = true;
   const leaveUI = ctx.bindings.pushMode('ui');
   // the player waits, still, wherever the scene needs him
-  const heroAnim = { speed: 0, grounded: true, sprint: false, jumping: false, driving: false, punch: false, dead: false, swimming: false, wading: false };
+  const heroAnim = {
+    speed: 0,
+    grounded: true,
+    sprint: false,
+    jumping: false,
+    driving: false,
+    punch: false,
+    dead: false,
+    swimming: false,
+    wading: false,
+  };
   P.script = { lock: true, title: true, fixed() {}, anim: heroAnim };
 
   // ---------------------------------------------------------------- DOM
@@ -106,55 +149,121 @@ function startTitle(game, ctx, cin, fe, params) {
     <div class="pm-foot"><span class="pm-ver">v${esc(VERSION)} · ${esc(BRAND.coords)}</span><div class="pm-hints ps-hints"></div></div>
     <div class="pm-sub" hidden></div>`;
   layer.appendChild(root);
-  if (false) try { root.querySelector('.pm-logo').style.setProperty('--pm-logo-mask', `url("data:image/svg+xml;utf8,${encodeURIComponent(logoSVG({ caption: false, color: '#fff', accent: '#fff' }).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '))}")`); } catch (e) { /* no shimmer */ }
+  if (false)
+    try {
+      root
+        .querySelector('.pm-logo')
+        .style.setProperty(
+          '--pm-logo-mask',
+          `url("data:image/svg+xml;utf8,${encodeURIComponent(logoSVG({ caption: false, color: '#fff', accent: '#fff' }).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '))}")`,
+        );
+    } catch (e) {
+      /* no shimmer */
+    }
   const $ = (s) => root.querySelector(s);
-  const menu = $('.pm-menu'), press = $('.pm-press'), hints = $('.pm-hints'), sub = $('.pm-sub');
-  const placeName = $('.pm-place-name'), placeSub = $('.pm-place-sub'), np = $('.pm-np');
+  const menu = $('.pm-menu'),
+    press = $('.pm-press'),
+    hints = $('.pm-hints'),
+    sub = $('.pm-sub');
+  const placeName = $('.pm-place-name'),
+    placeSub = $('.pm-place-sub'),
+    np = $('.pm-np');
   requestAnimationFrame(() => root.classList.add('in'));
 
   // ---------------------------------------------------------------- scenes
   let scenes = [];
-  try { scenes = buildTitleScenes(game); } catch (e) { console.error('[frontend] scenes', e); }
+  try {
+    scenes = buildTitleScenes(game);
+  } catch (e) {
+    console.error('[frontend] scenes', e);
+  }
   const only = params.get('menushot');
   // wide establishing shots only on the title (no close-up of Nico until the character model is final)
   if (!only) scenes = scenes.filter((s) => s.id !== 'keys_hero');
-  if (only) scenes = scenes.filter((s) => s.id === only).concat(scenes.filter((s) => s.id !== only));
-  let si = -1, sceneTimer = 0, switching = false, live = true;
+  if (only)
+    scenes = scenes.filter((s) => s.id === only).concat(scenes.filter((s) => s.id !== only));
+  let si = -1,
+    sceneTimer = 0,
+    switching = false,
+    live = true;
   const character = () => game.playerCharacter;
   function placePlayer(sc) {
-    const p = sc.player; if (!p) return;
-    try { game.teleport(p.x, null, p.z, p.heading); } catch (e) { /* */ }
-    try { character()?.setVisible?.(p.visible !== false); } catch (e) { /* */ }
+    const p = sc.player;
+    if (!p) return;
+    try {
+      game.teleport(p.x, null, p.z, p.heading);
+    } catch (e) {
+      /* */
+    }
+    try {
+      character()?.setVisible?.(p.visible !== false);
+    } catch (e) {
+      /* */
+    }
     heroAnim.lookAt = null;
   }
   async function nextScene(first) {
     if (!scenes.length || switching || !live) return;
     switching = true;
     const sc = scenes[(si + 1) % scenes.length];
-    if (!first) await cin.crossfade(1700, (async () => {
-      if (fe.screen === 'wardrobe') return;
-      placePlayer(sc); game.timeOfDay = sc.hour ?? TITLE_HOURS_FALLBACK;
+    if (!first)
+      await cin.crossfade(
+        1700,
+        (async () => {
+          if (fe.screen === 'wardrobe') return;
+          placePlayer(sc);
+          game.timeOfDay = sc.hour ?? TITLE_HOURS_FALLBACK;
+          cin.shot(sc.shot);
+          const s = sc.stream || sc.player || {};
+          await cin.waitStream(s.x ?? 0, s.z ?? 0, 4500);
+        })(),
+      );
+    else {
+      placePlayer(sc);
+      game.timeOfDay = sc.hour ?? TITLE_HOURS_FALLBACK;
       cin.shot(sc.shot);
-      const s = sc.stream || sc.player || {};
-      await cin.waitStream(s.x ?? 0, s.z ?? 0, 4500);
-    })());
-    else { placePlayer(sc); game.timeOfDay = sc.hour ?? TITLE_HOURS_FALLBACK; cin.shot(sc.shot); }
+    }
     cin.setLook({ letterbox: true, dof: true, flare: true, flareGain: sc.flareGain ?? 1 });
-    if (fe.screen === 'wardrobe') { switching = false; sceneTimer = 0; return; }
-    si = (si + 1) % scenes.length; sceneTimer = 0;
-    placeName.textContent = sc.place; placeSub.textContent = `${sc.sub || ''}  ·  ${fmtClock(sc.hour ?? 18)}`;
-    root.querySelector('.pm-place').classList.remove('show'); void root.offsetWidth; root.querySelector('.pm-place').classList.add('show');
+    if (fe.screen === 'wardrobe') {
+      switching = false;
+      sceneTimer = 0;
+      return;
+    }
+    si = (si + 1) % scenes.length;
+    sceneTimer = 0;
+    placeName.textContent = sc.place;
+    placeSub.textContent = `${sc.sub || ''}  ·  ${fmtClock(sc.hour ?? 18)}`;
+    root.querySelector('.pm-place').classList.remove('show');
+    void root.offsetWidth;
+    root.querySelector('.pm-place').classList.add('show');
     switching = false;
   }
   // default: the stylized key art with a slow Ken Burns move and light rays (always premium, cheap on laptops).
   // ?titlebg=live runs the in-engine cinematic scenes instead (camera paths depend on the world, which is still changing).
-  const artBg = params.get('titlebg') !== 'live' && params.get('titlebg') !== 'scene' && !params.has('menushot');
+  const artBg =
+    params.get('titlebg') !== 'live' &&
+    params.get('titlebg') !== 'scene' &&
+    !params.has('menushot');
   if (artBg) {
     live = false;
-    root.insertAdjacentHTML('afterbegin', `<div class="pm-titleart" style="background-image:url('/assets/ui/keyart_loading.webp')"><div class="pm-titlerays"></div></div>`);
-    placeName.textContent = 'Biscayne Bay'; placeSub.textContent = 'Southline'; root.querySelector('.pm-place').classList.add('show');
+    root.insertAdjacentHTML(
+      'afterbegin',
+      `<div class="pm-titleart" style="background-image:url('/assets/ui/keyart_loading.webp')"><div class="pm-titlerays"></div></div>`,
+    );
+    placeName.textContent = 'Biscayne Bay';
+    placeSub.textContent = 'Southline';
+    root.querySelector('.pm-place').classList.add('show');
   } else {
-    cin.begin({ letterbox: true, dof: true, flare: true, grain: 1.5, vignette: 0.12, exposure: 0.86, bloom: 0.6, owner: 'title' });
+    cin.begin({
+      letterbox: true,
+      dof: true,
+      flare: true,
+      grain: 1.5,
+      vignette: 0.12,
+      exposure: 0.86,
+      bloom: 0.6,
+      owner: 'title',
+    });
     nextScene(true);
   }
   const SHOT_SECONDS = 13.5;
@@ -165,64 +274,137 @@ function startTitle(game, ctx, cin, fe, params) {
     const sc = scenes[si];
     if (sc && cin.active && fe.screen !== 'wardrobe') {
       // the hero looks past the lens, toward the light
-      if (sc.player?.pose === 'hero') { const c = character(); if (c?.lookAt) c.lookAt(game.camera.position); }
+      if (sc.player?.pose === 'hero') {
+        const c = character();
+        if (c?.lookAt) c.lookAt(game.camera.position);
+      }
     }
-    if (!lockShot && sceneTimer > (sc?.shot?.dur ? Math.min(sc.shot.dur - 0.3, SHOT_SECONDS) : SHOT_SECONDS)) { sceneTimer = -999; nextScene(false); }
+    if (
+      !lockShot &&
+      sceneTimer > (sc?.shot?.dur ? Math.min(sc.shot.dur - 0.3, SHOT_SECONDS) : SHOT_SECONDS)
+    ) {
+      sceneTimer = -999;
+      nextScene(false);
+    }
   });
 
   // ---------------------------------------------------------------- music
-  const startAudio = () => { try { window.dispatchEvent(new Event('pointerdown')); } catch (e) { /* */ } };
+  const startAudio = () => {
+    try {
+      window.dispatchEvent(new Event('pointerdown'));
+    } catch (e) {
+      /* */
+    }
+  };
   // the world under the title stays ducked; the loop carries on from the boot screen (start() only takes it over)
   const music = () => {
     game.menuMusic = { station: null, duck: 0.3, duckLP: 1600 };
-    if (ctx.settings.get('menuMusic') === false) loadingMusic.stop(game, 0.8); else loadingMusic.start(game, { settings: ctx.settings });
+    if (ctx.settings.get('menuMusic') === false) loadingMusic.stop(game, 0.8);
+    else loadingMusic.start(game, { settings: ctx.settings });
   };
   music();
-  try { mountMusicMute(); } catch (e) { /* */ }
-  ctx.settings.on('menuMusic', () => { if (fe.screen !== 'loading' && game.ui?.title !== false) music(); });
-  for (const k of ['volMaster', 'volMusic']) ctx.settings.on(k, () => loadingMusic.setVolume(game, ctx.settings));
+  try {
+    mountMusicMute();
+  } catch (e) {
+    /* */
+  }
+  ctx.settings.on('menuMusic', () => {
+    if (fe.screen !== 'loading' && game.ui?.title !== false) music();
+  });
+  for (const k of ['volMaster', 'volMusic'])
+    ctx.settings.on(k, () => loadingMusic.setVolume(game, ctx.settings));
   let npLast = '';
   const npTimer = setInterval(() => {
     const n = NOW_PLAYING;
-    if (!loadingMusic.playing() || ctx.settings.get('menuMusic') === false) { np.hidden = true; return; }
-    const k = n.title + n.artist; np.hidden = false;
-    if (k !== npLast) { npLast = k; np.querySelector('.pm-np-st').textContent = n.station; np.querySelector('.pm-np-tr').textContent = `${n.title} · ${n.artist}`; np.classList.remove('show'); void np.offsetWidth; np.classList.add('show'); }
+    if (!loadingMusic.playing() || ctx.settings.get('menuMusic') === false) {
+      np.hidden = true;
+      return;
+    }
+    const k = n.title + n.artist;
+    np.hidden = false;
+    if (k !== npLast) {
+      npLast = k;
+      np.querySelector('.pm-np-st').textContent = n.station;
+      np.querySelector('.pm-np-tr').textContent = `${n.title} · ${n.artist}`;
+      np.classList.remove('show');
+      void np.offsetWidth;
+      np.classList.add('show');
+    }
   }, 1000);
 
   // ---------------------------------------------------------------- menu
   let hasSave = false;
   const isDesktop = !!window.portSolanaDesktop?.isDesktop;
-  const ITEMS = () => [
-    hasSave && { id: 'continue', label: 'Continue', sub: 'Pick up where you left off' },
-    { id: 'new', label: 'New Game', sub: hasSave ? 'Start over in a fresh slot. Your other saves stay.' : 'Wake up in the Keys' },
-    { id: 'online', label: 'Online', sub: params.get('mp') ? 'Connected session: ' + (params.get('room') || 'lobby') : 'Join a friend’s session' },
-    { id: 'wardrobe', label: 'Wardrobe', sub: 'Dress Nico' },
-    { id: 'settings', label: 'Settings', sub: 'Graphics, audio, controls, display' },
-    { id: 'credits', label: 'Credits', sub: 'Who made this, and what with' },
-    isDesktop && { id: 'quit', label: 'Quit', sub: 'Close the game' },
-  ].filter(Boolean);
+  const ITEMS = () =>
+    [
+      hasSave && { id: 'continue', label: 'Continue', sub: 'Pick up where you left off' },
+      {
+        id: 'new',
+        label: 'New Game',
+        sub: hasSave ? 'Start over in a fresh slot. Your other saves stay.' : 'Wake up in the Keys',
+      },
+      {
+        id: 'online',
+        label: 'Online',
+        sub: params.get('mp')
+          ? 'Connected session: ' + (params.get('room') || 'lobby')
+          : 'Join a friend’s session',
+      },
+      { id: 'wardrobe', label: 'Wardrobe', sub: 'Dress Nico' },
+      { id: 'settings', label: 'Settings', sub: 'Graphics, audio, controls, display' },
+      { id: 'credits', label: 'Credits', sub: 'Who made this, and what with' },
+      isDesktop && { id: 'quit', label: 'Quit', sub: 'Close the game' },
+    ].filter(Boolean);
   async function refreshSave() {
-    try { hasSave = !params.has('newgame') && !!(await game.save?.hasContinue?.()); } catch (e) { hasSave = false; }
+    try {
+      hasSave = !params.has('newgame') && !!(await game.save?.hasContinue?.());
+    } catch (e) {
+      hasSave = false;
+    }
     if (hasSave) {
-      try { const l = await game.save.list(); const best = l.map((x) => x.latest).filter(Boolean).sort((a, b) => b.savedAt - a.savedAt)[0]; fe.saveMeta = best || null; } catch (e) { /* */ }
+      try {
+        const l = await game.save.list();
+        const best = l
+          .map((x) => x.latest)
+          .filter(Boolean)
+          .sort((a, b) => b.savedAt - a.savedAt)[0];
+        fe.saveMeta = best || null;
+      } catch (e) {
+        /* */
+      }
     }
   }
   function renderMenu() {
     const items = ITEMS();
-    menu.innerHTML = items.map((it, i) => `<button class="pm-item" data-nav data-id="${it.id}" style="--i:${i}">
+    menu.innerHTML = items
+      .map(
+        (it, i) => `<button class="pm-item" data-nav data-id="${it.id}" style="--i:${i}">
         <span class="pm-idx">${String(i + 1).padStart(2, '0')}</span><span class="pm-lab">${esc(ctx.t(it.label))}</span>
-        <span class="pm-desc">${esc(it.id === 'continue' && fe.saveMeta ? saveLine(fe.saveMeta) : it.sub)}</span></button>`).join('');
+        <span class="pm-desc">${esc(it.id === 'continue' && fe.saveMeta ? saveLine(fe.saveMeta) : it.sub)}</span></button>`,
+      )
+      .join('');
   }
   function saveLine(m) {
     const bits = [];
     if (m.day) bits.push('Day ' + m.day);
     if (m.district || m.place) bits.push(m.district || m.place);
-    if (Number.isFinite(m.money ?? m.cash)) bits.push('$' + Math.round(m.money ?? m.cash).toLocaleString('en-US'));
-    if (m.savedAt) { const d = new Date(m.savedAt); if (!isNaN(d)) bits.push(d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })); }
+    if (Number.isFinite(m.money ?? m.cash))
+      bits.push('$' + Math.round(m.money ?? m.cash).toLocaleString('en-US'));
+    if (m.savedAt) {
+      const d = new Date(m.savedAt);
+      if (!isNaN(d))
+        bits.push(
+          d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+            ' ' +
+            d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }),
+        );
+    }
     return bits.join(' · ') || 'Pick up where you left off';
   }
   const glyph = (code) => ctx.bindings.codeGlyph(code);
-  function setHints(list) { hints.innerHTML = list.map(([k, l]) => `<span>${k}${esc(l)}</span>`).join(''); }
+  function setHints(list) {
+    hints.innerHTML = list.map(([k, l]) => `<span>${k}${esc(l)}</span>`).join('');
+  }
   const hintsMenu = () => setHints([]); // no control legend in the menus (user: minimal, GTA-like)
 
   let scope = null;
@@ -231,9 +413,18 @@ function startTitle(game, ctx, cin, fe, params) {
   // starts it suspended and resumes on the first input)
   startAudio();
   // any key / click / pad button leaves the attract state
-  const offNav = ctx.bindings.on('nav', (d) => { if (fe.screen === 'attract') { d.handled = true; openMenu(); } });
-  const offUiKey = ctx.bindings.on('uikey', (d) => { if (fe.screen === 'attract' && d.down && !/^F\d+$/.test(d.code)) openMenu(); });
-  root.addEventListener('pointerdown', () => { if (fe.screen === 'attract') openMenu(); });
+  const offNav = ctx.bindings.on('nav', (d) => {
+    if (fe.screen === 'attract') {
+      d.handled = true;
+      openMenu();
+    }
+  });
+  const offUiKey = ctx.bindings.on('uikey', (d) => {
+    if (fe.screen === 'attract' && d.down && !/^F\d+$/.test(d.code)) openMenu();
+  });
+  root.addEventListener('pointerdown', () => {
+    if (fe.screen === 'attract') openMenu();
+  });
   setHints([[glyph('Enter'), 'Start']]);
 
   async function openMenu() {
@@ -244,40 +435,104 @@ function startTitle(game, ctx, cin, fe, params) {
     press.classList.add('out');
     await refreshSave();
     renderMenu();
-    menu.hidden = false; root.classList.add('menu-on');
+    menu.hidden = false;
+    root.classList.add('menu-on');
     hintsMenu();
-    scope = ctx.nav.push({ root: menu, wrap: true, onBack() { /* title has nowhere to go back to */ } });
+    scope = ctx.nav.push({
+      root: menu,
+      wrap: true,
+      onBack() {
+        /* title has nowhere to go back to */
+      },
+    });
   }
-  menu.addEventListener('nav:focus', (e) => { const b = e.target.closest('.pm-item'); if (b) { menu.querySelectorAll('.pm-item').forEach((x) => x.classList.toggle('cur', x === b)); } });
-  menu.addEventListener('click', (e) => { const b = e.target.closest('.pm-item'); if (b) choose(b.dataset.id); });
+  menu.addEventListener('nav:focus', (e) => {
+    const b = e.target.closest('.pm-item');
+    if (b) {
+      menu.querySelectorAll('.pm-item').forEach((x) => x.classList.toggle('cur', x === b));
+    }
+  });
+  menu.addEventListener('click', (e) => {
+    const b = e.target.closest('.pm-item');
+    if (b) choose(b.dataset.id);
+  });
 
   function choose(id, o = {}) {
     switch (id) {
-      case 'continue': ctx.sfx('start'); play('continue', o); break;
-      case 'new': ctx.sfx('start'); play('new', o); break;
-      case 'online': ctx.sfx('open'); openOnline(); break;
-      case 'wardrobe': ctx.sfx('open'); openWardrobe(); break;
-      case 'settings': ctx.sfx('open'); openSettings(); break;
-      case 'credits': ctx.sfx('open'); openCredits(); break;
-      case 'quit': ctx.sfx('back'); try { game.save?.release?.('title'); } catch (e) { /* */ } setTimeout(() => window.close(), 250); break;
-      default: break;
+      case 'continue':
+        ctx.sfx('start');
+        play('continue', o);
+        break;
+      case 'new':
+        ctx.sfx('start');
+        play('new', o);
+        break;
+      case 'online':
+        ctx.sfx('open');
+        openOnline();
+        break;
+      case 'wardrobe':
+        ctx.sfx('open');
+        openWardrobe();
+        break;
+      case 'settings':
+        ctx.sfx('open');
+        openSettings();
+        break;
+      case 'credits':
+        ctx.sfx('open');
+        openCredits();
+        break;
+      case 'quit':
+        ctx.sfx('back');
+        try {
+          game.save?.release?.('title');
+        } catch (e) {
+          /* */
+        }
+        setTimeout(() => window.close(), 250);
+        break;
+      default:
+        break;
     }
   }
-  function hideMain(h) { root.classList.toggle('sub-on', h); }
+  function hideMain(h) {
+    root.classList.toggle('sub-on', h);
+  }
 
   // ---------------------------------------------------------------- sub screens
   function openSub(html, cls, onClose) {
     hideMain(true);
-    sub.className = 'pm-sub ' + cls; sub.innerHTML = html; sub.hidden = false;
+    sub.className = 'pm-sub ' + cls;
+    sub.innerHTML = html;
+    sub.hidden = false;
     requestAnimationFrame(() => sub.classList.add('in'));
     const s = ctx.nav.push({ root: sub, onBack: close });
-    function close() { ctx.sfx('close'); s.pop(); sub.classList.remove('in'); setTimeout(() => { sub.hidden = true; sub.innerHTML = ''; }, 260); hideMain(false); hintsMenu(); onClose?.(); }
+    function close() {
+      ctx.sfx('close');
+      s.pop();
+      sub.classList.remove('in');
+      setTimeout(() => {
+        sub.hidden = true;
+        sub.innerHTML = '';
+      }, 260);
+      hideMain(false);
+      hintsMenu();
+      onClose?.();
+    }
     return { root: sub, close, scope: s };
   }
   function openOnline() {
-    const last = (() => { try { return JSON.parse(localStorage.getItem('portsolana.v2.online') || '{}'); } catch (e) { return {}; } })();
+    const last = (() => {
+      try {
+        return JSON.parse(localStorage.getItem('portsolana.v2.online') || '{}');
+      } catch (e) {
+        return {};
+      }
+    })();
     const cur = params.get('mp');
-    const h = openSub(`
+    const h = openSub(
+      `
       <div class="pm-card">
         <div class="pm-card-h"><span class="pm-kicker">${icon('globe')} Online</span><h2>Join a session</h2><p>Play in the same Southline as your friends. Ask the host for the server address and the room code.</p></div>
         ${cur ? `<div class="pm-online-now">${icon('signal')} Connected to <b>${esc(cur)}</b> · room <b>${esc(params.get('room') || 'lobby')}</b></div>` : ''}
@@ -286,41 +541,124 @@ function startTitle(game, ctx, cin, fe, params) {
         <label class="pm-field" data-nav="text"><span>Your name</span><input class="ps-input" name="name" spellcheck="false" maxlength="18" placeholder="Nico" value="${esc(last.name || params.get('name') || 'Nico')}"></label>
         <div class="pm-card-act"><button class="ps-btn primary" data-nav data-act="join">${icon('play')} Join</button>${cur ? '<button class="ps-btn" data-nav data-act="leave">Play offline</button>' : ''}<button class="ps-btn ghost" data-nav data-act="back">Back</button></div>
         <p class="pm-small">The game reloads into the session. Saves stay on this device.</p>
-      </div>`, 'pm-sub-online');
+      </div>`,
+      'pm-sub-online',
+    );
     const go = () => {
       const v = (n) => h.root.querySelector(`[name=${n}]`).value.trim();
-      const mp = v('mp'); if (!/^wss?:\/\/.+/i.test(mp)) { ctx.sfx('deny'); h.root.querySelector('[name=mp]').focus(); return; }
-      const room = v('room').replace(/[^a-z0-9_-]/gi, '').slice(0, 12), name = v('name').slice(0, 18) || 'Nico';
-      try { localStorage.setItem('portsolana.v2.online', JSON.stringify({ mp, room, name })); } catch (e) { /* */ }
-      const q = new URLSearchParams(location.search); q.set('mp', mp); if (room) q.set('room', room); else q.delete('room'); q.set('name', name);
-      ctx.sfx('start'); cin.black(true, 500).then(() => { location.search = q.toString(); });
+      const mp = v('mp');
+      if (!/^wss?:\/\/.+/i.test(mp)) {
+        ctx.sfx('deny');
+        h.root.querySelector('[name=mp]').focus();
+        return;
+      }
+      const room = v('room')
+          .replace(/[^a-z0-9_-]/gi, '')
+          .slice(0, 12),
+        name = v('name').slice(0, 18) || 'Nico';
+      try {
+        localStorage.setItem('portsolana.v2.online', JSON.stringify({ mp, room, name }));
+      } catch (e) {
+        /* */
+      }
+      const q = new URLSearchParams(location.search);
+      q.set('mp', mp);
+      if (room) q.set('room', room);
+      else q.delete('room');
+      q.set('name', name);
+      ctx.sfx('start');
+      cin.black(true, 500).then(() => {
+        location.search = q.toString();
+      });
     };
-    h.root.addEventListener('click', (e) => { const a = e.target.closest('[data-act]')?.dataset.act; if (a === 'join') go(); else if (a === 'back') h.close(); else if (a === 'leave') { const q = new URLSearchParams(location.search); q.delete('mp'); q.delete('room'); q.delete('name'); location.search = q.toString(); } });
+    h.root.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-act]')?.dataset.act;
+      if (a === 'join') go();
+      else if (a === 'back') h.close();
+      else if (a === 'leave') {
+        const q = new URLSearchParams(location.search);
+        q.delete('mp');
+        q.delete('room');
+        q.delete('name');
+        location.search = q.toString();
+      }
+    });
     h.root.addEventListener('nav:submit', go);
   }
   function openCredits() {
     const html = mdLite(creditsText);
-    const h = openSub(`<div class="pm-card pm-credits"><div class="pm-card-h"><span class="pm-kicker">${icon('star')} Credits</span><h2>${esc(BRAND.name)}</h2><p>${esc(BRAND.studio)} · v${esc(VERSION)}. An original game: every name, brand and logo in it is made up.</p></div>
-      <div class="pm-credits-body ps-scroll">${html}</div><div class="pm-card-act"><button class="ps-btn ghost" data-nav data-act="back">Back</button></div></div>`, 'pm-sub-credits');
-    h.root.addEventListener('click', (e) => { if (e.target.closest('[data-act=back]')) h.close(); });
+    const h = openSub(
+      `<div class="pm-card pm-credits"><div class="pm-card-h"><span class="pm-kicker">${icon('star')} Credits</span><h2>${esc(BRAND.name)}</h2><p>${esc(BRAND.studio)} · v${esc(VERSION)}. An original game: every name, brand and logo in it is made up.</p></div>
+      <div class="pm-credits-body ps-scroll">${html}</div><div class="pm-card-act"><button class="ps-btn ghost" data-nav data-act="back">Back</button></div></div>`,
+      'pm-sub-credits',
+    );
+    h.root.addEventListener('click', (e) => {
+      if (e.target.closest('[data-act=back]')) h.close();
+    });
     // slow auto-scroll until the player touches it
-    const body = h.root.querySelector('.pm-credits-body'); let auto = true; body.addEventListener('wheel', () => { auto = false; }, { passive: true });
-    (function roll() { if (!body.isConnected) return; if (auto) body.scrollTop += 0.6; requestAnimationFrame(roll); })();
+    const body = h.root.querySelector('.pm-credits-body');
+    let auto = true;
+    body.addEventListener(
+      'wheel',
+      () => {
+        auto = false;
+      },
+      { passive: true },
+    );
+    (function roll() {
+      if (!body.isConnected) return;
+      if (auto) body.scrollTop += 0.6;
+      requestAnimationFrame(roll);
+    })();
   }
   function openSettings() {
-    hideMain(true); fe.screen = 'settings';
+    hideMain(true);
+    fe.screen = 'settings';
     root.classList.add('pane-on');
-    fe.openSettings({ from: 'title', onClose() { root.classList.remove('pane-on'); hideMain(false); fe.screen = 'menu'; hintsMenu(); } });
+    fe.openSettings({
+      from: 'title',
+      onClose() {
+        root.classList.remove('pane-on');
+        hideMain(false);
+        fe.screen = 'menu';
+        hintsMenu();
+      },
+    });
   }
   function openWardrobe() {
-    hideMain(true); fe.screen = 'wardrobe'; root.classList.add('pane-on', 'ward-on');
-    fe.openWardrobe({ from: 'title', onClose() { root.classList.remove('pane-on', 'ward-on'); hideMain(false); fe.screen = 'menu'; hintsMenu(); cin.begin({ letterbox: true, dof: true, flare: true, grain: 1.7, vignette: 0.14, owner: 'title' }); const sc = scenes[si]; if (sc) { placePlayer(sc); game.timeOfDay = sc.hour; cin.shot(sc.shot); } } });
+    hideMain(true);
+    fe.screen = 'wardrobe';
+    root.classList.add('pane-on', 'ward-on');
+    fe.openWardrobe({
+      from: 'title',
+      onClose() {
+        root.classList.remove('pane-on', 'ward-on');
+        hideMain(false);
+        fe.screen = 'menu';
+        hintsMenu();
+        cin.begin({
+          letterbox: true,
+          dof: true,
+          flare: true,
+          grain: 1.7,
+          vignette: 0.14,
+          owner: 'title',
+        });
+        const sc = scenes[si];
+        if (sc) {
+          placePlayer(sc);
+          game.timeOfDay = sc.hour;
+          cin.shot(sc.shot);
+        }
+      },
+    });
   }
 
   // ---------------------------------------------------------------- into the game
   let playing = false;
   async function play(kind, o = {}) {
-    if (playing) return; playing = true;
+    if (playing) return;
+    playing = true;
     fe.screen = 'loading';
     scope?.pop();
     root.classList.add('leaving');
@@ -334,77 +672,177 @@ function startTitle(game, ctx, cin, fe, params) {
     let ok = false;
     try {
       game.save?.release?.('title');
-      if (kind === 'continue') { const r = await game.save.continue(); ok = !!r?.ok; if (!ok) console.warn('[frontend] continue failed', r); }
+      if (kind === 'continue') {
+        const r = await game.save.continue();
+        ok = !!r?.ok;
+        if (!ok) console.warn('[frontend] continue failed', r);
+      }
       if (!ok) {
         await game.save?.newGame?.();
         const sp = game.nicoHouse?.anchors?.spawnYard || game.nicoHouse?.anchors?.spawn;
         if (sp?.pos) game.teleport(sp.pos.x, sp.pos.y, sp.pos.z, sp.heading);
-        else if (game.city?.playerSpawn) game.teleport(game.city.playerSpawn.x, null, game.city.playerSpawn.z, game.city.playerSpawnHeading);
+        else if (game.city?.playerSpawn)
+          game.teleport(
+            game.city.playerSpawn.x,
+            null,
+            game.city.playerSpawn.z,
+            game.city.playerSpawnHeading,
+          );
       }
-    } catch (e) { console.error('[frontend] start', e); }
-    try { character()?.setVisible?.(true); character()?.lookAt?.(null); } catch (e) { /* */ }
-    game.cameraYaw = P.heading + Math.PI; game.cameraPitch = 0.22;
+    } catch (e) {
+      console.error('[frontend] start', e);
+    }
+    try {
+      character()?.setVisible?.(true);
+      character()?.lookAt?.(null);
+    } catch (e) {
+      /* */
+    }
+    game.cameraYaw = P.heading + Math.PI;
+    game.cameraPitch = 0.22;
     // camera waits above the player while the ground streams in
-    const px = P.position.x, pz = P.position.z, py = P.position.y;
+    const px = P.position.x,
+      pz = P.position.z,
+      py = P.position.y;
     const back = { x: Math.sin(P.heading), z: Math.cos(P.heading) };
-    cin.begin({ letterbox: false, dof: true, flare: true, grain: 1.2, vignette: 0.08, owner: 'intro' });
-    cin.shot({ dur: 1e6, fov: 42, aperture: 0.4, from: { pos: [px - back.x * 26, py + 16, pz - back.z * 26], look: [px, py + 1, pz] } });
-    try { await load.waitWorld(px, pz); } catch (e) { console.warn('[frontend] waitWorld', e); } // never leave the loading screen up
+    cin.begin({
+      letterbox: false,
+      dof: true,
+      flare: true,
+      grain: 1.2,
+      vignette: 0.08,
+      owner: 'intro',
+    });
+    cin.shot({
+      dur: 1e6,
+      fov: 42,
+      aperture: 0.4,
+      from: { pos: [px - back.x * 26, py + 16, pz - back.z * 26], look: [px, py + 1, pz] },
+    });
+    try {
+      await load.waitWorld(px, pz);
+    } catch (e) {
+      console.warn('[frontend] waitWorld', e);
+    } // never leave the loading screen up
     // reveal: crane down from behind to the gameplay camera, then hand it over
     game.menuMusic = null;
     loadingMusic.stop(game, 1.6);
     root.remove();
     load.close();
-    cin.shot({ dur: 2.6, fov: 42, aperture: 0.5, ease: (t) => 1 - Math.pow(1 - t, 3), from: { pos: [px - back.x * 26, py + 16, pz - back.z * 26], look: [px, py + 1, pz] }, to: { pos: [px - back.x * 5.2, py + 2.6, pz - back.z * 5.2], look: [px, py + 1.5, pz] } });
+    cin.shot({
+      dur: 2.6,
+      fov: 42,
+      aperture: 0.5,
+      ease: (t) => 1 - Math.pow(1 - t, 3),
+      from: { pos: [px - back.x * 26, py + 16, pz - back.z * 26], look: [px, py + 1, pz] },
+      to: { pos: [px - back.x * 5.2, py + 2.6, pz - back.z * 5.2], look: [px, py + 1.5, pz] },
+    });
     await new Promise((r) => setTimeout(r, 2300));
     cin.handoff?.(1100);
     cin.end();
     finish();
   }
   function finish() {
-    fe.active = false; fe.screen = null;
-    clearInterval(npTimer); offNav(); offUiKey();
+    fe.active = false;
+    fe.screen = null;
+    clearInterval(npTimer);
+    offNav();
+    offUiKey();
     leaveUI();
     P.script = null;
     document.body.classList.remove('pm-front');
     game.ui.title = false;
     document.getElementById('ps-hud')?.classList.add('live');
-    const clearLaw = () => { try { game.wanted?.clear?.('fresh start'); } catch (e) { /* */ } }; clearLaw(); setTimeout(clearLaw, 3000);
-    const t = document.getElementById('title'); if (t) t.style.display = 'none';
-    try { game.renderer.domElement.requestPointerLock?.()?.catch?.(() => {}); } catch (e) { /* needs a click: the canvas asks on the next one */ }
+    const clearLaw = () => {
+      try {
+        game.wanted?.clear?.('fresh start');
+      } catch (e) {
+        /* */
+      }
+    };
+    clearLaw();
+    setTimeout(clearLaw, 3000);
+    const t = document.getElementById('title');
+    if (t) t.style.display = 'none';
+    try {
+      game.renderer.domElement.requestPointerLock?.()?.catch?.(() => {});
+    } catch (e) {
+      /* needs a click: the canvas asks on the next one */
+    }
     game.emit?.('frontend:play', {});
   }
-  fe.open = () => { /* the title only opens at boot */ };
+  fe.open = () => {
+    /* the title only opens at boot */
+  };
   // r2-web quick title (quickTitle.js): it was on screen while the engine loaded and hands over in the same state
   fe.quick = {
     openMenu,
     choose,
-    focus(id) { const b = id && menu.querySelector(`.pm-item[data-id="${id}"]`); if (b && scope?.focus) scope.focus(b); else if (b) { menu.querySelectorAll('.pm-item').forEach((x) => x.classList.toggle('is-focus', x === b)); } },
+    focus(id) {
+      const b = id && menu.querySelector(`.pm-item[data-id="${id}"]`);
+      if (b && scope?.focus) scope.focus(b);
+      else if (b) {
+        menu.querySelectorAll('.pm-item').forEach((x) => x.classList.toggle('is-focus', x === b));
+      }
+    },
   };
   // dev: ?menushot=<id>&menustate=menu|settings|wardrobe|loading for shots
   const st = params.get('menustate');
-  if (st) setTimeout(async () => { await openMenu(); if (st === 'settings') openSettings(); else if (st === 'wardrobe') openWardrobe(); else if (st === 'online') openOnline(); else if (st === 'credits') openCredits(); }, 600);
+  if (st)
+    setTimeout(async () => {
+      await openMenu();
+      if (st === 'settings') openSettings();
+      else if (st === 'wardrobe') openWardrobe();
+      else if (st === 'online') openOnline();
+      else if (st === 'credits') openCredits();
+    }, 600);
 }
 
 // ---------------------------------------------------------------- loading screen
 function createLoading(game, ctx, kind, from = 2) {
-  const fill = (t) => esc(t).replace(/ , and \. /, ` ${ctx.bindings.glyph('radioPrev')} and ${ctx.bindings.glyph('radioNext')} `);
+  const fill = (t) =>
+    esc(t).replace(
+      / , and \. /,
+      ` ${ctx.bindings.glyph('radioPrev')} and ${ctx.bindings.glyph('radioNext')} `,
+    );
   const ls = createLoadScreen({ mount: ctx.layer('top'), fillTip: fill });
   ls.set(from, kind === 'continue' ? 'Loading your save' : 'Starting a new game');
   return {
     // real readiness: streamed tiles (colliders + full-detail meshes) within 220 m of the player
     async waitWorld(x, z) {
-      const t0 = performance.now(), st = game.city?.streamer;
-      try { ls.place(game.city?.districtAt?.(x, z) || ''); } catch (e) { /* */ }
-      const R = 320, ts = st?.tileSize || 200, expected = Math.max(4, Math.ceil((Math.PI * R * R) / (ts * ts)));
+      const t0 = performance.now(),
+        st = game.city?.streamer;
+      try {
+        ls.place(game.city?.districtAt?.(x, z) || '');
+      } catch (e) {
+        /* */
+      }
+      const R = 320,
+        ts = st?.tileSize || 200,
+        expected = Math.max(4, Math.ceil((Math.PI * R * R) / (ts * ts)));
       for (;;) {
         const el2 = performance.now() - t0;
-        let ready = 0, seen = 0;
-        if (st) for (const t of st.tiles.values()) { const d = Math.hypot(t.cx - x, t.cz - z); if (d < R) { seen++; if (t.col && t.near) ready++; } }
+        let ready = 0,
+          seen = 0;
+        if (st)
+          for (const t of st.tiles.values()) {
+            const d = Math.hypot(t.cx - x, t.cz - z);
+            if (d < R) {
+              seen++;
+              if (t.col && t.near) ready++;
+            }
+          }
         const around = st?.readyAround ? st.readyAround(x, z, 320) : true;
         const frac = around ? 1 : ready / Math.max(expected, seen);
         const pend = st?.pending?.() ?? 0;
-        ls.set(Math.min(around ? 100 : 92, 8 + frac * 80 + (pend < 3 ? 8 : 0) + Math.min(4, el2 / 500)), around ? 'Ready' : pend > 0 ? `Streaming the streets (${pend} left)` : 'Building colliders');
+        ls.set(
+          Math.min(around ? 100 : 92, 8 + frac * 80 + (pend < 3 ? 8 : 0) + Math.min(4, el2 / 500)),
+          around
+            ? 'Ready'
+            : pend > 0
+              ? `Streaming the streets (${pend} left)`
+              : 'Building colliders',
+        );
         if ((around && el2 > 2200) || el2 > 25000) break;
         await new Promise((r) => setTimeout(r, 100));
       }
@@ -413,20 +851,38 @@ function createLoading(game, ctx, kind, from = 2) {
       ls.set(100, 'Ready');
       await new Promise((r) => setTimeout(r, 300));
     },
-    close() { ls.close(); },
+    close() {
+      ls.close();
+    },
   };
 }
 
 // minimal markdown for CREDITS.md: headings, bullets, links, code, bold
 function mdLite(src) {
-  const inline = (s) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '$1').replace(/(https?:\/\/[^\s)<,]+)/g, '<span class="pm-url">$1</span>');
-  let out = '', inList = false;
+  const inline = (s) =>
+    esc(s)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+      .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '$1')
+      .replace(/(https?:\/\/[^\s)<,]+)/g, '<span class="pm-url">$1</span>');
+  let out = '',
+    inList = false;
   for (const line of String(src).split('\n')) {
-    const h = /^(#{1,4})\s+(.*)/.exec(line), li = /^\s*[-*]\s+(.*)/.exec(line);
-    if (!li && inList) { out += '</ul>'; inList = false; }
-    if (h) out += `<h${Math.min(4, h[1].length + 2)}>${inline(h[2])}</h${Math.min(4, h[1].length + 2)}>`;
-    else if (li) { if (!inList) { out += '<ul>'; inList = true; } out += `<li>${inline(li[1])}</li>`; }
-    else if (line.trim()) out += `<p>${inline(line)}</p>`;
+    const h = /^(#{1,4})\s+(.*)/.exec(line),
+      li = /^\s*[-*]\s+(.*)/.exec(line);
+    if (!li && inList) {
+      out += '</ul>';
+      inList = false;
+    }
+    if (h)
+      out += `<h${Math.min(4, h[1].length + 2)}>${inline(h[2])}</h${Math.min(4, h[1].length + 2)}>`;
+    else if (li) {
+      if (!inList) {
+        out += '<ul>';
+        inList = true;
+      }
+      out += `<li>${inline(li[1])}</li>`;
+    } else if (line.trim()) out += `<p>${inline(line)}</p>`;
   }
   if (inList) out += '</ul>';
   return out;

@@ -11,8 +11,18 @@ import { linkEnv } from '../envlink.js';
 // ---------------------------------------------------------------- trim
 // pattern ids (aPat): 0 none, 1 honeycomb mesh, 2 horizontal slats, 3 tire tread (uses uv), 4 vertical slats,
 // 5 square mesh, 6 tire sidewall rings (uses uv), 7 seat stitching (quilted), 8 brake disc (radial grooves, uses uv)
-export const PAT = { none: 0, hex: 1, slats: 2, tread: 3, vslats: 4, square: 5, sidewall: 6, quilt: 7, disc: 8 };
-const TRIM_VERT = /* glsl */`
+export const PAT = {
+  none: 0,
+  hex: 1,
+  slats: 2,
+  tread: 3,
+  vslats: 4,
+  square: 5,
+  sidewall: 6,
+  quilt: 7,
+  disc: 8,
+};
+const TRIM_VERT = /* glsl */ `
 attribute vec2 aRM;
 attribute float aPat;
 varying vec2 vRM;
@@ -20,7 +30,7 @@ varying float vPat;
 varying vec3 vObjPos;
 varying vec3 vObjN;
 `;
-const TRIM_FRAG = /* glsl */`
+const TRIM_FRAG = /* glsl */ `
 varying vec2 vRM;
 varying float vPat;
 varying vec3 vObjPos;
@@ -98,7 +108,8 @@ void applyPattern(inout vec3 col) {
   patMask = hole;
 }
 `;
-let _trim = null, _trimWorn = null;
+let _trim = null,
+  _trimWorn = null;
 /** trim of every library car; trimMaterial({ worn: true }): old cars - chrome gone flat and milky, rubber chalky (shared) */
 export function trimMaterial(o = {}) {
   if (o.worn) return (_trimWorn ||= wornTrim());
@@ -106,31 +117,67 @@ export function trimMaterial(o = {}) {
   // W2 (Nov 19 playtest: flickering layers / "diamonds" on bodies): seals, badges' plates, decal film and cowl panels lie on
   // the paint within a millimeter or two; a small depth pull makes the trim win those ties at every range instead of
   // alternating triangle by triangle (hidden under-skins 0-3 cm behind the paint are deleted by the converter)
-  const m = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.6, metalness: 0, envMapIntensity: 1.25, side: THREE.DoubleSide,
-    polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+  const m = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    vertexColors: true,
+    roughness: 0.6,
+    metalness: 0,
+    envMapIntensity: 1.25,
+    side: THREE.DoubleSide,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -2,
+  });
   m.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\n' + TRIM_VERT)
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vRM = aRM; vPat = aPat; vObjPos = position; vObjN = normal;');
+      .replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\n  vRM = aRM; vPat = aPat; vObjPos = position; vObjN = normal;',
+      );
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\n' + TRIM_FRAG)
-      .replace('#include <color_fragment>', '#include <color_fragment>\n  applyPattern(diffuseColor.rgb);')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(vRM.x, 0.95, patMask);')
-      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y * (1.0 - patMask);');
-    if (!sh.fragmentShader.includes('varying vec2 vUv;')) sh.fragmentShader = sh.fragmentShader.replace('#include <common>', 'varying vec2 vUv;\n#include <common>');
-    if (!sh.vertexShader.includes('varying vec2 vUv;')) sh.vertexShader = sh.vertexShader.replace('#include <common>', 'varying vec2 vUv;\n#include <common>').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vUv = uv;');
+      .replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\n  applyPattern(diffuseColor.rgb);',
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\n  roughnessFactor = mix(vRM.x, 0.95, patMask);',
+      )
+      .replace(
+        '#include <metalnessmap_fragment>',
+        '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y * (1.0 - patMask);',
+      );
+    if (!sh.fragmentShader.includes('varying vec2 vUv;'))
+      sh.fragmentShader = sh.fragmentShader.replace(
+        '#include <common>',
+        'varying vec2 vUv;\n#include <common>',
+      );
+    if (!sh.vertexShader.includes('varying vec2 vUv;'))
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', 'varying vec2 vUv;\n#include <common>')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vUv = uv;');
   };
   m.customProgramCacheKey = () => 'ps-cartrim-v1';
   _trim = m;
   return m;
 }
 function wornTrim() {
-  const base = trimMaterial(), m = base.clone(); m.name = 'car-trim-worn';
+  const base = trimMaterial(),
+    m = base.clone();
+  m.name = 'car-trim-worn';
   m.onBeforeCompile = (sh) => {
     base.onBeforeCompile(sh);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = max(roughnessFactor, vRM.y > 0.5 ? 0.38 : 0.62);')
-      .replace('applyPattern(diffuseColor.rgb);', 'applyPattern(diffuseColor.rgb);\n  if (vRM.y > 0.5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.42, 0.41, 0.39), 0.35);\n  else if (dot(diffuseColor.rgb, vec3(0.33)) < 0.06) diffuseColor.rgb += vec3(0.022, 0.02, 0.018);\n  else diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.55, 0.15))) * 0.95 + 0.03, 0.45);');
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\n  roughnessFactor = max(roughnessFactor, vRM.y > 0.5 ? 0.38 : 0.62);',
+      )
+      .replace(
+        'applyPattern(diffuseColor.rgb);',
+        'applyPattern(diffuseColor.rgb);\n  if (vRM.y > 0.5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.42, 0.41, 0.39), 0.35);\n  else if (dot(diffuseColor.rgb, vec3(0.33)) < 0.06) diffuseColor.rgb += vec3(0.022, 0.02, 0.018);\n  else diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.55, 0.15))) * 0.95 + 0.03, 0.45);',
+      );
   };
   m.customProgramCacheKey = () => 'ps-cartrim-worn-v2';
   return m;
@@ -139,7 +186,7 @@ function wornTrim() {
 // ---------------------------------------------------------------- wheels (instanced; spin about local X in the shader)
 // attributes: aRM, aPat (as trim), aTint (1 = takes the per-car rim color), aFix (1 = does not spin: caliper)
 // instanced: instanceMatrix (steer frame), aSpin (radians), instanceColor (rim color)
-const WHEEL_VERT = /* glsl */`
+const WHEEL_VERT = /* glsl */ `
 attribute float aTint;
 attribute float aFix;
 attribute float aSpin;
@@ -150,24 +197,59 @@ varying vec3 vRim;
 const _wheelMats = new Map();
 export function wheelMaterial(finish = 'alloy') {
   if (_wheelMats.has(finish)) return _wheelMats.get(finish);
-  const m = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.5, metalness: 0, envMapIntensity: 1.3 });
-  const RM = { alloy: [0.28, 0.92], chrome: [0.05, 1.0], gloss: [0.2, 0.55], satin: [0.42, 0.8], steel: [0.55, 0.55], plastic: [0.45, 0.2] }[finish] || [0.28, 0.92];
+  const m = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    vertexColors: true,
+    roughness: 0.5,
+    metalness: 0,
+    envMapIntensity: 1.3,
+  });
+  const RM = {
+    alloy: [0.28, 0.92],
+    chrome: [0.05, 1.0],
+    gloss: [0.2, 0.55],
+    satin: [0.42, 0.8],
+    steel: [0.55, 0.55],
+    plastic: [0.45, 0.2],
+  }[finish] || [0.28, 0.92];
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uRimRM = { value: new THREE.Vector2(RM[0], RM[1]) };
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vUv;\n' + TRIM_VERT + WHEEL_VERT)
-      .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+      .replace(
+        '#include <common>',
+        '#include <common>\nvarying vec2 vUv;\n' + TRIM_VERT + WHEEL_VERT,
+      )
+      .replace(
+        '#include <beginnormal_vertex>',
+        `#include <beginnormal_vertex>
   float sa = aSpin * (1.0 - aFix);
   float cs = cos(sa), sn = sin(sa);
-  objectNormal = vec3(objectNormal.x, cs * objectNormal.y - sn * objectNormal.z, sn * objectNormal.y + cs * objectNormal.z);`)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>
+  objectNormal = vec3(objectNormal.x, cs * objectNormal.y - sn * objectNormal.z, sn * objectNormal.y + cs * objectNormal.z);`,
+      )
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
   transformed = vec3(transformed.x, cs * transformed.y - sn * transformed.z, sn * transformed.y + cs * transformed.z);
-  vRM = aRM; vPat = aPat; vObjPos = position; vObjN = normal; vUv = uv; vTint = aTint; vRim = aRim;`);
+  vRM = aRM; vPat = aPat; vObjPos = position; vObjN = normal; vUv = uv; vTint = aTint; vRim = aRim;`,
+      );
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vUv;\nvarying float vTint;\nvarying vec3 vRim;\nuniform vec2 uRimRM;\n' + TRIM_FRAG)
-      .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb *= mix(vec3(1.0), vRim, vTint);\n  applyPattern(diffuseColor.rgb);')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(vRM.x, uRimRM.x, vTint), 0.95, patMask);')
-      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = mix(vRM.y, uRimRM.y, vTint) * (1.0 - patMask);');
+      .replace(
+        '#include <common>',
+        '#include <common>\nvarying vec2 vUv;\nvarying float vTint;\nvarying vec3 vRim;\nuniform vec2 uRimRM;\n' +
+          TRIM_FRAG,
+      )
+      .replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\n  diffuseColor.rgb *= mix(vec3(1.0), vRim, vTint);\n  applyPattern(diffuseColor.rgb);',
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(vRM.x, uRimRM.x, vTint), 0.95, patMask);',
+      )
+      .replace(
+        '#include <metalnessmap_fragment>',
+        '#include <metalnessmap_fragment>\n  metalnessFactor = mix(vRM.y, uRimRM.y, vTint) * (1.0 - patMask);',
+      );
   };
   m.customProgramCacheKey = () => 'ps-carwheel-v1-' + finish;
   _wheelMats.set(finish, m);
@@ -180,36 +262,64 @@ const _glass = [];
 // pane.  Absorption by tint level (factory glass passes ~65 %, privacy ~15 %); the reflection is added on top at full
 // strength (premultiplied), so the cabin reads through the glass but darker, and the street mirrors at grazing angles.
 // ?r3car=0 restores the r2 look (opacity 0.62 / 0.74 / 0.8 / 0.92, fake-sky veil, no face-forward normals).
-export const R3CAR = (() => { try { return new URLSearchParams(location.search).get('r3car') !== '0'; } catch (e) { return true; } })();
-const TINTS = R3CAR ? [
-  { color: 0x2a3634, opacity: 0.36 },   // 0 factory (faint green)
-  { color: 0x1a2326, opacity: 0.46 },   // 1 light
-  { color: 0x0e1418, opacity: 0.64 },   // 2 dark
-  { color: 0x030507, opacity: 0.86 },   // 3 limo / privacy
-] : [
-  { color: 0x34413f, opacity: 0.62 },   // 0 factory (green-ish; still dark enough to reflect)
-  { color: 0x1c2528, opacity: 0.74 },   // 1 light (ref_57: dark enough that the reflection reads over the cabin)
-  { color: 0x0e1418, opacity: 0.8 },    // 2 dark
-  { color: 0x030507, opacity: 0.92 },   // 3 limo
-];
+export const R3CAR = (() => {
+  try {
+    return new URLSearchParams(location.search).get('r3car') !== '0';
+  } catch (e) {
+    return true;
+  }
+})();
+const TINTS = R3CAR
+  ? [
+      { color: 0x2a3634, opacity: 0.36 }, // 0 factory (faint green)
+      { color: 0x1a2326, opacity: 0.46 }, // 1 light
+      { color: 0x0e1418, opacity: 0.64 }, // 2 dark
+      { color: 0x030507, opacity: 0.86 }, // 3 limo / privacy
+    ]
+  : [
+      { color: 0x34413f, opacity: 0.62 }, // 0 factory (green-ish; still dark enough to reflect)
+      { color: 0x1c2528, opacity: 0.74 }, // 1 light (ref_57: dark enough that the reflection reads over the cabin)
+      { color: 0x0e1418, opacity: 0.8 }, // 2 dark
+      { color: 0x030507, opacity: 0.92 }, // 3 limo
+    ];
 let _dusty = null;
 /** glassMaterial(tint): windows by tint level; glassMaterial(0, { dusty: true }): an old parked car's dusty, hazy glass (shared) */
 export function glassMaterial(tint = 1, o = {}) {
   if (o.dusty) {
     if (_dusty) return _dusty;
-    const m = glassMaterial(0).clone(); m.onBeforeCompile = glassMaterial(0).onBeforeCompile; m.premultipliedAlpha = true;
-    m.color.set(0x6b6a62); m.opacity = 0.78; m.roughness = 0.34; m.clearcoatRoughness = 0.3; m.envMapIntensity = 0.75; m.name = 'car-glass-dusty';
+    const m = glassMaterial(0).clone();
+    m.onBeforeCompile = glassMaterial(0).onBeforeCompile;
+    m.premultipliedAlpha = true;
+    m.color.set(0x6b6a62);
+    m.opacity = 0.78;
+    m.roughness = 0.34;
+    m.clearcoatRoughness = 0.3;
+    m.envMapIntensity = 0.75;
+    m.name = 'car-glass-dusty';
     m.customProgramCacheKey = () => 'ps-carglass-v2';
     return (_dusty = m);
   }
   const t = Math.max(0, Math.min(3, tint | 0));
   if (_glass[t]) return _glass[t];
   const P = TINTS[t];
-  const m = new THREE.MeshPhysicalMaterial({ color: P.color, opacity: P.opacity, transparent: true, depthWrite: false, metalness: 0, roughness: 0.1,   // 0.06 put a hot sun blob on side glass (QA #17)
+  const m = new THREE.MeshPhysicalMaterial({
+    color: P.color,
+    opacity: P.opacity,
+    transparent: true,
+    depthWrite: false,
+    metalness: 0,
+    roughness: 0.1, // 0.06 put a hot sun blob on side glass (QA #17)
     // art guide: glass env <= 1.5 (2.6 painted a white sky sheet on every windshield)
-    clearcoat: 1, clearcoatRoughness: 0.07, envMapIntensity: 1.35, side: THREE.DoubleSide, specularIntensity: 0.8,
+    clearcoat: 1,
+    clearcoatRoughness: 0.07,
+    envMapIntensity: 1.35,
+    side: THREE.DoubleSide,
+    specularIntensity: 0.8,
     // the window wins its near-coplanar ties with cowl / seal trim (the black sawtooth "diamonds" along a windshield base)
-    polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -4,
+  });
   linkEnv(m);
   const R3 = R3CAR;
   m.onBeforeCompile = (sh) => {
@@ -220,16 +330,28 @@ export function glassMaterial(tint = 1, o = {}) {
       // face-forward: a quarter of some models' window triangles are wound inward (truck9, hatch1), so on a DoubleSide pane
       // their normal pointed into the cabin and they mirrored the ground = the dark polygon patches on the windshield
       sh.fragmentShader = sh.fragmentShader
-        .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\n  if (dot(normal, vViewPosition) < 0.0) normal = -normal;\n  nonPerturbedNormal = normal;')
-        .replace('#include <clearcoat_normal_fragment_begin>', '#include <clearcoat_normal_fragment_begin>\n  if (dot(clearcoatNormal, vViewPosition) < 0.0) clearcoatNormal = -clearcoatNormal;');
+        .replace(
+          '#include <normal_fragment_begin>',
+          '#include <normal_fragment_begin>\n  if (dot(normal, vViewPosition) < 0.0) normal = -normal;\n  nonPerturbedNormal = normal;',
+        )
+        .replace(
+          '#include <clearcoat_normal_fragment_begin>',
+          '#include <clearcoat_normal_fragment_begin>\n  if (dot(clearcoatNormal, vViewPosition) < 0.0) clearcoatNormal = -clearcoatNormal;',
+        );
     }
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying float vWin;')
       // lens (vWin 0): near-clear, a hint of the lamp color below; window (1): the tint.  Fresnel keeps grazing glass reflective.
-      .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor = mix(vec4(0.92, 0.94, 0.96, 0.1), diffuseColor, vWin);')
+      .replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\n  diffuseColor = mix(vec4(0.92, 0.94, 0.96, 0.1), diffuseColor, vWin);',
+      )
       // premultiplied output: the tint (diffuse) is scaled by alpha, the reflection (specular + clearcoat) is added at full
       // strength, so a dark window still mirrors the sky and street like real glass
-      .replace('#include <opaque_fragment>', R3 ? `float cv = clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0);
+      .replace(
+        '#include <opaque_fragment>',
+        R3
+          ? `float cv = clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0);
   float fr = pow(1.0 - cv, 5.0);   // Schlick: ~4 % face on, a mirror only at grazing angles
   float ga = clamp(diffuseColor.a + fr * 0.7 * vWin, 0.0, 1.0);
   vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0)) * (0.6 + 0.4 * fr);
@@ -237,14 +359,16 @@ export function glassMaterial(tint = 1, o = {}) {
   vec3 skyC = mix(vec3(0.16, 0.15, 0.14), mix(vec3(0.75, 0.82, 0.9), vec3(0.32, 0.5, 0.78), clamp(rw.y * 1.6, 0.0, 1.0)), smoothstep(-0.12, 0.05, rw.y));
   // no flat gray veil face on (the r2 sky term, 8 %+, read as milky fog over the cabin); sky mostly at grazing angles
   spec += skyC * vWin * (0.02 + 0.45 * fr);
-  gl_FragColor = vec4(totalDiffuse * ga + spec, ga);` : `float fr = pow(1.0 - clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 3.0);
+  gl_FragColor = vec4(totalDiffuse * ga + spec, ga);`
+          : `float fr = pow(1.0 - clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 3.0);
   float ga = clamp(diffuseColor.a + fr * 0.6 * vWin, 0.0, 1.0);
   vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0)) * (0.5 + 0.6 * fr);
   // sky / street mirror: a world-space sky gradient seen in the reflected direction (works without a scene env map)
   vec3 rw = inverseTransformDirection(reflect(normalize(-vViewPosition), normal), viewMatrix);
   vec3 skyC = mix(vec3(0.16, 0.15, 0.14), mix(vec3(0.75, 0.82, 0.9), vec3(0.32, 0.5, 0.78), clamp(rw.y * 1.6, 0.0, 1.0)), smoothstep(-0.12, 0.05, rw.y));
   spec += skyC * vWin * (0.08 + 0.32 * fr); // (was 0.12 + 0.55: side glass read as an opaque silver mirror, people inside invisible)
-  gl_FragColor = vec4(totalDiffuse * ga + spec, ga);`)
+  gl_FragColor = vec4(totalDiffuse * ga + spec, ga);`,
+      )
       .replace('#include <premultiplied_alpha_fragment>', '');
   };
   m.premultipliedAlpha = true;
@@ -254,18 +378,63 @@ export function glassMaterial(tint = 1, o = {}) {
 }
 let _broken = null;
 export function brokenGlass() {
-  return _broken ||= new THREE.MeshStandardMaterial({ color: 0x9aa3a8, metalness: 0.1, roughness: 0.6, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide });
+  return (_broken ||= new THREE.MeshStandardMaterial({
+    color: 0x9aa3a8,
+    metalness: 0.1,
+    roughness: 0.6,
+    transparent: true,
+    opacity: 0.16,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  }));
 }
 
 // ---------------------------------------------------------------- lamps + decals (per car)
 // channels (aLamp): see LAMP; base color from vertex color, decal texels from the car's decal sheet (uv), alpha-tested.
-export const LAMP = { none: 0, head: 1, drl: 2, lens: 3, fog: 4, tail: 5, tailLed: 6, reverse: 7, blinkL: 8, blinkR: 9, red: 10, blue: 11, sign: 12, amber: 13, plate: 14 };
+export const LAMP = {
+  none: 0,
+  head: 1,
+  drl: 2,
+  lens: 3,
+  fog: 4,
+  tail: 5,
+  tailLed: 6,
+  reverse: 7,
+  blinkL: 8,
+  blinkR: 9,
+  red: 10,
+  blue: 11,
+  sign: 12,
+  amber: 13,
+  plate: 14,
+};
 const NCH = 16; // 15 = seat trim (base color times the car's trim color)
-const LAMP_EMISSIVE = { head: 0xfff2dc, drl: 0xe8f2ff, lens: 0xfff6e8, fog: 0xffffff, tail: 0xff0402, tailLed: 0xff0a04, reverse: 0xffffff, blinkL: 0xff8a00, blinkR: 0xff8a00,
-  red: 0xff0a0a, blue: 0x1a3cff, sign: 0xffe9a0, amber: 0xff8a00, plate: 0xfff4e0 };
+const LAMP_EMISSIVE = {
+  head: 0xfff2dc,
+  drl: 0xe8f2ff,
+  lens: 0xfff6e8,
+  fog: 0xffffff,
+  tail: 0xff0402,
+  tailLed: 0xff0a04,
+  reverse: 0xffffff,
+  blinkL: 0xff8a00,
+  blinkR: 0xff8a00,
+  red: 0xff0a0a,
+  blue: 0x1a3cff,
+  sign: 0xffe9a0,
+  amber: 0xff8a00,
+  plate: 0xfff4e0,
+};
 // a lightMats entry: what vehicles.js and net/session.js touch (emissiveIntensity, color, emissive, dispose)
 function proxy(kind) {
-  return { isLampProxy: true, kind, emissiveIntensity: 0, emissive: new THREE.Color(LAMP_EMISSIVE[kind] ?? 0xffffff), color: new THREE.Color(0xffffff), dispose() {} };
+  return {
+    isLampProxy: true,
+    kind,
+    emissiveIntensity: 0,
+    emissive: new THREE.Color(LAMP_EMISSIVE[kind] ?? 0xffffff),
+    color: new THREE.Color(0xffffff),
+    dispose() {},
+  };
 }
 /** -> { material, lightMats, sync() } ; sheet = { texture } (the per-car decal canvas) */
 export function lampMaterial(sheet, opts = {}) {
@@ -276,25 +445,62 @@ export function lampMaterial(sheet, opts = {}) {
   if (opts.busSign) lightMats.sign.emissive.setHex(0xffb020);
   const E = Array.from({ length: NCH }, () => new THREE.Vector3());
   const keys = Object.keys(LAMP);
-  const uniforms = { uLampE: { value: E }, uSeat: { value: new THREE.Color(opts.seat ?? 0x5a5c61) } };
+  const uniforms = {
+    uLampE: { value: E },
+    uSeat: { value: new THREE.Color(opts.seat ?? 0x5a5c61) },
+  };
   // a real lamp build-up on every car: a clear polycarbonate lens on top (clear coat: sharp sun / sky reflection), behind it a
   // chrome reflector bowl with fine facets (head / fog / reverse / DRL), or a deep colored lens with optics ridges (tail, brake,
   // blinkers: the color reads darker at grazing angles, i.e. from the depth of the lens, not a flat red paint); lit lamps glow
   // from a hot core outward through the facets instead of a flat emissive slab
-  const m = new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, map: sheet?.texture || null, alphaTest: 0.35, roughness: 0.35, metalness: 0, envMapIntensity: 1.2,
-    clearcoat: 1, clearcoatRoughness: 0.035, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2, side: THREE.DoubleSide });
+  const m = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    vertexColors: true,
+    map: sheet?.texture || null,
+    alphaTest: 0.35,
+    roughness: 0.35,
+    metalness: 0,
+    envMapIntensity: 1.2,
+    clearcoat: 1,
+    clearcoatRoughness: 0.035,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -2,
+    side: THREE.DoubleSide,
+  });
   m.name = 'car-lamp';
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uLampE = uniforms.uLampE; sh.uniforms.uSeat = uniforms.uSeat;
+    sh.uniforms.uLampE = uniforms.uLampE;
+    sh.uniforms.uSeat = uniforms.uSeat;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aLamp;\nattribute vec2 aRM;\nvarying float vLamp;\nvarying vec2 vRM;\nvarying vec3 vLampP;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLamp = aLamp; vRM = aRM; vLampP = position;');
+      .replace(
+        '#include <common>',
+        '#include <common>\nattribute float aLamp;\nattribute vec2 aRM;\nvarying float vLamp;\nvarying vec2 vRM;\nvarying vec3 vLampP;',
+      )
+      .replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\n  vLamp = aLamp; vRM = aRM; vLampP = position;',
+      );
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform vec3 uLampE[${NCH}];\nuniform vec3 uSeat;\nvarying float vLamp;\nvarying vec2 vRM;\nvarying vec3 vLampP;`)
-      .replace('#include <color_fragment>', '#include <color_fragment>\n  if (vLamp > 14.5) diffuseColor.rgb *= uSeat;')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = vRM.x;')
-      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y;')
-      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+      .replace(
+        '#include <common>',
+        `#include <common>\nuniform vec3 uLampE[${NCH}];\nuniform vec3 uSeat;\nvarying float vLamp;\nvarying vec2 vRM;\nvarying vec3 vLampP;`,
+      )
+      .replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\n  if (vLamp > 14.5) diffuseColor.rgb *= uSeat;',
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\n  roughnessFactor = vRM.x;',
+      )
+      .replace(
+        '#include <metalnessmap_fragment>',
+        '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y;',
+      )
+      .replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
   {
     int ch = int(vLamp + 0.5);
     float ndv = clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0);
@@ -323,9 +529,13 @@ export function lampMaterial(sheet, opts = {}) {
     float core = white ? 0.35 + 2.6 * pow(ndv, 9.0) : 0.45 + 0.75 * pow(ndv, 1.6);
     float tex = white ? 0.75 + 0.5 * facet * near : colored ? 0.7 + 0.45 * ridge * near : 1.0;
     totalEmissiveRadiance = E * core * tex;
-  }`);
+  }`,
+      );
   };
-  if (globalThis.__lampLegacy) { m.defines = { LAMP_LEGACY: '' }; m.clearcoat = 0; } // A/B: the old flat lamp (studio ?lampv1)
+  if (globalThis.__lampLegacy) {
+    m.defines = { LAMP_LEGACY: '' };
+    m.clearcoat = 0;
+  } // A/B: the old flat lamp (studio ?lampv1)
   m.customProgramCacheKey = () => 'ps-carlamp-v3' + (globalThis.__lampLegacy ? 'L' : '');
   const broken = new Set();
   const sync = () => {
@@ -345,8 +555,16 @@ export function lampMaterial(sheet, opts = {}) {
 
 // ---------------------------------------------------------------- per-car decal sheet (plate, badge, model lettering)
 // layout (512 x 128): plate [0,256) x [0,128); badge [256,384) x [0,128); lettering [384,512) x [0,64); white [496,512) x [112,128)
-export const SHEET = { w: 512, h: 128, plate: [0, 0, 256, 128], badge: [256, 0, 128, 128], letter: [384, 0, 128, 64], white: [500, 116, 8, 8] };
-export function sheetUV(region, u, v) { // u, v in 0..1 inside the region (v up)
+export const SHEET = {
+  w: 512,
+  h: 128,
+  plate: [0, 0, 256, 128],
+  badge: [256, 0, 128, 128],
+  letter: [384, 0, 128, 64],
+  white: [500, 116, 8, 8],
+};
+export function sheetUV(region, u, v) {
+  // u, v in 0..1 inside the region (v up)
   const [x, y, w, h] = SHEET[region];
   return [(x + u * w) / SHEET.w, 1 - (y + (1 - v) * h) / SHEET.h];
 }

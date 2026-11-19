@@ -3,22 +3,41 @@
 // corrections), PvP hits and damage (lag compensated), vehicle ownership, chat, time of day and weather.
 // Clients own their own physics (the city colliders live in the browser) and are validated here.
 import {
-  TICK_HZ, MAX_PLAYERS, INTEREST_RADIUS, INTEREST_DROP, SEAT_NONE,
-  F_IN_VEHICLE, F_DEAD,
-  M_POS, M_ROT, M_ANIM, M_STAT, M_VEH, M_ENTER,
-  C_SPEED, C_TELEPORT,
-  WEAPONS, Writer, decodeState, writeSnapshotHeader, writeEntity, writeRemovals, encodeCorrect,
-  seqNewer, cleanName, cleanChat,
+  TICK_HZ,
+  MAX_PLAYERS,
+  INTEREST_RADIUS,
+  INTEREST_DROP,
+  SEAT_NONE,
+  F_IN_VEHICLE,
+  F_DEAD,
+  M_POS,
+  M_ROT,
+  M_ANIM,
+  M_STAT,
+  M_VEH,
+  M_ENTER,
+  C_SPEED,
+  C_TELEPORT,
+  WEAPONS,
+  Writer,
+  decodeState,
+  writeSnapshotHeader,
+  writeEntity,
+  writeRemovals,
+  encodeCorrect,
+  seqNewer,
+  cleanName,
+  cleanChat,
 } from '../src/net/protocol.js';
 
-const FOOT_MAX = 14;            // m/s: sprint is ~7, knockbacks and falls add some
-const VEHICLE_MAX = 125;        // m/s: the fastest cars and aircraft
+const FOOT_MAX = 14; // m/s: sprint is ~7, knockbacks and falls add some
+const VEHICLE_MAX = 125; // m/s: the fastest cars and aircraft
 const UP_MAX_FOOT = 14;
 const UP_MAX_VEHICLE = 90;
-const SLACK = 1.5;              // m of free error per state (quantization, kinematic nudges)
-const TP_WINDOW_MS = 1500;      // a declared teleport allows one big jump inside this window
-const TP_MIN_GAP_MS = 2500;     // at most one declared teleport every 2.5 s
-const HISTORY_MS = 1200;        // position history kept for lag compensation
+const SLACK = 1.5; // m of free error per state (quantization, kinematic nudges)
+const TP_WINDOW_MS = 1500; // a declared teleport allows one big jump inside this window
+const TP_MIN_GAP_MS = 2500; // at most one declared teleport every 2.5 s
+const HISTORY_MS = 1200; // position history kept for lag compensation
 const SPREAD = {
   shotgun: 0.055,
   sawnoff: 0.09,
@@ -89,15 +108,17 @@ export class Room {
       id: slot,
       conn,
       name,
-      outfit: Array.isArray(hello.outfit) ? hello.outfit.slice(0, 16).map((s) => String(s).slice(0, 40)) : [],
+      outfit: Array.isArray(hello.outfit)
+        ? hello.outfit.slice(0, 16).map((s) => String(s).slice(0, 40))
+        : [],
       body: sanitizeBody(hello.body),
-      st: null,                 // last accepted state (decoded, quantized fields)
+      st: null, // last accepted state (decoded, quantized fields)
       scratch: {},
       sampleSeq: 0,
       sampleTime: 0,
       lastSeq: -1,
-      offset: null,             // server time - client time (min filtered)
-      hist: [],                 // [{ t, x, y, z }]
+      offset: null, // server time - client time (min filtered)
+      hist: [], // [{ t, x, y, z }]
       tpUntil: 0,
       tpLast: -1e9,
       tpCount: 0,
@@ -108,7 +129,7 @@ export class Room {
       chatTokens: 5,
       chatAt: this.now(),
       interpDelay: 100,
-      sent: new Map(),          // other id -> last sent quantized values
+      sent: new Map(), // other id -> last sent quantized values
       bytesOut: 0,
       bytesIn: 0,
       statesIn: 0,
@@ -255,8 +276,8 @@ export class Room {
       const dt = Math.max(1 / 120, (t - p.sampleTime) / 1000);
       const dh = Math.hypot(s.x - prev.x, s.z - prev.z);
       const dy = s.y - prev.y;
-      const vmax = inVeh || (prev.flags & F_IN_VEHICLE) ? VEHICLE_MAX : FOOT_MAX;
-      const upMax = inVeh || (prev.flags & F_IN_VEHICLE) ? UP_MAX_VEHICLE : UP_MAX_FOOT;
+      const vmax = inVeh || prev.flags & F_IN_VEHICLE ? VEHICLE_MAX : FOOT_MAX;
+      const upMax = inVeh || prev.flags & F_IN_VEHICLE ? UP_MAX_VEHICLE : UP_MAX_FOOT;
       const okH = dh <= vmax * dt * 1.25 + SLACK;
       const okV = dy <= upMax * dt * 1.25 + SLACK;
       if (!okH || !okV) {
@@ -326,7 +347,9 @@ export class Room {
         p.interpDelay = Math.max(30, Math.min(400, Number(m.interp) || 100));
         break;
       case 'look':
-        p.outfit = Array.isArray(m.outfit) ? m.outfit.slice(0, 16).map((s) => String(s).slice(0, 40)) : p.outfit;
+        p.outfit = Array.isArray(m.outfit)
+          ? m.outfit.slice(0, 16).map((s) => String(s).slice(0, 40))
+          : p.outfit;
         p.body = sanitizeBody(m.body);
         this.broadcast({ t: 'look', id: p.id, outfit: p.outfit, body: p.body }, p);
         break;
@@ -394,7 +417,7 @@ export class Room {
   onVehicle(p, m) {
     // a vehicle this player now drives; net ids carry the owner slot in the top bits: ((slot + 1) << 10) | n
     const id = Number(m.id) | 0;
-    if ((id >> 10) !== p.id + 1 || (id & 1023) === 0) {
+    if (id >> 10 !== p.id + 1 || (id & 1023) === 0) {
       return;
     }
     const prev = this.vehicles.get(id);
@@ -533,7 +556,20 @@ export class Room {
       this.posAt(o, tv, pos);
       // capsule: feet + 0.15 .. feet + 1.75, radius 0.42 (a little more in a car: the whole cabin)
       const r = o.st.seat !== SEAT_NONE ? 0.9 : 0.42;
-      const hit = rayCapsule(ox, oy, oz, dx, dy, dz, pos.x, pos.y + 0.15, pos.z, pos.y + 1.75, maxLen, r + (SPREAD[W.key] || 0) * 20);
+      const hit = rayCapsule(
+        ox,
+        oy,
+        oz,
+        dx,
+        dy,
+        dz,
+        pos.x,
+        pos.y + 0.15,
+        pos.z,
+        pos.y + 1.75,
+        maxLen,
+        r + (SPREAD[W.key] || 0) * 20,
+      );
       if (hit && (!best || hit.t < best.t)) {
         best = { o, t: hit.t, y: hit.y, foot: pos.y, miss: hit.miss };
       }
@@ -628,7 +664,7 @@ export class Room {
   // ---------------------------------------------------------------- world clock and weather
   updateWorld(dt) {
     const W = this.world;
-    W.tod = (W.tod + dt * 24 / (W.dayMinutes * 60)) % 24;
+    W.tod = (W.tod + (dt * 24) / (W.dayMinutes * 60)) % 24;
     const now = this.serverTime();
     if (now >= W.weatherUntil) {
       let sum = 0;
@@ -739,10 +775,22 @@ function deltaMask(s, o) {
   if (s.flags !== e.flags || s.qAnim !== e.qAnim) {
     m |= M_ANIM;
   }
-  if (s.health !== e.health || s.armor !== e.armor || s.wanted !== e.wanted || s.weapon !== e.weapon) {
+  if (
+    s.health !== e.health ||
+    s.armor !== e.armor ||
+    s.wanted !== e.wanted ||
+    s.weapon !== e.weapon
+  ) {
     m |= M_STAT;
   }
-  if (s.veh !== e.veh || s.seat !== e.seat || s.qPitch !== e.qPitch || s.qRoll !== e.qRoll || s.qSteer !== e.qSteer || s.vflags !== e.vflags) {
+  if (
+    s.veh !== e.veh ||
+    s.seat !== e.seat ||
+    s.qPitch !== e.qPitch ||
+    s.qRoll !== e.qRoll ||
+    s.qSteer !== e.qSteer ||
+    s.vflags !== e.vflags
+  ) {
     m |= M_VEH;
   }
   return m;
@@ -768,9 +816,38 @@ function remember(s, o) {
 }
 
 const STATE_KEYS = [
-  'seq', 'time', 'flags', 'qx', 'qy', 'qz', 'x', 'y', 'z', 'qvx', 'qvy', 'qvz', 'vx', 'vy', 'vz', 'qh', 'heading',
-  'qAnim', 'animSpeed', 'health', 'armor', 'wanted', 'weapon', 'veh', 'seat', 'qPitch', 'qRoll', 'qSteer', 'vflags',
-  'pitch', 'roll', 'steer',
+  'seq',
+  'time',
+  'flags',
+  'qx',
+  'qy',
+  'qz',
+  'x',
+  'y',
+  'z',
+  'qvx',
+  'qvy',
+  'qvz',
+  'vx',
+  'vy',
+  'vz',
+  'qh',
+  'heading',
+  'qAnim',
+  'animSpeed',
+  'health',
+  'armor',
+  'wanted',
+  'weapon',
+  'veh',
+  'seat',
+  'qPitch',
+  'qRoll',
+  'qSteer',
+  'vflags',
+  'pitch',
+  'roll',
+  'steer',
 ];
 function copyState(dst, src) {
   for (const k of STATE_KEYS) {
@@ -789,7 +866,11 @@ function sanitizeBody(b) {
 }
 
 function validVec(a, n) {
-  return Array.isArray(a) && a.length === n && a.every((x) => Number.isFinite(Number(x)) && Math.abs(Number(x)) < 1e6);
+  return (
+    Array.isArray(a) &&
+    a.length === n &&
+    a.every((x) => Number.isFinite(Number(x)) && Math.abs(Number(x)) < 1e6)
+  );
 }
 
 function round2(v) {

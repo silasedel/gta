@@ -1,0 +1,10 @@
+node_modules/
+dist/
+desktop/dist/
+public/
+Models/
+docs/
+**/*.min.js
+**/vendor/**
+**/*.html
+**/*.json

@@ -11,7 +11,9 @@ import { startServer } from '../../server/server.js';
 import { NetClient } from '../../src/net/clientCore.js';
 import { SEAT_NONE, F_IN_VEHICLE, F_GROUNDED, weaponIndex } from '../../src/net/protocol.js';
 
-const OUT = process.argv.includes('--out') ? process.argv[process.argv.indexOf('--out') + 1] : 'docs/v2/shots/multiplayer';
+const OUT = process.argv.includes('--out')
+  ? process.argv[process.argv.indexOf('--out') + 1]
+  : 'docs/v2/shots/multiplayer';
 fs.mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -41,7 +43,15 @@ for (let i = 0; i < 2; i++) {
 let anchor = null;
 const t0 = performance.now();
 const vehId = ((bots[1].id + 1) << 10) | 1;
-bots[1].sendJSON({ t: 'veh', id: vehId, key: 'sedan', kind: 'car', color: 0xb8322a, p: [0, 0, 0], r: [0, 0, 0] });
+bots[1].sendJSON({
+  t: 'veh',
+  id: vehId,
+  key: 'sedan',
+  kind: 'car',
+  color: 0xb8322a,
+  p: [0, 0, 0],
+  r: [0, 0, 0],
+});
 function botPose(i, t, o) {
   const A = anchor;
   const fx = -Math.sin(A.yaw);
@@ -107,8 +117,12 @@ try {
     const url = `http://127.0.0.1:5200/?mute&mp=ws://127.0.0.1:${port}&room=BEACH&name=Nico&mpLag=100&mpJitter=30&mpLoss=2`;
     await b.goto(url);
     await b.waitFor(GAME_READY + ' && game.net', 200);
-    await b.eval(`document.getElementById('title')?.remove(); game.ui.title = false; game.timeOfDay = 10; 1`);
-    const p = await b.eval(`({ x: game.player.position.x, y: game.player.position.y, z: game.player.position.z, yaw: game.cameraYaw })`);
+    await b.eval(
+      `document.getElementById('title')?.remove(); game.ui.title = false; game.timeOfDay = 10; 1`,
+    );
+    const p = await b.eval(
+      `({ x: game.player.position.x, y: game.player.position.y, z: game.player.position.z, yaw: game.cameraYaw })`,
+    );
     anchor = p;
     report.anchor = p;
     await sleep(6000);
@@ -160,13 +174,18 @@ try {
       await b.screenshot(`${OUT}/ingame_${i}.png`);
       await sleep(700);
     }
-    report.page = await b.eval(`({ stats: game.net.stats(), fps: game.perf?.fps, tod: game.timeOfDay, weather: game.weather })`);
+    report.page = await b.eval(
+      `({ stats: game.net.stats(), fps: game.perf?.fps, tod: game.timeOfDay, weather: game.weather })`,
+    );
     // what the bots see of the browser player
     const me = srv.rooms.get('BEACH').players.find((x) => x && x.name === 'Nico');
     const r = bots[0].remotes.get(me.id);
     const v = {};
     bots[0].sample(r, bots[0].advance(0), v);
-    report.botSeesBrowser = { server: [me.st.x, me.st.z].map((x) => +x.toFixed(2)), bot: [v.x, v.z].map((x) => +x.toFixed(2)) };
+    report.botSeesBrowser = {
+      server: [me.st.x, me.st.z].map((x) => +x.toFixed(2)),
+      bot: [v.x, v.z].map((x) => +x.toFixed(2)),
+    };
     report.errors = [...new Set(b.errors)].slice(0, 15);
   });
 } finally {

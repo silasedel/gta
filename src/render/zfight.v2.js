@@ -5,7 +5,10 @@ export const order = 90;
 export function initV2(game) {
   let scan = null;
   game.zfight = async (opts = {}) => {
-    if (!scan) { const m = await import('./zfightScan.js'); scan = m.makeZFightScanner(game); }
+    if (!scan) {
+      const m = await import('./zfightScan.js');
+      scan = m.makeZFightScanner(game);
+    }
     return scan(opts);
   };
 }

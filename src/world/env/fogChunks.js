@@ -14,11 +14,13 @@ export const FOG_DAY_HAZE = LOOK_OFF ? 0.0 : 0.00016;
 // Shared haze color (fog chunk and sky horizon use the same function, so geometry melts into the sky):
 // away from the sun the fog color is pulled toward a pale blue-gray; toward the sun a broad warm Mie lobe glows,
 // even at noon. fc = scene fog color, rd = unit view ray (world), sw = unit sun dir (world), sc = sun color * intensity.
-export const HAZE_GLSL = LOOK_OFF ? /* glsl */`
+export const HAZE_GLSL = LOOK_OFF
+  ? /* glsl */ `
 vec3 psHazeColor( vec3 fc, vec3 rd, vec3 sw, vec3 sc ) {
 	return fc + sc * ${FOG_INSCATTER.toFixed(4)} * pow( max( dot( rd, sw ), 0.0 ), ${FOG_INSCATTER_POW.toFixed(1)} );
 }
-` : /* glsl */`
+`
+  : /* glsl */ `
 vec3 psHazeColor( vec3 fc, vec3 rd, vec3 sw, vec3 sc ) {
 	float day = smoothstep( 0.02, 0.35, sw.y );
 	float mu = max( dot( rd, sw ), 0.0 );
@@ -34,21 +36,22 @@ vec3 psHazeColor( vec3 fc, vec3 rd, vec3 sw, vec3 sc ) {
 
 let patched = false;
 export function patchFogChunks() {
-  if (patched) return; patched = true;
+  if (patched) return;
+  patched = true;
   const C = THREE.ShaderChunk;
-  C.fog_pars_vertex = /* glsl */`
+  C.fog_pars_vertex = /* glsl */ `
 #ifdef USE_FOG
 	varying float vFogDepth;
 	varying vec3 vFogPosition;
 #endif
 `;
-  C.fog_vertex = /* glsl */`
+  C.fog_vertex = /* glsl */ `
 #ifdef USE_FOG
 	vFogDepth = - mvPosition.z;
 	vFogPosition = mvPosition.xyz;
 #endif
 `;
-  C.fog_pars_fragment = /* glsl */`
+  C.fog_pars_fragment = /* glsl */ `
 #ifdef USE_FOG
 	uniform vec3 fogColor;
 	varying float vFogDepth;
@@ -63,7 +66,11 @@ export function patchFogChunks() {
 `;
   // mark materials that have the directional light uniforms declared
   if (!C.lights_pars_begin.includes('FOG_HAS_DIRLIGHTS')) {
-    C.lights_pars_begin = C.lights_pars_begin + '\n#if NUM_DIR_LIGHTS > 0\n#define FOG_HAS_DIRLIGHTS\n#endif\n#ifdef USE_FOG\n' + HAZE_GLSL + '#endif\n';
+    C.lights_pars_begin =
+      C.lights_pars_begin +
+      '\n#if NUM_DIR_LIGHTS > 0\n#define FOG_HAS_DIRLIGHTS\n#endif\n#ifdef USE_FOG\n' +
+      HAZE_GLSL +
+      '#endif\n';
   }
   // look track, navy shade fix: the sky environment map (PMREM) is the main fill light in shade (about 8x the
   // hemisphere light) and it is blue, so shaded asphalt and concrete read navy. Its diffuse (irradiance) term is
@@ -74,7 +81,7 @@ export function patchFogChunks() {
       'vec3 psIbl = PI * envMapColor.rgb * envMapIntensity;\n\t\t\tfloat psIblL = dot( psIbl, vec3( 0.2126, 0.7152, 0.0722 ) );\n\t\t\treturn mix( psIbl, vec3( psIblL ) * vec3( 1.03, 1.0, 0.96 ), 0.65 );',
     );
   }
-  C.fog_fragment = /* glsl */`
+  C.fog_fragment = /* glsl */ `
 #ifdef USE_FOG
 	#ifdef FOG_EXP2
 	{
@@ -94,11 +101,15 @@ export function patchFogChunks() {
 			// Miami air at 3 to 5 km is mild: cap the extinction so far buildings keep their contrast and shadow sides
 			// (the environment ramp reaches 0.0007 at sunset and night: 94 % fog at 4 km, a white veil). Dense fog
 			// (underwater, weather fog above 0.002) passes through unchanged.
-			${LOOK_OFF ? '' : `#ifdef PS_LOOKU
+			${
+        LOOK_OFF
+          ? ''
+          : `#ifdef PS_LOOKU
 			if ( fogDensity < 0.002 ) fogDen = min( fogDen, uLookV.x > 0.0 ? uLookV.x : 0.00019 ); // look3 (src/render/look3.js, ?look3): cap per hour
 			#else
 			if ( fogDensity < 0.002 ) fogDen = min( fogDen, 0.00019 );
-			#endif`}
+			#endif`
+      }
 			fogCol = psHazeColor( fogColor, fogRayW / max( fogDist, 1e-4 ), fogSun, directionalLights[ 0 ].color );
 			fogExt = mix( vec3( 1.0 ), vec3( ${LOOK_OFF ? '1.0, 1.0, 1.0' : '0.86, 1.0, 1.16'} ), fogDay ); // Rayleigh: blue goes first
 		#endif

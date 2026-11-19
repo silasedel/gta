@@ -11,30 +11,77 @@ export const order = 61;
 const MPH = (kmh) => Math.max(15, Math.min(70, Math.round((kmh || 40) / 1.609 / 5) * 5));
 
 function faceTexture(draw, w = 256, h = 256) {
-  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); draw(x, w, h);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.generateMipmaps = true; return t;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const x = c.getContext('2d');
+  draw(x, w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  t.generateMipmaps = true;
+  return t;
 }
-function octagon(x, cx, cy, r) { x.beginPath(); for (let i = 0; i < 8; i++) { const a = Math.PI / 8 + i * Math.PI / 4; x.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a)); } x.closePath(); }
+function octagon(x, cx, cy, r) {
+  x.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = Math.PI / 8 + (i * Math.PI) / 4;
+    x.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
+  }
+  x.closePath();
+}
 
 export async function initV2(game) {
-  const G = game.city?.roadGraph; if (!G?.edges?.length) return;
+  const G = game.city?.roadGraph;
+  if (!G?.edges?.length) return;
   const scene = game.scene;
-  const gh = (x, z) => { const h = game.city.groundHeightAt?.(x, z); return Number.isFinite(h) ? h : 0; };
+  const gh = (x, z) => {
+    const h = game.city.groundHeightAt?.(x, z);
+    return Number.isFinite(h) ? h : 0;
+  };
   const pointAt = (e, s) => {
-    s = Math.max(0, Math.min(e.length, s)); const c = e.cum; let i = 1; while (i < c.length - 1 && c[i] < s) i++;
-    const L = c[i] - c[i - 1] || 1, u = (s - c[i - 1]) / L, a = e.pts[i - 1], b = e.pts[i], dx = b[0] - a[0], dz = b[1] - a[1], dl = Math.hypot(dx, dz) || 1;
+    s = Math.max(0, Math.min(e.length, s));
+    const c = e.cum;
+    let i = 1;
+    while (i < c.length - 1 && c[i] < s) i++;
+    const L = c[i] - c[i - 1] || 1,
+      u = (s - c[i - 1]) / L,
+      a = e.pts[i - 1],
+      b = e.pts[i],
+      dx = b[0] - a[0],
+      dz = b[1] - a[1],
+      dl = Math.hypot(dx, dz) || 1;
     return { x: a[0] + dx * u, z: a[1] + dz * u, dx: dx / dl, dz: dz / dl };
   };
-  const stops = [], limits = new Map(), jc = new Map();
+  const stops = [],
+    limits = new Map(),
+    jc = new Map();
   const occupied = [];
-  const free = (x, z) => { for (const o of occupied) if (Math.abs(o[0] - x) < 3 && Math.abs(o[1] - z) < 3) return false; occupied.push([x, z]); return true; };
+  const free = (x, z) => {
+    for (const o of occupied) if (Math.abs(o[0] - x) < 3 && Math.abs(o[1] - z) < 3) return false;
+    occupied.push([x, z]);
+    return true;
+  };
   // place a sign for traffic travelling (dx, dz) at point p: right-hand curb, facing the driver
   // map audit (user: a street sign stood in the middle of a road): a sign position on ANY carriageway (a side street at a T, a
   // lane running beside this one) moves further off this road's edge, up to 2.5 m, or the sign is dropped (game.placement)
-  const PL = (typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search)) ? null : game.placement; // ?mapfix=0 = old (audit before / after)
-  const offRoad = (x, z, ox, oz) => { if (!PL?.onRoad) return [x, z]; for (let k = 0; k <= 5; k++) { const px = x + ox * k * 0.5, pz = z + oz * k * 0.5; if (!PL.onRoad(px, pz, 0.25)) return [px, pz]; } return null; };
+  const PL =
+    typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search)
+      ? null
+      : game.placement; // ?mapfix=0 = old (audit before / after)
+  const offRoad = (x, z, ox, oz) => {
+    if (!PL?.onRoad) return [x, z];
+    for (let k = 0; k <= 5; k++) {
+      const px = x + ox * k * 0.5,
+        pz = z + oz * k * 0.5;
+      if (!PL.onRoad(px, pz, 0.25)) return [px, pz];
+    }
+    return null;
+  };
   const place = (p, dx, dz, w, list, extra, setback = 1.4) => {
-    const side = w / 2 + setback, q = offRoad(p.x - dz * side, p.z + dx * side, -dz, dx); if (!q) return;   // right of travel (x east, z south): (-dz, dx)
+    const side = w / 2 + setback,
+      q = offRoad(p.x - dz * side, p.z + dx * side, -dz, dx);
+    if (!q) return; // right of travel (x east, z south): (-dz, dx)
     const [x, z] = q;
     if (game.city.isWater?.(x, z)) return;
     if (!free(x, z)) return;
@@ -47,101 +94,318 @@ export async function initV2(game) {
     // (stage 1 job 5) at a job-4 junction: just behind the stop bar / crosswalk and its curb ramp, 0.6 m behind the curb face
     // (1.2 m off the edge of an open road), on the approach's right; elsewhere a few meters before the node
     const curbOff = (e.sidewalk || 0) > 0 ? 0.6 : 1.2;
-    const atJunction = (nodeId) => { const n = G.nodes[nodeId]; if (!n || (n.edges || []).length < 3) return false; let J = jc.get(nodeId);
-      if (J === undefined) { try { J = buildJunction(G, n, { swOf: (q) => q.sidewalk || 0 }); } catch (er) { J = null; } jc.set(nodeId, J); } // pure geometry (no tile-builder cache side effects)
-      const L = J?.legs?.find((l) => l.edge === e); if (!L) return false;
-      const s0 = L.D + (L.sw > 0 ? 6.0 : 2.4); if (s0 > L.len * 0.45) return false; // behind crosswalk (0.6 + 3.0) + stop bar (1.2 + 0.5)
-      const q2 = sampleFrame(L.fr, s0), nl = Math.hypot(q2.nx, q2.nz) || 1, o = L.hw + curbOff; // inbound right = frame side -1
-      const qq = offRoad(q2.x - q2.nx / nl * o, q2.z - q2.nz / nl * o, -q2.nx / nl, -q2.nz / nl); if (!qq) return true;
-      const [x, z] = qq; if (game.city.isWater?.(x, z) || !free(x, z)) return true;
-      stops.push({ x, z, y: gh(x, z), h: Math.atan2(L.dx, L.dz) }); return true; };
-    if (e.controlB === 'stop' && !atJunction(e.b)) { const d = Math.min(e.length - 1, (w * 0.5) + 6); const p = pointAt(e, e.length - d); place(p, p.dx, p.dz, w, stops, undefined, curbOff + 0.2); }
-    if (e.controlA === 'stop' && !e.oneway && !atJunction(e.a)) { const d = Math.min(e.length - 1, (w * 0.5) + 6); const p = pointAt(e, d); place(p, -p.dx, -p.dz, w, stops, undefined, curbOff + 0.2); }
+    const atJunction = (nodeId) => {
+      const n = G.nodes[nodeId];
+      if (!n || (n.edges || []).length < 3) return false;
+      let J = jc.get(nodeId);
+      if (J === undefined) {
+        try {
+          J = buildJunction(G, n, { swOf: (q) => q.sidewalk || 0 });
+        } catch (er) {
+          J = null;
+        }
+        jc.set(nodeId, J);
+      } // pure geometry (no tile-builder cache side effects)
+      const L = J?.legs?.find((l) => l.edge === e);
+      if (!L) return false;
+      const s0 = L.D + (L.sw > 0 ? 6.0 : 2.4);
+      if (s0 > L.len * 0.45) return false; // behind crosswalk (0.6 + 3.0) + stop bar (1.2 + 0.5)
+      const q2 = sampleFrame(L.fr, s0),
+        nl = Math.hypot(q2.nx, q2.nz) || 1,
+        o = L.hw + curbOff; // inbound right = frame side -1
+      const qq = offRoad(
+        q2.x - (q2.nx / nl) * o,
+        q2.z - (q2.nz / nl) * o,
+        -q2.nx / nl,
+        -q2.nz / nl,
+      );
+      if (!qq) return true;
+      const [x, z] = qq;
+      if (game.city.isWater?.(x, z) || !free(x, z)) return true;
+      stops.push({ x, z, y: gh(x, z), h: Math.atan2(L.dx, L.dz) });
+      return true;
+    };
+    if (e.controlB === 'stop' && !atJunction(e.b)) {
+      const d = Math.min(e.length - 1, w * 0.5 + 6);
+      const p = pointAt(e, e.length - d);
+      place(p, p.dx, p.dz, w, stops, undefined, curbOff + 0.2);
+    }
+    if (e.controlA === 'stop' && !e.oneway && !atJunction(e.a)) {
+      const d = Math.min(e.length - 1, w * 0.5 + 6);
+      const p = pointAt(e, d);
+      place(p, -p.dx, -p.dz, w, stops, undefined, curbOff + 0.2);
+    }
     // speed limits: after the junction, both directions, on roads long enough to matter
     if (e.length >= 140 && !/track|service/.test(e.kind || '')) {
-      const mph = MPH(e.speedKmh); if (!limits.has(mph)) limits.set(mph, []);
+      const mph = MPH(e.speedKmh);
+      if (!limits.has(mph)) limits.set(mph, []);
       const L = limits.get(mph);
-      const p1 = pointAt(e, Math.min(30, e.length * 0.25)); place(p1, p1.dx, p1.dz, w, L, { mph }, curbOff);
-      if (!e.oneway) { const p2 = pointAt(e, Math.max(e.length - 30, e.length * 0.75)); place(p2, -p2.dx, -p2.dz, w, L, { mph }, curbOff); }
+      const p1 = pointAt(e, Math.min(30, e.length * 0.25));
+      place(p1, p1.dx, p1.dz, w, L, { mph }, curbOff);
+      if (!e.oneway) {
+        const p2 = pointAt(e, Math.max(e.length - 30, e.length * 0.75));
+        place(p2, -p2.dx, -p2.dz, w, L, { mph }, curbOff);
+      }
     }
   }
   // ---------------- meshes ----------------
   // r2-art (ART_STYLE.md): galvanized post = metal 1 at a zinc base (~0.47 linear), sign back = dull oxidized plate (dielectric)
-  const metal = new THREE.MeshStandardMaterial({ color: 0xb4b9bc, roughness: 0.48, metalness: 1, name: 'reg:galvanized' });
-  const backMat = new THREE.MeshStandardMaterial({ color: 0x8c9297, roughness: 0.6, metalness: 0, name: 'reg:back' });
-  const stopTex = faceTexture((x, W, H) => {
-    x.clearRect(0, 0, W, H); octagon(x, W / 2, H / 2, W * 0.49); x.fillStyle = '#ffffff'; x.fill();
-    octagon(x, W / 2, H / 2, W * 0.455); x.fillStyle = '#b8161b'; x.fill();
-    x.fillStyle = '#ffffff'; x.font = `bold ${Math.round(W * 0.27)}px Helvetica, Arial, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('STOP', W / 2, H / 2 + 4);
+  const metal = new THREE.MeshStandardMaterial({
+    color: 0xb4b9bc,
+    roughness: 0.48,
+    metalness: 1,
+    name: 'reg:galvanized',
   });
-  const stopMat = new THREE.MeshStandardMaterial({ map: stopTex, transparent: false, alphaTest: 0.5, roughness: 0.35, metalness: 0.1, side: THREE.FrontSide });
-  const speedMat = (mph) => new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.05, map: faceTexture((x, W, H) => {
-    x.fillStyle = '#111'; x.fillRect(0, 0, W, H); x.fillStyle = '#f7f7f2'; x.fillRect(6, 6, W - 12, H - 12);
-    x.strokeStyle = '#111'; x.lineWidth = 6; x.strokeRect(16, 16, W - 32, H - 32);
-    x.fillStyle = '#111'; x.textAlign = 'center'; x.font = `bold ${Math.round(W * 0.13)}px Helvetica, Arial, sans-serif`;
-    x.fillText('SPEED', W / 2, H * 0.24); x.fillText('LIMIT', W / 2, H * 0.4);
-    x.font = `bold ${Math.round(W * 0.42)}px Helvetica, Arial, sans-serif`; x.fillText(String(mph), W / 2, H * 0.86);
-  }, 256, 320) });
-  const postGeo = new THREE.CylinderGeometry(0.03, 0.03, 2.6, 6); postGeo.translate(0, 1.3, 0);
-  const stopGeo = new THREE.PlaneGeometry(0.76, 0.76); stopGeo.translate(0, 2.25, 0.04);
-  const stopBackGeo = new THREE.CircleGeometry(0.37, 8, Math.PI / 8); stopBackGeo.rotateY(Math.PI); stopBackGeo.translate(0, 2.25, 0.035);
-  const limGeo = new THREE.PlaneGeometry(0.6, 0.75); limGeo.translate(0, 2.15, 0.04);
-  const limBackGeo = new THREE.PlaneGeometry(0.6, 0.75); limBackGeo.rotateY(Math.PI); limBackGeo.translate(0, 2.15, 0.035);
-  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), Y = new THREE.Vector3(0, 1, 0), one = new THREE.Vector3(1, 1, 1), pv = new THREE.Vector3();
+  const backMat = new THREE.MeshStandardMaterial({
+    color: 0x8c9297,
+    roughness: 0.6,
+    metalness: 0,
+    name: 'reg:back',
+  });
+  const stopTex = faceTexture((x, W, H) => {
+    x.clearRect(0, 0, W, H);
+    octagon(x, W / 2, H / 2, W * 0.49);
+    x.fillStyle = '#ffffff';
+    x.fill();
+    octagon(x, W / 2, H / 2, W * 0.455);
+    x.fillStyle = '#b8161b';
+    x.fill();
+    x.fillStyle = '#ffffff';
+    x.font = `bold ${Math.round(W * 0.27)}px Helvetica, Arial, sans-serif`;
+    x.textAlign = 'center';
+    x.textBaseline = 'middle';
+    x.fillText('STOP', W / 2, H / 2 + 4);
+  });
+  const stopMat = new THREE.MeshStandardMaterial({
+    map: stopTex,
+    transparent: false,
+    alphaTest: 0.5,
+    roughness: 0.35,
+    metalness: 0.1,
+    side: THREE.FrontSide,
+  });
+  const speedMat = (mph) =>
+    new THREE.MeshStandardMaterial({
+      roughness: 0.4,
+      metalness: 0.05,
+      map: faceTexture(
+        (x, W, H) => {
+          x.fillStyle = '#111';
+          x.fillRect(0, 0, W, H);
+          x.fillStyle = '#f7f7f2';
+          x.fillRect(6, 6, W - 12, H - 12);
+          x.strokeStyle = '#111';
+          x.lineWidth = 6;
+          x.strokeRect(16, 16, W - 32, H - 32);
+          x.fillStyle = '#111';
+          x.textAlign = 'center';
+          x.font = `bold ${Math.round(W * 0.13)}px Helvetica, Arial, sans-serif`;
+          x.fillText('SPEED', W / 2, H * 0.24);
+          x.fillText('LIMIT', W / 2, H * 0.4);
+          x.font = `bold ${Math.round(W * 0.42)}px Helvetica, Arial, sans-serif`;
+          x.fillText(String(mph), W / 2, H * 0.86);
+        },
+        256,
+        320,
+      ),
+    });
+  const postGeo = new THREE.CylinderGeometry(0.03, 0.03, 2.6, 6);
+  postGeo.translate(0, 1.3, 0);
+  const stopGeo = new THREE.PlaneGeometry(0.76, 0.76);
+  stopGeo.translate(0, 2.25, 0.04);
+  const stopBackGeo = new THREE.CircleGeometry(0.37, 8, Math.PI / 8);
+  stopBackGeo.rotateY(Math.PI);
+  stopBackGeo.translate(0, 2.25, 0.035);
+  const limGeo = new THREE.PlaneGeometry(0.6, 0.75);
+  limGeo.translate(0, 2.15, 0.04);
+  const limBackGeo = new THREE.PlaneGeometry(0.6, 0.75);
+  limBackGeo.rotateY(Math.PI);
+  limBackGeo.translate(0, 2.15, 0.035);
+  const m4 = new THREE.Matrix4(),
+    q = new THREE.Quaternion(),
+    Y = new THREE.Vector3(0, 1, 0),
+    one = new THREE.Vector3(1, 1, 1),
+    pv = new THREE.Vector3();
   const inst = (geo, mat, arr, name, shadow = false) => {
     if (!arr.length) return null;
-    const m = new THREE.InstancedMesh(geo, mat, arr.length); m.name = name; m.castShadow = shadow; m.receiveShadow = true;
-    arr.forEach((s, i) => { q.setFromAxisAngle(Y, s.h); m4.compose(pv.set(s.x, s.y, s.z), q, one); m.setMatrixAt(i, m4); });
-    m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); scene.add(m); return m;
+    const m = new THREE.InstancedMesh(geo, mat, arr.length);
+    m.name = name;
+    m.castShadow = shadow;
+    m.receiveShadow = true;
+    arr.forEach((s, i) => {
+      q.setFromAxisAngle(Y, s.h);
+      m4.compose(pv.set(s.x, s.y, s.z), q, one);
+      m.setMatrixAt(i, m4);
+    });
+    m.instanceMatrix.needsUpdate = true;
+    m.computeBoundingSphere();
+    scene.add(m);
+    return m;
   };
   const allLim = [...limits.values()].flat();
   const K = game.city.streetKit;
-  const hh = (x, z, k) => { const v = Math.sin(x * 12.9898 + z * 78.233 + k * 37.719) * 43758.5453; return v - Math.floor(v); };
-  const baseOf = (s) => { if (!s._B) { const E = new THREE.Euler((hh(s.x, s.z, 1) - 0.5) * 0.05, s.h + (hh(s.x, s.z, 2) - 0.5) * 0.06, (hh(s.x, s.z, 3) - 0.5) * 0.05, 'YXZ'); s._B = new THREE.Matrix4().compose(new THREE.Vector3(s.x, s.y - 0.12, s.z), new THREE.Quaternion().setFromEuler(E), one); } return s._B; };
-  if (K?.signs?.stop && K.signs.post) { // stage 1 job 5: the user's library sign set (worn US plates on a perforated U-channel post)
+  const hh = (x, z, k) => {
+    const v = Math.sin(x * 12.9898 + z * 78.233 + k * 37.719) * 43758.5453;
+    return v - Math.floor(v);
+  };
+  const baseOf = (s) => {
+    if (!s._B) {
+      const E = new THREE.Euler(
+        (hh(s.x, s.z, 1) - 0.5) * 0.05,
+        s.h + (hh(s.x, s.z, 2) - 0.5) * 0.06,
+        (hh(s.x, s.z, 3) - 0.5) * 0.05,
+        'YXZ',
+      );
+      s._B = new THREE.Matrix4().compose(
+        new THREE.Vector3(s.x, s.y - 0.12, s.z),
+        new THREE.Quaternion().setFromEuler(E),
+        one,
+      );
+    }
+    return s._B;
+  };
+  if (K?.signs?.stop && K.signs.post) {
+    // stage 1 job 5: the user's library sign set (worn US plates on a perforated U-channel post)
     // props pass: each sign has a base pose (post foot, a slight lean / yaw like real posts) and every part (post, plate) is
     // that pose times its own local offset, so a sign a car knocks down (src/world/props/dynamicProps.v2.js) moves as one
     const meshes = [];
-    const instS = (part, arr, name, y, fwd, scl) => { if (!arr.length || !part) return; const m = new THREE.InstancedMesh(part.geometry, part.material, arr.length); m.name = name; m.castShadow = true; m.receiveShadow = true;
-      const loc = new THREE.Matrix4().compose(new THREE.Vector3(0, y, fwd), new THREE.Quaternion(), scl || one); m.userData.loc = loc;
-      arr.forEach((s, i) => { m4.multiplyMatrices(baseOf(s), loc); m.setMatrixAt(i, m4); (s._parts ||= []).push([m, i]); }); m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); scene.add(m); meshes.push(m); return m; };
+    const instS = (part, arr, name, y, fwd, scl) => {
+      if (!arr.length || !part) return;
+      const m = new THREE.InstancedMesh(part.geometry, part.material, arr.length);
+      m.name = name;
+      m.castShadow = true;
+      m.receiveShadow = true;
+      const loc = new THREE.Matrix4().compose(
+        new THREE.Vector3(0, y, fwd),
+        new THREE.Quaternion(),
+        scl || one,
+      );
+      m.userData.loc = loc;
+      arr.forEach((s, i) => {
+        m4.multiplyMatrices(baseOf(s), loc);
+        m.setMatrixAt(i, m4);
+        (s._parts ||= []).push([m, i]);
+      });
+      m.instanceMatrix.needsUpdate = true;
+      m.computeBoundingSphere();
+      scene.add(m);
+      meshes.push(m);
+      return m;
+    };
     // the kit centres every sign part on its axis (streetkit.js); the plate hangs just in front of the 2.4x post's face
-    const bbOf = (g) => { if (!g.boundingBox) g.computeBoundingBox(); return g.boundingBox; }, pb = bbOf(K.signs.post.geometry), front = pb.max.z * 2.4, OLDZ = (typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search));
-    const plateZ = (g, z0) => OLDZ ? z0 : front - bbOf(g).min.z + 0.006;
-    instS(K.signs.post, [...stops, ...allLim], 'reg-sign-posts', 0, 0, new THREE.Vector3(2.4, 2.9, 2.4));
+    const bbOf = (g) => {
+        if (!g.boundingBox) g.computeBoundingBox();
+        return g.boundingBox;
+      },
+      pb = bbOf(K.signs.post.geometry),
+      front = pb.max.z * 2.4,
+      OLDZ = typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search);
+    const plateZ = (g, z0) => (OLDZ ? z0 : front - bbOf(g).min.z + 0.006);
+    instS(
+      K.signs.post,
+      [...stops, ...allLim],
+      'reg-sign-posts',
+      0,
+      0,
+      new THREE.Vector3(2.4, 2.9, 2.4),
+    );
     instS(K.signs.stop, stops, 'reg-stop', 2.45, plateZ(K.signs.stop.geometry, 0.045));
-    for (const [mph, arr] of limits) { const pl = K.speedPlate(mph); if (pl) instS(pl, arr, `reg-limit-${mph}`, 2.3, plateZ(pl.geometry, 0.04)); }
+    for (const [mph, arr] of limits) {
+      const pl = K.speedPlate(mph);
+      if (pl) instS(pl, arr, `reg-limit-${mph}`, 2.3, plateZ(pl.geometry, 0.04));
+    }
   } else {
-  inst(postGeo, metal, [...stops, ...allLim], 'reg-sign-posts', true);
-  inst(stopGeo, stopMat, stops, 'reg-stop-faces');
-  inst(stopBackGeo, backMat, stops, 'reg-stop-backs');
-  inst(limBackGeo, backMat, allLim, 'reg-limit-backs');
-  for (const [mph, arr] of limits) inst(limGeo, speedMat(mph), arr, `reg-limit-${mph}`);
+    inst(postGeo, metal, [...stops, ...allLim], 'reg-sign-posts', true);
+    inst(stopGeo, stopMat, stops, 'reg-stop-faces');
+    inst(stopBackGeo, backMat, stops, 'reg-stop-backs');
+    inst(limBackGeo, backMat, allLim, 'reg-limit-backs');
+    for (const [mph, arr] of limits) inst(limGeo, speedMat(mph), arr, `reg-limit-${mph}`);
   }
   // props pass: sign posts are solid near the player (thin post + plate, measured like the library sign) and snap / fall when a
   // car hits them (dynamicProps 'knock'); registered in a 160 m ring around the player, released beyond 220 m
   if (K?.signs?.stop && K.signs.post) {
-    const all = [...stops, ...allLim], CELL = 64, grid = new Map(), active = new Set();
-    for (const s of all) { const k = Math.floor(s.x / CELL) + ',' + Math.floor(s.z / CELL); (grid.get(k) || grid.set(k, []).get(k)).push(s); }
-    const SHAPES = [{ t: 'box', hx: 0.035, hy: 1.45, hz: 0.035, y: 1.45 }, { t: 'box', hx: 0.33, hy: 0.36, hz: 0.02, y: 2.45, z: 0.05 }];
-    const setM = (s, M) => { for (const [m, i] of s._parts || []) { if (!M) m4.makeScale(0, 0, 0); else m4.multiplyMatrices(M, m.userData.loc); m.setMatrixAt(i, m4); m.instanceMatrix.needsUpdate = true; } };
-    let t = 0, mod = null;
-    const tick = async (dt) => {
-      t -= dt; if (t > 0) return; t = 1.0; const p = game.player?.position; if (!p) return;
-      if (!mod) { mod = await import('../props/dynamicProps.v2.js'); }
-      const D = mod.dynProps; if (!D.enabled) return;
-      const ci = Math.floor(p.x / CELL), cj = Math.floor(p.z / CELL);
-      for (let i = ci - 3; i <= ci + 3; i++) for (let j = cj - 3; j <= cj + 3; j++) for (const s of grid.get(i + ',' + j) || []) {
-        if (active.has(s) || s.gone || Math.hypot(s.x - p.x, s.z - p.z) > 160) continue;
-        const B = s.m ? new THREE.Matrix4().fromArray(s.m) : baseOf(s), E = new THREE.Euler().setFromRotationMatrix(B, 'XYZ'), P = new THREE.Vector3().setFromMatrixPosition(B);
-        s.rec = D.add({ kind: 'signPost', cls: s.m ? 'push' : 'knock', x: P.x, y: P.y, z: P.z, rx: E.x, ry: E.y, rz: E.z, s: 1, shapes: SHAPES, mass: 16, owner: 'reg:' + (s.x | 0) + ',' + (s.z | 0), m: s.m,
-          setMatrix: (M) => setM(s, M), save: (m) => { s.m = m; } });
-        if (s.rec) active.add(s);
+    const all = [...stops, ...allLim],
+      CELL = 64,
+      grid = new Map(),
+      active = new Set();
+    for (const s of all) {
+      const k = Math.floor(s.x / CELL) + ',' + Math.floor(s.z / CELL);
+      (grid.get(k) || grid.set(k, []).get(k)).push(s);
+    }
+    const SHAPES = [
+      { t: 'box', hx: 0.035, hy: 1.45, hz: 0.035, y: 1.45 },
+      { t: 'box', hx: 0.33, hy: 0.36, hz: 0.02, y: 2.45, z: 0.05 },
+    ];
+    const setM = (s, M) => {
+      for (const [m, i] of s._parts || []) {
+        if (!M) m4.makeScale(0, 0, 0);
+        else m4.multiplyMatrices(M, m.userData.loc);
+        m.setMatrixAt(i, m4);
+        m.instanceMatrix.needsUpdate = true;
       }
-      for (const s of active) if (Math.hypot(s.x - p.x, s.z - p.z) > 220) { D.removeOwner('reg:' + (s.x | 0) + ',' + (s.z | 0)); active.delete(s); }
     };
-    if (game.updaters) game.updaters.push((dt) => { tick(dt); });
+    let t = 0,
+      mod = null;
+    const tick = async (dt) => {
+      t -= dt;
+      if (t > 0) return;
+      t = 1.0;
+      const p = game.player?.position;
+      if (!p) return;
+      if (!mod) {
+        mod = await import('../props/dynamicProps.v2.js');
+      }
+      const D = mod.dynProps;
+      if (!D.enabled) return;
+      const ci = Math.floor(p.x / CELL),
+        cj = Math.floor(p.z / CELL);
+      for (let i = ci - 3; i <= ci + 3; i++)
+        for (let j = cj - 3; j <= cj + 3; j++)
+          for (const s of grid.get(i + ',' + j) || []) {
+            if (active.has(s) || s.gone || Math.hypot(s.x - p.x, s.z - p.z) > 160) continue;
+            const B = s.m ? new THREE.Matrix4().fromArray(s.m) : baseOf(s),
+              E = new THREE.Euler().setFromRotationMatrix(B, 'XYZ'),
+              P = new THREE.Vector3().setFromMatrixPosition(B);
+            s.rec = D.add({
+              kind: 'signPost',
+              cls: s.m ? 'push' : 'knock',
+              x: P.x,
+              y: P.y,
+              z: P.z,
+              rx: E.x,
+              ry: E.y,
+              rz: E.z,
+              s: 1,
+              shapes: SHAPES,
+              mass: 16,
+              owner: 'reg:' + (s.x | 0) + ',' + (s.z | 0),
+              m: s.m,
+              setMatrix: (M) => setM(s, M),
+              save: (m) => {
+                s.m = m;
+              },
+            });
+            if (s.rec) active.add(s);
+          }
+      for (const s of active)
+        if (Math.hypot(s.x - p.x, s.z - p.z) > 220) {
+          D.removeOwner('reg:' + (s.x | 0) + ',' + (s.z | 0));
+          active.delete(s);
+        }
+    };
+    if (game.updaters)
+      game.updaters.push((dt) => {
+        tick(dt);
+      });
   }
-  game.regSigns = { stops: stops.length, limits: allLim.length, values: [...limits.keys()].sort((a, b) => a - b),
-    list: (x, z, r = 60) => [...stops.map((s) => ({ ...s, kind: 'stop' })), ...allLim.map((s) => ({ ...s, kind: 'limit' }))].filter((s) => Math.hypot(s.x - x, s.z - z) < r) };
+  game.regSigns = {
+    stops: stops.length,
+    limits: allLim.length,
+    values: [...limits.keys()].sort((a, b) => a - b),
+    list: (x, z, r = 60) =>
+      [
+        ...stops.map((s) => ({ ...s, kind: 'stop' })),
+        ...allLim.map((s) => ({ ...s, kind: 'limit' })),
+      ].filter((s) => Math.hypot(s.x - x, s.z - z) < r),
+  };
 }

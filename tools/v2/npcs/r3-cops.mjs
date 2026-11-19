@@ -3,26 +3,47 @@
 // (2) venue people in a convenience store stand on the interior floor.  node tools/v2/npcs/r3-cops.mjs [--q "&copnav=old"] [--shop]
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const Q = o.q ?? ''; const D = 'docs/v2/shots/people/r3b'; fs.mkdirSync(D, { recursive: true });
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const Q = o.q ?? '';
+const D = 'docs/v2/shots/people/r3b';
+fs.mkdirSync(D, { recursive: true });
 await withBrowser({ width: 1280, height: 800, maxSeconds: 600 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute=1' + Q);
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 12; game.teleport(407, undefined, -110, 0); return 1; })()`);
+  await b.eval(
+    `(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 12; game.teleport(407, undefined, -110, 0); return 1; })()`,
+  );
   await b.sleep(25000);
   if (o.shop) {
-    const st = JSON.parse(await b.eval(`JSON.stringify((game.interiors.list || []).filter((s) => /conv|gas/.test(s.type || '')).slice(0, 400).map((s) => ({ n: s.name, t: s.type, x: s.center.x, z: s.center.z, y: s.baseY })))`));
+    const st = JSON.parse(
+      await b.eval(
+        `JSON.stringify((game.interiors.list || []).filter((s) => /conv|gas/.test(s.type || '')).slice(0, 400).map((s) => ({ n: s.name, t: s.type, x: s.center.x, z: s.center.z, y: s.baseY })))`,
+      ),
+    );
     console.log('stores', st.length);
     for (const s of st.slice(0, 6)) {
-      await b.eval(`game.teleport(${s.x}, ${s.y + 0.5}, ${s.z}, 0)`); await b.sleep(14000);
-      const r = await b.eval(`JSON.stringify((game.peds.list || []).filter((p) => p.active && p.v21).map((p) => ({ role: p.v21.role, dy: +(p.pos.y - p.v21.y).toFixed(3), y: +p.pos.y.toFixed(2) })))`);
+      await b.eval(`game.teleport(${s.x}, ${s.y + 0.5}, ${s.z}, 0)`);
+      await b.sleep(14000);
+      const r = await b.eval(
+        `JSON.stringify((game.peds.list || []).filter((p) => p.active && p.v21).map((p) => ({ role: p.v21.role, dy: +(p.pos.y - p.v21.y).toFixed(3), y: +p.pos.y.toFixed(2) })))`,
+      );
       console.log(s.n, s.t, 'floor', s.y, r);
-      if (JSON.parse(r).length) { await b.screenshot(`${D}/shop_${String(s.n).replace(/\W+/g, '_')}.jpg`); break; }
+      if (JSON.parse(r).length) {
+        await b.screenshot(`${D}/shop_${String(s.n).replace(/\W+/g, '_')}.jpg`);
+        break;
+      }
     }
   } else {
-    const res = await b.eval(`(async () => {
+    const res = await b
+      .eval(
+        `(async () => {
       const C = game.city, sf = (x, z) => C.surfaceAt(x, z), pp = game.player.position, W = game.wanted;
       let A = null, B = null; const R = game.RAPIER, WD = game.world, F = R.QueryFilterFlags.EXCLUDE_DYNAMIC | R.QueryFilterFlags.EXCLUDE_KINEMATIC | R.QueryFilterFlags.EXCLUDE_SENSORS;
       const ray = (x, y, z, dx, dz, L) => { const h = WD.castRay(new R.Ray({ x, y, z }, { x: dx, y: 0, z: dz }), L, true, F); return h ? h.timeOfImpact : -1; };
@@ -45,7 +66,9 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: 600 }, async (b) => {
         us.forEach((u, i) => { if (!u.active || u.dead) return; u.wander = { x: B.x, y: 0, z: B.z, distanceTo() { return 0; } }; const q = st[i]; q.n++; if (u.speed < 0.6) q.slow++; q.minD = Math.min(q.minD, Math.hypot(u.pos.x - B.x, u.pos.z - B.z)); q.stuck = Math.max(q.stuck, u.stuckN || 0); });
       }
       return JSON.stringify({ A, B, dAB: Math.hypot(A.x - B.x, A.z - B.z) | 0, st, cops: us.length });
-    })()`).catch((e) => String(e));
+    })()`,
+      )
+      .catch((e) => String(e));
     console.log('pair', res);
   }
   console.log('errors', b.errors.length, b.errors.slice(0, 3));

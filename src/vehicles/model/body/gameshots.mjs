@@ -43,15 +43,28 @@ const C4 = `(() => {
 })()`;
 await withBrowser({ width: 1600, height: 900, maxSeconds: 420 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?v2=1');
-  await b.waitFor(`${GAME_READY} && game.city && game.city.playerSpawn && game.vehicles && game.vehicles.list`, 300);
+  await b.waitFor(
+    `${GAME_READY} && game.city && game.city.playerSpawn && game.vehicles && game.vehicles.list`,
+    300,
+  );
   await b.sleep(6000);
   console.log('PREP', await b.eval(PREP));
-  console.log('TRAFFIC', await b.eval(TRAFFIC)); await b.sleep(2500);
+  console.log('TRAFFIC', await b.eval(TRAFFIC));
+  await b.sleep(2500);
   console.log('SHOT', await b.screenshot(`${prefix}_traffic_rear.jpg`, { quality: 86 }));
-  console.log('C2', await b.eval(C2)); await b.sleep(2500);
+  console.log('C2', await b.eval(C2));
+  await b.sleep(2500);
   console.log('C2b', await b.eval(C2));
   console.log('SHOT', await b.screenshot(`${prefix}_c2_cabrio.jpg`, { quality: 86 }));
-  console.log('C4', await b.eval(C4)); await b.sleep(3000);
+  console.log('C4', await b.eval(C4));
+  await b.sleep(3000);
   console.log('SHOT', await b.screenshot(`${prefix}_c4_dock.jpg`, { quality: 86 }));
-  if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 10).join('\n'));
+  if (b.errors.length)
+    console.log(
+      'ERRORS',
+      [...new Set(b.errors)]
+        .filter((e) => !/favicon/.test(e))
+        .slice(0, 10)
+        .join('\n'),
+    );
 });

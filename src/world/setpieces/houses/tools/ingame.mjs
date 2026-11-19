@@ -4,8 +4,15 @@
 // Shots: street (Pelican Point Lane from the road), highway, night, distA, distB. Prints houses stats, fps, draw calls, triangles.
 import fs from 'node:fs';
 import { withBrowser, GAME_READY } from '../../../../../tools/v2/browser.mjs';
-const a = process.argv.slice(2), o = {}; for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const OUT = o.out || 'docs/v2/shots/houses', tag = o.nohouses || o.notown ? 'before_' : '';
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const OUT = o.out || 'docs/v2/shots/houses',
+  tag = o.nohouses || o.notown ? 'before_' : '';
 const shots = String(o.shots || 'street,highway,night,distA,distB').split(',');
 const SPOTS = {
   street: { hour: 9.5, eye: [-6334, 1.75, 12446.5], look: [-6398, 3.2, 12424] },
@@ -63,23 +70,76 @@ const MEASURE = `new Promise((res) => { const ri = game.renderer.info, out = { c
 const res = {};
 await withBrowser({ width: 1280, height: 720, maxSeconds: 2400 }, async (b) => {
   // other tracks edit files all the time: keep Vite's HMR socket from reloading the page in the middle of a run
-  await b.send('Page.addScriptToEvaluateOnNewDocument', { source: "(() => { const W = window.WebSocket; function F(u, p) { if (String(p || '').includes('vite')) return { addEventListener() {}, removeEventListener() {}, send() {}, close() {}, readyState: 0 }; return new W(u, p); } F.prototype = W.prototype; Object.assign(F, { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 }); window.WebSocket = F; })();" });
-  await b.goto('http://127.0.0.1:5200/?mute&menu=0' + (o.nohouses ? '&nohouses' : '') + (o.notown ? '&notown' : ''));
-  try { await b.waitFor(GAME_READY, 600); } catch (e) { console.log('NOT READY', JSON.stringify(await b.eval('({ ready: window.game?.ready, v2: window.game?.v2, title: document.title, msg: document.getElementById("loading")?.textContent?.slice(0, 120) })').catch(() => null)), '\n' + b.errors.slice(0, 15).join('\n')); throw e; }
-  const pastTitle = async () => { await b.sleep(2000); await b.key('Enter', true, 'Enter'); await b.key('Enter', false, 'Enter'); await b.sleep(800); await b.click(640, 585); await b.sleep(2500); };   // past the title screen if it shows
+  await b.send('Page.addScriptToEvaluateOnNewDocument', {
+    source:
+      "(() => { const W = window.WebSocket; function F(u, p) { if (String(p || '').includes('vite')) return { addEventListener() {}, removeEventListener() {}, send() {}, close() {}, readyState: 0 }; return new W(u, p); } F.prototype = W.prototype; Object.assign(F, { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 }); window.WebSocket = F; })();",
+  });
+  await b.goto(
+    'http://127.0.0.1:5200/?mute&menu=0' +
+      (o.nohouses ? '&nohouses' : '') +
+      (o.notown ? '&notown' : ''),
+  );
+  try {
+    await b.waitFor(GAME_READY, 600);
+  } catch (e) {
+    console.log(
+      'NOT READY',
+      JSON.stringify(
+        await b
+          .eval(
+            '({ ready: window.game?.ready, v2: window.game?.v2, title: document.title, msg: document.getElementById("loading")?.textContent?.slice(0, 120) })',
+          )
+          .catch(() => null),
+      ),
+      '\n' + b.errors.slice(0, 15).join('\n'),
+    );
+    throw e;
+  }
+  const pastTitle = async () => {
+    await b.sleep(2000);
+    await b.key('Enter', true, 'Enter');
+    await b.key('Enter', false, 'Enter');
+    await b.sleep(800);
+    await b.click(640, 585);
+    await b.sleep(2500);
+  }; // past the title screen if it shows
   await pastTitle();
-  for (let si = 0, tries = 0; si < shots.length; si++) { const id = shots[si];
+  for (let si = 0, tries = 0; si < shots.length; si++) {
+    const id = shots[si];
     await b.waitFor(GAME_READY + ' && typeof game.teleport === "function" && !!game.houses', 300);
     if (tries) await pastTitle();
-    const st = await b.eval(stage(SPOTS[id]), 200000).catch((e) => 'stage error ' + String(e.message).slice(0, 300)); if (st !== true) console.log('stage', id, st);
-    await b.sleep(2000); try { await b.waitFor('game.city.streamer.pending() === 0', 60); } catch (e) { console.log('not settled', id); }
+    const st = await b
+      .eval(stage(SPOTS[id]), 200000)
+      .catch((e) => 'stage error ' + String(e.message).slice(0, 300));
+    if (st !== true) console.log('stage', id, st);
+    await b.sleep(2000);
+    try {
+      await b.waitFor('game.city.streamer.pending() === 0', 60);
+    } catch (e) {
+      console.log('not settled', id);
+    }
     await b.sleep(+(o.settle || 5000));
-    await b.eval(`document.querySelectorAll('vite-error-overlay').forEach((e) => e.remove()); true`);
-    const f = `${OUT}/${tag}${id}.png`; fs.mkdirSync(OUT, { recursive: true }); await b.screenshot(f);
+    await b.eval(
+      `document.querySelectorAll('vite-error-overlay').forEach((e) => e.remove()); true`,
+    );
+    const f = `${OUT}/${tag}${id}.png`;
+    fs.mkdirSync(OUT, { recursive: true });
+    await b.screenshot(f);
     res[id] = await b.eval(MEASURE).catch(() => undefined);
-    if (!res[id]?.houses && tries++ < 2) { console.log('retry', id, '(page reloaded?)'); si--; continue; }
+    if (!res[id]?.houses && tries++ < 2) {
+      console.log('retry', id, '(page reloaded?)');
+      si--;
+      continue;
+    }
     console.log(id, f, JSON.stringify(res[id]));
   }
-  if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 12).join('\n'));
+  if (b.errors.length)
+    console.log(
+      'ERRORS',
+      [...new Set(b.errors)]
+        .filter((e) => !/favicon/.test(e))
+        .slice(0, 12)
+        .join('\n'),
+    );
 });
 if (o.json) fs.writeFileSync(o.json, JSON.stringify(res, null, 1));

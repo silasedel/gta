@@ -4,15 +4,36 @@
 // back with drive-bys and raids on your corners. State persists through game.save ('gangs' slice).
 // API: game.gangs = { list, territories, rep(id), standing(id), kitFor(id), startTurfFight(tid), war, layer }.
 import * as THREE from 'three';
-import { GANGS, GANG, TURFS_PER_GANG, TURF_RADIUS, TURF_INCOME_PER_HOUR, TURF_POT_CAP } from './data.js';
-import { fmt, dist2, help, notify, canAct, spawnKitPed, pedOut, release, keepFighting, fireAtPlayer, makeMarker, removeMarker, groundY } from '../../jobs/kit.js';
+import {
+  GANGS,
+  GANG,
+  TURFS_PER_GANG,
+  TURF_RADIUS,
+  TURF_INCOME_PER_HOUR,
+  TURF_POT_CAP,
+} from './data.js';
+import {
+  fmt,
+  dist2,
+  help,
+  notify,
+  canAct,
+  spawnKitPed,
+  pedOut,
+  release,
+  keepFighting,
+  fireAtPlayer,
+  makeMarker,
+  removeMarker,
+  groundY,
+} from '../../jobs/kit.js';
 
 export const order = 120;
 
-const CREW_R = 160;       // spawn the corner crew inside this distance
-const RELEASE_R = 240;    // let them go beyond this
+const CREW_R = 160; // spawn the corner crew inside this distance
+const RELEASE_R = 240; // let them go beyond this
 const WAVES = [
-  { n: 0, armed: 0 },     // wave 1 is the crew already on the corner
+  { n: 0, armed: 0 }, // wave 1 is the crew already on the corner
   { n: 4, armed: 1 },
   { n: 5, armed: 2 },
 ];
@@ -21,7 +42,11 @@ const HOLD_SECONDS = 20;
 
 export async function initV2(game) {
   // user (Nov 17): remove the gang turf system (Lyric Boys etc., turf circles and labels on the map). Off unless ?gangs=1.
-  try { if (!/[?&]gangs=1\b/.test(location.search)) return; } catch (e) { return; }
+  try {
+    if (!/[?&]gangs=1\b/.test(location.search)) return;
+  } catch (e) {
+    return;
+  }
   const city = game.city;
   const sf = city?.storefronts || [];
   if (!sf.length || !game.peds?.spawnAt) {
@@ -106,7 +131,8 @@ export async function initV2(game) {
   resetState();
   const syncOwnerVisuals = () => {
     for (const t of territories) {
-      if (t.owner === 'player' && !t.marker) t.marker = makeMarker(game, t, 0x2fe0d0, { r: 0.8, h: 0.35 });
+      if (t.owner === 'player' && !t.marker)
+        t.marker = makeMarker(game, t, 0x2fe0d0, { r: 0.8, h: 0.35 });
       if (t.owner !== 'player' && t.marker) {
         removeMarker(game, t.marker);
         t.marker = null;
@@ -145,13 +171,26 @@ export async function initV2(game) {
   const clampRep = (v) => Math.max(-100, Math.min(100, v));
   const standing = (id) => {
     const r = S.rep[id] || 0;
-    return r <= -40 ? 'hostile' : r < -10 ? 'wary' : r < 25 ? 'neutral' : r < 60 ? 'friendly' : 'allied';
+    return r <= -40
+      ? 'hostile'
+      : r < -10
+        ? 'wary'
+        : r < 25
+          ? 'neutral'
+          : r < 60
+            ? 'friendly'
+            : 'allied';
   };
   function addRep(id, d, why) {
     const before = standing(id);
     S.rep[id] = clampRep((S.rep[id] || 0) + d);
     const after = standing(id);
-    if (after !== before) notify(game, `${GANG[id].name}: you are now ${after.toUpperCase()}${why ? ` (${why})` : ''}`, 3600);
+    if (after !== before)
+      notify(
+        game,
+        `${GANG[id].name}: you are now ${after.toUpperCase()}${why ? ` (${why})` : ''}`,
+        3600,
+      );
     game.emit?.('gangRep', { gang: id, rep: S.rep[id], standing: after });
   }
   function onKill(gangId) {
@@ -164,11 +203,21 @@ export async function initV2(game) {
   function spawnCrew(t) {
     const g = GANG[t.owner];
     if (!g) return;
-    t.group = { members: [], center: new THREE.Vector3(t.x, groundY(game, t.x, t.z), t.z), props: [] };
+    t.group = {
+      members: [],
+      center: new THREE.Vector3(t.x, groundY(game, t.x, t.z), t.z),
+      props: [],
+    };
     const n = 3 + (seed % 2);
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + 0.4;
-      const p = spawnKitPed(game, { x: t.x + Math.sin(a) * 1.1, z: t.z + Math.cos(a) * 1.1 }, g.kit, seed++, { group: t.group, tag: { gang: g.id, turf: t.id } });
+      const p = spawnKitPed(
+        game,
+        { x: t.x + Math.sin(a) * 1.1, z: t.z + Math.cos(a) * 1.1 },
+        g.kit,
+        seed++,
+        { group: t.group, tag: { gang: g.id, turf: t.id } },
+      );
       if (!p) continue;
       p.heading = Math.atan2(t.x - p.pos.x, t.z - p.pos.z);
       p.idleStyle = Math.random() < 0.6 ? 'talk' : null;
@@ -229,15 +278,35 @@ export async function initV2(game) {
     const g = GANG[attacking ? t.owner : t.raider];
     if (!g) return false;
     if (attacking && !t.crew.length) spawnCrew(t);
-    war = { t, g, wave: attacking ? 0 : 1, enemies: [], holdT: 0, awayT: 0, attacking, time: 0, nextShot: {} };
+    war = {
+      t,
+      g,
+      wave: attacking ? 0 : 1,
+      enemies: [],
+      holdT: 0,
+      awayT: 0,
+      attacking,
+      time: 0,
+      nextShot: {},
+    };
     for (const p of t.crew) {
       war.enemies.push(track(p));
     }
     if (!attacking) spawnWave();
     game.save?.inhibit?.('turf');
     game.wanted?.add?.(1, { x: t.x, y: 0, z: t.z });
-    game.hud?.setMission?.(attacking ? `Take the ${t.street} corner from ${g.name}` : `Defend your ${t.street} corner from ${g.name}`);
-    notify(game, attacking ? `Turf fight: clear the corner, then hold it. (${why === 'provoked' ? 'They saw you coming.' : 'Wave 1 of 3'})` : `${g.name} are hitting your corner. Hold it!`, 4200);
+    game.hud?.setMission?.(
+      attacking
+        ? `Take the ${t.street} corner from ${g.name}`
+        : `Defend your ${t.street} corner from ${g.name}`,
+    );
+    notify(
+      game,
+      attacking
+        ? `Turf fight: clear the corner, then hold it. (${why === 'provoked' ? 'They saw you coming.' : 'Wave 1 of 3'})`
+        : `${g.name} are hitting your corner. Hold it!`,
+      4200,
+    );
     game.emit?.('turfFight', { id: t.id, gang: g.id, attacking });
     return true;
   }
@@ -254,12 +323,18 @@ export async function initV2(game) {
     for (let i = 0; i < w.n; i++) {
       const sx = t.x + ax * (22 + i * 1.5) + (Math.random() - 0.5) * 8;
       const sz = t.z + az * (22 + i * 1.5) + (Math.random() - 0.5) * 8;
-      const p = spawnKitPed(game, { x: sx, z: sz }, war.g.kit, seed++, { tag: { gang: war.g.id, turf: t.id, wave: war.wave } });
+      const p = spawnKitPed(game, { x: sx, z: sz }, war.g.kit, seed++, {
+        tag: { gang: war.g.id, turf: t.id, wave: war.wave },
+      });
       if (!p) continue;
       p.armed = i < w.armed;
       war.enemies.push(track(p));
     }
-    notify(game, `Wave ${war.wave + 1} of ${WAVES.length}: ${w.n} ${war.g.short} incoming${w.armed ? ', armed' : ''}`, 2600);
+    notify(
+      game,
+      `Wave ${war.wave + 1} of ${WAVES.length}: ${w.n} ${war.g.short} incoming${w.armed ? ', armed' : ''}`,
+      2600,
+    );
   }
   function endWar(won) {
     const { t, g, attacking } = war;
@@ -338,10 +413,14 @@ export async function initV2(game) {
         w.wave++;
         w.enemies = [];
         spawnWave();
-        game.hud?.setMission?.(`Hold the ${w.t.street} corner: wave ${w.wave + 1} of ${WAVES.length}`);
+        game.hud?.setMission?.(
+          `Hold the ${w.t.street} corner: wave ${w.wave + 1} of ${WAVES.length}`,
+        );
       } else {
         w.holdT += dt;
-        game.hud?.setMission?.(`Hold the corner: ${Math.max(0, Math.ceil(HOLD_SECONDS - w.holdT))} s`);
+        game.hud?.setMission?.(
+          `Hold the corner: ${Math.max(0, Math.ceil(HOLD_SECONDS - w.holdT))} s`,
+        );
         if (w.holdT >= HOLD_SECONDS) endWar(true);
       }
     }
@@ -365,7 +444,13 @@ export async function initV2(game) {
       const g = GANG[s.gang];
       for (let i = 0; i < 2; i++) {
         const off = (k ? 1 : -1) * 3.5;
-        const p = spawnKitPed(game, { x: sp.x + off + (Math.random() - 0.5), z: sp.z + (i - 0.5) * 1.6 }, g.kit, seed++, { tag: { gang: g.id, brawl: true } });
+        const p = spawnKitPed(
+          game,
+          { x: sp.x + off + (Math.random() - 0.5), z: sp.z + (i - 0.5) * 1.6 },
+          g.kit,
+          seed++,
+          { tag: { gang: g.id, brawl: true } },
+        );
         if (!p) continue;
         p.state = 'argue';
         p.stateT = 1e9;
@@ -386,12 +471,16 @@ export async function initV2(game) {
     if (!aliveA.length || !aliveB.length || b.t > 50 || dist2(b, P) > 200) {
       const winner = !aliveB.length ? A : !aliveA.length ? B : null;
       for (const s of b.sides) for (const p of s.people) release(p);
-      if (winner && dist2(b, P) < 120) notify(game, `${GANG[winner.gang].name} won the street fight.`, 2500);
+      if (winner && dist2(b, P) < 120)
+        notify(game, `${GANG[winner.gang].name} won the street fight.`, 2500);
       brawl = null;
       return;
     }
     // each fighter closes on a target from the other side and trades blows
-    for (const [mine, theirs] of [[aliveA, aliveB], [aliveB, aliveA]]) {
+    for (const [mine, theirs] of [
+      [aliveA, aliveB],
+      [aliveB, aliveA],
+    ]) {
       mine.forEach((p, i) => {
         if (p.state === 'down' || p.state === 'gettingUp' || p.rag) return;
         if (p._hitByPlayer && dist2(p.pos, P) < 14) {
@@ -416,7 +505,11 @@ export async function initV2(game) {
             o.hitNow = true;
             o.knock?.set?.((dx / d) * 1.5, 0, (dz / d) * 1.5);
             o.shoveT = 0.3;
-            if (o.health <= 0) game.peds.damage(o, 50, { x: dx / d, z: dz / d }, 'melee', { heavy: true, strength: 1 });
+            if (o.health <= 0)
+              game.peds.damage(o, 50, { x: dx / d, z: dz / d }, 'melee', {
+                heavy: true,
+                strength: 1,
+              });
           }
         }
       });
@@ -430,7 +523,10 @@ export async function initV2(game) {
     if (driveBy || war || !game.vehicles?.spawn || game.interiorState?.inside) return;
     const rp = city.randomRoadPoint?.(P.position, 90);
     if (!rp || dist2(rp.position, P.position) < 45) return;
-    const v = game.vehicles.spawn(g.car.type, rp.position, rp.heading, { ai: true, color: g.car.color });
+    const v = game.vehicles.spawn(g.car.type, rp.position, rp.heading, {
+      ai: true,
+      color: g.car.color,
+    });
     if (!v) return;
     driveBy = { v, g, t: 0, shots: 0, nextShot: 0 };
     S.driveBys++;
@@ -482,7 +578,11 @@ export async function initV2(game) {
         if (t && !war && !t.raid) {
           t.raid = { g: g.id, until: game.time?.now + 45 };
           t.raider = g.id;
-          notify(game, `${g.name} are moving on your ${t.street} corner. Get there within 45 minutes.`, 5000);
+          notify(
+            game,
+            `${g.name} are moving on your ${t.street} corner. Get there within 45 minutes.`,
+            5000,
+          );
           game.waypoint = { x: t.x, z: t.z };
         }
       }
@@ -502,10 +602,12 @@ export async function initV2(game) {
       for (const t of territories) {
         const d = dist2(t, P.position);
         if (war?.t === t) continue;
-        if (t.owner !== 'player' && d < CREW_R && !t.crew.length && game.city?.groundHeightAt) spawnCrew(t);
+        if (t.owner !== 'player' && d < CREW_R && !t.crew.length && game.city?.groundHeightAt)
+          spawnCrew(t);
         if (t.crew.length && (d > RELEASE_R || t.owner === 'player')) dropCrew(t);
         // crews of a gang that hates you come at you
-        if (t.crew.length && standing(t.owner) === 'hostile' && d < 22 && !war) startTurfFight(t.id, 'provoked');
+        if (t.crew.length && standing(t.owner) === 'hostile' && d < 22 && !war)
+          startTurfFight(t.id, 'provoked');
         // raids on your corners
         if (t.raid) {
           if (d < 90 && !war) {
@@ -539,7 +641,11 @@ export async function initV2(game) {
         if (t.owner === 'player') {
           prompt = `Your corner · stash ${fmt(t.pot)} · <b>E</b> collect`;
           if (game.input.pressed('KeyE') && t.pot >= 1) {
-            game.wallet?.earn?.(Math.floor(t.pot), { category: 'turf', memo: `${t.street} corner take`, hot: true });
+            game.wallet?.earn?.(Math.floor(t.pot), {
+              category: 'turf',
+              memo: `${t.street} corner take`,
+              hot: true,
+            });
             notify(game, `Collected ${fmt(t.pot)} from the ${t.street} corner.`, 2600);
             t.pot = 0;
           }
@@ -560,7 +666,7 @@ export async function initV2(game) {
   const layer = {
     id: 'turf',
     name: 'Gang turf',
-    enabled: false,   // user: the big yellow turf circles over the 3D map looked wrong; off unless toggled on
+    enabled: false, // user: the big yellow turf circles over the 3D map looked wrong; off unless toggled on
     draw(g, toScreen, k) {
       for (const t of territories) {
         const [sx, sy] = toScreen(t.x, t.z);
@@ -588,7 +694,10 @@ export async function initV2(game) {
       }
       g.globalAlpha = 1;
     },
-    legend: () => GANGS.map((g) => [g.color, `${g.name} (${standing(g.id)})`]).concat([['#ffffff', 'Your corners']]),
+    legend: () =>
+      GANGS.map((g) => [g.color, `${g.name} (${standing(g.id)})`]).concat([
+        ['#ffffff', 'Your corners'],
+      ]),
   };
   game.mapLayers.push(layer);
   installMapOverlay(game);

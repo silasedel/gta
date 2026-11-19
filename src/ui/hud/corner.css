@@ -1,12 +1,12 @@
 /* SOUTHLINE — top-right HUD corner (see corner.js). Matches docs/v2/plan/hud_corner_target.webp:
    heavy black outlines, charcoal earned stars, near-white open stars, deep red evidence badges, white clip / gray reserve. */
 .ps-hud .ps-corner {
-  --u: .1923;
+  --u: 0.1923;
   top: 22px;
   right: 26px;
   gap: 0;
   align-items: flex-end;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .28));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.28));
 }
 .ps-corner .hc-row {
   display: block;
@@ -20,10 +20,10 @@
    with the heavy black outline (hud_corner_target); earned from the right like GTA */
 .ps-corner .hc-star-ol polygon {
   fill: none;
-  stroke: rgba(0, 0, 0, .5);
+  stroke: rgba(0, 0, 0, 0.5);
   stroke-width: 16;
   stroke-linejoin: round;
-  transition: stroke .25s ease;
+  transition: stroke 0.25s ease;
 }
 .ps-corner .hc-star-ol polygon.on {
   fill: #000;
@@ -31,11 +31,13 @@
   stroke-width: 36;
 }
 .ps-corner .hc-star {
-  fill: rgba(60, 60, 62, .45);
-  stroke: rgba(60, 60, 62, .45);
+  fill: rgba(60, 60, 62, 0.45);
+  stroke: rgba(60, 60, 62, 0.45);
   stroke-width: 4;
   stroke-linejoin: round;
-  transition: fill .25s ease, stroke .25s ease;
+  transition:
+    fill 0.25s ease,
+    stroke 0.25s ease;
 }
 .ps-corner .hc-star.on {
   fill: #f6f6f4;
@@ -48,16 +50,16 @@
    loss  = the star fades back to its gray slot (escape: all together; cooling: one at a time). */
 .ps-corner .hc-star.pop,
 .ps-corner .hc-star.gain {
-  animation: hc-star-gain .75s cubic-bezier(.22, 1, .36, 1) var(--d, 0s) both;
+  animation: hc-star-gain 0.75s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both;
 }
 .ps-corner .hc-star-ol polygon.gain {
-  animation: hc-star-ol-gain .75s cubic-bezier(.22, 1, .36, 1) var(--d, 0s) both;
+  animation: hc-star-ol-gain 0.75s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both;
 }
 .ps-corner .hc-star.lose {
-  animation: hc-star-lose .7s cubic-bezier(.4, 0, .2, 1) var(--d, 0s) both;
+  animation: hc-star-lose 0.7s cubic-bezier(0.4, 0, 0.2, 1) var(--d, 0s) both;
 }
 .ps-corner .hc-star-ol polygon.lose {
-  animation: hc-star-ol-lose .7s cubic-bezier(.4, 0, .2, 1) var(--d, 0s) both;
+  animation: hc-star-ol-lose 0.7s cubic-bezier(0.4, 0, 0.2, 1) var(--d, 0s) both;
 }
 .ps-corner.evading .hc-star.on {
   animation: hc-star-pulse 1.3s ease-in-out infinite;
@@ -67,47 +69,126 @@
 }
 /* back in sight: a short bright snap to solid */
 .ps-corner .hc-star.on.spotted {
-  animation: hc-star-spotted .35s ease-out;
+  animation: hc-star-spotted 0.35s ease-out;
 }
 .ps-corner .hc-stars.bump {
-  animation: hc-bump .5s cubic-bezier(.22, 1, .36, 1);
+  animation: hc-bump 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes hc-star-gain {
-  0% { transform: scale(.6); fill: rgba(60, 60, 62, .45); stroke: rgba(60, 60, 62, .45); filter: none; }
-  28% { transform: scale(1.2); fill: #fff; stroke: #fff; filter: drop-shadow(0 0 22px rgba(255, 255, 255, .95)); }
-  60% { transform: scale(.96); filter: drop-shadow(0 0 8px rgba(255, 255, 255, .5)); }
-  100% { transform: scale(1); fill: #f6f6f4; stroke: #f6f6f4; filter: none; }
+  0% {
+    transform: scale(0.6);
+    fill: rgba(60, 60, 62, 0.45);
+    stroke: rgba(60, 60, 62, 0.45);
+    filter: none;
+  }
+  28% {
+    transform: scale(1.2);
+    fill: #fff;
+    stroke: #fff;
+    filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.95));
+  }
+  60% {
+    transform: scale(0.96);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+  }
+  100% {
+    transform: scale(1);
+    fill: #f6f6f4;
+    stroke: #f6f6f4;
+    filter: none;
+  }
 }
 @keyframes hc-star-ol-gain {
-  0% { fill: none; stroke: rgba(0, 0, 0, .5); stroke-width: 16; }
-  28%, 100% { fill: #000; stroke: #000; stroke-width: 36; }
+  0% {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.5);
+    stroke-width: 16;
+  }
+  28%,
+  100% {
+    fill: #000;
+    stroke: #000;
+    stroke-width: 36;
+  }
 }
 @keyframes hc-star-lose {
-  0% { transform: scale(1); fill: #f6f6f4; stroke: #f6f6f4; }
-  35% { transform: scale(1.06); fill: rgba(246, 246, 244, .8); stroke: rgba(246, 246, 244, .8); }
-  100% { transform: scale(1); fill: rgba(60, 60, 62, .45); stroke: rgba(60, 60, 62, .45); }
+  0% {
+    transform: scale(1);
+    fill: #f6f6f4;
+    stroke: #f6f6f4;
+  }
+  35% {
+    transform: scale(1.06);
+    fill: rgba(246, 246, 244, 0.8);
+    stroke: rgba(246, 246, 244, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    fill: rgba(60, 60, 62, 0.45);
+    stroke: rgba(60, 60, 62, 0.45);
+  }
 }
 @keyframes hc-star-ol-lose {
-  0% { fill: #000; stroke: #000; stroke-width: 36; }
-  100% { fill: none; stroke: rgba(0, 0, 0, .5); stroke-width: 16; }
+  0% {
+    fill: #000;
+    stroke: #000;
+    stroke-width: 36;
+  }
+  100% {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.5);
+    stroke-width: 16;
+  }
 }
 @keyframes hc-star-pulse {
-  0%, 100% { fill: #f6f6f4; stroke: #f6f6f4; }
-  50% { fill: rgba(120, 120, 124, .5); stroke: rgba(120, 120, 124, .5); }
+  0%,
+  100% {
+    fill: #f6f6f4;
+    stroke: #f6f6f4;
+  }
+  50% {
+    fill: rgba(120, 120, 124, 0.5);
+    stroke: rgba(120, 120, 124, 0.5);
+  }
 }
 @keyframes hc-star-ol-pulse {
-  0%, 100% { fill: #000; stroke: #000; stroke-width: 36; }
-  50% { fill: rgba(0, 0, 0, .35); stroke: rgba(0, 0, 0, .45); stroke-width: 22; }
+  0%,
+  100% {
+    fill: #000;
+    stroke: #000;
+    stroke-width: 36;
+  }
+  50% {
+    fill: rgba(0, 0, 0, 0.35);
+    stroke: rgba(0, 0, 0, 0.45);
+    stroke-width: 22;
+  }
 }
 @keyframes hc-star-spotted {
-  0% { fill: #fff; stroke: #fff; filter: drop-shadow(0 0 14px rgba(255, 255, 255, .8)); }
-  100% { fill: #f6f6f4; stroke: #f6f6f4; filter: none; }
+  0% {
+    fill: #fff;
+    stroke: #fff;
+    filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.8));
+  }
+  100% {
+    fill: #f6f6f4;
+    stroke: #f6f6f4;
+    filter: none;
+  }
 }
 @keyframes hc-bump {
-  0% { transform: translateX(0); }
-  30% { transform: translateX(-4px); }
-  60% { transform: translateX(2px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-4px);
+  }
+  60% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 /* ---- what the police know */
@@ -117,25 +198,57 @@
 .ps-corner.known .hc-known {
   display: block;
 }
-.ps-corner .hc-k-ring { fill: #000; }
-.ps-corner .hc-k-bg { fill: #800c0b; transition: fill .3s ease; }
-.ps-corner .hc-k-art { fill: #fff; transition: opacity .3s ease; }
-.ps-corner .hc-k-art .cut { fill: #800c0b; transition: fill .3s ease; }
-.ps-corner .hc-k-art .sep > * { stroke: #800c0b; stroke-width: 7; paint-order: stroke; transition: stroke .3s ease; }
-.ps-corner .hc-k-art .line { fill: none; stroke: #fff; stroke-width: 10; stroke-linejoin: round; stroke-linecap: round; }
+.ps-corner .hc-k-ring {
+  fill: #000;
+}
+.ps-corner .hc-k-bg {
+  fill: #800c0b;
+  transition: fill 0.3s ease;
+}
+.ps-corner .hc-k-art {
+  fill: #fff;
+  transition: opacity 0.3s ease;
+}
+.ps-corner .hc-k-art .cut {
+  fill: #800c0b;
+  transition: fill 0.3s ease;
+}
+.ps-corner .hc-k-art .sep > * {
+  stroke: #800c0b;
+  stroke-width: 7;
+  paint-order: stroke;
+  transition: stroke 0.3s ease;
+}
+.ps-corner .hc-k-art .line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 10;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
 .ps-corner .hc-k:not(.on) .hc-k-bg,
-.ps-corner .hc-k:not(.on) .hc-k-art .cut { fill: #3a3a3c; }
-.ps-corner .hc-k:not(.on) .hc-k-art .sep > * { stroke: #3a3a3c; }
-.ps-corner .hc-k:not(.on) .hc-k-art { opacity: .38; }
+.ps-corner .hc-k:not(.on) .hc-k-art .cut {
+  fill: #3a3a3c;
+}
+.ps-corner .hc-k:not(.on) .hc-k-art .sep > * {
+  stroke: #3a3a3c;
+}
+.ps-corner .hc-k:not(.on) .hc-k-art {
+  opacity: 0.38;
+}
 .ps-corner .hc-k {
   transform-box: fill-box;
 }
 .ps-corner .hc-k.pop .hc-k-bg {
-  animation: hc-badge-flash .6s ease-out;
+  animation: hc-badge-flash 0.6s ease-out;
 }
 @keyframes hc-badge-flash {
-  0% { fill: #ff3b30; }
-  100% { fill: #800c0b; }
+  0% {
+    fill: #ff3b30;
+  }
+  100% {
+    fill: #800c0b;
+  }
 }
 
 /* ---- ammo and weapon art */
@@ -143,17 +256,21 @@
 .ps-corner .hc-gun {
   display: none;
 }
-.ps-corner.armed .hc-gun { display: block; }
-.ps-corner.armed.has-ammo .hc-ammo { display: block; }
+.ps-corner.armed .hc-gun {
+  display: block;
+}
+.ps-corner.armed.has-ammo .hc-ammo {
+  display: block;
+}
 .ps-corner .hc-ammo.reloading .hc-clip {
-  animation: hc-blink .6s ease-in-out infinite;
+  animation: hc-blink 0.6s ease-in-out infinite;
 }
 .ps-corner .hc-ammo.low .hc-clip path {
   fill: #ffd27a;
   stroke: #ffd27a;
 }
 .ps-corner .hc-gun.swap {
-  animation: hc-swap .3s cubic-bezier(.22, 1, .36, 1);
+  animation: hc-swap 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .ps-corner .hc-gun .gx-ol * {
   fill: #000 !important;
@@ -164,15 +281,23 @@
 .ps-corner .hc-gun .gx-fill {
   color: #464d72;
 }
-.ps-corner .hc-gun .gx-fill [fill^="rgba(0,0,0"] {
-  fill: rgba(16, 18, 34, .45);
+.ps-corner .hc-gun .gx-fill [fill^='rgba(0,0,0'] {
+  fill: rgba(16, 18, 34, 0.45);
 }
 @keyframes hc-blink {
-  50% { opacity: .35; }
+  50% {
+    opacity: 0.35;
+  }
 }
 @keyframes hc-swap {
-  0% { opacity: 0; transform: translateX(10px); }
-  100% { opacity: 1; transform: none; }
+  0% {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---- cash, bank, clock (ref_46 rows: bank with the house badge, cash with the wallet badge). With a weapon out the
@@ -180,9 +305,16 @@
 .ps-hud .ps-corner.armed:not(.money-on) .hc-money {
   display: none;
 }
-.ps-corner .hc-money { margin-top: calc(var(--u) * -18px); }
-.ps-corner .hc-bank + .hc-cash { margin-top: calc(var(--u) * -52px); }
-.ps-corner .hc-clock { margin-top: calc(var(--u) * -10px); opacity: .92; }
+.ps-corner .hc-money {
+  margin-top: calc(var(--u) * -18px);
+}
+.ps-corner .hc-bank + .hc-cash {
+  margin-top: calc(var(--u) * -52px);
+}
+.ps-corner .hc-clock {
+  margin-top: calc(var(--u) * -10px);
+  opacity: 0.92;
+}
 .ps-hud .ps-corner .hc-line {
   position: relative;
   display: block;
@@ -190,19 +322,25 @@
 .ps-hud .ps-corner .hc-line.none {
   display: none;
 }
-.ps-corner .hc-cash { margin-top: 2px; }
+.ps-corner .hc-cash {
+  margin-top: 2px;
+}
 .ps-corner .hc-cash.pop .hc-text {
-  animation: hc-pop .35s cubic-bezier(.22, 1, .36, 1);
+  animation: hc-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes hc-pop {
-  40% { transform: scale(1.06); }
+  40% {
+    transform: scale(1.06);
+  }
 }
-.ps-corner .hc-cash .hc-text { transform-origin: 92% 50%; }
+.ps-corner .hc-cash .hc-text {
+  transform-origin: 92% 50%;
+}
 .ps-corner .hc-fly {
   position: absolute;
   top: 0;
   pointer-events: none;
-  animation: hc-fly 1.6s cubic-bezier(.22, 1, .36, 1) both;
+  animation: hc-fly 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .ps-corner .hc-fly svg {
   display: block;
@@ -210,29 +348,99 @@
   height: calc(var(--u) * var(--h) * 1px);
 }
 @keyframes hc-fly {
-  0% { opacity: 0; transform: translate(14px, 0) scale(.9); }
-  15% { opacity: 1; transform: translate(0, 0) scale(1.04); }
-  65% { opacity: 1; transform: translate(0, -4px) scale(1); }
-  100% { opacity: 0; transform: translate(0, -24px); }
+  0% {
+    opacity: 0;
+    transform: translate(14px, 0) scale(0.9);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1.04);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(0, -4px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, -24px);
+  }
 }
 
 /* ---- police state tag (Nov 19): small condensed caps left of the stars; red/blue siren dot in pursuit, a slow gray
    breath while searching. Sits left of the six stars (star 0 starts ~25 units into the row); further left in dev mode,
    where the police-lock padlock takes that spot. */
 .ps-corner .hc-police {
-  position: absolute; right: calc(var(--u) * 1262px); top: calc(var(--u) * 118px); transform: translateY(-50%);
-  display: flex; align-items: center; gap: 7px; padding: 5px 10px 5px 8px; border-radius: 999px; white-space: nowrap;
-  background: rgba(12, 14, 20, .62); box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
-  font: 800 12px/1 var(--ps-cond); letter-spacing: .2em; color: #fff; text-shadow: 0 1px 1px rgba(0, 0, 0, .5);
-  opacity: 0; pointer-events: none; transition: opacity .3s ease;
+  position: absolute;
+  right: calc(var(--u) * 1262px);
+  top: calc(var(--u) * 118px);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: rgba(12, 14, 20, 0.62);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  font: 800 12px/1 var(--ps-cond);
+  letter-spacing: 0.2em;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
-.ps-corner.dev .hc-police { right: calc(var(--u) * 1440px); }
-.ps-corner .hc-police.on { opacity: 1; }
-.ps-corner .hc-police.pop { animation: hc-police-in .45s cubic-bezier(.22, 1, .36, 1) both; }
-.ps-corner .hc-police i { width: 8px; height: 8px; border-radius: 50%; background: #ff3b4a; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .85); animation: hc-police-siren .9s steps(1) infinite; }
-.ps-corner .hc-police.search { color: rgba(255, 255, 255, .86); }
-.ps-corner .hc-police.search i { background: #aab3c2; animation: hc-police-breathe 1.3s ease-in-out infinite; }
-@keyframes hc-police-in { from { opacity: 0; transform: translate(8px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
-@keyframes hc-police-siren { 0% { background: #ff3b4a; } 50% { background: #3d7bff; } }
-@keyframes hc-police-breathe { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-.ps-reduced .ps-corner .hc-police i { animation: none; }
+.ps-corner.dev .hc-police {
+  right: calc(var(--u) * 1440px);
+}
+.ps-corner .hc-police.on {
+  opacity: 1;
+}
+.ps-corner .hc-police.pop {
+  animation: hc-police-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.ps-corner .hc-police i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3b4a;
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85);
+  animation: hc-police-siren 0.9s steps(1) infinite;
+}
+.ps-corner .hc-police.search {
+  color: rgba(255, 255, 255, 0.86);
+}
+.ps-corner .hc-police.search i {
+  background: #aab3c2;
+  animation: hc-police-breathe 1.3s ease-in-out infinite;
+}
+@keyframes hc-police-in {
+  from {
+    opacity: 0;
+    transform: translate(8px, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}
+@keyframes hc-police-siren {
+  0% {
+    background: #ff3b4a;
+  }
+  50% {
+    background: #3d7bff;
+  }
+}
+@keyframes hc-police-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.ps-reduced .ps-corner .hc-police i {
+  animation: none;
+}

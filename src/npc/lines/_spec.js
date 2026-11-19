@@ -22,8 +22,32 @@ export const TOKENS = {
   time: ['dawn', 'morning', 'noon', 'afternoon', 'evening', 'night', 'latenight'],
   weather: ['hot', 'rain', 'storm', 'clear', 'windy', 'chilly'],
   relation: ['stranger', 'known', 'friend', 'enemy', 'regular'],
-  place: ['beach', 'downtown', 'brickell', 'havana', 'wynwood', 'overtown', 'port', 'keys', 'glades', 'suburb', 'airport', 'park', 'nightlife'],
-  player: ['armed', 'shirtless', 'suited', 'fancycar', 'beatercar', 'bloody', 'wanted', 'wet', 'running'],
+  place: [
+    'beach',
+    'downtown',
+    'brickell',
+    'havana',
+    'wynwood',
+    'overtown',
+    'port',
+    'keys',
+    'glades',
+    'suburb',
+    'airport',
+    'park',
+    'nightlife',
+  ],
+  player: [
+    'armed',
+    'shirtless',
+    'suited',
+    'fancycar',
+    'beatercar',
+    'bloody',
+    'wanted',
+    'wet',
+    'running',
+  ],
   self: ['old', 'young', 'rich', 'poor', 'working', 'offduty'],
 };
 // VOICES: how a person talks. Every person in the world gets one voice from their identity.
@@ -35,13 +59,16 @@ export const VOICES = {
   tough: 'Street-hard and fearless. Calm threats, dry, does not scare.',
   chill: 'Laid-back beach cadence. Unbothered, slow, amused by everything.',
   hustler: 'Always working an angle. Fast talker, sells, flatters, bargains.',
-  elder_cuban: 'Cuban grandmother or grandfather of Little Havana. Heavy Spanglish, opinions on everything, feeds or scolds you.',
+  elder_cuban:
+    'Cuban grandmother or grandfather of Little Havana. Heavy Spanglish, opinions on everything, feeds or scolds you.',
   tourist: 'Out-of-towner. Amazed, sunburned, lost, loud about prices and heat.',
-  influencer: 'Lives on camera. Talks to "chat", content brain, brand-speak for made-up things only.',
+  influencer:
+    'Lives on camera. Talks to "chat", content brain, brand-speak for made-up things only.',
   bro: 'Loud gym and party guy or girl. Hype, protein, "bro", big energy.',
   pro: 'Busy professional. Clipped, on the clock, polite until delayed.',
   kid: 'Child of 7 to 12. Blunt, curious, clean language, random facts.',
-  kreyol: 'Haitian-American of Little Haiti. English with natural Haitian Creole phrases, proverbs, proud and warm.',
+  kreyol:
+    'Haitian-American of Little Haiti. English with natural Haitian Creole phrases, proverbs, proud and warm.',
   drunk: 'Had a few. Slurry, sentimental, overconfident, loses the thread.',
   snob: 'Wealthy and condescending. Judges your car, your shoes, the neighborhood.',
   worker: 'Blue-collar trades and service. Dry humor, tired, practical, union break energy.',
@@ -65,13 +92,15 @@ export const CONTEXTS = {
   remark_outfit_bad: 'Mocks or questions what the player wears.',
   remark_outfit_shirtless: 'Reacts to the player walking around shirtless away from the beach.',
   remark_outfit_suit: 'Reacts to the player in a suit.',
-  remark_car_fancy: 'Reacts to the player getting out of or driving an expensive car (may use {car}, {carColor}).',
+  remark_car_fancy:
+    'Reacts to the player getting out of or driving an expensive car (may use {car}, {carColor}).',
   remark_car_beater: 'Reacts to the player in a rusty, beat-up car.',
   remark_car_loud: 'Reacts to a loud engine or revving.',
   remark_player_running: 'Player sprints past them on the sidewalk.',
   remark_player_wet: 'Player walks by dripping wet from the water.',
   remark_player_bloody: 'Player walks by visibly hurt or bloody.',
-  remark_player_armed: 'Sees the player holding a gun, before anything happens. Wary, not yet panicking.',
+  remark_player_armed:
+    'Sees the player holding a gun, before anything happens. Wary, not yet panicking.',
   // ---- reactions
   bump_light: 'Player brushes against them.',
   bump_hard: 'Player shoves into them at a run.',
@@ -97,7 +126,8 @@ export const CONTEXTS = {
   intruder_confront: 'Finds the player inside their home. Grabs a bat, stands their ground.',
   tell_police: 'Telling an arriving police officer what they saw.',
   // ---- approaching the player with a purpose
-  offer_job: 'Tells the player their workplace is hiring or offers a quick paid errand (may use {job}).',
+  offer_job:
+    'Tells the player their workplace is hiring or offers a quick paid errand (may use {job}).',
   offer_deal: 'Offers to sell something, buy something or a discount.',
   flirt_open: 'Opens a flirt with the player.',
   ask_help: 'Asks the player for a small favor or help.',
@@ -109,14 +139,16 @@ export const CONTEXTS = {
   reply_rude: 'The player was rude to them.',
   reply_ask_area: 'The player asked what is good around here (may use {district}).',
   reply_ask_self: 'The player asked about them (may use {job}, {me}).',
-  reply_ask_rumor: 'The player asked if they heard anything interesting lately. Local gossip, small mysteries.',
+  reply_ask_rumor:
+    'The player asked if they heard anything interesting lately. Local gossip, small mysteries.',
   reply_flirt_yes: 'The player flirted and they like it.',
   reply_flirt_no: 'The player flirted and they are not interested.',
   reply_accept: 'They are glad the player accepted their offer.',
   reply_decline: 'The player turned their offer down.',
   reply_job_info: 'The player asked for details about the job they mentioned.',
   reply_thanks: 'The player helped them; they are grateful.',
-  reply_refuse_service: 'They refuse to deal with the player because of what the player did before.',
+  reply_refuse_service:
+    'They refuse to deal with the player because of what the player did before.',
   reply_regular: 'They know the player as a regular and remember the usual.',
   // ---- alone
   phone_call: 'One side of a phone call overheard on the street.',
@@ -158,4 +190,23 @@ export const ROLES = {
   valet: ['greet', 'careful_promise', 'tip_hint'],
 };
 // Writers: no real brands, celebrities, sports teams, song lyrics or anything from another game. No slurs. Mild swearing only.
-export const BANNED = ['Vice City', 'Leonida', 'Grassrivers', 'Kalaga', 'Port Gellhorn', 'Ambrosia', 'Watson Bay', 'Key Lento', 'Hamlet', 'Rusty Anchor', 'Wonder Whale', 'Dinka', 'Vapid', 'Schafter', 'Rockstar', 'GTA', 'Los Santos', 'Liberty City'];
+export const BANNED = [
+  'Vice City',
+  'Leonida',
+  'Grassrivers',
+  'Kalaga',
+  'Port Gellhorn',
+  'Ambrosia',
+  'Watson Bay',
+  'Key Lento',
+  'Hamlet',
+  'Rusty Anchor',
+  'Wonder Whale',
+  'Dinka',
+  'Vapid',
+  'Schafter',
+  'Rockstar',
+  'GTA',
+  'Los Santos',
+  'Liberty City',
+];

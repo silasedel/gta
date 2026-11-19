@@ -5,383 +5,3374 @@
 export const order = 72;
 
 export function build(ctx) {
-  const { THREE, kit, plan: P, imat, col } = ctx, I = ctx.int, M = kit.M, F = P.F, CEIL = F + P.ceilH;
-  const r = kit.rng(7272), PI = Math.PI, v = (c, a = 0.05) => kit.vary(c, r, a), j = (a) => (r() - 0.5) * 2 * a;
-  const IP = imat.paint({ peel: 'a', fade: 0.1 }), WD = imat.wood(), TOP = imat.pbr('kitchen_wood', { rep: 1.1, gain: 1.55 }), TILE = imat.pbr('long_white_tiles', { rep: 0.55, gain: 1.05 }), LEA = imat.pbr('fabric_leather_01', { rep: 0.55, gain: 1.45 });
+  const { THREE, kit, plan: P, imat, col } = ctx,
+    I = ctx.int,
+    M = kit.M,
+    F = P.F,
+    CEIL = F + P.ceilH;
+  const r = kit.rng(7272),
+    PI = Math.PI,
+    v = (c, a = 0.05) => kit.vary(c, r, a),
+    j = (a) => (r() - 0.5) * 2 * a;
+  const IP = imat.paint({ peel: 'a', fade: 0.1 }),
+    WD = imat.wood(),
+    TOP = imat.pbr('kitchen_wood', { rep: 1.1, gain: 1.55 }),
+    TILE = imat.pbr('long_white_tiles', { rep: 0.55, gain: 1.05 }),
+    LEA = imat.pbr('fabric_leather_01', { rep: 0.55, gain: 1.45 });
   const JER = imat.fabric('cotton_jersey', { rep: 0.3, side: THREE.DoubleSide });
-  const PL = imat.plastic(), PG = imat.plasticGloss(), RB = imat.rubber(), MP = imat.metalPaint(), ST = imat.steel(), CH = imat.chrome(), CE = imat.ceramic(), MT = imat.matte();
-  const own = (p) => { const m = new THREE.MeshStandardMaterial(p); m.userData.uvScale = 0; return kit.setIndirect(m); };
-  const night = (h) => h >= 18.4 || h < 6.4, who = String(ctx.opts?.residentName ?? 'NICO');
-  const CT = 0.915, CAB = 0xe2d8b6, cabO = (o = {}) => ({ color: v(CAB, 0.025), wear: 0.08 + r() * 0.14, bevel: 0.003, rand: r, ...o });
+  const PL = imat.plastic(),
+    PG = imat.plasticGloss(),
+    RB = imat.rubber(),
+    MP = imat.metalPaint(),
+    ST = imat.steel(),
+    CH = imat.chrome(),
+    CE = imat.ceramic(),
+    MT = imat.matte();
+  const own = (p) => {
+    const m = new THREE.MeshStandardMaterial(p);
+    m.userData.uvScale = 0;
+    return kit.setIndirect(m);
+  };
+  const night = (h) => h >= 18.4 || h < 6.4,
+    who = String(ctx.opts?.residentName ?? 'NICO');
+  const CT = 0.915,
+    CAB = 0xe2d8b6,
+    cabO = (o = {}) => ({
+      color: v(CAB, 0.025),
+      wear: 0.08 + r() * 0.14,
+      bevel: 0.003,
+      rand: r,
+      ...o,
+    });
 
   // ---------- helpers ----------
-  const place = (x, y, z, ry = 0) => { const b = M(x, y, z, 0, ry, 0); return (lx = 0, ly = 0, lz = 0, rx = 0, r2 = 0, rz = 0) => b.clone().multiply(M(lx, ly, lz, rx, r2, rz)); };
-  const lathe = (pts, seg = 16) => new THREE.LatheGeometry(pts.map((p) => new THREE.Vector2(p[0], p[1])), seg);
-  const wpt = (m4, x, y, z) => { const q = new THREE.Vector3(x, y, z).applyMatrix4(m4); return [q.x, q.y, q.z]; };
+  const place = (x, y, z, ry = 0) => {
+    const b = M(x, y, z, 0, ry, 0);
+    return (lx = 0, ly = 0, lz = 0, rx = 0, r2 = 0, rz = 0) =>
+      b.clone().multiply(M(lx, ly, lz, rx, r2, rz));
+  };
+  const lathe = (pts, seg = 16) =>
+    new THREE.LatheGeometry(
+      pts.map((p) => new THREE.Vector2(p[0], p[1])),
+      seg,
+    );
+  const wpt = (m4, x, y, z) => {
+    const q = new THREE.Vector3(x, y, z).applyMatrix4(m4);
+    return [q.x, q.y, q.z];
+  };
   const soft = (sx, sy, sz, o = {}) => {
-    const n = o.seg ?? 6, g = new THREE.BoxGeometry(2, 2, 2, n, Math.max(2, n >> 1), n), p = g.attributes.position, nr = g.attributes.normal;
-    const hx = sx / 2, hy = sy / 2, hz = sz / 2, rr = Math.min(o.r ?? 0.05, hx, hy, hz), puff = o.puff ?? 0, w = (t) => Math.sign(t) * Math.pow(Math.abs(t), 0.5), cl = (a, b) => Math.max(-b, Math.min(b, a));
+    const n = o.seg ?? 6,
+      g = new THREE.BoxGeometry(2, 2, 2, n, Math.max(2, n >> 1), n),
+      p = g.attributes.position,
+      nr = g.attributes.normal;
+    const hx = sx / 2,
+      hy = sy / 2,
+      hz = sz / 2,
+      rr = Math.min(o.r ?? 0.05, hx, hy, hz),
+      puff = o.puff ?? 0,
+      w = (t) => Math.sign(t) * Math.pow(Math.abs(t), 0.5),
+      cl = (a, b) => Math.max(-b, Math.min(b, a));
     for (let i = 0; i < p.count; i++) {
-      let x = w(p.getX(i)) * hx, y = w(p.getY(i)) * hy, z = w(p.getZ(i)) * hz;
-      const ix = cl(x, hx - rr), iy = cl(y, hy - rr), iz = cl(z, hz - rr); let dx = x - ix, dy = y - iy, dz = z - iz; const l = Math.hypot(dx, dy, dz) || 1; dx /= l; dy /= l; dz /= l;
-      x = ix + dx * rr; y = iy + dy * rr; z = iz + dz * rr;
-      if (puff) { const u = x / hx, t = z / hz; y += Math.sign(y) * (1 - u * u) * (1 - t * t) * puff * (y > 0 ? 1 : (o.puffB ?? 0.3)); }
-      p.setXYZ(i, x, y, z); nr.setXYZ(i, dx, dy, dz);
+      let x = w(p.getX(i)) * hx,
+        y = w(p.getY(i)) * hy,
+        z = w(p.getZ(i)) * hz;
+      const ix = cl(x, hx - rr),
+        iy = cl(y, hy - rr),
+        iz = cl(z, hz - rr);
+      let dx = x - ix,
+        dy = y - iy,
+        dz = z - iz;
+      const l = Math.hypot(dx, dy, dz) || 1;
+      dx /= l;
+      dy /= l;
+      dz /= l;
+      x = ix + dx * rr;
+      y = iy + dy * rr;
+      z = iz + dz * rr;
+      if (puff) {
+        const u = x / hx,
+          t = z / hz;
+        y += Math.sign(y) * (1 - u * u) * (1 - t * t) * puff * (y > 0 ? 1 : (o.puffB ?? 0.3));
+      }
+      p.setXYZ(i, x, y, z);
+      nr.setXYZ(i, dx, dy, dz);
     }
     return g;
   };
   const makeAtlas = (key, W, H, items, o) => {
-    const rects = {}; let x = 4, y = 4, rowH = 0;
-    for (const [n, [w, h]] of Object.entries(items)) { if (x + w + 4 > W) { x = 4; y += rowH + 8; rowH = 0; } rects[n] = [x, y, w, h]; x += w + 8; rowH = Math.max(rowH, h); }
+    const rects = {};
+    let x = 4,
+      y = 4,
+      rowH = 0;
+    for (const [n, [w, h]] of Object.entries(items)) {
+      if (x + w + 4 > W) {
+        x = 4;
+        y += rowH + 8;
+        rowH = 0;
+      }
+      rects[n] = [x, y, w, h];
+      x += w + 8;
+      rowH = Math.max(rowH, h);
+    }
     if (y + rowH > H) console.warn('[nicoHouse] atlas overflow', key, y + rowH);
-    const m = imat.art(key, W, H, (g) => { g.fillStyle = '#8a8478'; g.fillRect(0, 0, W, H); for (const [n, [w, h, draw]] of Object.entries(items)) { const q = rects[n]; g.save(); g.translate(q[0], q[1]); g.beginPath(); g.rect(0, 0, w, h); g.clip(); draw(g, w, h); g.restore(); } }, o);
-    const uv = (n) => { const q = rects[n]; return { uvMul: [q[2] / W, q[3] / H], uvOff: [q[0] / W, 1 - (q[1] + q[3]) / H] }; };
-    return { m, uv, plane: (bt, n, m4, w, h) => bt.geo(m, new THREE.PlaneGeometry(w, h), m4, uv(n)), wrap: (bt, n, m4, rad, h, seg = 14) => bt.geo(m, new THREE.CylinderGeometry(rad, rad, h, seg, 1, true), m4, uv(n)) };
+    const m = imat.art(
+      key,
+      W,
+      H,
+      (g) => {
+        g.fillStyle = '#8a8478';
+        g.fillRect(0, 0, W, H);
+        for (const [n, [w, h, draw]] of Object.entries(items)) {
+          const q = rects[n];
+          g.save();
+          g.translate(q[0], q[1]);
+          g.beginPath();
+          g.rect(0, 0, w, h);
+          g.clip();
+          draw(g, w, h);
+          g.restore();
+        }
+      },
+      o,
+    );
+    const uv = (n) => {
+      const q = rects[n];
+      return { uvMul: [q[2] / W, q[3] / H], uvOff: [q[0] / W, 1 - (q[1] + q[3]) / H] };
+    };
+    return {
+      m,
+      uv,
+      plane: (bt, n, m4, w, h) => bt.geo(m, new THREE.PlaneGeometry(w, h), m4, uv(n)),
+      wrap: (bt, n, m4, rad, h, seg = 14) =>
+        bt.geo(m, new THREE.CylinderGeometry(rad, rad, h, seg, 1, true), m4, uv(n)),
+    };
   };
-  const T = (g, s, x, y, px, c = '#111', o = {}) => { g.font = kit.font(px, o.w ?? 700, o.f); g.fillStyle = c; g.textAlign = o.a || 'left'; g.textBaseline = o.b || 'alphabetic'; g.fillText(s, x, y, o.max); };
-  const IMPACT = 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif', SERIF = 'Georgia, "Times New Roman", serif', MONO = 'Menlo, Courier, monospace', HAND = '"Marker Felt", "Bradley Hand", "Comic Sans MS", cursive';
-  const age = (g, w, h, seed, k = 1) => { const q = kit.rng(seed); for (let i = 0; i < 26 * k; i++) { g.fillStyle = `rgba(${110 + q() * 60 | 0},${85 + q() * 50 | 0},${45 + q() * 40 | 0},${q() * 0.06})`; const s = 8 + q() * w * 0.3; g.beginPath(); g.ellipse(q() * w, q() * h, s, s * (0.3 + q()), q() * 3, 0, 6.3); g.fill(); } };
-  const label = (bg, fg, title, sub, acc) => (g, w, h) => { g.fillStyle = bg; g.fillRect(0, 0, w, h); g.fillStyle = acc; g.fillRect(0, 0, w, h * 0.16); g.fillRect(0, h * 0.84, w, h * 0.16); for (const x of [w * 0.25, w * 0.75]) { g.fillStyle = acc; g.beginPath(); g.ellipse(x, h * 0.5, w * 0.2, h * 0.3, 0, 0, 6.3); g.fill(); T(g, title, x, h * 0.5, h * 0.2, fg, { a: 'center', b: 'middle', f: IMPACT, max: w * 0.36 }); T(g, sub, x, h * 0.72, h * 0.09, fg, { a: 'center', max: w * 0.4 }); } };
-  const crayon = (g, pts, c, lw = 5) => { g.strokeStyle = c; g.lineCap = 'round'; g.lineJoin = 'round'; for (let k = 0; k < 3; k++) { g.globalAlpha = 0.5; g.lineWidth = lw * (0.6 + k * 0.25); g.beginPath(); pts.forEach((p, i) => { const x = p[0] + Math.sin(i * 7 + k * 3) * 1.6, y = p[1] + Math.cos(i * 5 + k * 2) * 1.6; i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); } g.globalAlpha = 1; };
-  const addr = (g, x, y, px, c = '#1c1c1c') => { T(g, who.toUpperCase(), x, y, px * 1.15, c, { f: MONO }); T(g, '118 Heron Cay Rd', x, y + px * 1.35, px, c, { f: MONO, w: 500 }); T(g, 'Key Paloma, FL 33047', x, y + px * 2.6, px, c, { f: MONO, w: 500 }); };
+  const T = (g, s, x, y, px, c = '#111', o = {}) => {
+    g.font = kit.font(px, o.w ?? 700, o.f);
+    g.fillStyle = c;
+    g.textAlign = o.a || 'left';
+    g.textBaseline = o.b || 'alphabetic';
+    g.fillText(s, x, y, o.max);
+  };
+  const IMPACT = 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif',
+    SERIF = 'Georgia, "Times New Roman", serif',
+    MONO = 'Menlo, Courier, monospace',
+    HAND = '"Marker Felt", "Bradley Hand", "Comic Sans MS", cursive';
+  const age = (g, w, h, seed, k = 1) => {
+    const q = kit.rng(seed);
+    for (let i = 0; i < 26 * k; i++) {
+      g.fillStyle = `rgba(${(110 + q() * 60) | 0},${(85 + q() * 50) | 0},${(45 + q() * 40) | 0},${q() * 0.06})`;
+      const s = 8 + q() * w * 0.3;
+      g.beginPath();
+      g.ellipse(q() * w, q() * h, s, s * (0.3 + q()), q() * 3, 0, 6.3);
+      g.fill();
+    }
+  };
+  const label = (bg, fg, title, sub, acc) => (g, w, h) => {
+    g.fillStyle = bg;
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = acc;
+    g.fillRect(0, 0, w, h * 0.16);
+    g.fillRect(0, h * 0.84, w, h * 0.16);
+    for (const x of [w * 0.25, w * 0.75]) {
+      g.fillStyle = acc;
+      g.beginPath();
+      g.ellipse(x, h * 0.5, w * 0.2, h * 0.3, 0, 0, 6.3);
+      g.fill();
+      T(g, title, x, h * 0.5, h * 0.2, fg, { a: 'center', b: 'middle', f: IMPACT, max: w * 0.36 });
+      T(g, sub, x, h * 0.72, h * 0.09, fg, { a: 'center', max: w * 0.4 });
+    }
+  };
+  const crayon = (g, pts, c, lw = 5) => {
+    g.strokeStyle = c;
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    for (let k = 0; k < 3; k++) {
+      g.globalAlpha = 0.5;
+      g.lineWidth = lw * (0.6 + k * 0.25);
+      g.beginPath();
+      pts.forEach((p, i) => {
+        const x = p[0] + Math.sin(i * 7 + k * 3) * 1.6,
+          y = p[1] + Math.cos(i * 5 + k * 2) * 1.6;
+        i ? g.lineTo(x, y) : g.moveTo(x, y);
+      });
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  };
+  const addr = (g, x, y, px, c = '#1c1c1c') => {
+    T(g, who.toUpperCase(), x, y, px * 1.15, c, { f: MONO });
+    T(g, '118 Heron Cay Rd', x, y + px * 1.35, px, c, { f: MONO, w: 500 });
+    T(g, 'Key Paloma, FL 33047', x, y + px * 2.6, px, c, { f: MONO, w: 500 });
+  };
 
   // ---------- original art (one atlas) ----------
   const A = makeAtlas('nh72_atlas', 2048, 2048, {
-    bill: [640, 300, (g, w, h) => { g.fillStyle = '#f2efe6'; g.fillRect(0, 0, w, h); g.fillStyle = '#1f5f9a'; g.beginPath(); g.moveTo(22, 50); g.lineTo(40, 18); g.lineTo(36, 40); g.lineTo(54, 40); g.lineTo(30, 74); g.lineTo(36, 50); g.fill(); T(g, 'GULFSIDE POWER & LIGHT', 64, 42, 21, '#1f5f9a'); T(g, 'PO Box 4410 · Southline, FL 33010', 64, 62, 13, '#444', { w: 500 });
-      g.strokeStyle = '#888'; g.strokeRect(500, 18, 118, 60); T(g, 'PRESORTED', 559, 40, 12, '#555', { a: 'center' }); T(g, 'FIRST-CLASS MAIL', 559, 56, 11, '#555', { a: 'center' }); T(g, 'U.S. POSTAGE PAID', 559, 70, 9, '#555', { a: 'center', w: 500 });
-      g.fillStyle = '#fbfaf5'; g.fillRect(150, 128, 360, 112); g.strokeStyle = '#c9c4b5'; g.strokeRect(150, 128, 360, 112); addr(g, 172, 166, 21);
-      g.save(); g.translate(118, 272); g.rotate(-0.04); g.strokeStyle = '#c0281f'; g.lineWidth = 4; g.strokeRect(-100, -30, 330, 46); T(g, 'PAST DUE · OPEN IMMEDIATELY', 65, 3, 20, '#c0281f', { a: 'center' }); g.restore(); T(g, 'Acct 0118-4471-6   Amount due $184.20', 372, 280, 14, '#444', { f: MONO, w: 500 }); age(g, w, h, 5); }],
-    marina: [640, 300, (g, w, h) => { g.fillStyle = '#eee9d6'; g.fillRect(0, 0, w, h); g.fillStyle = '#17525c'; g.fillRect(0, 0, w, 62); T(g, 'HERON CAY MARINA', 20, 40, 30, '#fff', { f: SERIF }); T(g, 'slips · fuel · bait · ice', 330, 38, 16, '#cfe6e6', { w: 500 }); T(g, 'INVOICE #2291', 620, 40, 18, '#fff', { a: 'right' });
-      T(g, 'BILL TO', 22, 92, 12, '#777'); addr(g, 22, 116, 17); const rows = [['Slip C-14, October', '$240.00'], ['Shore power (metered)', '$18.40'], ['Late fee', '$25.00']]; rows.forEach((q, i) => { T(g, q[0], 330, 100 + i * 28, 17, '#222', { w: 500 }); T(g, q[1], 620, 100 + i * 28, 17, '#222', { a: 'right', f: MONO }); }); g.fillStyle = '#222'; g.fillRect(330, 176, 290, 2); T(g, 'BALANCE DUE', 330, 206, 20, '#222'); T(g, '$283.40', 620, 206, 22, '#b5322a', { a: 'right', f: MONO });
-      g.save(); g.translate(150, 250); g.rotate(-0.05); T(g, 'Nico, 2nd notice. Come see me. -Dolores', 0, 0, 21, '#1f3f9a', { f: HAND, w: 400 }); g.restore(); age(g, w, h, 7); }],
-    post: [520, 350, (g, w, h) => { g.fillStyle = '#f1ecd9'; g.fillRect(0, 0, w, h); g.fillStyle = '#999'; g.fillRect(268, 30, 2, 290); g.strokeStyle = '#8a3a3a'; g.lineWidth = 2; g.strokeRect(430, 24, 66, 80); g.fillStyle = '#e8793f'; g.fillRect(436, 30, 54, 68); g.fillStyle = '#f8e3a8'; g.beginPath(); g.arc(463, 70, 16, 0, 6.3); g.fill(); T(g, 'USA', 463, 46, 11, '#fff', { a: 'center' });
-      g.strokeStyle = 'rgba(40,40,40,0.6)'; g.lineWidth = 1.5; for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(380, 44 + i * 9); g.bezierCurveTo(400, 38 + i * 9, 420, 50 + i * 9, 440, 44 + i * 9); g.stroke(); } g.beginPath(); g.arc(370, 62, 26, 0, 6.3); g.stroke(); T(g, 'TAMPA FL', 370, 60, 9, 'rgba(40,40,40,0.7)', { a: 'center' }); T(g, 'NOV 04', 370, 72, 9, 'rgba(40,40,40,0.7)', { a: 'center' });
-      addr(g, 292, 176, 16, '#1f2f6a'); for (let i = 0; i < 3; i++) { g.fillStyle = '#999'; g.fillRect(290, 184 + i * 21.5, 200, 1); }
-      const msg = [who.charAt(0) + who.slice(1).toLowerCase() + ',', 'Wish you were here.', 'Not really. Bring my', 'cooler back and DO NOT', 'sell the skiff. Call', 'your mother.', '      - Tio Rafa']; msg.forEach((s, i) => { g.save(); g.translate(22, 70 + i * 36); g.rotate(-0.03); T(g, s, 0, 0, 23, '#1f2f6a', { f: HAND, w: 400 }); g.restore(); }); T(g, 'GREETINGS FROM THE SUNCOAST', 22, 334, 9, '#888', { w: 500 }); age(g, w, h, 9); }],
-    tide: [300, 420, (g, w, h) => { g.fillStyle = '#f3efdc'; g.fillRect(0, 0, w, h); g.fillStyle = '#17525c'; g.fillRect(0, 0, w, 52); T(g, 'TIDE TABLE', w / 2, 26, 22, '#fff', { a: 'center' }); T(g, 'KEY PALOMA HARBOR · NOVEMBER', w / 2, 44, 11, '#cfe6e6', { a: 'center' }); const q = kit.rng(3);
-      for (let i = 0; i < 17; i++) { const y = 74 + i * 17; if (i % 2) { g.fillStyle = '#e4dec8'; g.fillRect(8, y - 12, w - 16, 17); } T(g, `${['FR', 'SA', 'SU', 'MO', 'TU', 'WE', 'TH'][i % 7]} ${13 + i}`, 12, y, 12, '#222', { f: MONO }); T(g, `H ${1 + (i * 5 % 11)}:${10 + (q() * 49 | 0)}a ${(2.1 + q()).toFixed(1)}  L ${1 + (i * 7 % 11)}:${10 + (q() * 49 | 0)}p ${(0.2 + q() * 0.6).toFixed(1)}`, 70, y, 12, '#222', { f: MONO, w: 500 }); }
-      g.strokeStyle = '#17525c'; g.lineWidth = 2; g.beginPath(); for (let x = 10; x < w - 10; x++) g.lineTo(x, 386 + Math.sin(x * 0.08) * 16); g.stroke(); T(g, 'Heron Cay Marina', w / 2, 414, 11, '#555', { a: 'center' }); g.strokeStyle = 'rgba(200,40,40,0.8)'; g.lineWidth = 3; g.beginPath(); g.ellipse(150, 87, 140, 10, 0, 0, 6.3); g.stroke(); age(g, w, h, 11); }],
-    strip: [130, 440, (g, w, h) => { g.fillStyle = '#f4f1e8'; g.fillRect(0, 0, w, h); for (let i = 0; i < 4; i++) { const y = 10 + i * 104; g.fillStyle = ['#7fb0c9', '#c9a27f', '#8fc9a8', '#c98f9f'][i]; g.fillRect(10, y, w - 20, 94); for (const [x, c, hc, dy] of [[45, '#b97448', '#1c1410', 0], [88, '#d9a27a', '#5a2f1c', 6 - i * 3]]) { g.fillStyle = '#2a3a4a'; g.beginPath(); g.ellipse(x, y + 96 + dy, 26, 30, 0, PI, 0); g.fill(); g.fillStyle = c; g.beginPath(); g.arc(x, y + 50 + dy, 17, 0, 6.3); g.fill(); g.fillStyle = hc; g.beginPath(); g.arc(x, y + 44 + dy, 18, PI * 1.05, PI * 1.95); g.fill(); g.strokeStyle = '#3a1a10'; g.lineWidth = 2; g.beginPath(); g.arc(x, y + 53 + dy, 8, 0.2 + (i % 2) * 0.3, PI - 0.2); g.stroke(); } g.fillStyle = '#f4f1e8'; g.fillRect(0, y + 94, w, 10); } T(g, 'PALOMA PIER ARCADE', w / 2, 434, 9, '#666', { a: 'center' }); }],
-    coupon: [400, 220, (g, w, h) => { g.fillStyle = '#f6e9b8'; g.fillRect(0, 0, w, h); g.setLineDash([10, 7]); g.strokeStyle = '#333'; g.lineWidth = 3; g.strokeRect(8, 8, w - 16, h - 16); g.setLineDash([]); g.fillStyle = '#c0281f'; g.beginPath(); g.arc(70, 110, 48, 0, 6.3); g.fill(); g.fillStyle = '#f0c24a'; g.beginPath(); g.arc(70, 110, 40, 0, 6.3); g.fill(); g.fillStyle = '#c0281f'; for (let i = 0; i < 7; i++) { g.beginPath(); g.arc(70 + Math.cos(i * 0.9) * 22, 110 + Math.sin(i * 0.9) * 22, 6, 0, 6.3); g.fill(); }
-      T(g, 'PELICAN PIE PIZZA', 136, 56, 29, '#c0281f', { f: IMPACT }); T(g, '2 LARGE', 136, 104, 40, '#1c1c1c', { f: IMPACT }); T(g, '1-TOPPING PIES', 136, 132, 22, '#1c1c1c', { f: IMPACT }); T(g, '$17.99', 290, 110, 34, '#c0281f', { f: IMPACT }); T(g, 'carry-out only · Key Paloma · exp 12/31', 136, 160, 12, '#333', { w: 500 }); T(g, 'we deliver to boats (tip your driver)', 136, 180, 12, '#333', { w: 500 }); }],
-    kid: [440, 340, (g, w, h) => { g.fillStyle = '#f7f4ea'; g.fillRect(0, 0, w, h); for (let i = 0; i < 9; i++) crayon(g, [[20, 250 + i * 9], [130, 244 + i * 9], [280, 256 + i * 9], [420, 246 + i * 9]], '#3f8fd0', 9);
-      crayon(g, [[90, 240], [120, 275], [300, 275], [335, 235], [90, 240]], '#c0281f', 7); crayon(g, [[200, 240], [200, 120]], '#6a4a2a', 6); crayon(g, [[204, 125], [290, 220], [204, 222], [204, 125]], '#f0b24a', 8);
-      for (let i = 0; i < 10; i++) crayon(g, [[370, 60], [370 + Math.cos(i * 0.63) * 46, 60 + Math.sin(i * 0.63) * 46]], '#f0c22a', 6); crayon(g, Array.from({ length: 14 }, (_, i) => [370 + Math.cos(i * 0.48) * 22, 60 + Math.sin(i * 0.48) * 22]), '#f0c22a', 12);
-      crayon(g, [[150, 232], [150, 190]], '#222', 5); crayon(g, Array.from({ length: 10 }, (_, i) => [150 + Math.cos(i * 0.7) * 13, 176 + Math.sin(i * 0.7) * 13]), '#222', 5); crayon(g, [[132, 205], [150, 198], [172, 186]], '#222', 5); crayon(g, [[172, 186], [200, 150], [240, 300]], '#555', 2);
-      crayon(g, [[232, 300], [262, 290], [280, 300], [262, 312], [232, 300], [220, 290], [220, 312], [232, 300]], '#2f9a5a', 6); crayon(g, [[40, 50], [60, 40], [80, 50]], '#333', 4); crayon(g, [[100, 80], [118, 70], [136, 80]], '#333', 4);
-      T(g, `FOR ${who.toUpperCase()}`, 28, 118, 28, '#7a3fb0', { f: HAND }); T(g, 'thank you for the fish', 22, 326, 24, '#c0281f', { f: HAND, w: 400 }); T(g, 'Lili  age 6', 318, 326, 20, '#2f6fb0', { f: HAND, w: 400 }); }],
-    calendar: [420, 600, (g, w, h) => { g.fillStyle = '#f4f1e6'; g.fillRect(0, 0, w, h); const sk = g.createLinearGradient(0, 0, 0, 230); sk.addColorStop(0, '#6fb3d6'); sk.addColorStop(1, '#f3d9a0'); g.fillStyle = sk; g.fillRect(0, 0, w, 230); g.fillStyle = '#2f8f8a'; g.fillRect(0, 150, w, 80); g.fillStyle = '#e8e3d2'; g.beginPath(); g.moveTo(110, 170); g.lineTo(320, 162); g.lineTo(300, 196); g.lineTo(130, 198); g.fill(); g.fillStyle = '#37513c'; g.fillRect(0, 142, w, 10); g.fillStyle = '#b5322a'; g.fillRect(250, 140, 30, 26);
-      T(g, 'PELICAN BAIT & TACKLE', w / 2, 30, 20, '#fff', { a: 'center' }); T(g, 'NOVEMBER', w / 2, 272, 34, '#17525c', { a: 'center', f: SERIF }); ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach((s, i) => T(g, s, 40 + i * 57, 304, 15, '#777', { a: 'center' }));
-      for (let d = 1; d <= 30; d++) { const c = (d + 5) % 7, rw = Math.floor((d + 5) / 7), x = 40 + c * 57, y = 344 + rw * 52; g.strokeStyle = '#d0cab8'; g.strokeRect(x - 28, y - 30, 57, 52); T(g, String(d), x - 20, y - 10, 16, '#222'); if (d < 13) { g.strokeStyle = 'rgba(40,60,160,0.7)'; g.lineWidth = 2; g.beginPath(); g.moveTo(x - 18, y - 22); g.lineTo(x + 18, y + 14); g.moveTo(x + 18, y - 22); g.lineTo(x - 18, y + 14); g.stroke(); g.lineWidth = 1; }
-        if (d === 1) T(g, 'RENT', x, y + 12, 13, '#c0281f', { a: 'center', f: HAND }); if (d === 15) { T(g, 'marina $$', x, y + 12, 11, '#c0281f', { a: 'center', f: HAND }); g.strokeStyle = '#c0281f'; g.lineWidth = 2.5; g.beginPath(); g.ellipse(x, y - 4, 27, 23, 0, 0, 6.3); g.stroke(); g.lineWidth = 1; } if (d === 22) T(g, 'Reyes 5am', x, y + 12, 11, '#1f3f9a', { a: 'center', f: HAND }); if (d === 26) T(g, 'snook closes', x, y + 12, 9.5, '#1f3f9a', { a: 'center', f: HAND }); } g.fillStyle = '#333'; g.beginPath(); g.arc(w / 2, 12, 5, 0, 6.3); g.fill(); }],
-    cereal1: [300, 420, (g, w, h) => { g.fillStyle = '#e8a23a'; g.fillRect(0, 0, w, h); g.fillStyle = '#c0281f'; g.fillRect(0, 0, w, 110); T(g, 'SUNNY', w / 2, 62, 62, '#fff', { a: 'center', f: IMPACT }); T(g, 'CORN FLAKES', w / 2, 98, 30, '#f6e9b8', { a: 'center', f: IMPACT }); g.fillStyle = '#f7f4ea'; g.beginPath(); g.ellipse(150, 290, 110, 44, 0, 0, 6.3); g.fill(); g.fillStyle = '#3f8fd0'; g.beginPath(); g.ellipse(150, 300, 110, 44, 0, 0, PI); g.fill(); const q = kit.rng(4); for (let i = 0; i < 60; i++) { g.fillStyle = `rgb(${220 + q() * 30 | 0},${160 + q() * 40 | 0},60)`; g.beginPath(); g.ellipse(150 + (q() - 0.5) * 170, 280 + (q() - 0.5) * 40, 12, 7, q() * 3, 0, 6.3); g.fill(); } T(g, 'NET WT 18 OZ', w / 2, 404, 14, '#7a3a10', { a: 'center' }); T(g, 'family size', 30, 150, 22, '#7a3a10', { f: HAND }); }],
-    cereal2: [300, 420, (g, w, h) => { g.fillStyle = '#3a5fa8'; g.fillRect(0, 0, w, h); T(g, 'FROSTED', w / 2, 70, 56, '#fff', { a: 'center', f: IMPACT }); T(g, 'REEF RINGS', w / 2, 118, 44, '#f6d03a', { a: 'center', f: IMPACT }); const q = kit.rng(6); for (let i = 0; i < 30; i++) { g.strokeStyle = ['#f0707a', '#f6d03a', '#7fe0a0', '#f0a23a'][i % 4]; g.lineWidth = 9; g.beginPath(); g.arc(40 + q() * 220, 180 + q() * 180, 13, 0, 6.3); g.stroke(); } T(g, 'store brand · 14 oz', w / 2, 404, 14, '#fff', { a: 'center', w: 500 }); }],
-    canA: [256, 110, label('#2a2a2e', '#f6e9b8', 'BLACK BEANS', 'frijoles negros · 15 oz', '#8a2f2a')], canB: [256, 110, label('#c0281f', '#fff', 'TOMATOES', 'diced · 14.5 oz', '#2f7f3a')], canC: [256, 110, label('#f0c22a', '#3a2a10', 'SWEET CORN', 'whole kernel · 15 oz', '#2f7f3a')], canD: [256, 110, label('#7a3a1a', '#f6e9b8', 'CHILI', 'with beans · 15 oz', '#c0281f')],
-    canE: [256, 110, label('#1f5f9a', '#fff', 'TUNA', 'chunk light · 5 oz', '#f0c22a')], coffee: [256, 110, label('#5a2f1c', '#f6e9b8', 'CAFE', 'espresso molido · 10 oz', '#c0281f')],
-    beer: [256, 128, (g, w, h) => { g.fillStyle = '#e8e4d6'; g.fillRect(0, 0, w, h); g.fillStyle = '#1f6f78'; g.fillRect(0, 22, w, 84); g.fillStyle = '#e8a23a'; g.fillRect(0, 22, w, 5); g.fillRect(0, 101, w, 5); for (const x of [64, 192]) { g.fillStyle = '#f3efe2'; g.beginPath(); g.moveTo(x - 36, 52); g.quadraticCurveTo(x - 12, 34, x, 50); g.quadraticCurveTo(x + 12, 34, x + 36, 52); g.quadraticCurveTo(x + 10, 46, x, 60); g.quadraticCurveTo(x - 10, 46, x - 36, 52); g.fill(); T(g, 'TERN KEY', x, 82, 20, '#f3efe2', { f: IMPACT, a: 'center' }); T(g, 'BREWING CO. · LAGER', x, 96, 8.5, '#e8a23a', { a: 'center' }); } }],
-    hot: [128, 128, (g, w, h) => { g.fillStyle = '#f0c22a'; g.fillRect(0, 0, w, h); for (const x of [32, 96]) { g.fillStyle = '#c0281f'; g.beginPath(); g.moveTo(x - 14, 30); g.quadraticCurveTo(x + 22, 34, x + 6, 82); g.quadraticCurveTo(x - 4, 60, x - 14, 30); g.fill(); T(g, 'DATIL', x, 102, 17, '#3a1a10', { a: 'center', f: IMPACT }); T(g, 'HOT SAUCE', x, 118, 10, '#3a1a10', { a: 'center' }); } }],
-    bait: [300, 180, (g, w, h) => { g.fillStyle = '#e9f1f4'; g.fillRect(0, 0, w, h); g.fillStyle = '#1f5f9a'; g.fillRect(0, 0, w, 44); T(g, 'FROZEN BAIT SHRIMP', w / 2, 30, 23, '#fff', { a: 'center' }); g.strokeStyle = '#e0705a'; g.lineWidth = 12; g.lineCap = 'round'; g.beginPath(); g.arc(150, 112, 38, 0.6, 4.6); g.stroke(); g.lineWidth = 3; g.beginPath(); g.moveTo(132, 76); g.lineTo(96, 60); g.moveTo(134, 80); g.lineTo(100, 78); g.stroke(); T(g, 'NOT FOR HUMAN', 18, 100, 13, '#b5322a'); T(g, 'CONSUMPTION', 18, 118, 13, '#b5322a'); T(g, 'whole · 1 lb', 282, 110, 14, '#1f5f9a', { a: 'right' }); T(g, 'Pelican Bait & Tackle, Key Paloma', w / 2, 168, 12, '#444', { a: 'center', w: 500 }); }],
-    pizza: [320, 320, (g, w, h) => { g.fillStyle = '#e9e2cf'; g.fillRect(0, 0, w, h); g.strokeStyle = '#c0281f'; g.lineWidth = 6; g.strokeRect(14, 14, w - 28, h - 28); g.fillStyle = '#c0281f'; g.beginPath(); g.arc(160, 150, 70, 0, 6.3); g.fill(); g.fillStyle = '#f0c24a'; g.beginPath(); g.arc(160, 150, 58, 0, 6.3); g.fill(); g.fillStyle = '#e9e2cf'; g.beginPath(); g.moveTo(160, 150); g.arc(160, 150, 72, -0.5, 0.3); g.fill(); T(g, 'PELICAN PIE', w / 2, 62, 38, '#c0281f', { a: 'center', f: IMPACT }); T(g, 'HOT · FRESH · KEY PALOMA', w / 2, 262, 19, '#c0281f', { a: 'center' }); T(g, 'pizza by the pier', w / 2, 288, 16, '#333', { a: 'center', f: SERIF, w: 400 }); age(g, w, h, 21, 2); }],
-    menu: [240, 420, (g, w, h) => { g.fillStyle = '#f6efd6'; g.fillRect(0, 0, w, h); g.fillStyle = '#b5322a'; g.fillRect(0, 0, w, 70); T(g, 'LA PALOMA', w / 2, 36, 30, '#fff', { a: 'center', f: SERIF }); T(g, 'CAFE CUBANO · TO GO', w / 2, 58, 13, '#f6efd6', { a: 'center' }); [['Cubano', '8.50'], ['Media noche', '8.00'], ['Pan con lechon', '9.00'], ['Ropa vieja plate', '12.50'], ['Croquetas (3)', '4.00'], ['Tostones', '4.50'], ['Cafe con leche', '2.50'], ['Colada', '2.00'], ['Flan', '3.50']].forEach((q, i) => { T(g, q[0], 16, 104 + i * 32, 16, '#2a1a10', { w: 600 }); T(g, q[1], 224, 104 + i * 32, 16, '#2a1a10', { a: 'right', f: MONO }); }); T(g, 'open 6am · cash only', w / 2, 404, 13, '#b5322a', { a: 'center' }); age(g, w, h, 23, 2); }],
-    stoveclock: [256, 80, (g, w, h) => { g.fillStyle = '#17181a'; g.fillRect(0, 0, w, h); T(g, '12:00', 70, 56, 44, '#3fe07a', { a: 'center', f: MONO }); T(g, 'OVEN', 196, 26, 15, '#ccc', { a: 'center' }); T(g, 'OFF · WARM · 350 · BROIL', 196, 62, 9.5, '#ccc', { a: 'center' }); }],
-    mw: [128, 256, (g, w, h) => { g.fillStyle = '#1a1b1e'; g.fillRect(0, 0, w, h); g.fillStyle = '#0a1a10'; g.fillRect(14, 14, 100, 40); T(g, '0:00', 64, 46, 30, '#3fe07a', { a: 'center', f: MONO }); for (let a = 0; a < 3; a++) for (let b = 0; b < 4; b++) { g.fillStyle = '#34363b'; g.fillRect(14 + a * 35, 70 + b * 34, 30, 28); T(g, b === 3 ? ['CLR', '0', 'GO'][a] : String(b * 3 + a + 1), 29 + a * 35, 90 + b * 34, 14, '#ddd', { a: 'center' }); } g.fillStyle = '#34363b'; g.fillRect(14, 212, 100, 30); T(g, 'POPCORN', 64, 232, 13, '#ddd', { a: 'center' }); }],
-    magnets: [384, 96, (g, w, h) => { g.fillStyle = '#8a8478'; g.fillRect(0, 0, w, h); g.fillStyle = '#f08a9a'; g.beginPath(); g.ellipse(48, 40, 26, 18, 0, 0, 6.3); g.fill(); g.strokeStyle = '#f08a9a'; g.lineWidth = 6; g.beginPath(); g.moveTo(66, 34); g.quadraticCurveTo(86, 10, 70, 8); g.moveTo(44, 56); g.lineTo(42, 92); g.stroke(); g.fillStyle = '#f0c22a'; g.beginPath(); g.ellipse(144, 56, 26, 34, 0, 0, 6.3); g.fill(); g.fillStyle = '#2f8a4a'; g.beginPath(); g.moveTo(144, 26); g.lineTo(126, 2); g.lineTo(144, 12); g.lineTo(162, 2); g.fill(); g.fillStyle = '#1f6f78'; g.fillRect(196, 4, 88, 88); T(g, 'KEY', 240, 40, 26, '#fff', { a: 'center', f: IMPACT }); T(g, 'PALOMA', 240, 66, 22, '#f0c22a', { a: 'center', f: IMPACT }); T(g, 'FLA.', 240, 84, 12, '#fff', { a: 'center' }); g.fillStyle = '#c0281f'; g.fillRect(292, 4, 88, 88); T(g, 'Pelican Bait', 336, 40, 14, '#fff', { a: 'center' }); T(g, '& Tackle', 336, 58, 14, '#fff', { a: 'center' }); T(g, 'live shrimp daily', 336, 78, 9.5, '#fff', { a: 'center', w: 500 }); }],
-    scratch: [256, 128, (g, w, h) => { g.fillStyle = '#2f8a4a'; g.fillRect(0, 0, w, h); T(g, 'TREASURE TIDE', w / 2, 30, 24, '#f6d03a', { a: 'center', f: IMPACT }); T(g, '$2 · win up to $5,000', w / 2, 48, 11, '#fff', { a: 'center' }); for (let i = 0; i < 6; i++) { g.fillStyle = i % 2 ? '#b9b9b4' : '#e9e4d6'; g.fillRect(16 + (i % 3) * 78, 58 + Math.floor(i / 3) * 32, 68, 26); if (!(i % 2)) T(g, ['$2', 'SHELL', '$10'][i / 2 | 0], 50 + (i % 3) * 78, 77 + Math.floor(i / 3) * 32, 14, '#333', { a: 'center' }); } }],
-    news: [320, 420, (g, w, h) => { g.fillStyle = '#e4dfcf'; g.fillRect(0, 0, w, h); T(g, 'The Paloma Current', w / 2, 40, 30, '#1c1c1c', { a: 'center', f: SERIF }); g.fillStyle = '#1c1c1c'; g.fillRect(10, 50, w - 20, 2); T(g, 'COUNTY: PUMPS "ON ORDER"', 12, 84, 21, '#1c1c1c', { f: SERIF }); g.fillStyle = '#9a9a90'; g.fillRect(12, 96, 150, 100); for (let c = 0; c < 2; c++) for (let i = 0; i < 26; i++) { if (c === 0 && i < 9) continue; g.fillStyle = '#77736a'; g.fillRect(12 + c * 156, 100 + i * 12, 130 + ((i * 37) % 16), 3); } age(g, w, h, 31, 2); }],
+    bill: [
+      640,
+      300,
+      (g, w, h) => {
+        g.fillStyle = '#f2efe6';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#1f5f9a';
+        g.beginPath();
+        g.moveTo(22, 50);
+        g.lineTo(40, 18);
+        g.lineTo(36, 40);
+        g.lineTo(54, 40);
+        g.lineTo(30, 74);
+        g.lineTo(36, 50);
+        g.fill();
+        T(g, 'GULFSIDE POWER & LIGHT', 64, 42, 21, '#1f5f9a');
+        T(g, 'PO Box 4410 · Southline, FL 33010', 64, 62, 13, '#444', { w: 500 });
+        g.strokeStyle = '#888';
+        g.strokeRect(500, 18, 118, 60);
+        T(g, 'PRESORTED', 559, 40, 12, '#555', { a: 'center' });
+        T(g, 'FIRST-CLASS MAIL', 559, 56, 11, '#555', { a: 'center' });
+        T(g, 'U.S. POSTAGE PAID', 559, 70, 9, '#555', { a: 'center', w: 500 });
+        g.fillStyle = '#fbfaf5';
+        g.fillRect(150, 128, 360, 112);
+        g.strokeStyle = '#c9c4b5';
+        g.strokeRect(150, 128, 360, 112);
+        addr(g, 172, 166, 21);
+        g.save();
+        g.translate(118, 272);
+        g.rotate(-0.04);
+        g.strokeStyle = '#c0281f';
+        g.lineWidth = 4;
+        g.strokeRect(-100, -30, 330, 46);
+        T(g, 'PAST DUE · OPEN IMMEDIATELY', 65, 3, 20, '#c0281f', { a: 'center' });
+        g.restore();
+        T(g, 'Acct 0118-4471-6   Amount due $184.20', 372, 280, 14, '#444', { f: MONO, w: 500 });
+        age(g, w, h, 5);
+      },
+    ],
+    marina: [
+      640,
+      300,
+      (g, w, h) => {
+        g.fillStyle = '#eee9d6';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#17525c';
+        g.fillRect(0, 0, w, 62);
+        T(g, 'HERON CAY MARINA', 20, 40, 30, '#fff', { f: SERIF });
+        T(g, 'slips · fuel · bait · ice', 330, 38, 16, '#cfe6e6', { w: 500 });
+        T(g, 'INVOICE #2291', 620, 40, 18, '#fff', { a: 'right' });
+        T(g, 'BILL TO', 22, 92, 12, '#777');
+        addr(g, 22, 116, 17);
+        const rows = [
+          ['Slip C-14, October', '$240.00'],
+          ['Shore power (metered)', '$18.40'],
+          ['Late fee', '$25.00'],
+        ];
+        rows.forEach((q, i) => {
+          T(g, q[0], 330, 100 + i * 28, 17, '#222', { w: 500 });
+          T(g, q[1], 620, 100 + i * 28, 17, '#222', { a: 'right', f: MONO });
+        });
+        g.fillStyle = '#222';
+        g.fillRect(330, 176, 290, 2);
+        T(g, 'BALANCE DUE', 330, 206, 20, '#222');
+        T(g, '$283.40', 620, 206, 22, '#b5322a', { a: 'right', f: MONO });
+        g.save();
+        g.translate(150, 250);
+        g.rotate(-0.05);
+        T(g, 'Nico, 2nd notice. Come see me. -Dolores', 0, 0, 21, '#1f3f9a', { f: HAND, w: 400 });
+        g.restore();
+        age(g, w, h, 7);
+      },
+    ],
+    post: [
+      520,
+      350,
+      (g, w, h) => {
+        g.fillStyle = '#f1ecd9';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#999';
+        g.fillRect(268, 30, 2, 290);
+        g.strokeStyle = '#8a3a3a';
+        g.lineWidth = 2;
+        g.strokeRect(430, 24, 66, 80);
+        g.fillStyle = '#e8793f';
+        g.fillRect(436, 30, 54, 68);
+        g.fillStyle = '#f8e3a8';
+        g.beginPath();
+        g.arc(463, 70, 16, 0, 6.3);
+        g.fill();
+        T(g, 'USA', 463, 46, 11, '#fff', { a: 'center' });
+        g.strokeStyle = 'rgba(40,40,40,0.6)';
+        g.lineWidth = 1.5;
+        for (let i = 0; i < 4; i++) {
+          g.beginPath();
+          g.moveTo(380, 44 + i * 9);
+          g.bezierCurveTo(400, 38 + i * 9, 420, 50 + i * 9, 440, 44 + i * 9);
+          g.stroke();
+        }
+        g.beginPath();
+        g.arc(370, 62, 26, 0, 6.3);
+        g.stroke();
+        T(g, 'TAMPA FL', 370, 60, 9, 'rgba(40,40,40,0.7)', { a: 'center' });
+        T(g, 'NOV 04', 370, 72, 9, 'rgba(40,40,40,0.7)', { a: 'center' });
+        addr(g, 292, 176, 16, '#1f2f6a');
+        for (let i = 0; i < 3; i++) {
+          g.fillStyle = '#999';
+          g.fillRect(290, 184 + i * 21.5, 200, 1);
+        }
+        const msg = [
+          who.charAt(0) + who.slice(1).toLowerCase() + ',',
+          'Wish you were here.',
+          'Not really. Bring my',
+          'cooler back and DO NOT',
+          'sell the skiff. Call',
+          'your mother.',
+          '      - Tio Rafa',
+        ];
+        msg.forEach((s, i) => {
+          g.save();
+          g.translate(22, 70 + i * 36);
+          g.rotate(-0.03);
+          T(g, s, 0, 0, 23, '#1f2f6a', { f: HAND, w: 400 });
+          g.restore();
+        });
+        T(g, 'GREETINGS FROM THE SUNCOAST', 22, 334, 9, '#888', { w: 500 });
+        age(g, w, h, 9);
+      },
+    ],
+    tide: [
+      300,
+      420,
+      (g, w, h) => {
+        g.fillStyle = '#f3efdc';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#17525c';
+        g.fillRect(0, 0, w, 52);
+        T(g, 'TIDE TABLE', w / 2, 26, 22, '#fff', { a: 'center' });
+        T(g, 'KEY PALOMA HARBOR · NOVEMBER', w / 2, 44, 11, '#cfe6e6', { a: 'center' });
+        const q = kit.rng(3);
+        for (let i = 0; i < 17; i++) {
+          const y = 74 + i * 17;
+          if (i % 2) {
+            g.fillStyle = '#e4dec8';
+            g.fillRect(8, y - 12, w - 16, 17);
+          }
+          T(
+            g,
+            `${['FR', 'SA', 'SU', 'MO', 'TU', 'WE', 'TH'][i % 7]} ${13 + i}`,
+            12,
+            y,
+            12,
+            '#222',
+            { f: MONO },
+          );
+          T(
+            g,
+            `H ${1 + ((i * 5) % 11)}:${10 + ((q() * 49) | 0)}a ${(2.1 + q()).toFixed(1)}  L ${1 + ((i * 7) % 11)}:${10 + ((q() * 49) | 0)}p ${(0.2 + q() * 0.6).toFixed(1)}`,
+            70,
+            y,
+            12,
+            '#222',
+            { f: MONO, w: 500 },
+          );
+        }
+        g.strokeStyle = '#17525c';
+        g.lineWidth = 2;
+        g.beginPath();
+        for (let x = 10; x < w - 10; x++) g.lineTo(x, 386 + Math.sin(x * 0.08) * 16);
+        g.stroke();
+        T(g, 'Heron Cay Marina', w / 2, 414, 11, '#555', { a: 'center' });
+        g.strokeStyle = 'rgba(200,40,40,0.8)';
+        g.lineWidth = 3;
+        g.beginPath();
+        g.ellipse(150, 87, 140, 10, 0, 0, 6.3);
+        g.stroke();
+        age(g, w, h, 11);
+      },
+    ],
+    strip: [
+      130,
+      440,
+      (g, w, h) => {
+        g.fillStyle = '#f4f1e8';
+        g.fillRect(0, 0, w, h);
+        for (let i = 0; i < 4; i++) {
+          const y = 10 + i * 104;
+          g.fillStyle = ['#7fb0c9', '#c9a27f', '#8fc9a8', '#c98f9f'][i];
+          g.fillRect(10, y, w - 20, 94);
+          for (const [x, c, hc, dy] of [
+            [45, '#b97448', '#1c1410', 0],
+            [88, '#d9a27a', '#5a2f1c', 6 - i * 3],
+          ]) {
+            g.fillStyle = '#2a3a4a';
+            g.beginPath();
+            g.ellipse(x, y + 96 + dy, 26, 30, 0, PI, 0);
+            g.fill();
+            g.fillStyle = c;
+            g.beginPath();
+            g.arc(x, y + 50 + dy, 17, 0, 6.3);
+            g.fill();
+            g.fillStyle = hc;
+            g.beginPath();
+            g.arc(x, y + 44 + dy, 18, PI * 1.05, PI * 1.95);
+            g.fill();
+            g.strokeStyle = '#3a1a10';
+            g.lineWidth = 2;
+            g.beginPath();
+            g.arc(x, y + 53 + dy, 8, 0.2 + (i % 2) * 0.3, PI - 0.2);
+            g.stroke();
+          }
+          g.fillStyle = '#f4f1e8';
+          g.fillRect(0, y + 94, w, 10);
+        }
+        T(g, 'PALOMA PIER ARCADE', w / 2, 434, 9, '#666', { a: 'center' });
+      },
+    ],
+    coupon: [
+      400,
+      220,
+      (g, w, h) => {
+        g.fillStyle = '#f6e9b8';
+        g.fillRect(0, 0, w, h);
+        g.setLineDash([10, 7]);
+        g.strokeStyle = '#333';
+        g.lineWidth = 3;
+        g.strokeRect(8, 8, w - 16, h - 16);
+        g.setLineDash([]);
+        g.fillStyle = '#c0281f';
+        g.beginPath();
+        g.arc(70, 110, 48, 0, 6.3);
+        g.fill();
+        g.fillStyle = '#f0c24a';
+        g.beginPath();
+        g.arc(70, 110, 40, 0, 6.3);
+        g.fill();
+        g.fillStyle = '#c0281f';
+        for (let i = 0; i < 7; i++) {
+          g.beginPath();
+          g.arc(70 + Math.cos(i * 0.9) * 22, 110 + Math.sin(i * 0.9) * 22, 6, 0, 6.3);
+          g.fill();
+        }
+        T(g, 'PELICAN PIE PIZZA', 136, 56, 29, '#c0281f', { f: IMPACT });
+        T(g, '2 LARGE', 136, 104, 40, '#1c1c1c', { f: IMPACT });
+        T(g, '1-TOPPING PIES', 136, 132, 22, '#1c1c1c', { f: IMPACT });
+        T(g, '$17.99', 290, 110, 34, '#c0281f', { f: IMPACT });
+        T(g, 'carry-out only · Key Paloma · exp 12/31', 136, 160, 12, '#333', { w: 500 });
+        T(g, 'we deliver to boats (tip your driver)', 136, 180, 12, '#333', { w: 500 });
+      },
+    ],
+    kid: [
+      440,
+      340,
+      (g, w, h) => {
+        g.fillStyle = '#f7f4ea';
+        g.fillRect(0, 0, w, h);
+        for (let i = 0; i < 9; i++)
+          crayon(
+            g,
+            [
+              [20, 250 + i * 9],
+              [130, 244 + i * 9],
+              [280, 256 + i * 9],
+              [420, 246 + i * 9],
+            ],
+            '#3f8fd0',
+            9,
+          );
+        crayon(
+          g,
+          [
+            [90, 240],
+            [120, 275],
+            [300, 275],
+            [335, 235],
+            [90, 240],
+          ],
+          '#c0281f',
+          7,
+        );
+        crayon(
+          g,
+          [
+            [200, 240],
+            [200, 120],
+          ],
+          '#6a4a2a',
+          6,
+        );
+        crayon(
+          g,
+          [
+            [204, 125],
+            [290, 220],
+            [204, 222],
+            [204, 125],
+          ],
+          '#f0b24a',
+          8,
+        );
+        for (let i = 0; i < 10; i++)
+          crayon(
+            g,
+            [
+              [370, 60],
+              [370 + Math.cos(i * 0.63) * 46, 60 + Math.sin(i * 0.63) * 46],
+            ],
+            '#f0c22a',
+            6,
+          );
+        crayon(
+          g,
+          Array.from({ length: 14 }, (_, i) => [
+            370 + Math.cos(i * 0.48) * 22,
+            60 + Math.sin(i * 0.48) * 22,
+          ]),
+          '#f0c22a',
+          12,
+        );
+        crayon(
+          g,
+          [
+            [150, 232],
+            [150, 190],
+          ],
+          '#222',
+          5,
+        );
+        crayon(
+          g,
+          Array.from({ length: 10 }, (_, i) => [
+            150 + Math.cos(i * 0.7) * 13,
+            176 + Math.sin(i * 0.7) * 13,
+          ]),
+          '#222',
+          5,
+        );
+        crayon(
+          g,
+          [
+            [132, 205],
+            [150, 198],
+            [172, 186],
+          ],
+          '#222',
+          5,
+        );
+        crayon(
+          g,
+          [
+            [172, 186],
+            [200, 150],
+            [240, 300],
+          ],
+          '#555',
+          2,
+        );
+        crayon(
+          g,
+          [
+            [232, 300],
+            [262, 290],
+            [280, 300],
+            [262, 312],
+            [232, 300],
+            [220, 290],
+            [220, 312],
+            [232, 300],
+          ],
+          '#2f9a5a',
+          6,
+        );
+        crayon(
+          g,
+          [
+            [40, 50],
+            [60, 40],
+            [80, 50],
+          ],
+          '#333',
+          4,
+        );
+        crayon(
+          g,
+          [
+            [100, 80],
+            [118, 70],
+            [136, 80],
+          ],
+          '#333',
+          4,
+        );
+        T(g, `FOR ${who.toUpperCase()}`, 28, 118, 28, '#7a3fb0', { f: HAND });
+        T(g, 'thank you for the fish', 22, 326, 24, '#c0281f', { f: HAND, w: 400 });
+        T(g, 'Lili  age 6', 318, 326, 20, '#2f6fb0', { f: HAND, w: 400 });
+      },
+    ],
+    calendar: [
+      420,
+      600,
+      (g, w, h) => {
+        g.fillStyle = '#f4f1e6';
+        g.fillRect(0, 0, w, h);
+        const sk = g.createLinearGradient(0, 0, 0, 230);
+        sk.addColorStop(0, '#6fb3d6');
+        sk.addColorStop(1, '#f3d9a0');
+        g.fillStyle = sk;
+        g.fillRect(0, 0, w, 230);
+        g.fillStyle = '#2f8f8a';
+        g.fillRect(0, 150, w, 80);
+        g.fillStyle = '#e8e3d2';
+        g.beginPath();
+        g.moveTo(110, 170);
+        g.lineTo(320, 162);
+        g.lineTo(300, 196);
+        g.lineTo(130, 198);
+        g.fill();
+        g.fillStyle = '#37513c';
+        g.fillRect(0, 142, w, 10);
+        g.fillStyle = '#b5322a';
+        g.fillRect(250, 140, 30, 26);
+        T(g, 'PELICAN BAIT & TACKLE', w / 2, 30, 20, '#fff', { a: 'center' });
+        T(g, 'NOVEMBER', w / 2, 272, 34, '#17525c', { a: 'center', f: SERIF });
+        ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach((s, i) =>
+          T(g, s, 40 + i * 57, 304, 15, '#777', { a: 'center' }),
+        );
+        for (let d = 1; d <= 30; d++) {
+          const c = (d + 5) % 7,
+            rw = Math.floor((d + 5) / 7),
+            x = 40 + c * 57,
+            y = 344 + rw * 52;
+          g.strokeStyle = '#d0cab8';
+          g.strokeRect(x - 28, y - 30, 57, 52);
+          T(g, String(d), x - 20, y - 10, 16, '#222');
+          if (d < 13) {
+            g.strokeStyle = 'rgba(40,60,160,0.7)';
+            g.lineWidth = 2;
+            g.beginPath();
+            g.moveTo(x - 18, y - 22);
+            g.lineTo(x + 18, y + 14);
+            g.moveTo(x + 18, y - 22);
+            g.lineTo(x - 18, y + 14);
+            g.stroke();
+            g.lineWidth = 1;
+          }
+          if (d === 1) T(g, 'RENT', x, y + 12, 13, '#c0281f', { a: 'center', f: HAND });
+          if (d === 15) {
+            T(g, 'marina $$', x, y + 12, 11, '#c0281f', { a: 'center', f: HAND });
+            g.strokeStyle = '#c0281f';
+            g.lineWidth = 2.5;
+            g.beginPath();
+            g.ellipse(x, y - 4, 27, 23, 0, 0, 6.3);
+            g.stroke();
+            g.lineWidth = 1;
+          }
+          if (d === 22) T(g, 'Reyes 5am', x, y + 12, 11, '#1f3f9a', { a: 'center', f: HAND });
+          if (d === 26) T(g, 'snook closes', x, y + 12, 9.5, '#1f3f9a', { a: 'center', f: HAND });
+        }
+        g.fillStyle = '#333';
+        g.beginPath();
+        g.arc(w / 2, 12, 5, 0, 6.3);
+        g.fill();
+      },
+    ],
+    cereal1: [
+      300,
+      420,
+      (g, w, h) => {
+        g.fillStyle = '#e8a23a';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#c0281f';
+        g.fillRect(0, 0, w, 110);
+        T(g, 'SUNNY', w / 2, 62, 62, '#fff', { a: 'center', f: IMPACT });
+        T(g, 'CORN FLAKES', w / 2, 98, 30, '#f6e9b8', { a: 'center', f: IMPACT });
+        g.fillStyle = '#f7f4ea';
+        g.beginPath();
+        g.ellipse(150, 290, 110, 44, 0, 0, 6.3);
+        g.fill();
+        g.fillStyle = '#3f8fd0';
+        g.beginPath();
+        g.ellipse(150, 300, 110, 44, 0, 0, PI);
+        g.fill();
+        const q = kit.rng(4);
+        for (let i = 0; i < 60; i++) {
+          g.fillStyle = `rgb(${(220 + q() * 30) | 0},${(160 + q() * 40) | 0},60)`;
+          g.beginPath();
+          g.ellipse(150 + (q() - 0.5) * 170, 280 + (q() - 0.5) * 40, 12, 7, q() * 3, 0, 6.3);
+          g.fill();
+        }
+        T(g, 'NET WT 18 OZ', w / 2, 404, 14, '#7a3a10', { a: 'center' });
+        T(g, 'family size', 30, 150, 22, '#7a3a10', { f: HAND });
+      },
+    ],
+    cereal2: [
+      300,
+      420,
+      (g, w, h) => {
+        g.fillStyle = '#3a5fa8';
+        g.fillRect(0, 0, w, h);
+        T(g, 'FROSTED', w / 2, 70, 56, '#fff', { a: 'center', f: IMPACT });
+        T(g, 'REEF RINGS', w / 2, 118, 44, '#f6d03a', { a: 'center', f: IMPACT });
+        const q = kit.rng(6);
+        for (let i = 0; i < 30; i++) {
+          g.strokeStyle = ['#f0707a', '#f6d03a', '#7fe0a0', '#f0a23a'][i % 4];
+          g.lineWidth = 9;
+          g.beginPath();
+          g.arc(40 + q() * 220, 180 + q() * 180, 13, 0, 6.3);
+          g.stroke();
+        }
+        T(g, 'store brand · 14 oz', w / 2, 404, 14, '#fff', { a: 'center', w: 500 });
+      },
+    ],
+    canA: [
+      256,
+      110,
+      label('#2a2a2e', '#f6e9b8', 'BLACK BEANS', 'frijoles negros · 15 oz', '#8a2f2a'),
+    ],
+    canB: [256, 110, label('#c0281f', '#fff', 'TOMATOES', 'diced · 14.5 oz', '#2f7f3a')],
+    canC: [256, 110, label('#f0c22a', '#3a2a10', 'SWEET CORN', 'whole kernel · 15 oz', '#2f7f3a')],
+    canD: [256, 110, label('#7a3a1a', '#f6e9b8', 'CHILI', 'with beans · 15 oz', '#c0281f')],
+    canE: [256, 110, label('#1f5f9a', '#fff', 'TUNA', 'chunk light · 5 oz', '#f0c22a')],
+    coffee: [256, 110, label('#5a2f1c', '#f6e9b8', 'CAFE', 'espresso molido · 10 oz', '#c0281f')],
+    beer: [
+      256,
+      128,
+      (g, w, h) => {
+        g.fillStyle = '#e8e4d6';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#1f6f78';
+        g.fillRect(0, 22, w, 84);
+        g.fillStyle = '#e8a23a';
+        g.fillRect(0, 22, w, 5);
+        g.fillRect(0, 101, w, 5);
+        for (const x of [64, 192]) {
+          g.fillStyle = '#f3efe2';
+          g.beginPath();
+          g.moveTo(x - 36, 52);
+          g.quadraticCurveTo(x - 12, 34, x, 50);
+          g.quadraticCurveTo(x + 12, 34, x + 36, 52);
+          g.quadraticCurveTo(x + 10, 46, x, 60);
+          g.quadraticCurveTo(x - 10, 46, x - 36, 52);
+          g.fill();
+          T(g, 'TERN KEY', x, 82, 20, '#f3efe2', { f: IMPACT, a: 'center' });
+          T(g, 'BREWING CO. · LAGER', x, 96, 8.5, '#e8a23a', { a: 'center' });
+        }
+      },
+    ],
+    hot: [
+      128,
+      128,
+      (g, w, h) => {
+        g.fillStyle = '#f0c22a';
+        g.fillRect(0, 0, w, h);
+        for (const x of [32, 96]) {
+          g.fillStyle = '#c0281f';
+          g.beginPath();
+          g.moveTo(x - 14, 30);
+          g.quadraticCurveTo(x + 22, 34, x + 6, 82);
+          g.quadraticCurveTo(x - 4, 60, x - 14, 30);
+          g.fill();
+          T(g, 'DATIL', x, 102, 17, '#3a1a10', { a: 'center', f: IMPACT });
+          T(g, 'HOT SAUCE', x, 118, 10, '#3a1a10', { a: 'center' });
+        }
+      },
+    ],
+    bait: [
+      300,
+      180,
+      (g, w, h) => {
+        g.fillStyle = '#e9f1f4';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#1f5f9a';
+        g.fillRect(0, 0, w, 44);
+        T(g, 'FROZEN BAIT SHRIMP', w / 2, 30, 23, '#fff', { a: 'center' });
+        g.strokeStyle = '#e0705a';
+        g.lineWidth = 12;
+        g.lineCap = 'round';
+        g.beginPath();
+        g.arc(150, 112, 38, 0.6, 4.6);
+        g.stroke();
+        g.lineWidth = 3;
+        g.beginPath();
+        g.moveTo(132, 76);
+        g.lineTo(96, 60);
+        g.moveTo(134, 80);
+        g.lineTo(100, 78);
+        g.stroke();
+        T(g, 'NOT FOR HUMAN', 18, 100, 13, '#b5322a');
+        T(g, 'CONSUMPTION', 18, 118, 13, '#b5322a');
+        T(g, 'whole · 1 lb', 282, 110, 14, '#1f5f9a', { a: 'right' });
+        T(g, 'Pelican Bait & Tackle, Key Paloma', w / 2, 168, 12, '#444', { a: 'center', w: 500 });
+      },
+    ],
+    pizza: [
+      320,
+      320,
+      (g, w, h) => {
+        g.fillStyle = '#e9e2cf';
+        g.fillRect(0, 0, w, h);
+        g.strokeStyle = '#c0281f';
+        g.lineWidth = 6;
+        g.strokeRect(14, 14, w - 28, h - 28);
+        g.fillStyle = '#c0281f';
+        g.beginPath();
+        g.arc(160, 150, 70, 0, 6.3);
+        g.fill();
+        g.fillStyle = '#f0c24a';
+        g.beginPath();
+        g.arc(160, 150, 58, 0, 6.3);
+        g.fill();
+        g.fillStyle = '#e9e2cf';
+        g.beginPath();
+        g.moveTo(160, 150);
+        g.arc(160, 150, 72, -0.5, 0.3);
+        g.fill();
+        T(g, 'PELICAN PIE', w / 2, 62, 38, '#c0281f', { a: 'center', f: IMPACT });
+        T(g, 'HOT · FRESH · KEY PALOMA', w / 2, 262, 19, '#c0281f', { a: 'center' });
+        T(g, 'pizza by the pier', w / 2, 288, 16, '#333', { a: 'center', f: SERIF, w: 400 });
+        age(g, w, h, 21, 2);
+      },
+    ],
+    menu: [
+      240,
+      420,
+      (g, w, h) => {
+        g.fillStyle = '#f6efd6';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#b5322a';
+        g.fillRect(0, 0, w, 70);
+        T(g, 'LA PALOMA', w / 2, 36, 30, '#fff', { a: 'center', f: SERIF });
+        T(g, 'CAFE CUBANO · TO GO', w / 2, 58, 13, '#f6efd6', { a: 'center' });
+        [
+          ['Cubano', '8.50'],
+          ['Media noche', '8.00'],
+          ['Pan con lechon', '9.00'],
+          ['Ropa vieja plate', '12.50'],
+          ['Croquetas (3)', '4.00'],
+          ['Tostones', '4.50'],
+          ['Cafe con leche', '2.50'],
+          ['Colada', '2.00'],
+          ['Flan', '3.50'],
+        ].forEach((q, i) => {
+          T(g, q[0], 16, 104 + i * 32, 16, '#2a1a10', { w: 600 });
+          T(g, q[1], 224, 104 + i * 32, 16, '#2a1a10', { a: 'right', f: MONO });
+        });
+        T(g, 'open 6am · cash only', w / 2, 404, 13, '#b5322a', { a: 'center' });
+        age(g, w, h, 23, 2);
+      },
+    ],
+    stoveclock: [
+      256,
+      80,
+      (g, w, h) => {
+        g.fillStyle = '#17181a';
+        g.fillRect(0, 0, w, h);
+        T(g, '12:00', 70, 56, 44, '#3fe07a', { a: 'center', f: MONO });
+        T(g, 'OVEN', 196, 26, 15, '#ccc', { a: 'center' });
+        T(g, 'OFF · WARM · 350 · BROIL', 196, 62, 9.5, '#ccc', { a: 'center' });
+      },
+    ],
+    mw: [
+      128,
+      256,
+      (g, w, h) => {
+        g.fillStyle = '#1a1b1e';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#0a1a10';
+        g.fillRect(14, 14, 100, 40);
+        T(g, '0:00', 64, 46, 30, '#3fe07a', { a: 'center', f: MONO });
+        for (let a = 0; a < 3; a++)
+          for (let b = 0; b < 4; b++) {
+            g.fillStyle = '#34363b';
+            g.fillRect(14 + a * 35, 70 + b * 34, 30, 28);
+            T(
+              g,
+              b === 3 ? ['CLR', '0', 'GO'][a] : String(b * 3 + a + 1),
+              29 + a * 35,
+              90 + b * 34,
+              14,
+              '#ddd',
+              { a: 'center' },
+            );
+          }
+        g.fillStyle = '#34363b';
+        g.fillRect(14, 212, 100, 30);
+        T(g, 'POPCORN', 64, 232, 13, '#ddd', { a: 'center' });
+      },
+    ],
+    magnets: [
+      384,
+      96,
+      (g, w, h) => {
+        g.fillStyle = '#8a8478';
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = '#f08a9a';
+        g.beginPath();
+        g.ellipse(48, 40, 26, 18, 0, 0, 6.3);
+        g.fill();
+        g.strokeStyle = '#f08a9a';
+        g.lineWidth = 6;
+        g.beginPath();
+        g.moveTo(66, 34);
+        g.quadraticCurveTo(86, 10, 70, 8);
+        g.moveTo(44, 56);
+        g.lineTo(42, 92);
+        g.stroke();
+        g.fillStyle = '#f0c22a';
+        g.beginPath();
+        g.ellipse(144, 56, 26, 34, 0, 0, 6.3);
+        g.fill();
+        g.fillStyle = '#2f8a4a';
+        g.beginPath();
+        g.moveTo(144, 26);
+        g.lineTo(126, 2);
+        g.lineTo(144, 12);
+        g.lineTo(162, 2);
+        g.fill();
+        g.fillStyle = '#1f6f78';
+        g.fillRect(196, 4, 88, 88);
+        T(g, 'KEY', 240, 40, 26, '#fff', { a: 'center', f: IMPACT });
+        T(g, 'PALOMA', 240, 66, 22, '#f0c22a', { a: 'center', f: IMPACT });
+        T(g, 'FLA.', 240, 84, 12, '#fff', { a: 'center' });
+        g.fillStyle = '#c0281f';
+        g.fillRect(292, 4, 88, 88);
+        T(g, 'Pelican Bait', 336, 40, 14, '#fff', { a: 'center' });
+        T(g, '& Tackle', 336, 58, 14, '#fff', { a: 'center' });
+        T(g, 'live shrimp daily', 336, 78, 9.5, '#fff', { a: 'center', w: 500 });
+      },
+    ],
+    scratch: [
+      256,
+      128,
+      (g, w, h) => {
+        g.fillStyle = '#2f8a4a';
+        g.fillRect(0, 0, w, h);
+        T(g, 'TREASURE TIDE', w / 2, 30, 24, '#f6d03a', { a: 'center', f: IMPACT });
+        T(g, '$2 · win up to $5,000', w / 2, 48, 11, '#fff', { a: 'center' });
+        for (let i = 0; i < 6; i++) {
+          g.fillStyle = i % 2 ? '#b9b9b4' : '#e9e4d6';
+          g.fillRect(16 + (i % 3) * 78, 58 + Math.floor(i / 3) * 32, 68, 26);
+          if (!(i % 2))
+            T(
+              g,
+              ['$2', 'SHELL', '$10'][(i / 2) | 0],
+              50 + (i % 3) * 78,
+              77 + Math.floor(i / 3) * 32,
+              14,
+              '#333',
+              { a: 'center' },
+            );
+        }
+      },
+    ],
+    news: [
+      320,
+      420,
+      (g, w, h) => {
+        g.fillStyle = '#e4dfcf';
+        g.fillRect(0, 0, w, h);
+        T(g, 'The Paloma Current', w / 2, 40, 30, '#1c1c1c', { a: 'center', f: SERIF });
+        g.fillStyle = '#1c1c1c';
+        g.fillRect(10, 50, w - 20, 2);
+        T(g, 'COUNTY: PUMPS "ON ORDER"', 12, 84, 21, '#1c1c1c', { f: SERIF });
+        g.fillStyle = '#9a9a90';
+        g.fillRect(12, 96, 150, 100);
+        for (let c = 0; c < 2; c++)
+          for (let i = 0; i < 26; i++) {
+            if (c === 0 && i < 9) continue;
+            g.fillStyle = '#77736a';
+            g.fillRect(12 + c * 156, 100 + i * 12, 130 + ((i * 37) % 16), 3);
+          }
+        age(g, w, h, 31, 2);
+      },
+    ],
   });
-  const tin = (name, m4, rad, h) => { A.wrap(I, name, m4, rad, h * 0.94); for (const s of [-1, 1]) I.cyl(ST, rad * 1.02, rad * 1.02, h * 0.035, m4.clone().multiply(M(0, s * h * 0.485, 0)), { seg: 14, color: 0xc9c9c4 }); };
-  const beerCan = (bt, m4) => { A.wrap(bt, 'beer', m4, 0.033, 0.1); bt.cyl(ST, 0.027, 0.033, 0.012, m4.clone().multiply(M(0, 0.055, 0)), { seg: 12, color: 0xd8d8d4 }); bt.cyl(ST, 0.033, 0.027, 0.01, m4.clone().multiply(M(0, -0.054, 0)), { seg: 12, color: 0xd8d8d4 }); };
-  const mug = (m4, c) => { I.geo(CE, lathe([[0, 0], [0.036, 0], [0.04, 0.008], [0.04, 0.092], [0.035, 0.092], [0.034, 0.012], [0, 0.01]], 14), m4, { color: c }); I.geo(CE, new THREE.TorusGeometry(0.026, 0.006, 6, 10, PI), m4.clone().multiply(M(0.04, 0.048, 0, 0, 0, -PI / 2)), { color: c }); };
-  const plates = (m4, n, c, rad = 0.13) => { const pts = [[0, 0]]; for (let i = 0; i < n; i++) { const y = i * 0.011; pts.push([rad * 0.55, y], [rad, y + 0.014], [rad, y + 0.018], [rad * 0.6, y + 0.008]); } pts.push([0, n * 0.011 + 0.004]); I.geo(CE, lathe(pts, 22), m4, { color: c }); };
-  const bowl = (bt, m, m4, c, rad = 0.075, h = 0.06) => bt.geo(m, lathe([[0, 0], [rad * 0.45, 0], [rad * 0.5, 0.006], [rad * 0.85, h * 0.6], [rad, h], [rad * 0.94, h], [rad * 0.78, h * 0.6], [rad * 0.42, 0.012], [0, 0.01]], 18), m4, { color: c });
-  const glass = (m4, c = 0xbfe0e0) => I.geo(PG, lathe([[0, 0], [0.028, 0], [0.034, 0.12], [0.031, 0.12], [0.026, 0.006], [0, 0.006]], 12), m4, { color: c });
-  const bottle = (bt, m, m4, rad, h, c, cap = 0xe9e4d6) => { bt.geo(m, lathe([[0, 0], [rad, 0], [rad, h * 0.62], [rad * 0.42, h * 0.82], [rad * 0.42, h]], 12), m4, { color: c }); bt.cyl(m, rad * 0.5, rad * 0.5, h * 0.08, m4.clone().multiply(M(0, h * 1.02, 0)), { seg: 10, color: cap }); };
-  const pot = (m4, rad, h, c = 0xb9b9b4, handle = 0) => { I.geo(ST, lathe([[0, 0], [rad * 0.96, 0], [rad, 0.008], [rad, h], [rad * 0.95, h], [rad * 0.94, 0.01], [0, 0.008]], 18), m4, { color: c }); if (handle) I.box(PL, handle, 0.014, 0.024, m4.clone().multiply(M(rad + handle / 2, h * 0.85, 0)), { color: 0x16171a, bevel: 0.005 }); else for (const s of [-1, 1]) I.box(ST, 0.03, 0.01, 0.07, m4.clone().multiply(M(s * (rad + 0.012), h * 0.8, 0)), { color: c, bevel: 0.003 }); };
+  const tin = (name, m4, rad, h) => {
+    A.wrap(I, name, m4, rad, h * 0.94);
+    for (const s of [-1, 1])
+      I.cyl(ST, rad * 1.02, rad * 1.02, h * 0.035, m4.clone().multiply(M(0, s * h * 0.485, 0)), {
+        seg: 14,
+        color: 0xc9c9c4,
+      });
+  };
+  const beerCan = (bt, m4) => {
+    A.wrap(bt, 'beer', m4, 0.033, 0.1);
+    bt.cyl(ST, 0.027, 0.033, 0.012, m4.clone().multiply(M(0, 0.055, 0)), {
+      seg: 12,
+      color: 0xd8d8d4,
+    });
+    bt.cyl(ST, 0.033, 0.027, 0.01, m4.clone().multiply(M(0, -0.054, 0)), {
+      seg: 12,
+      color: 0xd8d8d4,
+    });
+  };
+  const mug = (m4, c) => {
+    I.geo(
+      CE,
+      lathe(
+        [
+          [0, 0],
+          [0.036, 0],
+          [0.04, 0.008],
+          [0.04, 0.092],
+          [0.035, 0.092],
+          [0.034, 0.012],
+          [0, 0.01],
+        ],
+        14,
+      ),
+      m4,
+      { color: c },
+    );
+    I.geo(
+      CE,
+      new THREE.TorusGeometry(0.026, 0.006, 6, 10, PI),
+      m4.clone().multiply(M(0.04, 0.048, 0, 0, 0, -PI / 2)),
+      { color: c },
+    );
+  };
+  const plates = (m4, n, c, rad = 0.13) => {
+    const pts = [[0, 0]];
+    for (let i = 0; i < n; i++) {
+      const y = i * 0.011;
+      pts.push([rad * 0.55, y], [rad, y + 0.014], [rad, y + 0.018], [rad * 0.6, y + 0.008]);
+    }
+    pts.push([0, n * 0.011 + 0.004]);
+    I.geo(CE, lathe(pts, 22), m4, { color: c });
+  };
+  const bowl = (bt, m, m4, c, rad = 0.075, h = 0.06) =>
+    bt.geo(
+      m,
+      lathe(
+        [
+          [0, 0],
+          [rad * 0.45, 0],
+          [rad * 0.5, 0.006],
+          [rad * 0.85, h * 0.6],
+          [rad, h],
+          [rad * 0.94, h],
+          [rad * 0.78, h * 0.6],
+          [rad * 0.42, 0.012],
+          [0, 0.01],
+        ],
+        18,
+      ),
+      m4,
+      { color: c },
+    );
+  const glass = (m4, c = 0xbfe0e0) =>
+    I.geo(
+      PG,
+      lathe(
+        [
+          [0, 0],
+          [0.028, 0],
+          [0.034, 0.12],
+          [0.031, 0.12],
+          [0.026, 0.006],
+          [0, 0.006],
+        ],
+        12,
+      ),
+      m4,
+      { color: c },
+    );
+  const bottle = (bt, m, m4, rad, h, c, cap = 0xe9e4d6) => {
+    bt.geo(
+      m,
+      lathe(
+        [
+          [0, 0],
+          [rad, 0],
+          [rad, h * 0.62],
+          [rad * 0.42, h * 0.82],
+          [rad * 0.42, h],
+        ],
+        12,
+      ),
+      m4,
+      { color: c },
+    );
+    bt.cyl(m, rad * 0.5, rad * 0.5, h * 0.08, m4.clone().multiply(M(0, h * 1.02, 0)), {
+      seg: 10,
+      color: cap,
+    });
+  };
+  const pot = (m4, rad, h, c = 0xb9b9b4, handle = 0) => {
+    I.geo(
+      ST,
+      lathe(
+        [
+          [0, 0],
+          [rad * 0.96, 0],
+          [rad, 0.008],
+          [rad, h],
+          [rad * 0.95, h],
+          [rad * 0.94, 0.01],
+          [0, 0.008],
+        ],
+        18,
+      ),
+      m4,
+      { color: c },
+    );
+    if (handle)
+      I.box(PL, handle, 0.014, 0.024, m4.clone().multiply(M(rad + handle / 2, h * 0.85, 0)), {
+        color: 0x16171a,
+        bevel: 0.005,
+      });
+    else
+      for (const s of [-1, 1])
+        I.box(ST, 0.03, 0.01, 0.07, m4.clone().multiply(M(s * (rad + 0.012), h * 0.8, 0)), {
+          color: c,
+          bevel: 0.003,
+        });
+  };
 
   // ---------- moving parts: hinged doors, slides, drop doors ----------
   const movers = [];
-  const mover = (d) => { const g = new THREE.Group(); g.name = d.id; g.position.set(...d.pos); g.rotation.order = 'YXZ'; g.rotation.y = d.ry || 0; const bt = kit.batch(d.id); d.draw(bt); bt.build(g); ctx.groups.dyn.add(g);
-    const s = { d, g, open: false, a: 0 }; ctx.addInteract({ id: d.id, kind: d.ikind || 'cabinet', label: () => (s.open ? 'Close ' : 'Open ') + d.label, pos: d.ipos, radius: d.radius ?? 1.0, use: (env) => { s.open = !s.open; d.onToggle?.(s.open, env); env?.game?.audio?.play?.('door', { volume: 0.35 }); return s.open; } }); movers.push(s); return s; };
-  ctx.updaters.push((dt) => { for (const s of movers) { const t = s.open ? 1 : 0; if (s.a === t) continue; s.a += (t - s.a) * Math.min(1, dt * 6); if (Math.abs(s.a - t) < 0.003) s.a = t; const d = s.d, k = s.a * d.max; if (d.kind === 'hinge') s.g.rotation.y = (d.ry || 0) + d.sign * k; else if (d.kind === 'drop') s.g.rotation.x = k; else s.g.position.set(d.pos[0] + Math.sin(d.ry || 0) * k, d.pos[1], d.pos[2] + Math.cos(d.ry || 0) * k); } });
+  const mover = (d) => {
+    const g = new THREE.Group();
+    g.name = d.id;
+    g.position.set(...d.pos);
+    g.rotation.order = 'YXZ';
+    g.rotation.y = d.ry || 0;
+    const bt = kit.batch(d.id);
+    d.draw(bt);
+    bt.build(g);
+    ctx.groups.dyn.add(g);
+    const s = { d, g, open: false, a: 0 };
+    ctx.addInteract({
+      id: d.id,
+      kind: d.ikind || 'cabinet',
+      label: () => (s.open ? 'Close ' : 'Open ') + d.label,
+      pos: d.ipos,
+      radius: d.radius ?? 1.0,
+      use: (env) => {
+        s.open = !s.open;
+        d.onToggle?.(s.open, env);
+        env?.game?.audio?.play?.('door', { volume: 0.35 });
+        return s.open;
+      },
+    });
+    movers.push(s);
+    return s;
+  };
+  ctx.updaters.push((dt) => {
+    for (const s of movers) {
+      const t = s.open ? 1 : 0;
+      if (s.a === t) continue;
+      s.a += (t - s.a) * Math.min(1, dt * 6);
+      if (Math.abs(s.a - t) < 0.003) s.a = t;
+      const d = s.d,
+        k = s.a * d.max;
+      if (d.kind === 'hinge') s.g.rotation.y = (d.ry || 0) + d.sign * k;
+      else if (d.kind === 'drop') s.g.rotation.x = k;
+      else
+        s.g.position.set(
+          d.pos[0] + Math.sin(d.ry || 0) * k,
+          d.pos[1],
+          d.pos[2] + Math.cos(d.ry || 0) * k,
+        );
+    }
+  });
   // cabinet door (shaker frame, knob). L: cabinet frame, xh: hinge x in that frame, zf: front plane, side 'l' | 'r' as seen from the front
-  const door = (L, ry, id, labelTxt, xh, y0, w, h, zf, side, o = {}) => { const dir = side === 'l' ? 1 : -1, wp = wpt(L(), xh, y0, zf), ip = wpt(L(), xh + dir * w / 2, y0 + h / 2, zf + 0.12), c = v(o.color ?? CAB, 0.025), wr = 0.1 + r() * 0.2;
-    return mover({ id, label: labelTxt, pos: wp, ry, kind: 'hinge', sign: -dir, max: o.max ?? 1.75, ipos: ip, radius: o.radius, onToggle: o.onToggle, draw: (bt) => {
-      bt.box(IP, w - 0.004, h - 0.004, 0.018, M(dir * w / 2, h / 2, 0.009), { color: c, wear: wr, bevel: 0.003, rand: r });
-      for (const s of [-1, 1]) { bt.box(IP, 0.05, h - 0.004, 0.006, M(dir * (w / 2 + s * (w / 2 - 0.027)), h / 2, 0.021), { color: c, wear: wr, bevel: 0.002, grain: 1, rand: r }); bt.box(IP, w - 0.1, 0.05, 0.006, M(dir * w / 2, h / 2 + s * (h / 2 - 0.027), 0.021), { color: c, wear: wr, bevel: 0.002, grain: 0, rand: r }); }
-      bt.cyl(IP, 0.015, 0.01, 0.024, M(dir * (w - 0.03), o.knobY ?? (y0 > 1 ? 0.07 : h - 0.07), 0.036, PI / 2, 0, 0), { seg: 10, color: 0x4a4038, wear: 0 });
-      for (const y of [0.08, h - 0.08]) bt.box(IP, 0.012, 0.05, 0.012, M(dir * 0.004, y, -0.004), { color: 0x8a8578, wear: 0 });
-      o.inside?.(bt, dir, w, h); } }); };
+  const door = (L, ry, id, labelTxt, xh, y0, w, h, zf, side, o = {}) => {
+    const dir = side === 'l' ? 1 : -1,
+      wp = wpt(L(), xh, y0, zf),
+      ip = wpt(L(), xh + (dir * w) / 2, y0 + h / 2, zf + 0.12),
+      c = v(o.color ?? CAB, 0.025),
+      wr = 0.1 + r() * 0.2;
+    return mover({
+      id,
+      label: labelTxt,
+      pos: wp,
+      ry,
+      kind: 'hinge',
+      sign: -dir,
+      max: o.max ?? 1.75,
+      ipos: ip,
+      radius: o.radius,
+      onToggle: o.onToggle,
+      draw: (bt) => {
+        bt.box(IP, w - 0.004, h - 0.004, 0.018, M((dir * w) / 2, h / 2, 0.009), {
+          color: c,
+          wear: wr,
+          bevel: 0.003,
+          rand: r,
+        });
+        for (const s of [-1, 1]) {
+          bt.box(IP, 0.05, h - 0.004, 0.006, M(dir * (w / 2 + s * (w / 2 - 0.027)), h / 2, 0.021), {
+            color: c,
+            wear: wr,
+            bevel: 0.002,
+            grain: 1,
+            rand: r,
+          });
+          bt.box(IP, w - 0.1, 0.05, 0.006, M((dir * w) / 2, h / 2 + s * (h / 2 - 0.027), 0.021), {
+            color: c,
+            wear: wr,
+            bevel: 0.002,
+            grain: 0,
+            rand: r,
+          });
+        }
+        bt.cyl(
+          IP,
+          0.015,
+          0.01,
+          0.024,
+          M(dir * (w - 0.03), o.knobY ?? (y0 > 1 ? 0.07 : h - 0.07), 0.036, PI / 2, 0, 0),
+          { seg: 10, color: 0x4a4038, wear: 0 },
+        );
+        for (const y of [0.08, h - 0.08])
+          bt.box(IP, 0.012, 0.05, 0.012, M(dir * 0.004, y, -0.004), { color: 0x8a8578, wear: 0 });
+        o.inside?.(bt, dir, w, h);
+      },
+    });
+  };
   // box-shaped drawer sliding along the cabinet's front normal
-  const drawer = (L, ry, id, labelTxt, xc, y0, w, h, zf, depth, fill, o = {}) => { const wp = wpt(L(), xc, y0, zf), c = v(CAB, 0.025), wr = 0.1 + r() * 0.2, wood = { color: 0xcdb98f, wear: 0.02, bevel: 0.002 };
-    return mover({ id, label: labelTxt, pos: wp, ry, kind: 'slide', max: depth * 0.72, ipos: wpt(L(), xc, y0 + h / 2, zf + 0.12), draw: (bt) => {
-      bt.box(IP, w - 0.004, h - 0.004, 0.018, M(0, h / 2, 0.009), { color: c, wear: wr, bevel: 0.003, rand: r }); bt.cyl(IP, 0.015, 0.01, 0.024, M(0, h / 2, 0.03, PI / 2, 0, 0), { seg: 10, color: 0x4a4038, wear: 0 });
-      for (const s of [-1, 1]) bt.box(IP, 0.012, h - 0.05, depth, M(s * (w / 2 - 0.03), h / 2 - 0.008, -depth / 2), wood); bt.box(IP, w - 0.06, 0.008, depth, M(0, 0.021, -depth / 2), wood); bt.box(IP, w - 0.06, h - 0.05, 0.012, M(0, h / 2 - 0.008, -depth), wood);
-      fill?.(bt, w - 0.085, depth - 0.02, 0.026); }, ...o }); };
+  const drawer = (L, ry, id, labelTxt, xc, y0, w, h, zf, depth, fill, o = {}) => {
+    const wp = wpt(L(), xc, y0, zf),
+      c = v(CAB, 0.025),
+      wr = 0.1 + r() * 0.2,
+      wood = { color: 0xcdb98f, wear: 0.02, bevel: 0.002 };
+    return mover({
+      id,
+      label: labelTxt,
+      pos: wp,
+      ry,
+      kind: 'slide',
+      max: depth * 0.72,
+      ipos: wpt(L(), xc, y0 + h / 2, zf + 0.12),
+      draw: (bt) => {
+        bt.box(IP, w - 0.004, h - 0.004, 0.018, M(0, h / 2, 0.009), {
+          color: c,
+          wear: wr,
+          bevel: 0.003,
+          rand: r,
+        });
+        bt.cyl(IP, 0.015, 0.01, 0.024, M(0, h / 2, 0.03, PI / 2, 0, 0), {
+          seg: 10,
+          color: 0x4a4038,
+          wear: 0,
+        });
+        for (const s of [-1, 1])
+          bt.box(
+            IP,
+            0.012,
+            h - 0.05,
+            depth,
+            M(s * (w / 2 - 0.03), h / 2 - 0.008, -depth / 2),
+            wood,
+          );
+        bt.box(IP, w - 0.06, 0.008, depth, M(0, 0.021, -depth / 2), wood);
+        bt.box(IP, w - 0.06, h - 0.05, 0.012, M(0, h / 2 - 0.008, -depth), wood);
+        fill?.(bt, w - 0.085, depth - 0.02, 0.026);
+      },
+      ...o,
+    });
+  };
   // carcass of a cabinet run segment: sides, floor, shelf, face frame (open front), toe kick
-  const carcass = (L, x0, x1, y0, y1, depth, o = {}) => { const xc = (x0 + x1) / 2, w = x1 - x0, zf = depth / 2;
-    for (const x of [x0 + 0.009, x1 - 0.009]) I.box(IP, 0.018, y1 - y0, depth - 0.004, L(x, (y0 + y1) / 2, 0), cabO({ grain: 1 }));
-    I.box(IP, w - 0.03, 0.018, depth - 0.02, L(xc, y0 + 0.009, -0.005), cabO({ color: 0xd4c9a6 })); I.box(IP, w - 0.03, 0.016, depth - 0.02, L(xc, y1 - 0.008, -0.005), cabO());
-    I.box(IP, w - 0.03, y1 - y0, 0.006, L(xc, (y0 + y1) / 2, -zf + 0.004), cabO({ color: 0xcbbf9d, wear: 0.02 }));
-    for (const sy of (o.shelves || [])) I.box(IP, w - 0.04, 0.016, depth - 0.06, L(xc, sy, -0.02), cabO({ color: 0xd9cfae, wear: 0.03 }));
-    for (const x of [x0 + 0.014, x1 - 0.014]) I.box(IP, 0.028, y1 - y0, 0.02, L(x, (y0 + y1) / 2, zf - 0.01), cabO({ grain: 1 })); for (const y of [y0 + 0.014, y1 - 0.014]) I.box(IP, w - 0.056, 0.028, 0.02, L(xc, y, zf - 0.01), cabO({ grain: 0 }));
-    if (o.kick) I.box(IP, w, y0 - 0.005, 0.016, L(xc, (y0 - 0.005) / 2 + 0.003, zf - 0.075), cabO({ color: 0x8a826c, wear: 0.4 })); };
+  const carcass = (L, x0, x1, y0, y1, depth, o = {}) => {
+    const xc = (x0 + x1) / 2,
+      w = x1 - x0,
+      zf = depth / 2;
+    for (const x of [x0 + 0.009, x1 - 0.009])
+      I.box(IP, 0.018, y1 - y0, depth - 0.004, L(x, (y0 + y1) / 2, 0), cabO({ grain: 1 }));
+    I.box(IP, w - 0.03, 0.018, depth - 0.02, L(xc, y0 + 0.009, -0.005), cabO({ color: 0xd4c9a6 }));
+    I.box(IP, w - 0.03, 0.016, depth - 0.02, L(xc, y1 - 0.008, -0.005), cabO());
+    I.box(
+      IP,
+      w - 0.03,
+      y1 - y0,
+      0.006,
+      L(xc, (y0 + y1) / 2, -zf + 0.004),
+      cabO({ color: 0xcbbf9d, wear: 0.02 }),
+    );
+    for (const sy of o.shelves || [])
+      I.box(
+        IP,
+        w - 0.04,
+        0.016,
+        depth - 0.06,
+        L(xc, sy, -0.02),
+        cabO({ color: 0xd9cfae, wear: 0.03 }),
+      );
+    for (const x of [x0 + 0.014, x1 - 0.014])
+      I.box(IP, 0.028, y1 - y0, 0.02, L(x, (y0 + y1) / 2, zf - 0.01), cabO({ grain: 1 }));
+    for (const y of [y0 + 0.014, y1 - 0.014])
+      I.box(IP, w - 0.056, 0.028, 0.02, L(xc, y, zf - 0.01), cabO({ grain: 0 }));
+    if (o.kick)
+      I.box(
+        IP,
+        w,
+        y0 - 0.005,
+        0.016,
+        L(xc, (y0 - 0.005) / 2 + 0.003, zf - 0.075),
+        cabO({ color: 0x8a826c, wear: 0.4 }),
+      );
+  };
 
   // =====================================================================================================================
   // NORTH WALL RUN: drawers | sink base | narrow tray cabinet | range | pots cabinet, wall cabinets and hood above
   // =====================================================================================================================
-  const zN = -3.05, LN = place(0, F, zN + 0.3, 0), ZF = 0.3, B0 = 0.1, B1 = 0.875;
-  carcass(LN, -1.45, -0.65, B0, B1, 0.6, { kick: true }); carcass(LN, -0.65, 0.25, B0, B1, 0.6, { kick: true }); carcass(LN, 0.25, 0.45, B0, B1, 0.6, { kick: true }); carcass(LN, 1.22, 1.945, B0, B1, 0.6, { kick: true, shelves: [0.47] });
+  const zN = -3.05,
+    LN = place(0, F, zN + 0.3, 0),
+    ZF = 0.3,
+    B0 = 0.1,
+    B1 = 0.875;
+  carcass(LN, -1.45, -0.65, B0, B1, 0.6, { kick: true });
+  carcass(LN, -0.65, 0.25, B0, B1, 0.6, { kick: true });
+  carcass(LN, 0.25, 0.45, B0, B1, 0.6, { kick: true });
+  carcass(LN, 1.22, 1.945, B0, B1, 0.6, { kick: true, shelves: [0.47] });
   for (const y of [0.345, 0.6]) I.box(IP, 0.76, 0.02, 0.02, LN(-1.05, y, ZF - 0.01), cabO());
   // countertop (butcher-block laminate with a metal edge), cut around the sink
-  const counter = (x0, x1, z0, z1) => { I.box(TOP, x1 - x0, 0.04, z1 - z0, M((x0 + x1) / 2, F + CT - 0.02, (z0 + z1) / 2), { color: v(0xd9c9a8, 0.02), bevel: 0.004, grain: 0, rand: r }); };
-  const edge = (x0, x1, z) => I.box(ST, x1 - x0, 0.03, 0.004, M((x0 + x1) / 2, F + CT - 0.02, z), { color: 0xb5b5ae, bevel: 0.001 });
-  counter(-1.45, -0.6, zN, -2.425); counter(-0.6, 0.2, zN, -2.96); counter(-0.6, 0.2, -2.52, -2.425); counter(0.2, 0.448, zN, -2.425); counter(1.212, 1.945, zN, -2.425); edge(-1.45, 0.448, -2.423); edge(1.212, 1.945, -2.423);
-  for (const [x0, x1, y1] of [[-1.9, -0.84, 1.37], [-0.84, 0.44, 0.985], [0.44, 1.945, 1.37]]) I.box(TILE, x1 - x0, y1 - CT, 0.012, M((x0 + x1) / 2, F + (CT + y1) / 2, zN + 0.006), { color: v(0xf1ecdc, 0.02), grain: 0, uv: [x0, 0] });
-  I.box(PL, 3.4, 0.012, 0.012, M(0.245, F + CT + 0.006, zN + 0.016), { color: 0xd9d4c2 });                                   // yellowed caulk line
+  const counter = (x0, x1, z0, z1) => {
+    I.box(TOP, x1 - x0, 0.04, z1 - z0, M((x0 + x1) / 2, F + CT - 0.02, (z0 + z1) / 2), {
+      color: v(0xd9c9a8, 0.02),
+      bevel: 0.004,
+      grain: 0,
+      rand: r,
+    });
+  };
+  const edge = (x0, x1, z) =>
+    I.box(ST, x1 - x0, 0.03, 0.004, M((x0 + x1) / 2, F + CT - 0.02, z), {
+      color: 0xb5b5ae,
+      bevel: 0.001,
+    });
+  counter(-1.45, -0.6, zN, -2.425);
+  counter(-0.6, 0.2, zN, -2.96);
+  counter(-0.6, 0.2, -2.52, -2.425);
+  counter(0.2, 0.448, zN, -2.425);
+  counter(1.212, 1.945, zN, -2.425);
+  edge(-1.45, 0.448, -2.423);
+  edge(1.212, 1.945, -2.423);
+  for (const [x0, x1, y1] of [
+    [-1.9, -0.84, 1.37],
+    [-0.84, 0.44, 0.985],
+    [0.44, 1.945, 1.37],
+  ])
+    I.box(TILE, x1 - x0, y1 - CT, 0.012, M((x0 + x1) / 2, F + (CT + y1) / 2, zN + 0.006), {
+      color: v(0xf1ecdc, 0.02),
+      grain: 0,
+      uv: [x0, 0],
+    });
+  I.box(PL, 3.4, 0.012, 0.012, M(0.245, F + CT + 0.006, zN + 0.016), { color: 0xd9d4c2 }); // yellowed caulk line
 
   // --- drawers (cutlery, towels and wraps, bags) ---
-  drawer(LN, 0, 'kitchen_drawer_cutlery', 'cutlery drawer', -1.05, 0.61, 0.76, 0.25, ZF, 0.5, (bt, w, d, y) => {
-    bt.box(IP, w - 0.02, 0.006, d - 0.06, M(0, y + 0.003, -d / 2 - 0.01), { color: 0xd9d4c2, wear: 0 }); for (let i = 0; i <= 4; i++) bt.box(IP, 0.006, 0.04, d - 0.06, M(-w / 2 + 0.012 + i * (w - 0.024) / 4, y + 0.02, -d / 2 - 0.01), { color: 0xd9d4c2, wear: 0 });
-    for (let c = 0; c < 4; c++) for (let i = 0; i < 5; i++) { const x = -w / 2 + 0.012 + (c + 0.5) * (w - 0.024) / 4 + j(0.02), z = -d / 2 - 0.01 + j(0.02), a = j(0.12); if (c === 3) bt.cyl(IP, 0.008, 0.01, 0.2 + r() * 0.06, M(x + (i - 2) * 0.022, y + 0.016, z, PI / 2, a * 2, 0), { seg: 6, color: v([0x2a2a2e, 0xb5322a, 0xc9b98f][i % 3], 0.08), wear: 0 });
-      else { bt.box(IP, 0.012, 0.003, 0.11, M(x, y + 0.01 + i * 0.004, z + 0.05, 0, a, 0), { color: v(0x9a9a96, 0.05), wear: 0 }); bt.box(IP, c === 1 ? 0.018 : 0.026, 0.003, 0.07, M(x + Math.sin(-a) * 0.085, y + 0.01 + i * 0.004, z - 0.04, 0, a, 0), { color: v(0xb5b5b0, 0.05), wear: 0, bevel: 0.001 }); } } });
-  drawer(LN, 0, 'kitchen_drawer_towels', 'towel drawer', -1.05, 0.355, 0.76, 0.245, ZF, 0.5, (bt, w, d, y) => {
-    for (let c = 0; c < 2; c++) for (let i = 0; i < 3; i++) bt.geo(IP, soft(0.24, 0.035, 0.3, { r: 0.012, puff: 0.005, seg: 4 }), M(-0.2 + c * 0.27 + j(0.01), y + 0.02 + i * 0.036, -d / 2 + j(0.015), 0, j(0.06), 0), { color: v([0xc23b33, 0xe9e4d6, 0x2f6f7a, 0xd9b23a, 0xe9e4d6, 0x6a8a5a][c * 3 + i], 0.06), wear: 0 });
-    for (let i = 0; i < 3; i++) bt.box(IP, 0.055, 0.055, 0.31, M(0.22 + (i % 2) * 0.06, y + 0.03 + Math.floor(i / 2) * 0.057, -d / 2, 0, j(0.04), 0), { color: [0x2f4f9a, 0xc23b33, 0xd9b23a][i], wear: 0, bevel: 0.003 }); });
-  drawer(LN, 0, 'kitchen_drawer_bags', 'bottom drawer', -1.05, 0.105, 0.76, 0.24, ZF, 0.5, (bt, w, d, y) => {
-    for (let i = 0; i < 7; i++) bt.geo(IP, soft(0.16 + r() * 0.1, 0.07 + r() * 0.05, 0.16 + r() * 0.08, { r: 0.035, puff: 0.02, puffB: 1, seg: 4 }), M(-0.24 + (i % 4) * 0.16 + j(0.02), y + 0.05 + Math.floor(i / 4) * 0.05, -d / 2 + (i % 2 ? 0.1 : -0.1) + j(0.03), j(0.3), r() * 3, j(0.3)), { color: v([0xe9e4d6, 0xd9d4c6, 0xc9d9e0, 0xe9e4d6][i % 4], 0.05), wear: 0 });
-    bt.box(IP, 0.2, 0.012, 0.2, M(0.2, y + 0.012, -0.12, 0, 0.3, 0), { color: 0x3a3a3e, wear: 0, bevel: 0.004 }); bt.box(IP, 0.2, 0.012, 0.2, M(0.22, y + 0.026, -0.13, 0, -0.1, 0), { color: 0xb5482f, wear: 0, bevel: 0.004 }); });
+  drawer(
+    LN,
+    0,
+    'kitchen_drawer_cutlery',
+    'cutlery drawer',
+    -1.05,
+    0.61,
+    0.76,
+    0.25,
+    ZF,
+    0.5,
+    (bt, w, d, y) => {
+      bt.box(IP, w - 0.02, 0.006, d - 0.06, M(0, y + 0.003, -d / 2 - 0.01), {
+        color: 0xd9d4c2,
+        wear: 0,
+      });
+      for (let i = 0; i <= 4; i++)
+        bt.box(
+          IP,
+          0.006,
+          0.04,
+          d - 0.06,
+          M(-w / 2 + 0.012 + (i * (w - 0.024)) / 4, y + 0.02, -d / 2 - 0.01),
+          { color: 0xd9d4c2, wear: 0 },
+        );
+      for (let c = 0; c < 4; c++)
+        for (let i = 0; i < 5; i++) {
+          const x = -w / 2 + 0.012 + ((c + 0.5) * (w - 0.024)) / 4 + j(0.02),
+            z = -d / 2 - 0.01 + j(0.02),
+            a = j(0.12);
+          if (c === 3)
+            bt.cyl(
+              IP,
+              0.008,
+              0.01,
+              0.2 + r() * 0.06,
+              M(x + (i - 2) * 0.022, y + 0.016, z, PI / 2, a * 2, 0),
+              { seg: 6, color: v([0x2a2a2e, 0xb5322a, 0xc9b98f][i % 3], 0.08), wear: 0 },
+            );
+          else {
+            bt.box(IP, 0.012, 0.003, 0.11, M(x, y + 0.01 + i * 0.004, z + 0.05, 0, a, 0), {
+              color: v(0x9a9a96, 0.05),
+              wear: 0,
+            });
+            bt.box(
+              IP,
+              c === 1 ? 0.018 : 0.026,
+              0.003,
+              0.07,
+              M(x + Math.sin(-a) * 0.085, y + 0.01 + i * 0.004, z - 0.04, 0, a, 0),
+              { color: v(0xb5b5b0, 0.05), wear: 0, bevel: 0.001 },
+            );
+          }
+        }
+    },
+  );
+  drawer(
+    LN,
+    0,
+    'kitchen_drawer_towels',
+    'towel drawer',
+    -1.05,
+    0.355,
+    0.76,
+    0.245,
+    ZF,
+    0.5,
+    (bt, w, d, y) => {
+      for (let c = 0; c < 2; c++)
+        for (let i = 0; i < 3; i++)
+          bt.geo(
+            IP,
+            soft(0.24, 0.035, 0.3, { r: 0.012, puff: 0.005, seg: 4 }),
+            M(-0.2 + c * 0.27 + j(0.01), y + 0.02 + i * 0.036, -d / 2 + j(0.015), 0, j(0.06), 0),
+            {
+              color: v(
+                [0xc23b33, 0xe9e4d6, 0x2f6f7a, 0xd9b23a, 0xe9e4d6, 0x6a8a5a][c * 3 + i],
+                0.06,
+              ),
+              wear: 0,
+            },
+          );
+      for (let i = 0; i < 3; i++)
+        bt.box(
+          IP,
+          0.055,
+          0.055,
+          0.31,
+          M(0.22 + (i % 2) * 0.06, y + 0.03 + Math.floor(i / 2) * 0.057, -d / 2, 0, j(0.04), 0),
+          { color: [0x2f4f9a, 0xc23b33, 0xd9b23a][i], wear: 0, bevel: 0.003 },
+        );
+    },
+  );
+  drawer(
+    LN,
+    0,
+    'kitchen_drawer_bags',
+    'bottom drawer',
+    -1.05,
+    0.105,
+    0.76,
+    0.24,
+    ZF,
+    0.5,
+    (bt, w, d, y) => {
+      for (let i = 0; i < 7; i++)
+        bt.geo(
+          IP,
+          soft(0.16 + r() * 0.1, 0.07 + r() * 0.05, 0.16 + r() * 0.08, {
+            r: 0.035,
+            puff: 0.02,
+            puffB: 1,
+            seg: 4,
+          }),
+          M(
+            -0.24 + (i % 4) * 0.16 + j(0.02),
+            y + 0.05 + Math.floor(i / 4) * 0.05,
+            -d / 2 + (i % 2 ? 0.1 : -0.1) + j(0.03),
+            j(0.3),
+            r() * 3,
+            j(0.3),
+          ),
+          { color: v([0xe9e4d6, 0xd9d4c6, 0xc9d9e0, 0xe9e4d6][i % 4], 0.05), wear: 0 },
+        );
+      bt.box(IP, 0.2, 0.012, 0.2, M(0.2, y + 0.012, -0.12, 0, 0.3, 0), {
+        color: 0x3a3a3e,
+        wear: 0,
+        bevel: 0.004,
+      });
+      bt.box(IP, 0.2, 0.012, 0.2, M(0.22, y + 0.026, -0.13, 0, -0.1, 0), {
+        color: 0xb5482f,
+        wear: 0,
+        bevel: 0.004,
+      });
+    },
+  );
 
   // --- sink: stainless double bowl, faucet with a lever, running water ---
-  const sx0 = -0.6, sx1 = 0.2, sz0 = -2.96, sz1 = -2.52, sd = 0.17, sy = F + CT;
-  { const sc = 0xb9bcbc; I.box(ST, sx1 - sx0 + 0.05, 0.004, 0.03, M(-0.2, sy + 0.002, sz0 - 0.002), { color: sc }); I.box(ST, sx1 - sx0 + 0.05, 0.004, 0.03, M(-0.2, sy + 0.002, sz1 + 0.002), { color: sc }); for (const x of [sx0 - 0.004, sx1 + 0.004, -0.2]) I.box(ST, x === -0.2 ? 0.035 : 0.03, 0.004, sz1 - sz0, M(x, sy + 0.002, (sz0 + sz1) / 2), { color: sc });
-    for (const [a, b] of [[sx0 + 0.008, -0.214], [-0.186, sx1 - 0.008]]) { const xc = (a + b) / 2, w = b - a; I.box(ST, w, 0.004, sz1 - sz0 - 0.016, M(xc, sy - sd, (sz0 + sz1) / 2), { color: v(sc, 0.03) }); for (const z of [sz0 + 0.008, sz1 - 0.008]) I.box(ST, w, sd, 0.004, M(xc, sy - sd / 2, z), { color: v(sc, 0.03) }); for (const x of [a, b]) I.box(ST, 0.004, sd, sz1 - sz0 - 0.016, M(x, sy - sd / 2, (sz0 + sz1) / 2), { color: v(sc, 0.03) }); I.cyl(ST, 0.04, 0.04, 0.003, M(xc, sy - sd + 0.004, (sz0 + sz1) / 2 - 0.02), { seg: 14, color: 0x8a8d8d }); I.cyl(MT, 0.028, 0.028, 0.003, M(xc, sy - sd + 0.0055, (sz0 + sz1) / 2 - 0.02), { seg: 12, color: 0x1a1a1a }); }
+  const sx0 = -0.6,
+    sx1 = 0.2,
+    sz0 = -2.96,
+    sz1 = -2.52,
+    sd = 0.17,
+    sy = F + CT;
+  {
+    const sc = 0xb9bcbc;
+    I.box(ST, sx1 - sx0 + 0.05, 0.004, 0.03, M(-0.2, sy + 0.002, sz0 - 0.002), { color: sc });
+    I.box(ST, sx1 - sx0 + 0.05, 0.004, 0.03, M(-0.2, sy + 0.002, sz1 + 0.002), { color: sc });
+    for (const x of [sx0 - 0.004, sx1 + 0.004, -0.2])
+      I.box(ST, x === -0.2 ? 0.035 : 0.03, 0.004, sz1 - sz0, M(x, sy + 0.002, (sz0 + sz1) / 2), {
+        color: sc,
+      });
+    for (const [a, b] of [
+      [sx0 + 0.008, -0.214],
+      [-0.186, sx1 - 0.008],
+    ]) {
+      const xc = (a + b) / 2,
+        w = b - a;
+      I.box(ST, w, 0.004, sz1 - sz0 - 0.016, M(xc, sy - sd, (sz0 + sz1) / 2), {
+        color: v(sc, 0.03),
+      });
+      for (const z of [sz0 + 0.008, sz1 - 0.008])
+        I.box(ST, w, sd, 0.004, M(xc, sy - sd / 2, z), { color: v(sc, 0.03) });
+      for (const x of [a, b])
+        I.box(ST, 0.004, sd, sz1 - sz0 - 0.016, M(x, sy - sd / 2, (sz0 + sz1) / 2), {
+          color: v(sc, 0.03),
+        });
+      I.cyl(ST, 0.04, 0.04, 0.003, M(xc, sy - sd + 0.004, (sz0 + sz1) / 2 - 0.02), {
+        seg: 14,
+        color: 0x8a8d8d,
+      });
+      I.cyl(MT, 0.028, 0.028, 0.003, M(xc, sy - sd + 0.0055, (sz0 + sz1) / 2 - 0.02), {
+        seg: 12,
+        color: 0x1a1a1a,
+      });
+    }
     // dirty dishes in the left bowl, a pan soaking in the right
-    const lx = -0.4, lz = -2.74, by = sy - sd + 0.004; plates(M(lx, by, lz + 0.02, 0, 0, 0.05), 3, 0xe9e4d6, 0.125); bowl(I, CE, M(lx - 0.02, by + 0.04, lz, 0.12, 0, 0), 0x5f8a8a); glass(M(lx + 0.13, by, lz - 0.12)); glass(M(lx - 0.13, by + 0.035, lz + 0.13, PI / 2 - 0.2, 0.5, 0), 0xcfe6e0); mug(M(lx - 0.12, by, lz - 0.13, 0, 1, 0), 0xc9822f);
-    for (let i = 0; i < 3; i++) I.box(ST, 0.014, 0.003, 0.19, M(lx + 0.02 + i * 0.03, by + 0.08 + i * 0.004, lz, 0.25, 0.6 + i * 0.5, 0), { color: 0xc9c9c4 });
-    I.geo(MT, lathe([[0, 0], [0.11, 0], [0.125, 0.045], [0.117, 0.045], [0.104, 0.008], [0, 0.008]], 20), M(0.0, by, lz), { color: 0x1c1c1e }); I.box(MT, 0.2, 0.014, 0.03, M(0.0 + 0.15, by + 0.07, lz + 0.12, 0, -0.7, 0.3), { color: 0x1c1c1e, bevel: 0.006 }); I.cyl(PL, 0.1, 0.1, 0.004, M(0.0, by + 0.03, lz), { seg: 18, color: 0x8a9a8a });
+    const lx = -0.4,
+      lz = -2.74,
+      by = sy - sd + 0.004;
+    plates(M(lx, by, lz + 0.02, 0, 0, 0.05), 3, 0xe9e4d6, 0.125);
+    bowl(I, CE, M(lx - 0.02, by + 0.04, lz, 0.12, 0, 0), 0x5f8a8a);
+    glass(M(lx + 0.13, by, lz - 0.12));
+    glass(M(lx - 0.13, by + 0.035, lz + 0.13, PI / 2 - 0.2, 0.5, 0), 0xcfe6e0);
+    mug(M(lx - 0.12, by, lz - 0.13, 0, 1, 0), 0xc9822f);
+    for (let i = 0; i < 3; i++)
+      I.box(
+        ST,
+        0.014,
+        0.003,
+        0.19,
+        M(lx + 0.02 + i * 0.03, by + 0.08 + i * 0.004, lz, 0.25, 0.6 + i * 0.5, 0),
+        { color: 0xc9c9c4 },
+      );
+    I.geo(
+      MT,
+      lathe(
+        [
+          [0, 0],
+          [0.11, 0],
+          [0.125, 0.045],
+          [0.117, 0.045],
+          [0.104, 0.008],
+          [0, 0.008],
+        ],
+        20,
+      ),
+      M(0.0, by, lz),
+      { color: 0x1c1c1e },
+    );
+    I.box(MT, 0.2, 0.014, 0.03, M(0.0 + 0.15, by + 0.07, lz + 0.12, 0, -0.7, 0.3), {
+      color: 0x1c1c1e,
+      bevel: 0.006,
+    });
+    I.cyl(PL, 0.1, 0.1, 0.004, M(0.0, by + 0.03, lz), { seg: 18, color: 0x8a9a8a });
     // faucet
-    const fx = -0.2, fz = sz0 - 0.045; I.cyl(CH, 0.03, 0.034, 0.02, M(fx, sy + 0.01, fz), { seg: 14, color: 0xcfd2d2 }); I.cyl(CH, 0.014, 0.016, 0.1, M(fx, sy + 0.07, fz), { seg: 10, color: 0xcfd2d2 });
-    I.tube(CH, [[fx, sy + 0.1, fz], [fx, sy + 0.22, fz + 0.01], [fx, sy + 0.27, fz + 0.08], [fx, sy + 0.24, fz + 0.16], [fx, sy + 0.2, fz + 0.175]], 0.011, { seg: 8, color: 0xcfd2d2 }); I.cyl(CH, 0.013, 0.012, 0.02, M(fx, sy + 0.193, fz + 0.176), { seg: 10, color: 0xa8abab });
-    const lev = new THREE.Group(); lev.position.set(fx + 0.045, sy + 0.035, fz); const lb = kit.batch('faucet_lever'); lb.cyl(CH, 0.013, 0.015, 0.03, M(0, 0, 0, 0, 0, -PI / 2), { seg: 10, color: 0xcfd2d2 }); lb.box(CH, 0.012, 0.01, 0.09, M(0.012, 0.006, 0.04), { color: 0xcfd2d2, bevel: 0.004 }); lb.build(lev, { cast: false }); ctx.groups.dyn.add(lev);
-    const wT = kit.canvasTex(32, 128, (g) => { g.clearRect(0, 0, 32, 128); const q = kit.rng(8); for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(${215 + q() * 40 | 0},${235 + q() * 20 | 0},255,${0.25 + q() * 0.5})`; g.fillRect(q() * 32, q() * 128, 2 + q() * 4, 10 + q() * 40); } g.fillStyle = 'rgba(200,230,245,0.35)'; g.fillRect(0, 0, 32, 128); });
-    const wM = new THREE.MeshStandardMaterial({ map: wT, transparent: true, opacity: 0.8, roughness: 0.08, color: 0xdff2ff, emissive: 0x2a3a44, depthWrite: false }); wM.userData.uvScale = 0;
-    const wy0 = sy + 0.183, wy1 = sy - sd + 0.012, wg = new THREE.CylinderGeometry(0.0055, 0.0075, wy0 - wy1, 8, 1, true); wg.translate(0, -(wy0 - wy1) / 2, 0); const water = new THREE.Mesh(wg, wM); water.position.set(fx, wy0, fz + 0.176); water.visible = false; water.renderOrder = 3; ctx.groups.dyn.add(water);
-    const sp = new THREE.Mesh(new THREE.RingGeometry(0.008, 0.04, 14), wM); sp.rotation.x = -PI / 2; sp.position.set(fx, wy1 + 0.002, fz + 0.176); sp.visible = false; sp.renderOrder = 3; ctx.groups.dyn.add(sp);
-    let on = false, k = 0, tt = 0; ctx.faucet = { get on() { return on; } };
-    ctx.addInteract({ id: 'faucet', kind: 'faucet', label: () => (on ? 'Turn off the tap' : 'Turn on the tap'), pos: [fx, sy + 0.15, fz + 0.25], radius: 1.1, use: (env) => { on = !on; env?.emit?.('sink:water', { on }); return on; } });
-    ctx.updaters.push((dt) => { const t = on ? 1 : 0; if (k === t && !on) return; k += (t - k) * Math.min(1, dt * 9); if (Math.abs(k - t) < 0.01) k = t; tt += dt; lev.rotation.x = -k * 0.55; water.visible = sp.visible = k > 0.02; water.scale.set(0.6 + k * 0.4, on ? Math.min(1, k * 1.4) : 1, 0.6 + k * 0.4); wT.offset.y = (tt * 2.4) % 1; const s = 0.8 + Math.sin(tt * 31) * 0.15 + Math.sin(tt * 17) * 0.1; sp.scale.set(s * k, s * k, 1); });
+    const fx = -0.2,
+      fz = sz0 - 0.045;
+    I.cyl(CH, 0.03, 0.034, 0.02, M(fx, sy + 0.01, fz), { seg: 14, color: 0xcfd2d2 });
+    I.cyl(CH, 0.014, 0.016, 0.1, M(fx, sy + 0.07, fz), { seg: 10, color: 0xcfd2d2 });
+    I.tube(
+      CH,
+      [
+        [fx, sy + 0.1, fz],
+        [fx, sy + 0.22, fz + 0.01],
+        [fx, sy + 0.27, fz + 0.08],
+        [fx, sy + 0.24, fz + 0.16],
+        [fx, sy + 0.2, fz + 0.175],
+      ],
+      0.011,
+      { seg: 8, color: 0xcfd2d2 },
+    );
+    I.cyl(CH, 0.013, 0.012, 0.02, M(fx, sy + 0.193, fz + 0.176), { seg: 10, color: 0xa8abab });
+    const lev = new THREE.Group();
+    lev.position.set(fx + 0.045, sy + 0.035, fz);
+    const lb = kit.batch('faucet_lever');
+    lb.cyl(CH, 0.013, 0.015, 0.03, M(0, 0, 0, 0, 0, -PI / 2), { seg: 10, color: 0xcfd2d2 });
+    lb.box(CH, 0.012, 0.01, 0.09, M(0.012, 0.006, 0.04), { color: 0xcfd2d2, bevel: 0.004 });
+    lb.build(lev, { cast: false });
+    ctx.groups.dyn.add(lev);
+    const wT = kit.canvasTex(32, 128, (g) => {
+      g.clearRect(0, 0, 32, 128);
+      const q = kit.rng(8);
+      for (let i = 0; i < 60; i++) {
+        g.fillStyle = `rgba(${(215 + q() * 40) | 0},${(235 + q() * 20) | 0},255,${0.25 + q() * 0.5})`;
+        g.fillRect(q() * 32, q() * 128, 2 + q() * 4, 10 + q() * 40);
+      }
+      g.fillStyle = 'rgba(200,230,245,0.35)';
+      g.fillRect(0, 0, 32, 128);
+    });
+    const wM = new THREE.MeshStandardMaterial({
+      map: wT,
+      transparent: true,
+      opacity: 0.8,
+      roughness: 0.08,
+      color: 0xdff2ff,
+      emissive: 0x2a3a44,
+      depthWrite: false,
+    });
+    wM.userData.uvScale = 0;
+    const wy0 = sy + 0.183,
+      wy1 = sy - sd + 0.012,
+      wg = new THREE.CylinderGeometry(0.0055, 0.0075, wy0 - wy1, 8, 1, true);
+    wg.translate(0, -(wy0 - wy1) / 2, 0);
+    const water = new THREE.Mesh(wg, wM);
+    water.position.set(fx, wy0, fz + 0.176);
+    water.visible = false;
+    water.renderOrder = 3;
+    ctx.groups.dyn.add(water);
+    const sp = new THREE.Mesh(new THREE.RingGeometry(0.008, 0.04, 14), wM);
+    sp.rotation.x = -PI / 2;
+    sp.position.set(fx, wy1 + 0.002, fz + 0.176);
+    sp.visible = false;
+    sp.renderOrder = 3;
+    ctx.groups.dyn.add(sp);
+    let on = false,
+      k = 0,
+      tt = 0;
+    ctx.faucet = {
+      get on() {
+        return on;
+      },
+    };
+    ctx.addInteract({
+      id: 'faucet',
+      kind: 'faucet',
+      label: () => (on ? 'Turn off the tap' : 'Turn on the tap'),
+      pos: [fx, sy + 0.15, fz + 0.25],
+      radius: 1.1,
+      use: (env) => {
+        on = !on;
+        env?.emit?.('sink:water', { on });
+        return on;
+      },
+    });
+    ctx.updaters.push((dt) => {
+      const t = on ? 1 : 0;
+      if (k === t && !on) return;
+      k += (t - k) * Math.min(1, dt * 9);
+      if (Math.abs(k - t) < 0.01) k = t;
+      tt += dt;
+      lev.rotation.x = -k * 0.55;
+      water.visible = sp.visible = k > 0.02;
+      water.scale.set(0.6 + k * 0.4, on ? Math.min(1, k * 1.4) : 1, 0.6 + k * 0.4);
+      wT.offset.y = (tt * 2.4) % 1;
+      const s = 0.8 + Math.sin(tt * 31) * 0.15 + Math.sin(tt * 17) * 0.1;
+      sp.scale.set(s * k, s * k, 1);
+    });
     // back ledge: dish soap, sponge, a scrubber; utensil crock on the narrow cabinet
-    bottle(I, PL, M(sx1 - 0.08, sy + 0.004, sz0 - 0.045), 0.026, 0.17, 0x3fa0d9, 0xe9e4d6); I.geo(PL, soft(0.11, 0.028, 0.07, { r: 0.008, seg: 4 }), M(sx0 + 0.1, sy + 0.018, sz0 - 0.04, 0, 0.2, 0), { color: 0xe8c83a }); I.box(RB, 0.108, 0.008, 0.068, M(sx0 + 0.1, sy + 0.036, sz0 - 0.04, 0, 0.2, 0), { color: 0x3a7a4a, bevel: 0.002 });
-    I.geo(CE, lathe([[0, 0], [0.055, 0], [0.062, 0.01], [0.066, 0.15], [0.058, 0.15], [0.054, 0.012], [0, 0.01]], 16), M(0.35, sy, -2.88), { color: 0xc9b98f }); for (let i = 0; i < 6; i++) I.cyl(i % 2 ? WD : PL, 0.006, 0.008, 0.26 + r() * 0.06, M(0.35 + j(0.03), sy + 0.16, -2.88 + j(0.03), j(0.2), 0, j(0.2)), { seg: 6, color: i % 2 ? 0xb39a78 : [0x16171a, 0xc23b33, 0x2f6f7a][i % 3] });
+    bottle(I, PL, M(sx1 - 0.08, sy + 0.004, sz0 - 0.045), 0.026, 0.17, 0x3fa0d9, 0xe9e4d6);
+    I.geo(
+      PL,
+      soft(0.11, 0.028, 0.07, { r: 0.008, seg: 4 }),
+      M(sx0 + 0.1, sy + 0.018, sz0 - 0.04, 0, 0.2, 0),
+      { color: 0xe8c83a },
+    );
+    I.box(RB, 0.108, 0.008, 0.068, M(sx0 + 0.1, sy + 0.036, sz0 - 0.04, 0, 0.2, 0), {
+      color: 0x3a7a4a,
+      bevel: 0.002,
+    });
+    I.geo(
+      CE,
+      lathe(
+        [
+          [0, 0],
+          [0.055, 0],
+          [0.062, 0.01],
+          [0.066, 0.15],
+          [0.058, 0.15],
+          [0.054, 0.012],
+          [0, 0.01],
+        ],
+        16,
+      ),
+      M(0.35, sy, -2.88),
+      { color: 0xc9b98f },
+    );
+    for (let i = 0; i < 6; i++)
+      I.cyl(
+        i % 2 ? WD : PL,
+        0.006,
+        0.008,
+        0.26 + r() * 0.06,
+        M(0.35 + j(0.03), sy + 0.16, -2.88 + j(0.03), j(0.2), 0, j(0.2)),
+        { seg: 6, color: i % 2 ? 0xb39a78 : [0x16171a, 0xc23b33, 0x2f6f7a][i % 3] },
+      );
   }
 
   // --- base cabinet doors and what is behind them ---
-  door(LN, 0, 'kitchen_door_sink_l', 'sink cabinet', -0.64, 0.115, 0.44, 0.745, ZF + 0.001, 'l'); door(LN, 0, 'kitchen_door_sink_r', 'sink cabinet', 0.24, 0.115, 0.44, 0.745, ZF + 0.001, 'r');
-  door(LN, 0, 'kitchen_door_trays', 'tray cabinet', 0.258, 0.115, 0.184, 0.745, ZF + 0.001, 'l'); door(LN, 0, 'kitchen_door_pots_l', 'pots cabinet', 1.23, 0.115, 0.352, 0.745, ZF + 0.001, 'l'); door(LN, 0, 'kitchen_door_pots_r', 'pots cabinet', 1.935, 0.115, 0.352, 0.745, ZF + 0.001, 'r');
-  { const y = F + 0.118; // under the sink: traps, bleach, soap, bucket
-    for (const x of [-0.4, 0.0]) { I.cyl(PL, 0.022, 0.022, 0.2, M(x, F + 0.63, -2.76), { seg: 8, color: 0xe9e4d6 }); I.geo(PL, new THREE.TorusGeometry(0.05, 0.02, 6, 10, PI), M(x - 0.05, F + 0.53, -2.76, 0, 0, PI), { color: 0xe9e4d6 }); I.cyl(PL, 0.02, 0.02, 0.3, M(x - 0.1, F + 0.56, -2.9, PI / 2 - 0.3, 0, 0), { seg: 8, color: 0xe9e4d6 }); }
-    I.geo(PL, soft(0.16, 0.28, 0.11, { r: 0.03 }), M(-0.5, y + 0.14, -2.62), { color: 0xe9e4d6 }); I.cyl(PL, 0.022, 0.022, 0.03, M(-0.5, y + 0.295, -2.62), { seg: 8, color: 0x2f5fb0 }); bottle(I, PL, M(-0.3, y, -2.58), 0.035, 0.24, 0xd9c23a, 0xc23b33); bottle(I, PL, M(-0.18, y, -2.62), 0.03, 0.22, 0x3fa0d9, 0xe9e4d6);
-    I.geo(PL, lathe([[0, 0], [0.1, 0], [0.105, 0.008], [0.125, 0.22], [0.118, 0.22], [0.1, 0.012], [0, 0.01]], 16), M(0.08, y, -2.64), { color: 0xc23b33 }); I.geo(PL, soft(0.14, 0.1, 0.1, { r: 0.03, puff: 0.02 }), M(0.08, y + 0.2, -2.64), { color: 0xd9b23a });
-    for (let i = 0; i < 5; i++) I.box(i < 2 ? WD : ST, 0.012, 0.3 + i * 0.06, 0.4, M(0.29 + i * 0.03, y + 0.15 + i * 0.03, -2.74, 0, 0, 0.04), { color: i < 2 ? v(0xb39a78) : v(0x8a8a86), bevel: 0.003 });
-    pot(M(1.42, y, -2.72), 0.13, 0.17); pot(M(1.42, y + 0.19, -2.72), 0.1, 0.09, 0x9a9a96, 0.16); pot(M(1.72, y, -2.76, 0, 1, 0), 0.105, 0.1, 0x6a6a68, 0.17); I.geo(MT, lathe([[0, 0], [0.12, 0], [0.135, 0.04], [0.128, 0.04], [0.115, 0.008], [0, 0.008]], 18), M(1.72, y + 0.12, -2.74), { color: 0x1c1c1e }); I.box(MT, 0.17, 0.012, 0.028, M(1.72, y + 0.15, -2.56, 0, PI / 2, 0), { color: 0x1c1c1e, bevel: 0.005 });
-    const sy2 = F + 0.478; bowl(I, ST, M(1.42, sy2, -2.74), 0xb9b9b4, 0.13, 0.11); for (let i = 0; i < 3; i++) I.geo(ST, lathe([[0.12 - i * 0.01, 0], [0.03, 0.02], [0, 0.022]], 16), M(1.74, sy2 + i * 0.014, -2.74), { color: v(0xa8a8a4) }); I.cyl(PL, 0.012, 0.012, 0.02, M(1.74, sy2 + 0.06, -2.74), { seg: 8, color: 0x16171a }); }
+  door(LN, 0, 'kitchen_door_sink_l', 'sink cabinet', -0.64, 0.115, 0.44, 0.745, ZF + 0.001, 'l');
+  door(LN, 0, 'kitchen_door_sink_r', 'sink cabinet', 0.24, 0.115, 0.44, 0.745, ZF + 0.001, 'r');
+  door(LN, 0, 'kitchen_door_trays', 'tray cabinet', 0.258, 0.115, 0.184, 0.745, ZF + 0.001, 'l');
+  door(LN, 0, 'kitchen_door_pots_l', 'pots cabinet', 1.23, 0.115, 0.352, 0.745, ZF + 0.001, 'l');
+  door(LN, 0, 'kitchen_door_pots_r', 'pots cabinet', 1.935, 0.115, 0.352, 0.745, ZF + 0.001, 'r');
+  {
+    const y = F + 0.118; // under the sink: traps, bleach, soap, bucket
+    for (const x of [-0.4, 0.0]) {
+      I.cyl(PL, 0.022, 0.022, 0.2, M(x, F + 0.63, -2.76), { seg: 8, color: 0xe9e4d6 });
+      I.geo(
+        PL,
+        new THREE.TorusGeometry(0.05, 0.02, 6, 10, PI),
+        M(x - 0.05, F + 0.53, -2.76, 0, 0, PI),
+        { color: 0xe9e4d6 },
+      );
+      I.cyl(PL, 0.02, 0.02, 0.3, M(x - 0.1, F + 0.56, -2.9, PI / 2 - 0.3, 0, 0), {
+        seg: 8,
+        color: 0xe9e4d6,
+      });
+    }
+    I.geo(PL, soft(0.16, 0.28, 0.11, { r: 0.03 }), M(-0.5, y + 0.14, -2.62), { color: 0xe9e4d6 });
+    I.cyl(PL, 0.022, 0.022, 0.03, M(-0.5, y + 0.295, -2.62), { seg: 8, color: 0x2f5fb0 });
+    bottle(I, PL, M(-0.3, y, -2.58), 0.035, 0.24, 0xd9c23a, 0xc23b33);
+    bottle(I, PL, M(-0.18, y, -2.62), 0.03, 0.22, 0x3fa0d9, 0xe9e4d6);
+    I.geo(
+      PL,
+      lathe(
+        [
+          [0, 0],
+          [0.1, 0],
+          [0.105, 0.008],
+          [0.125, 0.22],
+          [0.118, 0.22],
+          [0.1, 0.012],
+          [0, 0.01],
+        ],
+        16,
+      ),
+      M(0.08, y, -2.64),
+      { color: 0xc23b33 },
+    );
+    I.geo(PL, soft(0.14, 0.1, 0.1, { r: 0.03, puff: 0.02 }), M(0.08, y + 0.2, -2.64), {
+      color: 0xd9b23a,
+    });
+    for (let i = 0; i < 5; i++)
+      I.box(
+        i < 2 ? WD : ST,
+        0.012,
+        0.3 + i * 0.06,
+        0.4,
+        M(0.29 + i * 0.03, y + 0.15 + i * 0.03, -2.74, 0, 0, 0.04),
+        { color: i < 2 ? v(0xb39a78) : v(0x8a8a86), bevel: 0.003 },
+      );
+    pot(M(1.42, y, -2.72), 0.13, 0.17);
+    pot(M(1.42, y + 0.19, -2.72), 0.1, 0.09, 0x9a9a96, 0.16);
+    pot(M(1.72, y, -2.76, 0, 1, 0), 0.105, 0.1, 0x6a6a68, 0.17);
+    I.geo(
+      MT,
+      lathe(
+        [
+          [0, 0],
+          [0.12, 0],
+          [0.135, 0.04],
+          [0.128, 0.04],
+          [0.115, 0.008],
+          [0, 0.008],
+        ],
+        18,
+      ),
+      M(1.72, y + 0.12, -2.74),
+      { color: 0x1c1c1e },
+    );
+    I.box(MT, 0.17, 0.012, 0.028, M(1.72, y + 0.15, -2.56, 0, PI / 2, 0), {
+      color: 0x1c1c1e,
+      bevel: 0.005,
+    });
+    const sy2 = F + 0.478;
+    bowl(I, ST, M(1.42, sy2, -2.74), 0xb9b9b4, 0.13, 0.11);
+    for (let i = 0; i < 3; i++)
+      I.geo(
+        ST,
+        lathe(
+          [
+            [0.12 - i * 0.01, 0],
+            [0.03, 0.02],
+            [0, 0.022],
+          ],
+          16,
+        ),
+        M(1.74, sy2 + i * 0.014, -2.74),
+        { color: v(0xa8a8a4) },
+      );
+    I.cyl(PL, 0.012, 0.012, 0.02, M(1.74, sy2 + 0.06, -2.74), { seg: 8, color: 0x16171a });
+  }
 
   // --- wall cabinets ---
-  const LW = place(0, F, zN + 0.16, 0), ZW = 0.161;
-  carcass(LW, -1.78, -0.88, 1.37, 2.1, 0.32, { shelves: [1.72] }); carcass(LW, 0.45, 1.21, 1.72, 2.1, 0.32); carcass(LW, 1.22, 1.945, 1.37, 2.1, 0.32, { shelves: [1.72] });
-  door(LW, 0, 'kitchen_wall_dishes_l', 'dish cabinet', -1.77, 1.375, 0.44, 0.72, ZW, 'l'); door(LW, 0, 'kitchen_wall_dishes_r', 'dish cabinet', -0.89, 1.375, 0.44, 0.72, ZW, 'r');
-  door(LW, 0, 'kitchen_wall_hood_l', 'top cabinet', 0.46, 1.725, 0.37, 0.37, ZW, 'l'); door(LW, 0, 'kitchen_wall_hood_r', 'top cabinet', 1.2, 1.725, 0.37, 0.37, ZW, 'r');
-  door(LW, 0, 'kitchen_wall_food_l', 'cupboard', 1.23, 1.375, 0.352, 0.72, ZW, 'l'); door(LW, 0, 'kitchen_wall_food_r', 'cupboard', 1.935, 1.375, 0.352, 0.72, ZW, 'r');
-  { const y0 = F + 1.39, y1 = F + 1.728, z = zN + 0.17;
-    plates(M(-1.58, y0, z), 7, 0xe9e4d6); plates(M(-1.58, y0 + 0.085, z), 3, 0x5f8a8a, 0.1); for (let i = 0; i < 4; i++) bowl(I, CE, M(-1.3, y0 + i * 0.022, z), v([0xe9e4d6, 0xc9822f, 0xe9e4d6, 0x5f8a8a][i], 0.04), 0.08, 0.065); for (let i = 0; i < 5; i++) glass(M(-1.12 + (i % 3) * 0.075, y0, z - 0.06 + Math.floor(i / 3) * 0.1), i === 2 ? 0xd9c9a0 : 0xbfe0e0);
-    for (let i = 0; i < 5; i++) mug(M(-1.66 + i * 0.105, y1, z + j(0.03), 0, r() * 6, 0), v([0xe9e4d6, 0x2f6f7a, 0xc23b33, 0xd9b23a, 0x3a3a3e][i], 0.05)); I.geo(CE, lathe([[0, 0], [0.06, 0], [0.075, 0.1], [0.055, 0.2], [0.065, 0.24], [0.058, 0.24], [0.048, 0.2], [0.068, 0.1], [0.055, 0.008], [0, 0.008]], 16), M(-1.06, y1, z), { color: 0xd9d4c6 });
-    ['canA', 'canB', 'canC', 'canD', 'canA', 'canE'].forEach((n, i) => { const e = n === 'canE'; tin(n, M(1.32 + (i % 4) * 0.085, y0 + (e ? 0.022 : 0.055) + (i > 3 && !e ? 0.112 : 0), z - 0.03 + (e ? 0.1 : 0), 0, r() * 6, 0), e ? 0.042 : 0.037, e ? 0.042 : 0.11); }); tin('coffee', M(1.74, y0 + 0.07, z, 0, 2, 0), 0.05, 0.14);
-    I.cyl(PG, 0.04, 0.04, 0.11, M(1.84, y0 + 0.055, z - 0.02), { seg: 12, color: 0x9a6a3a }); I.cyl(PL, 0.042, 0.042, 0.02, M(1.84, y0 + 0.12, z - 0.02), { seg: 12, color: 0xc23b33 });
-    for (let i = 0; i < 6; i++) I.box(MT, 0.1, 0.03, 0.12, M(1.34 + j(0.006), y1 + 0.015 + i * 0.031, z + j(0.006), 0, j(0.1), 0), { color: v(i % 2 ? 0xd9722a : 0xe9c23a, 0.05), bevel: 0.004 }); bottle(I, PG, M(1.52, y1, z), 0.036, 0.26, 0x7a4a1a, 0x16171a); bottle(I, PG, M(1.62, y1, z + 0.03), 0.022, 0.16, 0xb5322a, 0x2f7f3a); A.wrap(I, 'hot', M(1.62, y1 + 0.055, z + 0.03), 0.0225, 0.05, 10);
-    I.geo(PL, soft(0.16, 0.2, 0.1, { r: 0.03, puff: 0.03, puffB: 1 }), M(1.8, y1 + 0.1, z, 0, 0.2, 0), { color: 0xd9a23a });
-    I.box(PL, 0.2, 0.1, 0.14, M(0.62, F + 1.79, z), { color: 0xe9e4d6, bevel: 0.01 }); I.box(PL, 0.06, 0.02, 0.002, M(0.62, F + 1.79, z + 0.071), { color: 0xc0281f }); I.box(PL, 0.02, 0.06, 0.002, M(0.62, F + 1.79, z + 0.071), { color: 0xc0281f }); I.cyl(MP, 0.022, 0.022, 0.18, M(0.95, F + 1.762, z, 0, 0.5, PI / 2), { seg: 10, color: 0xd9b23a }); for (let i = 0; i < 4; i++) I.cyl(MT, 0.011, 0.011, 0.15, M(1.05 + i * 0.024, F + 1.815, z + 0.02), { seg: 8, color: 0xe9e4d6 }); }
+  const LW = place(0, F, zN + 0.16, 0),
+    ZW = 0.161;
+  carcass(LW, -1.78, -0.88, 1.37, 2.1, 0.32, { shelves: [1.72] });
+  carcass(LW, 0.45, 1.21, 1.72, 2.1, 0.32);
+  carcass(LW, 1.22, 1.945, 1.37, 2.1, 0.32, { shelves: [1.72] });
+  door(LW, 0, 'kitchen_wall_dishes_l', 'dish cabinet', -1.77, 1.375, 0.44, 0.72, ZW, 'l');
+  door(LW, 0, 'kitchen_wall_dishes_r', 'dish cabinet', -0.89, 1.375, 0.44, 0.72, ZW, 'r');
+  door(LW, 0, 'kitchen_wall_hood_l', 'top cabinet', 0.46, 1.725, 0.37, 0.37, ZW, 'l');
+  door(LW, 0, 'kitchen_wall_hood_r', 'top cabinet', 1.2, 1.725, 0.37, 0.37, ZW, 'r');
+  door(LW, 0, 'kitchen_wall_food_l', 'cupboard', 1.23, 1.375, 0.352, 0.72, ZW, 'l');
+  door(LW, 0, 'kitchen_wall_food_r', 'cupboard', 1.935, 1.375, 0.352, 0.72, ZW, 'r');
+  {
+    const y0 = F + 1.39,
+      y1 = F + 1.728,
+      z = zN + 0.17;
+    plates(M(-1.58, y0, z), 7, 0xe9e4d6);
+    plates(M(-1.58, y0 + 0.085, z), 3, 0x5f8a8a, 0.1);
+    for (let i = 0; i < 4; i++)
+      bowl(
+        I,
+        CE,
+        M(-1.3, y0 + i * 0.022, z),
+        v([0xe9e4d6, 0xc9822f, 0xe9e4d6, 0x5f8a8a][i], 0.04),
+        0.08,
+        0.065,
+      );
+    for (let i = 0; i < 5; i++)
+      glass(
+        M(-1.12 + (i % 3) * 0.075, y0, z - 0.06 + Math.floor(i / 3) * 0.1),
+        i === 2 ? 0xd9c9a0 : 0xbfe0e0,
+      );
+    for (let i = 0; i < 5; i++)
+      mug(
+        M(-1.66 + i * 0.105, y1, z + j(0.03), 0, r() * 6, 0),
+        v([0xe9e4d6, 0x2f6f7a, 0xc23b33, 0xd9b23a, 0x3a3a3e][i], 0.05),
+      );
+    I.geo(
+      CE,
+      lathe(
+        [
+          [0, 0],
+          [0.06, 0],
+          [0.075, 0.1],
+          [0.055, 0.2],
+          [0.065, 0.24],
+          [0.058, 0.24],
+          [0.048, 0.2],
+          [0.068, 0.1],
+          [0.055, 0.008],
+          [0, 0.008],
+        ],
+        16,
+      ),
+      M(-1.06, y1, z),
+      { color: 0xd9d4c6 },
+    );
+    ['canA', 'canB', 'canC', 'canD', 'canA', 'canE'].forEach((n, i) => {
+      const e = n === 'canE';
+      tin(
+        n,
+        M(
+          1.32 + (i % 4) * 0.085,
+          y0 + (e ? 0.022 : 0.055) + (i > 3 && !e ? 0.112 : 0),
+          z - 0.03 + (e ? 0.1 : 0),
+          0,
+          r() * 6,
+          0,
+        ),
+        e ? 0.042 : 0.037,
+        e ? 0.042 : 0.11,
+      );
+    });
+    tin('coffee', M(1.74, y0 + 0.07, z, 0, 2, 0), 0.05, 0.14);
+    I.cyl(PG, 0.04, 0.04, 0.11, M(1.84, y0 + 0.055, z - 0.02), { seg: 12, color: 0x9a6a3a });
+    I.cyl(PL, 0.042, 0.042, 0.02, M(1.84, y0 + 0.12, z - 0.02), { seg: 12, color: 0xc23b33 });
+    for (let i = 0; i < 6; i++)
+      I.box(
+        MT,
+        0.1,
+        0.03,
+        0.12,
+        M(1.34 + j(0.006), y1 + 0.015 + i * 0.031, z + j(0.006), 0, j(0.1), 0),
+        { color: v(i % 2 ? 0xd9722a : 0xe9c23a, 0.05), bevel: 0.004 },
+      );
+    bottle(I, PG, M(1.52, y1, z), 0.036, 0.26, 0x7a4a1a, 0x16171a);
+    bottle(I, PG, M(1.62, y1, z + 0.03), 0.022, 0.16, 0xb5322a, 0x2f7f3a);
+    A.wrap(I, 'hot', M(1.62, y1 + 0.055, z + 0.03), 0.0225, 0.05, 10);
+    I.geo(
+      PL,
+      soft(0.16, 0.2, 0.1, { r: 0.03, puff: 0.03, puffB: 1 }),
+      M(1.8, y1 + 0.1, z, 0, 0.2, 0),
+      { color: 0xd9a23a },
+    );
+    I.box(PL, 0.2, 0.1, 0.14, M(0.62, F + 1.79, z), { color: 0xe9e4d6, bevel: 0.01 });
+    I.box(PL, 0.06, 0.02, 0.002, M(0.62, F + 1.79, z + 0.071), { color: 0xc0281f });
+    I.box(PL, 0.02, 0.06, 0.002, M(0.62, F + 1.79, z + 0.071), { color: 0xc0281f });
+    I.cyl(MP, 0.022, 0.022, 0.18, M(0.95, F + 1.762, z, 0, 0.5, PI / 2), {
+      seg: 10,
+      color: 0xd9b23a,
+    });
+    for (let i = 0; i < 4; i++)
+      I.cyl(MT, 0.011, 0.011, 0.15, M(1.05 + i * 0.024, F + 1.815, z + 0.02), {
+        seg: 8,
+        color: 0xe9e4d6,
+      });
+  }
 
   // --- range hood ---
-  { const L = place(0.83, F, zN, 0), hc = 0xdcd6c2; I.box(MP, 0.76, 0.1, 0.46, L(0, 1.67, 0.23), { color: hc, bevel: 0.006 }); I.box(MP, 0.76, 0.06, 0.5, L(0, 1.6, 0.25, 0.06), { color: v(hc, 0.02), bevel: 0.006 }); I.box(MT, 0.5, 0.004, 0.3, L(-0.08, 1.567, 0.24, 0.06), { color: 0x4a4a46 });
-    for (let i = 0; i < 12; i++) I.box(ST, 0.5, 0.003, 0.006, L(-0.08, 1.564, 0.1 + i * 0.026, 0.06), { color: 0x9a9a94 }); I.box(PG, 0.1, 0.003, 0.12, L(0.28, 1.566, 0.28, 0.06), { color: 0xe9e4c8 }); for (const x of [0.2, 0.3]) I.box(PL, 0.03, 0.014, 0.012, L(x, 1.6, 0.502, 0.06), { color: 0x2a2a2e, bevel: 0.002 });
-    I.geo(MT, new THREE.PlaneGeometry(0.7, 0.16), L(0, 1.45, 0.014), { color: 0xcdbf96 });                                    // grease haze on the tile behind the range
+  {
+    const L = place(0.83, F, zN, 0),
+      hc = 0xdcd6c2;
+    I.box(MP, 0.76, 0.1, 0.46, L(0, 1.67, 0.23), { color: hc, bevel: 0.006 });
+    I.box(MP, 0.76, 0.06, 0.5, L(0, 1.6, 0.25, 0.06), { color: v(hc, 0.02), bevel: 0.006 });
+    I.box(MT, 0.5, 0.004, 0.3, L(-0.08, 1.567, 0.24, 0.06), { color: 0x4a4a46 });
+    for (let i = 0; i < 12; i++)
+      I.box(ST, 0.5, 0.003, 0.006, L(-0.08, 1.564, 0.1 + i * 0.026, 0.06), { color: 0x9a9a94 });
+    I.box(PG, 0.1, 0.003, 0.12, L(0.28, 1.566, 0.28, 0.06), { color: 0xe9e4c8 });
+    for (const x of [0.2, 0.3])
+      I.box(PL, 0.03, 0.014, 0.012, L(x, 1.6, 0.502, 0.06), { color: 0x2a2a2e, bevel: 0.002 });
+    I.geo(MT, new THREE.PlaneGeometry(0.7, 0.16), L(0, 1.45, 0.014), { color: 0xcdbf96 }); // grease haze on the tile behind the range
   }
 
   // =====================================================================================================================
   // RANGE: four coil burners with their own knobs, oven with a drop door
   // =====================================================================================================================
-  { const LS = place(0.83, F, zN + 0.32, 0), wc = 0xe9e5d6;
-    for (const s of [-1, 1]) I.box(MP, 0.02, 0.8, 0.62, LS(s * 0.37, 0.48, 0), { color: v(wc, 0.02), bevel: 0.004 }); I.box(MP, 0.76, 0.035, 0.645, LS(0, CT - 0.0175, 0), { color: wc, bevel: 0.008 }); I.box(MP, 0.76, 0.2, 0.05, LS(0, CT + 0.1, -0.295), { color: wc, bevel: 0.008 });
-    I.box(MP, 0.74, 0.13, 0.02, LS(0, 0.145, 0.31), { color: v(wc, 0.02), bevel: 0.005 }); I.box(MP, 0.3, 0.014, 0.02, LS(0, 0.19, 0.326), { color: 0xb9b9b4, bevel: 0.004 }); I.box(MT, 0.72, 0.07, 0.5, LS(0, 0.04, 0), { color: 0x1a1a1a }); I.box(MP, 0.74, 0.1, 0.02, LS(0, 0.825, 0.31), { color: v(wc, 0.02), bevel: 0.005 });
-    for (const [sx, sy2, sz, x, y, z] of [[0.7, 0.5, 0.01, 0, 0.5, -0.27], [0.01, 0.5, 0.54, -0.352, 0.5, 0], [0.01, 0.5, 0.54, 0.352, 0.5, 0], [0.7, 0.01, 0.54, 0, 0.245, 0], [0.7, 0.01, 0.54, 0, 0.765, 0]]) I.box(MT, sx, sy2, sz, LS(x, y, z), { color: 0x1c1b1a });
-    for (const ry of [0.4, 0.56]) { for (let i = 0; i < 11; i++) I.cyl(ST, 0.0025, 0.0025, 0.5, LS(-0.3 + i * 0.06, ry, 0, PI / 2, 0, 0), { seg: 5, color: 0x9a9a94 }); for (const z of [-0.25, 0.25]) I.cyl(ST, 0.003, 0.003, 0.68, LS(0, ry, z, 0, 0, PI / 2), { seg: 5, color: 0x9a9a94 }); }
-    I.box(ST, 0.42, 0.012, 0.3, LS(0, 0.412, 0), { color: 0x77726a, bevel: 0.004 }); I.box(MT, 0.4, 0.004, 0.28, LS(0, 0.42, 0), { color: 0xb9b9b4 }); I.geo(MT, new THREE.CylinderGeometry(0.11, 0.11, 0.012, 3, 1, false, 0, 1.0), LS(0.02, 0.428, 0.04), { color: 0xc9923a });
-    mover({ id: 'oven_door', label: 'oven', ikind: 'oven', pos: wpt(LS(), 0, 0.225, 0.32), ry: 0, kind: 'drop', max: 1.48, ipos: wpt(LS(), 0, 0.6, 0.45), radius: 1.0, draw: (bt) => {
-      bt.box(MP, 0.74, 0.535, 0.035, M(0, 0.2675, 0.0175), { color: wc, bevel: 0.006 }); bt.box(MP, 0.46, 0.25, 0.004, M(0, 0.28, 0.036), { color: 0x0c0c0d }); bt.box(MP, 0.7, 0.5, 0.004, M(0, 0.2675, -0.001), { color: 0x2a2a2a });
-      bt.cyl(MP, 0.011, 0.011, 0.6, M(0, 0.49, 0.075, 0, 0, PI / 2), { seg: 8, color: 0xb9b9b4 }); for (const s of [-1, 1]) bt.box(MP, 0.02, 0.02, 0.045, M(s * 0.27, 0.49, 0.055), { color: 0xb9b9b4, bevel: 0.004 }); } });
+  {
+    const LS = place(0.83, F, zN + 0.32, 0),
+      wc = 0xe9e5d6;
+    for (const s of [-1, 1])
+      I.box(MP, 0.02, 0.8, 0.62, LS(s * 0.37, 0.48, 0), { color: v(wc, 0.02), bevel: 0.004 });
+    I.box(MP, 0.76, 0.035, 0.645, LS(0, CT - 0.0175, 0), { color: wc, bevel: 0.008 });
+    I.box(MP, 0.76, 0.2, 0.05, LS(0, CT + 0.1, -0.295), { color: wc, bevel: 0.008 });
+    I.box(MP, 0.74, 0.13, 0.02, LS(0, 0.145, 0.31), { color: v(wc, 0.02), bevel: 0.005 });
+    I.box(MP, 0.3, 0.014, 0.02, LS(0, 0.19, 0.326), { color: 0xb9b9b4, bevel: 0.004 });
+    I.box(MT, 0.72, 0.07, 0.5, LS(0, 0.04, 0), { color: 0x1a1a1a });
+    I.box(MP, 0.74, 0.1, 0.02, LS(0, 0.825, 0.31), { color: v(wc, 0.02), bevel: 0.005 });
+    for (const [sx, sy2, sz, x, y, z] of [
+      [0.7, 0.5, 0.01, 0, 0.5, -0.27],
+      [0.01, 0.5, 0.54, -0.352, 0.5, 0],
+      [0.01, 0.5, 0.54, 0.352, 0.5, 0],
+      [0.7, 0.01, 0.54, 0, 0.245, 0],
+      [0.7, 0.01, 0.54, 0, 0.765, 0],
+    ])
+      I.box(MT, sx, sy2, sz, LS(x, y, z), { color: 0x1c1b1a });
+    for (const ry of [0.4, 0.56]) {
+      for (let i = 0; i < 11; i++)
+        I.cyl(ST, 0.0025, 0.0025, 0.5, LS(-0.3 + i * 0.06, ry, 0, PI / 2, 0, 0), {
+          seg: 5,
+          color: 0x9a9a94,
+        });
+      for (const z of [-0.25, 0.25])
+        I.cyl(ST, 0.003, 0.003, 0.68, LS(0, ry, z, 0, 0, PI / 2), { seg: 5, color: 0x9a9a94 });
+    }
+    I.box(ST, 0.42, 0.012, 0.3, LS(0, 0.412, 0), { color: 0x77726a, bevel: 0.004 });
+    I.box(MT, 0.4, 0.004, 0.28, LS(0, 0.42, 0), { color: 0xb9b9b4 });
+    I.geo(
+      MT,
+      new THREE.CylinderGeometry(0.11, 0.11, 0.012, 3, 1, false, 0, 1.0),
+      LS(0.02, 0.428, 0.04),
+      { color: 0xc9923a },
+    );
+    mover({
+      id: 'oven_door',
+      label: 'oven',
+      ikind: 'oven',
+      pos: wpt(LS(), 0, 0.225, 0.32),
+      ry: 0,
+      kind: 'drop',
+      max: 1.48,
+      ipos: wpt(LS(), 0, 0.6, 0.45),
+      radius: 1.0,
+      draw: (bt) => {
+        bt.box(MP, 0.74, 0.535, 0.035, M(0, 0.2675, 0.0175), { color: wc, bevel: 0.006 });
+        bt.box(MP, 0.46, 0.25, 0.004, M(0, 0.28, 0.036), { color: 0x0c0c0d });
+        bt.box(MP, 0.7, 0.5, 0.004, M(0, 0.2675, -0.001), { color: 0x2a2a2a });
+        bt.cyl(MP, 0.011, 0.011, 0.6, M(0, 0.49, 0.075, 0, 0, PI / 2), { seg: 8, color: 0xb9b9b4 });
+        for (const s of [-1, 1])
+          bt.box(MP, 0.02, 0.02, 0.045, M(s * 0.27, 0.49, 0.055), {
+            color: 0xb9b9b4,
+            bevel: 0.004,
+          });
+      },
+    });
     // burners
-    const BR = [[-0.19, 0.14, 0.075, 'front left'], [-0.19, -0.1, 0.1, 'back left'], [0.19, -0.1, 0.075, 'back right'], [0.19, 0.14, 0.1, 'front right']], kx = [-0.2, -0.3, 0.3, 0.2];
-    const hot = new Uint8Array(16), hT = new THREE.DataTexture(hot, 4, 1, THREE.RGBAFormat); hT.colorSpace = THREE.SRGBColorSpace; hT.magFilter = hT.minFilter = THREE.NearestFilter; hT.needsUpdate = true;
-    const cM = own({ color: 0x1c1c1e, roughness: 0.65, emissive: 0xffffff, emissiveMap: hT, emissiveIntensity: 2.4 }), cb = kit.batch('coils');
-    BR.forEach(([x, z, rad], i) => { I.geo(CH, lathe([[rad + 0.026, 0.001], [rad + 0.016, 0.007], [rad + 0.006, 0.004], [rad * 0.6, 0.002], [0.012, 0.002]], 22), LS(x, CT, z), { color: 0x9a9a96 }); I.cyl(MT, rad + 0.004, rad + 0.004, 0.002, LS(x, CT + 0.0035, z), { seg: 18, color: 0x1a1a1a });
-      const pts = [], turns = rad > 0.09 ? 4 : 3; for (let k = 0; k <= 90; k++) { const t = k / 90, a = t * turns * 6.283, rr = 0.016 + (rad - 0.018) * t; pts.push(new THREE.Vector3(Math.cos(a) * rr, 0, Math.sin(a) * rr)); }
-      cb.geo(cM, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 120, 0.0058, 6), LS(x, CT + 0.016, z, 0, i * 1.3, 0), { uvMul: [0, 0], uvOff: [(i + 0.5) / 4, 0.5] }); for (let k = 0; k < 3; k++) I.box(ST, rad * 2, 0.004, 0.008, LS(x, CT + 0.009, z, 0, k * 2.094, 0), { color: 0x77726a }); });
+    const BR = [
+        [-0.19, 0.14, 0.075, 'front left'],
+        [-0.19, -0.1, 0.1, 'back left'],
+        [0.19, -0.1, 0.075, 'back right'],
+        [0.19, 0.14, 0.1, 'front right'],
+      ],
+      kx = [-0.2, -0.3, 0.3, 0.2];
+    const hot = new Uint8Array(16),
+      hT = new THREE.DataTexture(hot, 4, 1, THREE.RGBAFormat);
+    hT.colorSpace = THREE.SRGBColorSpace;
+    hT.magFilter = hT.minFilter = THREE.NearestFilter;
+    hT.needsUpdate = true;
+    const cM = own({
+        color: 0x1c1c1e,
+        roughness: 0.65,
+        emissive: 0xffffff,
+        emissiveMap: hT,
+        emissiveIntensity: 2.4,
+      }),
+      cb = kit.batch('coils');
+    BR.forEach(([x, z, rad], i) => {
+      I.geo(
+        CH,
+        lathe(
+          [
+            [rad + 0.026, 0.001],
+            [rad + 0.016, 0.007],
+            [rad + 0.006, 0.004],
+            [rad * 0.6, 0.002],
+            [0.012, 0.002],
+          ],
+          22,
+        ),
+        LS(x, CT, z),
+        { color: 0x9a9a96 },
+      );
+      I.cyl(MT, rad + 0.004, rad + 0.004, 0.002, LS(x, CT + 0.0035, z), {
+        seg: 18,
+        color: 0x1a1a1a,
+      });
+      const pts = [],
+        turns = rad > 0.09 ? 4 : 3;
+      for (let k = 0; k <= 90; k++) {
+        const t = k / 90,
+          a = t * turns * 6.283,
+          rr = 0.016 + (rad - 0.018) * t;
+        pts.push(new THREE.Vector3(Math.cos(a) * rr, 0, Math.sin(a) * rr));
+      }
+      cb.geo(
+        cM,
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 120, 0.0058, 6),
+        LS(x, CT + 0.016, z, 0, i * 1.3, 0),
+        { uvMul: [0, 0], uvOff: [(i + 0.5) / 4, 0.5] },
+      );
+      for (let k = 0; k < 3; k++)
+        I.box(ST, rad * 2, 0.004, 0.008, LS(x, CT + 0.009, z, 0, k * 2.094, 0), {
+          color: 0x77726a,
+        });
+    });
     cb.build(ctx.groups.dyn, { cast: false });
-    const kb = kit.batch('knob'); kb.cyl(PL, 0.017, 0.021, 0.024, M(0, 0, 0.012, PI / 2, 0, 0), { seg: 14, color: 0x2a2a2e }); kb.box(PL, 0.005, 0.034, 0.008, M(0, 0.004, 0.026), { color: 0xe9e4d6 }); const kg = kb.build(null)[0].geometry, kbase = kx.map((x) => LS(x, CT + 0.085, -0.27));
-    const knobs = kit.instances(kg, PL, kbase); ctx.groups.dyn.add(knobs); for (const x of kx) I.cyl(MT, 0.027, 0.027, 0.002, LS(x, CT + 0.085, -0.2695, PI / 2, 0, 0), { seg: 14, color: 0xb9b9b4 });
-    A.plane(I, 'stoveclock', LS(0, CT + 0.12, -0.2685), 0.16, 0.05); I.cyl(PL, 0.019, 0.022, 0.022, LS(0, CT + 0.06, -0.259, PI / 2, 0, 0), { seg: 14, color: 0x2a2a2e });
-    const st = BR.map(() => ({ on: false, h: 0 })); ctx.stove = { burners: st };
-    BR.forEach(([x, z, rad, nm], i) => ctx.addInteract({ id: 'stove_knob_' + i, kind: 'stove', label: () => `${st[i].on ? 'Turn off' : 'Turn on'} ${nm} burner`, pos: wpt(LS(), kx[i], CT + 0.1, -0.2), radius: 1.05, use: (env) => { st[i].on = !st[i].on; knobs.setMatrixAt(i, kbase[i].clone().multiply(M(0, 0, 0, 0, 0, st[i].on ? -2.2 : 0))); knobs.instanceMatrix.needsUpdate = true; env?.emit?.('stove:burner', { index: i, on: st[i].on }); return st[i].on; } }));
-    ctx.updaters.push((dt) => { let ch = false; st.forEach((b, i) => { const t = b.on ? 1 : 0; if (b.h === t) return; b.h += Math.sign(t - b.h) * dt * (b.on ? 0.22 : 0.12); b.h = Math.max(0, Math.min(1, b.h)); const h = b.h; hot[i * 4] = 255 * Math.min(1, h * 1.5); hot[i * 4 + 1] = 255 * h * h * 0.42; hot[i * 4 + 2] = 255 * h * h * h * h * 0.1; hot[i * 4 + 3] = 255; ch = true; }); if (ch) hT.needsUpdate = true; });
+    const kb = kit.batch('knob');
+    kb.cyl(PL, 0.017, 0.021, 0.024, M(0, 0, 0.012, PI / 2, 0, 0), { seg: 14, color: 0x2a2a2e });
+    kb.box(PL, 0.005, 0.034, 0.008, M(0, 0.004, 0.026), { color: 0xe9e4d6 });
+    const kg = kb.build(null)[0].geometry,
+      kbase = kx.map((x) => LS(x, CT + 0.085, -0.27));
+    const knobs = kit.instances(kg, PL, kbase);
+    ctx.groups.dyn.add(knobs);
+    for (const x of kx)
+      I.cyl(MT, 0.027, 0.027, 0.002, LS(x, CT + 0.085, -0.2695, PI / 2, 0, 0), {
+        seg: 14,
+        color: 0xb9b9b4,
+      });
+    A.plane(I, 'stoveclock', LS(0, CT + 0.12, -0.2685), 0.16, 0.05);
+    I.cyl(PL, 0.019, 0.022, 0.022, LS(0, CT + 0.06, -0.259, PI / 2, 0, 0), {
+      seg: 14,
+      color: 0x2a2a2e,
+    });
+    const st = BR.map(() => ({ on: false, h: 0 }));
+    ctx.stove = { burners: st };
+    BR.forEach(([x, z, rad, nm], i) =>
+      ctx.addInteract({
+        id: 'stove_knob_' + i,
+        kind: 'stove',
+        label: () => `${st[i].on ? 'Turn off' : 'Turn on'} ${nm} burner`,
+        pos: wpt(LS(), kx[i], CT + 0.1, -0.2),
+        radius: 1.05,
+        use: (env) => {
+          st[i].on = !st[i].on;
+          knobs.setMatrixAt(i, kbase[i].clone().multiply(M(0, 0, 0, 0, 0, st[i].on ? -2.2 : 0)));
+          knobs.instanceMatrix.needsUpdate = true;
+          env?.emit?.('stove:burner', { index: i, on: st[i].on });
+          return st[i].on;
+        },
+      }),
+    );
+    ctx.updaters.push((dt) => {
+      let ch = false;
+      st.forEach((b, i) => {
+        const t = b.on ? 1 : 0;
+        if (b.h === t) return;
+        b.h += Math.sign(t - b.h) * dt * (b.on ? 0.22 : 0.12);
+        b.h = Math.max(0, Math.min(1, b.h));
+        const h = b.h;
+        hot[i * 4] = 255 * Math.min(1, h * 1.5);
+        hot[i * 4 + 1] = 255 * h * h * 0.42;
+        hot[i * 4 + 2] = 255 * h * h * h * h * 0.1;
+        hot[i * 4 + 3] = 255;
+        ch = true;
+      });
+      if (ch) hT.needsUpdate = true;
+    });
     // dented kettle on the back left burner, cast-iron pan on the front right
-    { const m = LS(-0.19, CT + 0.024, -0.1, 0, 0.6, 0), g = lathe([[0, 0], [0.085, 0], [0.098, 0.012], [0.1, 0.06], [0.085, 0.11], [0.05, 0.135], [0.03, 0.14], [0, 0.14]], 20), p = g.attributes.position;
-      for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), d = Math.exp(-(((x - 0.09) ** 2 + (y - 0.07) ** 2 + (z - 0.03) ** 2) / 0.0012)) * 0.016; p.setXYZ(i, x - d, y, z - d * 0.3); } g.computeVertexNormals(); I.geo(ST, g, m, { color: 0xa9a7a0 });
-      I.cyl(ST, 0.03, 0.032, 0.008, m.clone().multiply(M(0, 0.143, 0)), { seg: 12, color: 0x8a8880 }); I.geo(PL, new THREE.SphereGeometry(0.014, 8, 6), m.clone().multiply(M(0, 0.158, 0)), { color: 0x16171a }); I.cyl(ST, 0.009, 0.02, 0.09, m.clone().multiply(M(-0.115, 0.1, 0, 0, 0, 0.9)), { seg: 8, color: 0xa9a7a0 });
-      I.tube(PL, [wpt(m, -0.05, 0.13, 0), wpt(m, -0.045, 0.2, 0), wpt(m, 0.03, 0.215, 0), wpt(m, 0.085, 0.17, 0), wpt(m, 0.088, 0.1, 0)], 0.008, { seg: 6, color: 0x16171a });
-      const pm = LS(0.19, CT + 0.022, 0.14, 0, -0.5, 0); I.geo(MT, lathe([[0, 0], [0.105, 0], [0.125, 0.045], [0.118, 0.045], [0.1, 0.008], [0, 0.008]], 22), pm, { color: 0x151516 }); I.box(MT, 0.16, 0.014, 0.03, pm.clone().multiply(M(0.2, 0.04, 0)), { color: 0x151516, bevel: 0.005 }); I.cyl(PL, 0.095, 0.095, 0.002, pm.clone().multiply(M(0, 0.01, 0)), { seg: 16, color: 0x5a4a2a }); }
+    {
+      const m = LS(-0.19, CT + 0.024, -0.1, 0, 0.6, 0),
+        g = lathe(
+          [
+            [0, 0],
+            [0.085, 0],
+            [0.098, 0.012],
+            [0.1, 0.06],
+            [0.085, 0.11],
+            [0.05, 0.135],
+            [0.03, 0.14],
+            [0, 0.14],
+          ],
+          20,
+        ),
+        p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i),
+          y = p.getY(i),
+          z = p.getZ(i),
+          d = Math.exp(-(((x - 0.09) ** 2 + (y - 0.07) ** 2 + (z - 0.03) ** 2) / 0.0012)) * 0.016;
+        p.setXYZ(i, x - d, y, z - d * 0.3);
+      }
+      g.computeVertexNormals();
+      I.geo(ST, g, m, { color: 0xa9a7a0 });
+      I.cyl(ST, 0.03, 0.032, 0.008, m.clone().multiply(M(0, 0.143, 0)), {
+        seg: 12,
+        color: 0x8a8880,
+      });
+      I.geo(PL, new THREE.SphereGeometry(0.014, 8, 6), m.clone().multiply(M(0, 0.158, 0)), {
+        color: 0x16171a,
+      });
+      I.cyl(ST, 0.009, 0.02, 0.09, m.clone().multiply(M(-0.115, 0.1, 0, 0, 0, 0.9)), {
+        seg: 8,
+        color: 0xa9a7a0,
+      });
+      I.tube(
+        PL,
+        [
+          wpt(m, -0.05, 0.13, 0),
+          wpt(m, -0.045, 0.2, 0),
+          wpt(m, 0.03, 0.215, 0),
+          wpt(m, 0.085, 0.17, 0),
+          wpt(m, 0.088, 0.1, 0),
+        ],
+        0.008,
+        { seg: 6, color: 0x16171a },
+      );
+      const pm = LS(0.19, CT + 0.022, 0.14, 0, -0.5, 0);
+      I.geo(
+        MT,
+        lathe(
+          [
+            [0, 0],
+            [0.105, 0],
+            [0.125, 0.045],
+            [0.118, 0.045],
+            [0.1, 0.008],
+            [0, 0.008],
+          ],
+          22,
+        ),
+        pm,
+        { color: 0x151516 },
+      );
+      I.box(MT, 0.16, 0.014, 0.03, pm.clone().multiply(M(0.2, 0.04, 0)), {
+        color: 0x151516,
+        bevel: 0.005,
+      });
+      I.cyl(PL, 0.095, 0.095, 0.002, pm.clone().multiply(M(0, 0.01, 0)), {
+        seg: 16,
+        color: 0x5a4a2a,
+      });
+    }
   }
   col.box(0.2475, F + 0.46, -2.73, 3.395, 0.92, 0.64, { tag: 'furniture' });
 
   // --- counter appliances: microwave, coffee maker, dish rack, spice shelf ---
-  { const m = M(1.685, F + CT, zN + 0.2), K = (x, y, z) => m.clone().multiply(M(x, y, z)); I.box(MP, 0.47, 0.27, 0.36, K(0, 0.14, 0), { color: 0xd4cdb8, bevel: 0.008 }); I.box(PG, 0.33, 0.22, 0.006, K(-0.055, 0.14, 0.181), { color: 0x0c0d0f, bevel: 0.003 }); I.box(PG, 0.24, 0.14, 0.003, K(-0.065, 0.14, 0.185), { color: 0x1a1c20 }); A.plane(I, 'mw', K(0.175, 0.14, 0.1815), 0.1, 0.22); I.box(PL, 0.016, 0.2, 0.02, K(0.1, 0.14, 0.192), { color: 0x2a2a2e, bevel: 0.004 }); for (const [x, z] of [[-0.2, -0.15], [0.2, -0.15], [-0.2, 0.15], [0.2, 0.15]]) I.cyl(RB, 0.012, 0.012, 0.01, K(x, 0.003, z), { seg: 6, color: 0x16171a });
-    const c = M(1.32, F + CT, zN + 0.19), C2 = (x, y, z, rx = 0, ry = 0, rz = 0) => c.clone().multiply(M(x, y, z, rx, ry, rz)), bc = 0x1c1d20; I.box(PL, 0.18, 0.03, 0.24, C2(0, 0.015, 0), { color: bc, bevel: 0.008 }); I.box(PL, 0.18, 0.3, 0.085, C2(0, 0.17, -0.078), { color: bc, bevel: 0.008 }); I.box(PL, 0.18, 0.07, 0.24, C2(0, 0.3, 0), { color: bc, bevel: 0.012 }); I.cyl(ST, 0.065, 0.065, 0.004, C2(0, 0.032, 0.035), { seg: 16, color: 0x3a3a3c });
-    I.geo(PG, lathe([[0, 0], [0.058, 0], [0.068, 0.02], [0.066, 0.1], [0.05, 0.135], [0.052, 0.14], [0.044, 0.14], [0.058, 0.1], [0.06, 0.022], [0, 0.006]], 16), C2(0, 0.035, 0.035), { color: 0x3a2a1c }); I.cyl(PG, 0.059, 0.057, 0.05, C2(0, 0.065, 0.035), { seg: 14, color: 0x1a0f08 }); I.geo(PL, new THREE.TorusGeometry(0.04, 0.007, 6, 10, PI), C2(0, 0.1, 0.105, 0, PI / 2, -PI / 2), { color: bc }); I.box(imat.emissive(0xff5a2a, 2.5, 'cof'), 0.012, 0.008, 0.002, C2(0.06, 0.02, 0.121), {});
+  {
+    const m = M(1.685, F + CT, zN + 0.2),
+      K = (x, y, z) => m.clone().multiply(M(x, y, z));
+    I.box(MP, 0.47, 0.27, 0.36, K(0, 0.14, 0), { color: 0xd4cdb8, bevel: 0.008 });
+    I.box(PG, 0.33, 0.22, 0.006, K(-0.055, 0.14, 0.181), { color: 0x0c0d0f, bevel: 0.003 });
+    I.box(PG, 0.24, 0.14, 0.003, K(-0.065, 0.14, 0.185), { color: 0x1a1c20 });
+    A.plane(I, 'mw', K(0.175, 0.14, 0.1815), 0.1, 0.22);
+    I.box(PL, 0.016, 0.2, 0.02, K(0.1, 0.14, 0.192), { color: 0x2a2a2e, bevel: 0.004 });
+    for (const [x, z] of [
+      [-0.2, -0.15],
+      [0.2, -0.15],
+      [-0.2, 0.15],
+      [0.2, 0.15],
+    ])
+      I.cyl(RB, 0.012, 0.012, 0.01, K(x, 0.003, z), { seg: 6, color: 0x16171a });
+    const c = M(1.32, F + CT, zN + 0.19),
+      C2 = (x, y, z, rx = 0, ry = 0, rz = 0) => c.clone().multiply(M(x, y, z, rx, ry, rz)),
+      bc = 0x1c1d20;
+    I.box(PL, 0.18, 0.03, 0.24, C2(0, 0.015, 0), { color: bc, bevel: 0.008 });
+    I.box(PL, 0.18, 0.3, 0.085, C2(0, 0.17, -0.078), { color: bc, bevel: 0.008 });
+    I.box(PL, 0.18, 0.07, 0.24, C2(0, 0.3, 0), { color: bc, bevel: 0.012 });
+    I.cyl(ST, 0.065, 0.065, 0.004, C2(0, 0.032, 0.035), { seg: 16, color: 0x3a3a3c });
+    I.geo(
+      PG,
+      lathe(
+        [
+          [0, 0],
+          [0.058, 0],
+          [0.068, 0.02],
+          [0.066, 0.1],
+          [0.05, 0.135],
+          [0.052, 0.14],
+          [0.044, 0.14],
+          [0.058, 0.1],
+          [0.06, 0.022],
+          [0, 0.006],
+        ],
+        16,
+      ),
+      C2(0, 0.035, 0.035),
+      { color: 0x3a2a1c },
+    );
+    I.cyl(PG, 0.059, 0.057, 0.05, C2(0, 0.065, 0.035), { seg: 14, color: 0x1a0f08 });
+    I.geo(
+      PL,
+      new THREE.TorusGeometry(0.04, 0.007, 6, 10, PI),
+      C2(0, 0.1, 0.105, 0, PI / 2, -PI / 2),
+      { color: bc },
+    );
+    I.box(imat.emissive(0xff5a2a, 2.5, 'cof'), 0.012, 0.008, 0.002, C2(0.06, 0.02, 0.121), {});
     // dish rack with a few clean things
-    const d = M(-1.06, F + CT, -2.76, 0, 0.04, 0), D = (x, y, z, rx = 0, ry = 0, rz = 0) => d.clone().multiply(M(x, y, z, rx, ry, rz)); I.box(RB, 0.44, 0.008, 0.34, D(0, 0.004, 0), { color: 0x2a2c2e, bevel: 0.003 });
-    for (const y of [0.03, 0.11]) for (const s of [-1, 1]) { I.cyl(ST, 0.003, 0.003, 0.4, D(0, y, s * 0.15, 0, 0, PI / 2), { seg: 5, color: 0xd9d9d4 }); I.cyl(ST, 0.003, 0.003, 0.3, D(s * 0.2, y, 0, PI / 2, 0, 0), { seg: 5, color: 0xd9d9d4 }); } for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) I.cyl(ST, 0.003, 0.003, 0.11, D(x * 0.2, 0.065, z * 0.15), { seg: 5, color: 0xd9d9d4 });
-    for (let i = 0; i < 9; i++) I.geo(ST, new THREE.TorusGeometry(0.05, 0.0025, 4, 10, PI), D(-0.17 + i * 0.03, 0.03, -0.04, 0, PI / 2, 0), { color: 0xd9d9d4 });
-    for (let i = 0; i < 3; i++) I.geo(CE, lathe([[0, 0], [0.07, 0], [0.125, 0.014], [0.125, 0.018], [0.07, 0.008], [0, 0.008]], 20), D(-0.14 + i * 0.06, 0.155, -0.04, 0, 0, PI / 2 - 0.12), { color: v(0xe9e4d6, 0.03) }); mug(D(0.1, 0.13, 0.06, PI, 0.5, 0), 0x2f6f7a); glass(D(0.14, 0.15, -0.07, PI, 0, 0)); I.box(PL, 0.06, 0.1, 0.1, D(0.18, 0.08, -0.02), { color: 0xe9e4d6, bevel: 0.006 }); for (let i = 0; i < 4; i++) I.box(ST, 0.012, 0.19, 0.003, D(0.17 + j(0.015), 0.13, -0.02 + j(0.03), j(0.15), 0, j(0.15)), { color: 0xc9c9c4 });
-    I.box(WD, 0.46, 0.012, 0.075, M(-1.2, F + 1.12, zN + 0.05), { color: v(0xb39a78), bevel: 0.003 }); I.box(WD, 0.46, 0.012, 0.01, M(-1.2, F + 1.16, zN + 0.085), { color: v(0xb39a78), bevel: 0.002 }); for (const s of [-1, 1]) I.box(WD, 0.012, 0.09, 0.075, M(-1.2 + s * 0.23, F + 1.15, zN + 0.05), { color: v(0xb39a78), bevel: 0.002 });
-    for (let i = 0; i < 8; i++) { const x = -1.39 + i * 0.054; I.cyl(PG, 0.021, 0.021, 0.075, M(x, F + 1.165, zN + 0.05), { seg: 10, color: v([0x8a3a1a, 0x5a6a2a, 0xc9a23a, 0x3a2a1c, 0xb5322a, 0xd9d4c6, 0x6a4a2a, 0x2f5f3a][i], 0.06) }); I.cyl(PL, 0.022, 0.022, 0.016, M(x, F + 1.21, zN + 0.05), { seg: 10, color: i % 3 ? 0xc0281f : 0x16171a }); }
+    const d = M(-1.06, F + CT, -2.76, 0, 0.04, 0),
+      D = (x, y, z, rx = 0, ry = 0, rz = 0) => d.clone().multiply(M(x, y, z, rx, ry, rz));
+    I.box(RB, 0.44, 0.008, 0.34, D(0, 0.004, 0), { color: 0x2a2c2e, bevel: 0.003 });
+    for (const y of [0.03, 0.11])
+      for (const s of [-1, 1]) {
+        I.cyl(ST, 0.003, 0.003, 0.4, D(0, y, s * 0.15, 0, 0, PI / 2), { seg: 5, color: 0xd9d9d4 });
+        I.cyl(ST, 0.003, 0.003, 0.3, D(s * 0.2, y, 0, PI / 2, 0, 0), { seg: 5, color: 0xd9d9d4 });
+      }
+    for (const [x, z] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ])
+      I.cyl(ST, 0.003, 0.003, 0.11, D(x * 0.2, 0.065, z * 0.15), { seg: 5, color: 0xd9d9d4 });
+    for (let i = 0; i < 9; i++)
+      I.geo(
+        ST,
+        new THREE.TorusGeometry(0.05, 0.0025, 4, 10, PI),
+        D(-0.17 + i * 0.03, 0.03, -0.04, 0, PI / 2, 0),
+        { color: 0xd9d9d4 },
+      );
+    for (let i = 0; i < 3; i++)
+      I.geo(
+        CE,
+        lathe(
+          [
+            [0, 0],
+            [0.07, 0],
+            [0.125, 0.014],
+            [0.125, 0.018],
+            [0.07, 0.008],
+            [0, 0.008],
+          ],
+          20,
+        ),
+        D(-0.14 + i * 0.06, 0.155, -0.04, 0, 0, PI / 2 - 0.12),
+        { color: v(0xe9e4d6, 0.03) },
+      );
+    mug(D(0.1, 0.13, 0.06, PI, 0.5, 0), 0x2f6f7a);
+    glass(D(0.14, 0.15, -0.07, PI, 0, 0));
+    I.box(PL, 0.06, 0.1, 0.1, D(0.18, 0.08, -0.02), { color: 0xe9e4d6, bevel: 0.006 });
+    for (let i = 0; i < 4; i++)
+      I.box(
+        ST,
+        0.012,
+        0.19,
+        0.003,
+        D(0.17 + j(0.015), 0.13, -0.02 + j(0.03), j(0.15), 0, j(0.15)),
+        { color: 0xc9c9c4 },
+      );
+    I.box(WD, 0.46, 0.012, 0.075, M(-1.2, F + 1.12, zN + 0.05), {
+      color: v(0xb39a78),
+      bevel: 0.003,
+    });
+    I.box(WD, 0.46, 0.012, 0.01, M(-1.2, F + 1.16, zN + 0.085), {
+      color: v(0xb39a78),
+      bevel: 0.002,
+    });
+    for (const s of [-1, 1])
+      I.box(WD, 0.012, 0.09, 0.075, M(-1.2 + s * 0.23, F + 1.15, zN + 0.05), {
+        color: v(0xb39a78),
+        bevel: 0.002,
+      });
+    for (let i = 0; i < 8; i++) {
+      const x = -1.39 + i * 0.054;
+      I.cyl(PG, 0.021, 0.021, 0.075, M(x, F + 1.165, zN + 0.05), {
+        seg: 10,
+        color: v(
+          [0x8a3a1a, 0x5a6a2a, 0xc9a23a, 0x3a2a1c, 0xb5322a, 0xd9d4c6, 0x6a4a2a, 0x2f5f3a][i],
+          0.06,
+        ),
+      });
+      I.cyl(PL, 0.022, 0.022, 0.016, M(x, F + 1.21, zN + 0.05), {
+        seg: 10,
+        color: i % 3 ? 0xc0281f : 0x16171a,
+      });
+    }
   }
 
   // =====================================================================================================================
   // PENINSULA (cabinets face the kitchen, beadboard and two stools on the living-room side)
   // =====================================================================================================================
-  { const LP = place(-1.725, F, 0, PI / 2), ZP = 0.276, RY = PI / 2;
-    carcass(LP, 1.05, 1.75, B0, B1, 0.55, { kick: true }); carcass(LP, 1.75, 2.45, B0, B1, 0.55, { kick: true, shelves: [0.5] }); I.box(IP, 0.6, 0.775, 0.02, LP(2.75, 0.4875, 0.265), cabO()); I.box(IP, 1.4, 0.02, 0.5, LP(1.75, 0.71 - 0.02, -0.01), cabO());
-    for (let i = 0; i < 20; i++) I.box(IP, 0.098, 0.8, 0.012, LP(1.1 + i * 0.1, 0.475, -0.281), { color: v(0x8fbcb2, 0.035), wear: 0.2 + r() * 0.3, bevel: 0.003, grain: 1, rand: r }); I.box(IP, 2.0, 0.07, 0.016, LP(2.05, 0.11, -0.29), { color: v(0x8fbcb2, 0.03), wear: 0.5, bevel: 0.003 }); I.box(IP, 0.012, 0.8, 0.56, LP(1.044, 0.475, 0), { color: v(0x8fbcb2, 0.03), wear: 0.3, bevel: 0.003 });
-    counter(-2.3, -1.43, zN, -1.03); for (const [x0, x1, z0, z1] of [[-2.304, -2.3, zN, -1.03], [-1.43, -1.426, -2.425, -1.03]]) I.box(ST, x1 - x0, 0.03, z1 - z0, M((x0 + x1) / 2, F + CT - 0.02, (z0 + z1) / 2), { color: 0xb5b5ae }); I.box(ST, 0.874, 0.03, 0.004, M(-1.865, F + CT - 0.02, -1.028), { color: 0xb5b5ae });
-    for (const z of [-1.2, -2.0, -2.8]) I.strut(WD, [-2.01, F + 0.62, z], [-2.27, F + CT - 0.045, z], 0.04, 0.03, { color: v(0xb39a78) });
-    door(LP, RY, 'kitchen_pen_a_l', 'cabinet', 1.76, 0.115, 0.34, 0.745, ZP, 'l'); door(LP, RY, 'kitchen_pen_a_r', 'cabinet', 2.44, 0.115, 0.34, 0.745, ZP, 'r'); door(LP, RY, 'kitchen_pen_b_l', 'cabinet', 1.06, 0.115, 0.34, 0.565, ZP, 'l'); door(LP, RY, 'kitchen_pen_b_r', 'cabinet', 1.74, 0.115, 0.34, 0.565, ZP, 'r');
-    drawer(LP, RY, 'kitchen_drawer_junk', 'junk drawer', 1.4, 0.7, 0.66, 0.165, ZP, 0.45, (bt, w, d, y) => {
-      for (let i = 0; i < 6; i++) bt.cyl(IP, 0.007, 0.007, 0.05, M(-0.22 + j(0.05), y + 0.008, -0.1 + j(0.05), PI / 2, r() * 3, 0), { seg: 6, color: i % 2 ? 0xc9a23a : 0x2a2a2e, wear: 0 });
-      bt.geo(IP, new THREE.TorusGeometry(0.038, 0.016, 6, 16), M(-0.05, y + 0.016, -0.12, PI / 2, 0, 0), { color: 0x9c9c98, wear: 0 }); bt.geo(IP, new THREE.TorusGeometry(0.03, 0.012, 6, 14), M(0.04, y + 0.012, -0.2, PI / 2, 0, 0), { color: 0xd9d0b0, wear: 0 });
-      for (let i = 0; i < 5; i++) bt.geo(IP, new THREE.TorusGeometry(0.018 + r() * 0.012, 0.0015, 3, 12), M(0.12 + j(0.04), y + 0.003 + i * 0.002, -0.1 + j(0.04), PI / 2, 0, 0), { color: [0xc9a573, 0xc23b33, 0x2f6fb0][i % 3], wear: 0 });
-      A.plane(bt, 'menu', M(-0.14, y + 0.004, -0.31, -PI / 2, 0.2, 0), 0.1, 0.175); A.plane(bt, 'coupon', M(0.02, y + 0.005, -0.33, -PI / 2, -0.3, 0), 0.15, 0.083); A.plane(bt, 'scratch', M(0.17, y + 0.004, -0.3, -PI / 2, 0.5, 0), 0.1, 0.05);
-      bt.cyl(IP, 0.009, 0.009, 0.1, M(0.22, y + 0.01, -0.14, PI / 2, 0.3, 0), { seg: 8, color: 0xd9a52a, wear: 0 }); bt.cyl(IP, 0.003, 0.003, 0.09, M(0.25, y + 0.01, -0.23, PI / 2, 0.3, 0), { seg: 5, color: 0x9a9a96, wear: 0 }); bt.box(IP, 0.055, 0.016, 0.036, M(-0.22, y + 0.008, -0.24, 0, 0.4, 0), { color: 0xc0281f, wear: 0, bevel: 0.002 }); bt.box(IP, 0.025, 0.012, 0.075, M(-0.12, y + 0.008, -0.22, 0, -0.6, 0), { color: 0x2f9a6a, wear: 0, bevel: 0.003 });
-      bt.box(IP, 0.065, 0.02, 0.09, M(0.2, y + 0.011, -0.38, 0, 0.1, 0), { color: 0x1f3f8a, wear: 0, bevel: 0.003 }); for (let i = 0; i < 4; i++) bt.cyl(IP, 0.0035, 0.0035, 0.14, M(-0.02 + i * 0.012, y + 0.006, -0.4 + j(0.01), PI / 2, PI / 2 + j(0.2), 0), { seg: 5, color: [0x2f4f8a, 0x16171a, 0xc23b33, 0x2f4f8a][i], wear: 0 }); });
-    { const y = F + 0.118, y2 = F + 0.508; for (let i = 0; i < 3; i++) bowl(I, i ? PL : ST, M(-1.74, y + i * 0.03, -2.25), [0xb9b9b4, 0x3a9a7a, 0xd9b23a][i], 0.15 - i * 0.02, 0.1 - i * 0.012);
-      I.geo(CE, lathe([[0, 0], [0.12, 0], [0.135, 0.02], [0.135, 0.15], [0.125, 0.16], [0, 0.16]], 18), M(-1.76, y, -1.93), { color: 0x2a2a2e }); I.geo(PG, lathe([[0.125, 0.16], [0.11, 0.185], [0.03, 0.2], [0, 0.2]], 18), M(-1.76, y, -1.93), { color: 0x8a9a9a }); I.cyl(PL, 0.02, 0.02, 0.025, M(-1.76, y + 0.21, -1.93), { seg: 8, color: 0x16171a });
-      I.cyl(PL, 0.07, 0.08, 0.12, M(-1.72, y2 + 0.06, -2.25), { seg: 14, color: 0xe9e4d6 }); I.geo(PG, lathe([[0, 0], [0.05, 0], [0.065, 0.2], [0.06, 0.2], [0.046, 0.006], [0, 0.006]], 12), M(-1.72, y2 + 0.12, -2.25), { color: 0xbfd9d9 }); for (let i = 0; i < 4; i++) I.box(PL, 0.17, 0.045, 0.17, M(-1.74 + j(0.01), y2 + 0.024 + i * 0.046, -1.95 + j(0.01), 0, j(0.1), 0), { color: v([0xbfd9e0, 0xd9b23a, 0xbfd9e0, 0xc23b33][i], 0.04), bevel: 0.01 });
-      I.geo(PL, soft(0.3, 0.28, 0.3, { r: 0.08 }), M(-1.74, y + 0.14, -1.56), { color: 0xe9e4d6 }); I.geo(PL, soft(0.2, 0.16, 0.22, { r: 0.06, puff: 0.03, puffB: 1 }), M(-1.74, y + 0.36, -1.55, 0, 0.4, 0), { color: 0xd9d4c6 }); I.box(MP, 0.2, 0.17, 0.36, M(-1.72, y + 0.085, -1.23, 0, 0.05, 0), { color: 0xb5322a, bevel: 0.008 }); I.box(MP, 0.2, 0.02, 0.04, M(-1.72, y + 0.19, -1.23), { color: 0x2a2a2e, bevel: 0.006 }); }
+  {
+    const LP = place(-1.725, F, 0, PI / 2),
+      ZP = 0.276,
+      RY = PI / 2;
+    carcass(LP, 1.05, 1.75, B0, B1, 0.55, { kick: true });
+    carcass(LP, 1.75, 2.45, B0, B1, 0.55, { kick: true, shelves: [0.5] });
+    I.box(IP, 0.6, 0.775, 0.02, LP(2.75, 0.4875, 0.265), cabO());
+    I.box(IP, 1.4, 0.02, 0.5, LP(1.75, 0.71 - 0.02, -0.01), cabO());
+    for (let i = 0; i < 20; i++)
+      I.box(IP, 0.098, 0.8, 0.012, LP(1.1 + i * 0.1, 0.475, -0.281), {
+        color: v(0x8fbcb2, 0.035),
+        wear: 0.2 + r() * 0.3,
+        bevel: 0.003,
+        grain: 1,
+        rand: r,
+      });
+    I.box(IP, 2.0, 0.07, 0.016, LP(2.05, 0.11, -0.29), {
+      color: v(0x8fbcb2, 0.03),
+      wear: 0.5,
+      bevel: 0.003,
+    });
+    I.box(IP, 0.012, 0.8, 0.56, LP(1.044, 0.475, 0), {
+      color: v(0x8fbcb2, 0.03),
+      wear: 0.3,
+      bevel: 0.003,
+    });
+    counter(-2.3, -1.43, zN, -1.03);
+    for (const [x0, x1, z0, z1] of [
+      [-2.304, -2.3, zN, -1.03],
+      [-1.43, -1.426, -2.425, -1.03],
+    ])
+      I.box(ST, x1 - x0, 0.03, z1 - z0, M((x0 + x1) / 2, F + CT - 0.02, (z0 + z1) / 2), {
+        color: 0xb5b5ae,
+      });
+    I.box(ST, 0.874, 0.03, 0.004, M(-1.865, F + CT - 0.02, -1.028), { color: 0xb5b5ae });
+    for (const z of [-1.2, -2.0, -2.8])
+      I.strut(WD, [-2.01, F + 0.62, z], [-2.27, F + CT - 0.045, z], 0.04, 0.03, {
+        color: v(0xb39a78),
+      });
+    door(LP, RY, 'kitchen_pen_a_l', 'cabinet', 1.76, 0.115, 0.34, 0.745, ZP, 'l');
+    door(LP, RY, 'kitchen_pen_a_r', 'cabinet', 2.44, 0.115, 0.34, 0.745, ZP, 'r');
+    door(LP, RY, 'kitchen_pen_b_l', 'cabinet', 1.06, 0.115, 0.34, 0.565, ZP, 'l');
+    door(LP, RY, 'kitchen_pen_b_r', 'cabinet', 1.74, 0.115, 0.34, 0.565, ZP, 'r');
+    drawer(
+      LP,
+      RY,
+      'kitchen_drawer_junk',
+      'junk drawer',
+      1.4,
+      0.7,
+      0.66,
+      0.165,
+      ZP,
+      0.45,
+      (bt, w, d, y) => {
+        for (let i = 0; i < 6; i++)
+          bt.cyl(
+            IP,
+            0.007,
+            0.007,
+            0.05,
+            M(-0.22 + j(0.05), y + 0.008, -0.1 + j(0.05), PI / 2, r() * 3, 0),
+            { seg: 6, color: i % 2 ? 0xc9a23a : 0x2a2a2e, wear: 0 },
+          );
+        bt.geo(
+          IP,
+          new THREE.TorusGeometry(0.038, 0.016, 6, 16),
+          M(-0.05, y + 0.016, -0.12, PI / 2, 0, 0),
+          { color: 0x9c9c98, wear: 0 },
+        );
+        bt.geo(
+          IP,
+          new THREE.TorusGeometry(0.03, 0.012, 6, 14),
+          M(0.04, y + 0.012, -0.2, PI / 2, 0, 0),
+          { color: 0xd9d0b0, wear: 0 },
+        );
+        for (let i = 0; i < 5; i++)
+          bt.geo(
+            IP,
+            new THREE.TorusGeometry(0.018 + r() * 0.012, 0.0015, 3, 12),
+            M(0.12 + j(0.04), y + 0.003 + i * 0.002, -0.1 + j(0.04), PI / 2, 0, 0),
+            { color: [0xc9a573, 0xc23b33, 0x2f6fb0][i % 3], wear: 0 },
+          );
+        A.plane(bt, 'menu', M(-0.14, y + 0.004, -0.31, -PI / 2, 0.2, 0), 0.1, 0.175);
+        A.plane(bt, 'coupon', M(0.02, y + 0.005, -0.33, -PI / 2, -0.3, 0), 0.15, 0.083);
+        A.plane(bt, 'scratch', M(0.17, y + 0.004, -0.3, -PI / 2, 0.5, 0), 0.1, 0.05);
+        bt.cyl(IP, 0.009, 0.009, 0.1, M(0.22, y + 0.01, -0.14, PI / 2, 0.3, 0), {
+          seg: 8,
+          color: 0xd9a52a,
+          wear: 0,
+        });
+        bt.cyl(IP, 0.003, 0.003, 0.09, M(0.25, y + 0.01, -0.23, PI / 2, 0.3, 0), {
+          seg: 5,
+          color: 0x9a9a96,
+          wear: 0,
+        });
+        bt.box(IP, 0.055, 0.016, 0.036, M(-0.22, y + 0.008, -0.24, 0, 0.4, 0), {
+          color: 0xc0281f,
+          wear: 0,
+          bevel: 0.002,
+        });
+        bt.box(IP, 0.025, 0.012, 0.075, M(-0.12, y + 0.008, -0.22, 0, -0.6, 0), {
+          color: 0x2f9a6a,
+          wear: 0,
+          bevel: 0.003,
+        });
+        bt.box(IP, 0.065, 0.02, 0.09, M(0.2, y + 0.011, -0.38, 0, 0.1, 0), {
+          color: 0x1f3f8a,
+          wear: 0,
+          bevel: 0.003,
+        });
+        for (let i = 0; i < 4; i++)
+          bt.cyl(
+            IP,
+            0.0035,
+            0.0035,
+            0.14,
+            M(-0.02 + i * 0.012, y + 0.006, -0.4 + j(0.01), PI / 2, PI / 2 + j(0.2), 0),
+            { seg: 5, color: [0x2f4f8a, 0x16171a, 0xc23b33, 0x2f4f8a][i], wear: 0 },
+          );
+      },
+    );
+    {
+      const y = F + 0.118,
+        y2 = F + 0.508;
+      for (let i = 0; i < 3; i++)
+        bowl(
+          I,
+          i ? PL : ST,
+          M(-1.74, y + i * 0.03, -2.25),
+          [0xb9b9b4, 0x3a9a7a, 0xd9b23a][i],
+          0.15 - i * 0.02,
+          0.1 - i * 0.012,
+        );
+      I.geo(
+        CE,
+        lathe(
+          [
+            [0, 0],
+            [0.12, 0],
+            [0.135, 0.02],
+            [0.135, 0.15],
+            [0.125, 0.16],
+            [0, 0.16],
+          ],
+          18,
+        ),
+        M(-1.76, y, -1.93),
+        { color: 0x2a2a2e },
+      );
+      I.geo(
+        PG,
+        lathe(
+          [
+            [0.125, 0.16],
+            [0.11, 0.185],
+            [0.03, 0.2],
+            [0, 0.2],
+          ],
+          18,
+        ),
+        M(-1.76, y, -1.93),
+        { color: 0x8a9a9a },
+      );
+      I.cyl(PL, 0.02, 0.02, 0.025, M(-1.76, y + 0.21, -1.93), { seg: 8, color: 0x16171a });
+      I.cyl(PL, 0.07, 0.08, 0.12, M(-1.72, y2 + 0.06, -2.25), { seg: 14, color: 0xe9e4d6 });
+      I.geo(
+        PG,
+        lathe(
+          [
+            [0, 0],
+            [0.05, 0],
+            [0.065, 0.2],
+            [0.06, 0.2],
+            [0.046, 0.006],
+            [0, 0.006],
+          ],
+          12,
+        ),
+        M(-1.72, y2 + 0.12, -2.25),
+        { color: 0xbfd9d9 },
+      );
+      for (let i = 0; i < 4; i++)
+        I.box(
+          PL,
+          0.17,
+          0.045,
+          0.17,
+          M(-1.74 + j(0.01), y2 + 0.024 + i * 0.046, -1.95 + j(0.01), 0, j(0.1), 0),
+          { color: v([0xbfd9e0, 0xd9b23a, 0xbfd9e0, 0xc23b33][i], 0.04), bevel: 0.01 },
+        );
+      I.geo(PL, soft(0.3, 0.28, 0.3, { r: 0.08 }), M(-1.74, y + 0.14, -1.56), { color: 0xe9e4d6 });
+      I.geo(
+        PL,
+        soft(0.2, 0.16, 0.22, { r: 0.06, puff: 0.03, puffB: 1 }),
+        M(-1.74, y + 0.36, -1.55, 0, 0.4, 0),
+        { color: 0xd9d4c6 },
+      );
+      I.box(MP, 0.2, 0.17, 0.36, M(-1.72, y + 0.085, -1.23, 0, 0.05, 0), {
+        color: 0xb5322a,
+        bevel: 0.008,
+      });
+      I.box(MP, 0.2, 0.02, 0.04, M(-1.72, y + 0.19, -1.23), { color: 0x2a2a2e, bevel: 0.006 });
+    }
     // on the counter: mail (readable), fruit bowl, cutting board with limes, toaster, knife block, paper towels
-    const cy = F + CT, mailAt = (n, x, z, yaw, w, h, i) => { I.box(MT, w, 0.0012, h, M(x, cy + 0.001 + i * 0.0014, z, 0, yaw, 0), { color: 0xf1ede2 }); A.plane(I, n, M(x, cy + 0.0019 + i * 0.0014, z, -PI / 2, yaw, 0), w, h); };
-    for (let i = 0; i < 3; i++) I.box(MT, 0.105, 0.0012, 0.24, M(-1.9 + j(0.02), cy + 0.001 + i * 0.0013, -1.3 + j(0.03), 0, j(0.3), 0), { color: v(0xece8da, 0.04) });
-    mailAt('marina', -1.93, -1.22, -PI / 2 + 0.22, 0.24, 0.1125, 3); mailAt('post', -1.78, -1.42, -PI / 2 - 0.35, 0.152, 0.102, 4); mailAt('bill', -2.02, -1.4, -PI / 2 - 0.08, 0.24, 0.1125, 5);
-    I.geo(ST, new THREE.TorusGeometry(0.014, 0.0015, 4, 12), M(-1.66, cy + 0.003, -1.2, PI / 2, 0, 0), { color: 0xb9b9b4 }); for (let i = 0; i < 2; i++) I.box(ST, 0.008, 0.002, 0.05, M(-1.64 + i * 0.012, cy + 0.002, -1.17, 0, 0.5 + i * 0.6, 0), { color: 0xc9a23a });
-    bowl(I, CE, M(-1.82, cy, -1.82), 0x2f6f7a, 0.15, 0.085); for (let i = 0; i < 6; i++) I.geo(PL, new THREE.SphereGeometry(0.028, 10, 8), M(-1.82 + Math.cos(i * 1.2) * 0.07 * (i < 5 ? 1 : 0), cy + 0.05 + (i === 5 ? 0.04 : 0), -1.82 + Math.sin(i * 1.2) * 0.07 * (i < 5 ? 1 : 0), 0, 0, 0, 1, 0.92, 1), { color: v(i === 2 ? 0xd9b23a : 0x6a9a2a, 0.08) });
-    for (let i = 0; i < 2; i++) I.tube(PL, [[-1.9 + i * 0.03, cy + 0.085, -1.74], [-1.84 + i * 0.03, cy + 0.11, -1.8], [-1.78 + i * 0.03, cy + 0.105, -1.88], [-1.75 + i * 0.03, cy + 0.085, -1.94]], 0.016, { seg: 6, color: i ? 0xd9b83a : 0xc9a52a });
-    I.box(WD, 0.3, 0.018, 0.2, M(-1.76, cy + 0.009, -2.2, 0, 0.15, 0), { color: v(0xc2a478), bevel: 0.004, wear: 0.2 }); I.geo(PL, new THREE.SphereGeometry(0.027, 10, 8), M(-1.84, cy + 0.045, -2.22), { color: 0x6a9a2a }); for (const [x, z, a] of [[-1.74, -2.16, 0.3], [-1.7, -2.23, 2]]) { I.geo(PL, new THREE.SphereGeometry(0.027, 10, 6, 0, 6.283, 0, PI / 2), M(x, cy + 0.018, z, 0, a, 0), { color: 0x6a9a2a }); I.cyl(PL, 0.0255, 0.0255, 0.002, M(x, cy + 0.019, z), { seg: 10, color: 0xc9d97a }); }
-    I.box(ST, 0.02, 0.002, 0.13, M(-1.66, cy + 0.02, -2.24, 0, 0.5, 0), { color: 0xd9d9d4 }); I.box(PL, 0.022, 0.014, 0.1, M(-1.61, cy + 0.024, -2.14, 0, 0.5, 0), { color: 0x16171a, bevel: 0.004 });
-    { const t = M(-1.98, cy, -2.82, 0, 0.3, 0), K = (x, y, z) => t.clone().multiply(M(x, y, z)); I.geo(ST, soft(0.27, 0.18, 0.16, { r: 0.035 }), K(0, 0.1, 0), { color: 0xc9c9c4 }); I.box(PL, 0.28, 0.02, 0.165, K(0, 0.012, 0), { color: 0x16171a, bevel: 0.006 }); for (const z of [-0.03, 0.03]) I.box(MT, 0.15, 0.004, 0.024, K(-0.01, 0.1905, z), { color: 0x0c0c0d }); I.box(PL, 0.012, 0.03, 0.03, K(0.142, 0.13, 0), { color: 0x16171a, bevel: 0.004 }); I.box(MT, 0.11, 0.07, 0.014, K(0.0, 0.2, 0.03), { color: 0xc9a060, bevel: 0.004 }); }
-    { const kb = M(-1.58, cy, -2.92, 0, -0.4, 0); I.box(WD, 0.1, 0.2, 0.14, kb.clone().multiply(M(0, 0.1, 0, 0.3, 0, 0)), { color: v(0x8a6a48), bevel: 0.006, wear: 0.1 }); for (let i = 0; i < 5; i++) I.box(PL, 0.016, 0.09, 0.022, kb.clone().multiply(M(-0.03 + (i % 3) * 0.03, 0.235 - Math.floor(i / 3) * 0.02, 0.055 + Math.floor(i / 3) * 0.04, 0.3, 0, 0)), { color: 0x16171a, bevel: 0.004 }); }
-    I.cyl(WD, 0.075, 0.075, 0.016, M(-2.14, cy + 0.008, -2.6), { seg: 16, color: v(0xb39a78) }); I.cyl(WD, 0.012, 0.012, 0.31, M(-2.14, cy + 0.165, -2.6), { seg: 8, color: v(0xb39a78) }); I.cyl(MT, 0.062, 0.062, 0.275, M(-2.14, cy + 0.155, -2.6), { seg: 18, color: 0xf1efe8 }); I.box(MT, 0.002, 0.275, 0.09, M(-2.078, cy + 0.155, -2.555, 0, 0.3, 0), { color: 0xf1efe8 });
+    const cy = F + CT,
+      mailAt = (n, x, z, yaw, w, h, i) => {
+        I.box(MT, w, 0.0012, h, M(x, cy + 0.001 + i * 0.0014, z, 0, yaw, 0), { color: 0xf1ede2 });
+        A.plane(I, n, M(x, cy + 0.0019 + i * 0.0014, z, -PI / 2, yaw, 0), w, h);
+      };
+    for (let i = 0; i < 3; i++)
+      I.box(
+        MT,
+        0.105,
+        0.0012,
+        0.24,
+        M(-1.9 + j(0.02), cy + 0.001 + i * 0.0013, -1.3 + j(0.03), 0, j(0.3), 0),
+        { color: v(0xece8da, 0.04) },
+      );
+    mailAt('marina', -1.93, -1.22, -PI / 2 + 0.22, 0.24, 0.1125, 3);
+    mailAt('post', -1.78, -1.42, -PI / 2 - 0.35, 0.152, 0.102, 4);
+    mailAt('bill', -2.02, -1.4, -PI / 2 - 0.08, 0.24, 0.1125, 5);
+    I.geo(
+      ST,
+      new THREE.TorusGeometry(0.014, 0.0015, 4, 12),
+      M(-1.66, cy + 0.003, -1.2, PI / 2, 0, 0),
+      { color: 0xb9b9b4 },
+    );
+    for (let i = 0; i < 2; i++)
+      I.box(ST, 0.008, 0.002, 0.05, M(-1.64 + i * 0.012, cy + 0.002, -1.17, 0, 0.5 + i * 0.6, 0), {
+        color: 0xc9a23a,
+      });
+    bowl(I, CE, M(-1.82, cy, -1.82), 0x2f6f7a, 0.15, 0.085);
+    for (let i = 0; i < 6; i++)
+      I.geo(
+        PL,
+        new THREE.SphereGeometry(0.028, 10, 8),
+        M(
+          -1.82 + Math.cos(i * 1.2) * 0.07 * (i < 5 ? 1 : 0),
+          cy + 0.05 + (i === 5 ? 0.04 : 0),
+          -1.82 + Math.sin(i * 1.2) * 0.07 * (i < 5 ? 1 : 0),
+          0,
+          0,
+          0,
+          1,
+          0.92,
+          1,
+        ),
+        { color: v(i === 2 ? 0xd9b23a : 0x6a9a2a, 0.08) },
+      );
+    for (let i = 0; i < 2; i++)
+      I.tube(
+        PL,
+        [
+          [-1.9 + i * 0.03, cy + 0.085, -1.74],
+          [-1.84 + i * 0.03, cy + 0.11, -1.8],
+          [-1.78 + i * 0.03, cy + 0.105, -1.88],
+          [-1.75 + i * 0.03, cy + 0.085, -1.94],
+        ],
+        0.016,
+        { seg: 6, color: i ? 0xd9b83a : 0xc9a52a },
+      );
+    I.box(WD, 0.3, 0.018, 0.2, M(-1.76, cy + 0.009, -2.2, 0, 0.15, 0), {
+      color: v(0xc2a478),
+      bevel: 0.004,
+      wear: 0.2,
+    });
+    I.geo(PL, new THREE.SphereGeometry(0.027, 10, 8), M(-1.84, cy + 0.045, -2.22), {
+      color: 0x6a9a2a,
+    });
+    for (const [x, z, a] of [
+      [-1.74, -2.16, 0.3],
+      [-1.7, -2.23, 2],
+    ]) {
+      I.geo(
+        PL,
+        new THREE.SphereGeometry(0.027, 10, 6, 0, 6.283, 0, PI / 2),
+        M(x, cy + 0.018, z, 0, a, 0),
+        { color: 0x6a9a2a },
+      );
+      I.cyl(PL, 0.0255, 0.0255, 0.002, M(x, cy + 0.019, z), { seg: 10, color: 0xc9d97a });
+    }
+    I.box(ST, 0.02, 0.002, 0.13, M(-1.66, cy + 0.02, -2.24, 0, 0.5, 0), { color: 0xd9d9d4 });
+    I.box(PL, 0.022, 0.014, 0.1, M(-1.61, cy + 0.024, -2.14, 0, 0.5, 0), {
+      color: 0x16171a,
+      bevel: 0.004,
+    });
+    {
+      const t = M(-1.98, cy, -2.82, 0, 0.3, 0),
+        K = (x, y, z) => t.clone().multiply(M(x, y, z));
+      I.geo(ST, soft(0.27, 0.18, 0.16, { r: 0.035 }), K(0, 0.1, 0), { color: 0xc9c9c4 });
+      I.box(PL, 0.28, 0.02, 0.165, K(0, 0.012, 0), { color: 0x16171a, bevel: 0.006 });
+      for (const z of [-0.03, 0.03])
+        I.box(MT, 0.15, 0.004, 0.024, K(-0.01, 0.1905, z), { color: 0x0c0c0d });
+      I.box(PL, 0.012, 0.03, 0.03, K(0.142, 0.13, 0), { color: 0x16171a, bevel: 0.004 });
+      I.box(MT, 0.11, 0.07, 0.014, K(0.0, 0.2, 0.03), { color: 0xc9a060, bevel: 0.004 });
+    }
+    {
+      const kb = M(-1.58, cy, -2.92, 0, -0.4, 0);
+      I.box(WD, 0.1, 0.2, 0.14, kb.clone().multiply(M(0, 0.1, 0, 0.3, 0, 0)), {
+        color: v(0x8a6a48),
+        bevel: 0.006,
+        wear: 0.1,
+      });
+      for (let i = 0; i < 5; i++)
+        I.box(
+          PL,
+          0.016,
+          0.09,
+          0.022,
+          kb
+            .clone()
+            .multiply(
+              M(
+                -0.03 + (i % 3) * 0.03,
+                0.235 - Math.floor(i / 3) * 0.02,
+                0.055 + Math.floor(i / 3) * 0.04,
+                0.3,
+                0,
+                0,
+              ),
+            ),
+          { color: 0x16171a, bevel: 0.004 },
+        );
+    }
+    I.cyl(WD, 0.075, 0.075, 0.016, M(-2.14, cy + 0.008, -2.6), { seg: 16, color: v(0xb39a78) });
+    I.cyl(WD, 0.012, 0.012, 0.31, M(-2.14, cy + 0.165, -2.6), { seg: 8, color: v(0xb39a78) });
+    I.cyl(MT, 0.062, 0.062, 0.275, M(-2.14, cy + 0.155, -2.6), { seg: 18, color: 0xf1efe8 });
+    I.box(MT, 0.002, 0.275, 0.09, M(-2.078, cy + 0.155, -2.555, 0, 0.3, 0), { color: 0xf1efe8 });
     // stools
-    for (const [x, z, ry] of [[-2.53, -2.38, 0.3], [-2.55, -1.74, -0.5]]) { const L = place(x, F, z, ry); for (let i = 0; i < 4; i++) { const a = i * PI / 2 + PI / 4; I.rod(CH, wpt(L(), Math.cos(a) * 0.13, 0.6, Math.sin(a) * 0.13), wpt(L(), Math.cos(a) * 0.2, 0.01, Math.sin(a) * 0.2), 0.011, { color: 0xcfd2d2 }); I.cyl(RB, 0.014, 0.014, 0.02, L(Math.cos(a) * 0.2, 0.01, Math.sin(a) * 0.2), { seg: 8, color: 0x16171a }); }
-      I.geo(CH, new THREE.TorusGeometry(0.178, 0.008, 6, 24), L(0, 0.22, 0, PI / 2, 0, 0), { color: 0xcfd2d2 }); I.cyl(CH, 0.176, 0.176, 0.025, L(0, 0.612, 0), { seg: 22, color: 0xcfd2d2 }); I.geo(LEA, lathe([[0, 0.62], [0.17, 0.62], [0.178, 0.635], [0.17, 0.662], [0.1, 0.676], [0, 0.68]], 22), L(), { color: v(0xb5483a, 0.05), uvMul: [2, 1] }); if (ry > 0) I.box(MT, 0.1, 0.002, 0.05, L(0.04, 0.6755, 0.03, 0, 0.5, 0), { color: 0x9c9c98 }); }
-    col.box(-1.865, F + 0.46, -2.04, 0.87, 0.92, 2.02, { tag: 'furniture' }); col.box(-2.52, F + 0.35, -2.075, 0.44, 0.7, 1.19, { tag: 'furniture' });
+    for (const [x, z, ry] of [
+      [-2.53, -2.38, 0.3],
+      [-2.55, -1.74, -0.5],
+    ]) {
+      const L = place(x, F, z, ry);
+      for (let i = 0; i < 4; i++) {
+        const a = (i * PI) / 2 + PI / 4;
+        I.rod(
+          CH,
+          wpt(L(), Math.cos(a) * 0.13, 0.6, Math.sin(a) * 0.13),
+          wpt(L(), Math.cos(a) * 0.2, 0.01, Math.sin(a) * 0.2),
+          0.011,
+          { color: 0xcfd2d2 },
+        );
+        I.cyl(RB, 0.014, 0.014, 0.02, L(Math.cos(a) * 0.2, 0.01, Math.sin(a) * 0.2), {
+          seg: 8,
+          color: 0x16171a,
+        });
+      }
+      I.geo(CH, new THREE.TorusGeometry(0.178, 0.008, 6, 24), L(0, 0.22, 0, PI / 2, 0, 0), {
+        color: 0xcfd2d2,
+      });
+      I.cyl(CH, 0.176, 0.176, 0.025, L(0, 0.612, 0), { seg: 22, color: 0xcfd2d2 });
+      I.geo(
+        LEA,
+        lathe(
+          [
+            [0, 0.62],
+            [0.17, 0.62],
+            [0.178, 0.635],
+            [0.17, 0.662],
+            [0.1, 0.676],
+            [0, 0.68],
+          ],
+          22,
+        ),
+        L(),
+        { color: v(0xb5483a, 0.05), uvMul: [2, 1] },
+      );
+      if (ry > 0)
+        I.box(MT, 0.1, 0.002, 0.05, L(0.04, 0.6755, 0.03, 0, 0.5, 0), { color: 0x9c9c98 });
+    }
+    col.box(-1.865, F + 0.46, -2.04, 0.87, 0.92, 2.02, { tag: 'furniture' });
+    col.box(-2.52, F + 0.35, -2.075, 0.44, 0.7, 1.19, { tag: 'furniture' });
   }
 
   // =====================================================================================================================
   // EAST WALL: pantry, top-freezer fridge, trash can, cooler
   // =====================================================================================================================
-  { const LE = place(1.945 - 0.31, F, 0, -PI / 2), RY = -PI / 2, ZE = 0.311;
+  {
+    const LE = place(1.945 - 0.31, F, 0, -PI / 2),
+      RY = -PI / 2,
+      ZE = 0.311;
     carcass(LE, -1.2, -0.6, 0.1, 2.1, 0.62, { kick: true, shelves: [0.5, 0.94, 1.3, 1.66] });
-    door(LE, RY, 'pantry_lower', 'pantry (lower)', -1.19, 0.115, 0.58, 0.815, ZE, 'l', { knobY: 0.7 }); door(LE, RY, 'pantry_upper', 'pantry', -1.19, 0.945, 0.58, 1.14, ZE, 'l', { knobY: 0.12 });
-    const S = (x, y, z, ry = 0) => LE(x, y, z, 0, ry, 0), box = (n, x, y, z, w, h, d, c, ry = 0) => { I.box(MT, w, h, d, S(x, y + h / 2, z, ry), { color: c, bevel: 0.003 }); if (n) A.plane(I, n, S(x, y + h / 2, z, ry).multiply(M(0, 0, d / 2 + 0.001)), w, h); };
-    I.geo(PL, soft(0.36, 0.24, 0.26, { r: 0.04 }), S(-1.0, 0.24, 0.0), { color: 0xcfe0e8 }); for (let i = 0; i < 6; i++) I.cyl(PL, 0.012, 0.012, 0.02, S(-1.12 + (i % 3) * 0.12, 0.365, -0.06 + Math.floor(i / 3) * 0.12), { seg: 8, color: 0x2f6fb0 }); I.geo(JER, soft(0.2, 0.3, 0.14, { r: 0.05, puff: 0.03, puffB: 1 }), S(-0.72, 0.27, 0.02, 0.2), { color: 0xe9e4d6, uvMul: [1, 1] });
-    ['canA', 'canB', 'canC', 'canD', 'canB', 'canA', 'canC', 'canD'].forEach((n, i) => tin(n, S(-1.13 + (i % 4) * 0.085, 0.565 + (i > 5 ? 0.112 : 0), 0.12 - Math.floor(i / 4) * 0.09 * (i > 5 ? 0 : 1), r() * 6), 0.037, 0.11)); for (let i = 0; i < 4; i++) box(null, -0.74 + j(0.005), 0.51 + i * 0.042, 0.05, 0.26, 0.04, 0.09, v([0x2f4f9a, 0xc0281f, 0x2f4f9a, 0xd9b23a][i], 0.05), j(0.1));
-    box('cereal1', -1.05, 0.95, 0.08, 0.19, 0.28, 0.06, 0xe8a23a, 0.15); box('cereal2', -0.84, 0.95, 0.06, 0.19, 0.28, 0.06, 0x3a5fa8, -0.1); box(null, -0.69, 0.95, 0.02, 0.07, 0.22, 0.16, 0xc0281f);
-    for (let i = 0; i < 8; i++) I.box(MT, 0.1, 0.03, 0.12, S(-1.1 + (i % 2) * 0.11 + j(0.005), 1.325 + Math.floor(i / 2) * 0.031, 0.05 + j(0.006), j(0.1)), { color: v(i % 3 ? 0xd9722a : 0xe9c23a, 0.05), bevel: 0.004 }); I.cyl(PG, 0.04, 0.04, 0.11, S(-0.85, 1.365, 0.08), { seg: 12, color: 0x9a6a3a }); I.cyl(PL, 0.042, 0.042, 0.02, S(-0.85, 1.43, 0.08), { seg: 12, color: 0x2f5fb0 }); tin('coffee', S(-0.72, 1.38, 0.05, 1), 0.05, 0.14);
-    I.geo(PL, soft(0.2, 0.26, 0.1, { r: 0.04, puff: 0.03, puffB: 1 }), S(-0.72, 1.8, 0.02, 0.2), { color: 0xc0281f }); I.cyl(MT, 0.1, 0.1, 0.06, S(-1.02, 1.7, 0.02), { seg: 18, color: 0xf1efe8 }); I.cyl(MP, 0.022, 0.022, 0.18, S(-1.0, 1.765, 0.14, 0), { seg: 10, color: 0x2a2a2e }); for (let i = 0; i < 3; i++) I.cyl(MT, 0.012, 0.012, 0.17, S(-0.86 + i * 0.03, 1.755, 0.1), { seg: 8, color: 0xe9e4d6 });
+    door(LE, RY, 'pantry_lower', 'pantry (lower)', -1.19, 0.115, 0.58, 0.815, ZE, 'l', {
+      knobY: 0.7,
+    });
+    door(LE, RY, 'pantry_upper', 'pantry', -1.19, 0.945, 0.58, 1.14, ZE, 'l', { knobY: 0.12 });
+    const S = (x, y, z, ry = 0) => LE(x, y, z, 0, ry, 0),
+      box = (n, x, y, z, w, h, d, c, ry = 0) => {
+        I.box(MT, w, h, d, S(x, y + h / 2, z, ry), { color: c, bevel: 0.003 });
+        if (n) A.plane(I, n, S(x, y + h / 2, z, ry).multiply(M(0, 0, d / 2 + 0.001)), w, h);
+      };
+    I.geo(PL, soft(0.36, 0.24, 0.26, { r: 0.04 }), S(-1.0, 0.24, 0.0), { color: 0xcfe0e8 });
+    for (let i = 0; i < 6; i++)
+      I.cyl(
+        PL,
+        0.012,
+        0.012,
+        0.02,
+        S(-1.12 + (i % 3) * 0.12, 0.365, -0.06 + Math.floor(i / 3) * 0.12),
+        { seg: 8, color: 0x2f6fb0 },
+      );
+    I.geo(JER, soft(0.2, 0.3, 0.14, { r: 0.05, puff: 0.03, puffB: 1 }), S(-0.72, 0.27, 0.02, 0.2), {
+      color: 0xe9e4d6,
+      uvMul: [1, 1],
+    });
+    ['canA', 'canB', 'canC', 'canD', 'canB', 'canA', 'canC', 'canD'].forEach((n, i) =>
+      tin(
+        n,
+        S(
+          -1.13 + (i % 4) * 0.085,
+          0.565 + (i > 5 ? 0.112 : 0),
+          0.12 - Math.floor(i / 4) * 0.09 * (i > 5 ? 0 : 1),
+          r() * 6,
+        ),
+        0.037,
+        0.11,
+      ),
+    );
+    for (let i = 0; i < 4; i++)
+      box(
+        null,
+        -0.74 + j(0.005),
+        0.51 + i * 0.042,
+        0.05,
+        0.26,
+        0.04,
+        0.09,
+        v([0x2f4f9a, 0xc0281f, 0x2f4f9a, 0xd9b23a][i], 0.05),
+        j(0.1),
+      );
+    box('cereal1', -1.05, 0.95, 0.08, 0.19, 0.28, 0.06, 0xe8a23a, 0.15);
+    box('cereal2', -0.84, 0.95, 0.06, 0.19, 0.28, 0.06, 0x3a5fa8, -0.1);
+    box(null, -0.69, 0.95, 0.02, 0.07, 0.22, 0.16, 0xc0281f);
+    for (let i = 0; i < 8; i++)
+      I.box(
+        MT,
+        0.1,
+        0.03,
+        0.12,
+        S(
+          -1.1 + (i % 2) * 0.11 + j(0.005),
+          1.325 + Math.floor(i / 2) * 0.031,
+          0.05 + j(0.006),
+          j(0.1),
+        ),
+        { color: v(i % 3 ? 0xd9722a : 0xe9c23a, 0.05), bevel: 0.004 },
+      );
+    I.cyl(PG, 0.04, 0.04, 0.11, S(-0.85, 1.365, 0.08), { seg: 12, color: 0x9a6a3a });
+    I.cyl(PL, 0.042, 0.042, 0.02, S(-0.85, 1.43, 0.08), { seg: 12, color: 0x2f5fb0 });
+    tin('coffee', S(-0.72, 1.38, 0.05, 1), 0.05, 0.14);
+    I.geo(PL, soft(0.2, 0.26, 0.1, { r: 0.04, puff: 0.03, puffB: 1 }), S(-0.72, 1.8, 0.02, 0.2), {
+      color: 0xc0281f,
+    });
+    I.cyl(MT, 0.1, 0.1, 0.06, S(-1.02, 1.7, 0.02), { seg: 18, color: 0xf1efe8 });
+    I.cyl(MP, 0.022, 0.022, 0.18, S(-1.0, 1.765, 0.14, 0), { seg: 10, color: 0x2a2a2e });
+    for (let i = 0; i < 3; i++)
+      I.cyl(MT, 0.012, 0.012, 0.17, S(-0.86 + i * 0.03, 1.755, 0.1), { seg: 8, color: 0xe9e4d6 });
 
     // ----- fridge -----
-    const LF = place(1.945 - 0.37, F, -0.22, -PI / 2), fc = 0xe8e0c4, G = (x, y, z, rx = 0, ry = 0, rz = 0) => LF(x, y, z, rx, ry, rz);
-    for (const s of [-1, 1]) I.box(MP, 0.03, 1.58, 0.66, G(s * 0.345, 0.89, -0.02), { color: v(fc, 0.015), bevel: 0.006 }); I.box(MP, 0.72, 0.03, 0.66, G(0, 1.665, -0.02), { color: fc, bevel: 0.006 }); I.box(MP, 0.72, 0.03, 0.66, G(0, 0.115, -0.02), { color: fc }); I.box(MP, 0.72, 1.58, 0.02, G(0, 0.89, -0.34), { color: 0x8a8578 }); I.box(MP, 0.66, 0.05, 0.64, G(0, 1.225, -0.02), { color: 0xf1efe6 }); I.box(MT, 0.72, 0.1, 0.6, G(0, 0.05, -0.04), { color: 0x1c1b1a }); for (let i = 0; i < 9; i++) I.box(PL, 0.66, 0.004, 0.012, G(0, 0.02 + i * 0.009, 0.27, 0.5), { color: 0x3a3a3c });
-    I.box(PL, 0.655, 1.52, 0.004, G(0, 0.9, -0.326), { color: 0xf1efe6 }); for (const s of [-1, 1]) I.box(PL, 0.004, 1.52, 0.62, G(s * 0.328, 0.9, -0.02), { color: 0xf1efe6 });
-    for (const y of [0.52, 0.82]) { for (let i = 0; i < 13; i++) I.cyl(ST, 0.002, 0.002, 0.5, G(-0.3 + i * 0.05, y, -0.06, PI / 2, 0, 0), { seg: 4, color: 0xe9e9e4 }); for (const z of [-0.31, 0.19]) I.cyl(ST, 0.003, 0.003, 0.65, G(0, y, z, 0, 0, PI / 2), { seg: 5, color: 0xe9e9e4 }); }
-    for (const s of [-1, 1]) I.box(PL, 0.31, 0.19, 0.42, G(s * 0.162, 0.24, -0.06), { color: 0xd4dcd6, bevel: 0.01 }); I.box(PG, 0.65, 0.006, 0.5, G(0, 0.345, -0.06), { color: 0xcfdcd9 }); const fbulb = imat.emissive(0xfff3d9, 0, 'nh72fridge'); I.box(fbulb, 0.08, 0.02, 0.04, G(0.2, 1.185, -0.2), {});
-    { // what he has: milk, eggs, leftovers, takeout, a six-pack, hot sauce, limes, a snapper fillet
-      const y1 = 0.826, y2 = 0.526, y3 = 0.35; I.geo(PL, soft(0.15, 0.26, 0.15, { r: 0.03 }), G(-0.22, y1 + 0.13, -0.15), { color: 0xf4f2ea }); I.cyl(PL, 0.02, 0.02, 0.025, G(-0.22, y1 + 0.27, -0.15), { seg: 8, color: 0x2f5fb0 }); I.box(PL, 0.15, 0.1, 0.002, G(-0.22, y1 + 0.12, -0.074), { color: 0x2f5fb0 });
-      I.box(MT, 0.3, 0.07, 0.11, G(0.14, y1 + 0.035, -0.2), { color: 0xb9b5a8, bevel: 0.012 }); for (let i = 0; i < 12; i++) I.geo(MT, new THREE.SphereGeometry(0.02, 6, 4), G(0.015 + (i % 6) * 0.05, y1 + 0.068, -0.225 + Math.floor(i / 6) * 0.05), { color: 0xa9a598 });
-      I.geo(MT, new THREE.CylinderGeometry(0.07, 0.05, 0.1, 4), G(0.02, y1 + 0.05, 0.02, 0, PI / 4 + 0.2, 0), { color: 0xf1efe8 }); I.tube(ST, [wpt(G(), -0.03, y1 + 0.1, 0.02), wpt(G(), 0.02, y1 + 0.16, 0.02), wpt(G(), 0.07, y1 + 0.1, 0.02)], 0.0015, { seg: 4, color: 0xb9b9b4 });
-      I.box(PL, 0.17, 0.06, 0.13, G(0.22, y1 + 0.03, 0.02, 0, 0.1, 0), { color: 0xc9dce0, bevel: 0.01 }); I.box(PL, 0.175, 0.01, 0.135, G(0.22, y1 + 0.065, 0.02, 0, 0.1, 0), { color: 0xc23b33, bevel: 0.004 }); I.box(PL, 0.15, 0.05, 0.11, G(0.22, y1 + 0.097, 0.02, 0, -0.2, 0), { color: 0xd9d0a0, bevel: 0.01 });
-      for (let i = 0; i < 6; i++) beerCan(I, G(-0.2 + (i % 3) * 0.068, y2 + 0.06, -0.16 + Math.floor(i / 3) * 0.068, 0, r() * 6, 0)); I.box(MT, 0.21, 0.07, 0.004, G(-0.132, y2 + 0.045, -0.092), { color: 0x1f6f78 }); I.box(MT, 0.21, 0.07, 0.004, G(-0.132, y2 + 0.045, -0.228), { color: 0x1f6f78 }); I.box(MT, 0.21, 0.004, 0.14, G(-0.132, y2 + 0.002, -0.16), { color: 0x1f6f78 }); I.box(MT, 0.21, 0.1, 0.004, G(-0.132, y2 + 0.11, -0.16), { color: 0x1f6f78 });
-      bottle(I, PG, G(0.16, y2, -0.2), 0.022, 0.16, 0xb5322a, 0x2f7f3a); A.wrap(I, 'hot', G(0.16, y2 + 0.055, -0.2), 0.0225, 0.05, 10); bottle(I, PG, G(0.24, y2, -0.18), 0.03, 0.2, 0x3a5a2a, 0xd9b23a);
-      I.geo(PL, soft(0.26, 0.03, 0.17, { r: 0.012, puff: 0.008, puffB: 1 }), G(0.1, y2 + 0.016, 0.03, 0, 0.3, 0), { color: 0xe8b0a0 }); I.box(PL, 0.3, 0.003, 0.2, G(0.1, y2 + 0.034, 0.03, 0, 0.3, 0), { color: 0xdfe8ea });
-      bowl(I, CE, G(-0.16, y3, -0.02), 0xe9e4d6, 0.09, 0.05); for (let i = 0; i < 5; i++) I.geo(PL, new THREE.SphereGeometry(0.026, 8, 6), G(-0.16 + Math.cos(i * 1.4) * 0.04, y3 + 0.045 + (i === 4 ? 0.03 : 0), -0.02 + Math.sin(i * 1.4) * 0.04), { color: v(0x6a9a2a, 0.08) });
-      I.cyl(PG, 0.045, 0.045, 0.13, G(0.05, y3 + 0.065, -0.2), { seg: 12, color: 0x7a8a3a }); I.cyl(MP, 0.047, 0.047, 0.016, G(0.05, y3 + 0.138, -0.2), { seg: 12, color: 0xd9b23a }); I.cyl(CE, 0.11, 0.09, 0.02, G(0.2, y3 + 0.01, -0.05), { seg: 18, color: 0xe9e4d6 }); I.geo(ST, soft(0.2, 0.05, 0.2, { r: 0.02, puff: 0.02, seg: 5 }), G(0.2, y3 + 0.04, -0.05), { color: 0xc9c9c4 });
+    const LF = place(1.945 - 0.37, F, -0.22, -PI / 2),
+      fc = 0xe8e0c4,
+      G = (x, y, z, rx = 0, ry = 0, rz = 0) => LF(x, y, z, rx, ry, rz);
+    for (const s of [-1, 1])
+      I.box(MP, 0.03, 1.58, 0.66, G(s * 0.345, 0.89, -0.02), { color: v(fc, 0.015), bevel: 0.006 });
+    I.box(MP, 0.72, 0.03, 0.66, G(0, 1.665, -0.02), { color: fc, bevel: 0.006 });
+    I.box(MP, 0.72, 0.03, 0.66, G(0, 0.115, -0.02), { color: fc });
+    I.box(MP, 0.72, 1.58, 0.02, G(0, 0.89, -0.34), { color: 0x8a8578 });
+    I.box(MP, 0.66, 0.05, 0.64, G(0, 1.225, -0.02), { color: 0xf1efe6 });
+    I.box(MT, 0.72, 0.1, 0.6, G(0, 0.05, -0.04), { color: 0x1c1b1a });
+    for (let i = 0; i < 9; i++)
+      I.box(PL, 0.66, 0.004, 0.012, G(0, 0.02 + i * 0.009, 0.27, 0.5), { color: 0x3a3a3c });
+    I.box(PL, 0.655, 1.52, 0.004, G(0, 0.9, -0.326), { color: 0xf1efe6 });
+    for (const s of [-1, 1])
+      I.box(PL, 0.004, 1.52, 0.62, G(s * 0.328, 0.9, -0.02), { color: 0xf1efe6 });
+    for (const y of [0.52, 0.82]) {
+      for (let i = 0; i < 13; i++)
+        I.cyl(ST, 0.002, 0.002, 0.5, G(-0.3 + i * 0.05, y, -0.06, PI / 2, 0, 0), {
+          seg: 4,
+          color: 0xe9e9e4,
+        });
+      for (const z of [-0.31, 0.19])
+        I.cyl(ST, 0.003, 0.003, 0.65, G(0, y, z, 0, 0, PI / 2), { seg: 5, color: 0xe9e9e4 });
+    }
+    for (const s of [-1, 1])
+      I.box(PL, 0.31, 0.19, 0.42, G(s * 0.162, 0.24, -0.06), { color: 0xd4dcd6, bevel: 0.01 });
+    I.box(PG, 0.65, 0.006, 0.5, G(0, 0.345, -0.06), { color: 0xcfdcd9 });
+    const fbulb = imat.emissive(0xfff3d9, 0, 'nh72fridge');
+    I.box(fbulb, 0.08, 0.02, 0.04, G(0.2, 1.185, -0.2), {});
+    {
+      // what he has: milk, eggs, leftovers, takeout, a six-pack, hot sauce, limes, a snapper fillet
+      const y1 = 0.826,
+        y2 = 0.526,
+        y3 = 0.35;
+      I.geo(PL, soft(0.15, 0.26, 0.15, { r: 0.03 }), G(-0.22, y1 + 0.13, -0.15), {
+        color: 0xf4f2ea,
+      });
+      I.cyl(PL, 0.02, 0.02, 0.025, G(-0.22, y1 + 0.27, -0.15), { seg: 8, color: 0x2f5fb0 });
+      I.box(PL, 0.15, 0.1, 0.002, G(-0.22, y1 + 0.12, -0.074), { color: 0x2f5fb0 });
+      I.box(MT, 0.3, 0.07, 0.11, G(0.14, y1 + 0.035, -0.2), { color: 0xb9b5a8, bevel: 0.012 });
+      for (let i = 0; i < 12; i++)
+        I.geo(
+          MT,
+          new THREE.SphereGeometry(0.02, 6, 4),
+          G(0.015 + (i % 6) * 0.05, y1 + 0.068, -0.225 + Math.floor(i / 6) * 0.05),
+          { color: 0xa9a598 },
+        );
+      I.geo(
+        MT,
+        new THREE.CylinderGeometry(0.07, 0.05, 0.1, 4),
+        G(0.02, y1 + 0.05, 0.02, 0, PI / 4 + 0.2, 0),
+        { color: 0xf1efe8 },
+      );
+      I.tube(
+        ST,
+        [
+          wpt(G(), -0.03, y1 + 0.1, 0.02),
+          wpt(G(), 0.02, y1 + 0.16, 0.02),
+          wpt(G(), 0.07, y1 + 0.1, 0.02),
+        ],
+        0.0015,
+        { seg: 4, color: 0xb9b9b4 },
+      );
+      I.box(PL, 0.17, 0.06, 0.13, G(0.22, y1 + 0.03, 0.02, 0, 0.1, 0), {
+        color: 0xc9dce0,
+        bevel: 0.01,
+      });
+      I.box(PL, 0.175, 0.01, 0.135, G(0.22, y1 + 0.065, 0.02, 0, 0.1, 0), {
+        color: 0xc23b33,
+        bevel: 0.004,
+      });
+      I.box(PL, 0.15, 0.05, 0.11, G(0.22, y1 + 0.097, 0.02, 0, -0.2, 0), {
+        color: 0xd9d0a0,
+        bevel: 0.01,
+      });
+      for (let i = 0; i < 6; i++)
+        beerCan(
+          I,
+          G(-0.2 + (i % 3) * 0.068, y2 + 0.06, -0.16 + Math.floor(i / 3) * 0.068, 0, r() * 6, 0),
+        );
+      I.box(MT, 0.21, 0.07, 0.004, G(-0.132, y2 + 0.045, -0.092), { color: 0x1f6f78 });
+      I.box(MT, 0.21, 0.07, 0.004, G(-0.132, y2 + 0.045, -0.228), { color: 0x1f6f78 });
+      I.box(MT, 0.21, 0.004, 0.14, G(-0.132, y2 + 0.002, -0.16), { color: 0x1f6f78 });
+      I.box(MT, 0.21, 0.1, 0.004, G(-0.132, y2 + 0.11, -0.16), { color: 0x1f6f78 });
+      bottle(I, PG, G(0.16, y2, -0.2), 0.022, 0.16, 0xb5322a, 0x2f7f3a);
+      A.wrap(I, 'hot', G(0.16, y2 + 0.055, -0.2), 0.0225, 0.05, 10);
+      bottle(I, PG, G(0.24, y2, -0.18), 0.03, 0.2, 0x3a5a2a, 0xd9b23a);
+      I.geo(
+        PL,
+        soft(0.26, 0.03, 0.17, { r: 0.012, puff: 0.008, puffB: 1 }),
+        G(0.1, y2 + 0.016, 0.03, 0, 0.3, 0),
+        { color: 0xe8b0a0 },
+      );
+      I.box(PL, 0.3, 0.003, 0.2, G(0.1, y2 + 0.034, 0.03, 0, 0.3, 0), { color: 0xdfe8ea });
+      bowl(I, CE, G(-0.16, y3, -0.02), 0xe9e4d6, 0.09, 0.05);
+      for (let i = 0; i < 5; i++)
+        I.geo(
+          PL,
+          new THREE.SphereGeometry(0.026, 8, 6),
+          G(
+            -0.16 + Math.cos(i * 1.4) * 0.04,
+            y3 + 0.045 + (i === 4 ? 0.03 : 0),
+            -0.02 + Math.sin(i * 1.4) * 0.04,
+          ),
+          { color: v(0x6a9a2a, 0.08) },
+        );
+      I.cyl(PG, 0.045, 0.045, 0.13, G(0.05, y3 + 0.065, -0.2), { seg: 12, color: 0x7a8a3a });
+      I.cyl(MP, 0.047, 0.047, 0.016, G(0.05, y3 + 0.138, -0.2), { seg: 12, color: 0xd9b23a });
+      I.cyl(CE, 0.11, 0.09, 0.02, G(0.2, y3 + 0.01, -0.05), { seg: 18, color: 0xe9e4d6 });
+      I.geo(ST, soft(0.2, 0.05, 0.2, { r: 0.02, puff: 0.02, seg: 5 }), G(0.2, y3 + 0.04, -0.05), {
+        color: 0xc9c9c4,
+      });
       // freezer
-      const yf = 1.252; for (let t = 0; t < 2; t++) { I.box(PL, 0.11, 0.035, 0.26, G(-0.24 + j(0.004), yf + 0.018 + t * 0.037, -0.12, 0, t * 0.08, 0), { color: 0x5fa8d9, bevel: 0.004 }); for (let i = 0; i < 14; i++) I.box(PG, 0.036, 0.012, 0.028, G(-0.265 + (i % 2) * 0.05, yf + 0.034 + t * 0.037, -0.225 + Math.floor(i / 2) * 0.035, 0, t * 0.08, 0), { color: 0xe6f1f6 }); }
-      for (let i = 0; i < 3; i++) { const m = G(0.02 + j(0.01), yf + 0.03 + i * 0.061, -0.14, 0, j(0.1), 0); I.box(MT, 0.2, 0.06, 0.12, m, { color: 0xe9f1f4, bevel: 0.003 }); A.plane(I, 'bait', m.clone().multiply(M(0, 0, 0.0605)), 0.2, 0.06); A.plane(I, 'bait', m.clone().multiply(M(0, 0.0305, 0, -PI / 2, 0, 0)), 0.2, 0.12); }
-      I.box(MT, 0.3, 0.035, 0.3, G(0.16, yf + 0.3, -0.12, 0, 0, 0.12), { color: 0xe9e2cf, bevel: 0.003 }); I.geo(PL, soft(0.22, 0.14, 0.2, { r: 0.05, puff: 0.03, puffB: 1 }), G(0.2, yf + 0.07, 0.08, 0, 0.2, 0), { color: 0xdfeef4 }); I.geo(PL, soft(0.24, 0.05, 0.14, { r: 0.02, puff: 0.012, puffB: 1 }), G(-0.2, yf + 0.11, 0.06, 0, -0.2, 0), { color: 0xd9c0b8 }); }
-    const fL = ctx.addLight({ id: 'kitchen_fridge', pos: [1.15, F + 1.0, -0.22], color: 0xf7f4e8, intensity: 12, range: 3.2, on: false });
-    const fdoor = (id, lab, y0, h, extra, onT) => { const wp = wpt(LF(), 0.36, y0, 0.312); return mover({ id, label: lab, ikind: 'fridge', pos: wp, ry: RY, kind: 'hinge', sign: 1, max: 1.85, ipos: wpt(LF(), 0, y0 + h / 2, 0.5), radius: 1.15, onToggle: onT, draw: (bt) => {
-      bt.box(MP, 0.72, h, 0.052, M(-0.36, h / 2, 0.03), { color: v(fc, 0.012), bevel: 0.014 }); bt.box(MP, 0.64, h - 0.07, 0.014, M(-0.36, h / 2, 0.0), { color: 0xf1efe6, bevel: 0.004 }); for (const s of [-1, 1]) { bt.box(MP, 0.66, 0.016, 0.014, M(-0.36, h / 2 + s * (h / 2 - 0.03), -0.004), { color: 0x9a968a }); bt.box(MP, 0.016, h - 0.06, 0.014, M(-0.36 + s * 0.325, h / 2, -0.004), { color: 0x9a968a }); }
-      extra(bt, h); } }); };
-    const jar = (bt, x, y, c, cap, rad = 0.028, hh = 0.12) => { bt.cyl(MP, rad, rad, hh, M(x, y + hh / 2, -0.055), { seg: 10, color: c }); bt.cyl(MP, rad * 0.7, rad * 0.7, hh * 0.25, M(x, y + hh * 1.1, -0.055), { seg: 8, color: cap }); };
-    const sub = (i) => { const u = A.uv('magnets'); return { uvMul: [u.uvMul[0] / 4, u.uvMul[1]], uvOff: [u.uvOff[0] + i * u.uvMul[0] / 4, u.uvOff[1]] }; }, magnet = (bt, i, x, y, s = 0.045, rz = 0) => { bt.geo(A.m, new THREE.PlaneGeometry(s, s), M(x, y, 0.0585, 0, 0, rz), sub(i)); bt.box(MP, s * 0.8, s * 0.8, 0.003, M(x, y, 0.0565, 0, 0, rz), { color: 0x2a2a2e }); };
-    fdoor('fridge_door', 'fridge', 0.1, 1.105, (bt, h) => {
-      bt.box(MP, 0.03, 0.34, 0.022, M(-0.675, 0.9, 0.085), { color: 0xb9b5a8, bevel: 0.008 }); for (const y of [0.76, 1.04]) bt.box(MP, 0.024, 0.03, 0.04, M(-0.675, y, 0.065), { color: 0xb9b5a8, bevel: 0.004 });
-      for (const y of [0.12, 0.45, 0.78]) { bt.box(MP, 0.6, 0.008, 0.095, M(-0.36, y, -0.055), { color: 0xf1efe6 }); bt.box(MP, 0.6, 0.06, 0.006, M(-0.36, y + 0.03, -0.1), { color: 0xe6e6de }); for (const s of [-1, 1]) bt.box(MP, 0.006, 0.06, 0.095, M(-0.36 + s * 0.3, y + 0.03, -0.055), { color: 0xe6e6de }); }
-      jar(bt, -0.58, 0.125, 0xc0281f, 0xe9e4d6, 0.03, 0.16); jar(bt, -0.5, 0.125, 0xd9b23a, 0xd9b23a, 0.028, 0.14); jar(bt, -0.4, 0.125, 0xe9e4d6, 0x2f5fb0, 0.04, 0.12); jar(bt, -0.28, 0.125, 0x3a2a1c, 0xc0281f, 0.026, 0.17); jar(bt, -0.18, 0.125, 0x6a8a2a, 0xe9e4d6, 0.036, 0.11);
-      jar(bt, -0.56, 0.455, 0xb5622a, 0x16171a, 0.03, 0.15); jar(bt, -0.46, 0.455, 0xf1efe6, 0xc0281f, 0.03, 0.1); jar(bt, -0.3, 0.455, 0x7a4a1a, 0xd9b23a, 0.032, 0.19); jar(bt, -0.2, 0.455, 0xc0281f, 0x2f7f3a, 0.022, 0.13); bt.box(MP, 0.16, 0.05, 0.07, M(-0.5, 0.815, -0.055), { color: 0xe9d98a, bevel: 0.004 }); jar(bt, -0.24, 0.785, 0xe9e4d6, 0xd9b23a, 0.04, 0.09);
-      A.plane(bt, 'kid', M(-0.4, 0.8, 0.0572, 0, 0, 0.04), 0.3, 0.232); magnet(bt, 0, -0.52, 0.915, 0.05); magnet(bt, 1, -0.27, 0.92, 0.045, 0.2);
-      A.plane(bt, 'tide', M(-0.2, 0.42, 0.0572, 0, 0, -0.03), 0.17, 0.238); magnet(bt, 2, -0.2, 0.54, 0.05); A.plane(bt, 'strip', M(-0.56, 0.42, 0.0574, 0, 0, 0.06), 0.05, 0.169); magnet(bt, 3, -0.56, 0.5, 0.05, -0.1);
-      A.plane(bt, 'coupon', M(-0.42, 0.22, 0.0576, 0, 0, -0.08), 0.2, 0.11); magnet(bt, 1, -0.42, 0.275, 0.04); A.plane(bt, 'menu', M(-0.36, 0.5, 0.0573, 0, 0, 0.02), 0.11, 0.1925);
-    }, (o) => { fL.on = o; fbulb.emissiveIntensity = o ? 3 : 0; });
+      const yf = 1.252;
+      for (let t = 0; t < 2; t++) {
+        I.box(
+          PL,
+          0.11,
+          0.035,
+          0.26,
+          G(-0.24 + j(0.004), yf + 0.018 + t * 0.037, -0.12, 0, t * 0.08, 0),
+          { color: 0x5fa8d9, bevel: 0.004 },
+        );
+        for (let i = 0; i < 14; i++)
+          I.box(
+            PG,
+            0.036,
+            0.012,
+            0.028,
+            G(
+              -0.265 + (i % 2) * 0.05,
+              yf + 0.034 + t * 0.037,
+              -0.225 + Math.floor(i / 2) * 0.035,
+              0,
+              t * 0.08,
+              0,
+            ),
+            { color: 0xe6f1f6 },
+          );
+      }
+      for (let i = 0; i < 3; i++) {
+        const m = G(0.02 + j(0.01), yf + 0.03 + i * 0.061, -0.14, 0, j(0.1), 0);
+        I.box(MT, 0.2, 0.06, 0.12, m, { color: 0xe9f1f4, bevel: 0.003 });
+        A.plane(I, 'bait', m.clone().multiply(M(0, 0, 0.0605)), 0.2, 0.06);
+        A.plane(I, 'bait', m.clone().multiply(M(0, 0.0305, 0, -PI / 2, 0, 0)), 0.2, 0.12);
+      }
+      I.box(MT, 0.3, 0.035, 0.3, G(0.16, yf + 0.3, -0.12, 0, 0, 0.12), {
+        color: 0xe9e2cf,
+        bevel: 0.003,
+      });
+      I.geo(
+        PL,
+        soft(0.22, 0.14, 0.2, { r: 0.05, puff: 0.03, puffB: 1 }),
+        G(0.2, yf + 0.07, 0.08, 0, 0.2, 0),
+        { color: 0xdfeef4 },
+      );
+      I.geo(
+        PL,
+        soft(0.24, 0.05, 0.14, { r: 0.02, puff: 0.012, puffB: 1 }),
+        G(-0.2, yf + 0.11, 0.06, 0, -0.2, 0),
+        { color: 0xd9c0b8 },
+      );
+    }
+    const fL = ctx.addLight({
+      id: 'kitchen_fridge',
+      pos: [1.15, F + 1.0, -0.22],
+      color: 0xf7f4e8,
+      intensity: 12,
+      range: 3.2,
+      on: false,
+    });
+    const fdoor = (id, lab, y0, h, extra, onT) => {
+      const wp = wpt(LF(), 0.36, y0, 0.312);
+      return mover({
+        id,
+        label: lab,
+        ikind: 'fridge',
+        pos: wp,
+        ry: RY,
+        kind: 'hinge',
+        sign: 1,
+        max: 1.85,
+        ipos: wpt(LF(), 0, y0 + h / 2, 0.5),
+        radius: 1.15,
+        onToggle: onT,
+        draw: (bt) => {
+          bt.box(MP, 0.72, h, 0.052, M(-0.36, h / 2, 0.03), { color: v(fc, 0.012), bevel: 0.014 });
+          bt.box(MP, 0.64, h - 0.07, 0.014, M(-0.36, h / 2, 0.0), {
+            color: 0xf1efe6,
+            bevel: 0.004,
+          });
+          for (const s of [-1, 1]) {
+            bt.box(MP, 0.66, 0.016, 0.014, M(-0.36, h / 2 + s * (h / 2 - 0.03), -0.004), {
+              color: 0x9a968a,
+            });
+            bt.box(MP, 0.016, h - 0.06, 0.014, M(-0.36 + s * 0.325, h / 2, -0.004), {
+              color: 0x9a968a,
+            });
+          }
+          extra(bt, h);
+        },
+      });
+    };
+    const jar = (bt, x, y, c, cap, rad = 0.028, hh = 0.12) => {
+      bt.cyl(MP, rad, rad, hh, M(x, y + hh / 2, -0.055), { seg: 10, color: c });
+      bt.cyl(MP, rad * 0.7, rad * 0.7, hh * 0.25, M(x, y + hh * 1.1, -0.055), {
+        seg: 8,
+        color: cap,
+      });
+    };
+    const sub = (i) => {
+        const u = A.uv('magnets');
+        return {
+          uvMul: [u.uvMul[0] / 4, u.uvMul[1]],
+          uvOff: [u.uvOff[0] + (i * u.uvMul[0]) / 4, u.uvOff[1]],
+        };
+      },
+      magnet = (bt, i, x, y, s = 0.045, rz = 0) => {
+        bt.geo(A.m, new THREE.PlaneGeometry(s, s), M(x, y, 0.0585, 0, 0, rz), sub(i));
+        bt.box(MP, s * 0.8, s * 0.8, 0.003, M(x, y, 0.0565, 0, 0, rz), { color: 0x2a2a2e });
+      };
+    fdoor(
+      'fridge_door',
+      'fridge',
+      0.1,
+      1.105,
+      (bt, h) => {
+        bt.box(MP, 0.03, 0.34, 0.022, M(-0.675, 0.9, 0.085), { color: 0xb9b5a8, bevel: 0.008 });
+        for (const y of [0.76, 1.04])
+          bt.box(MP, 0.024, 0.03, 0.04, M(-0.675, y, 0.065), { color: 0xb9b5a8, bevel: 0.004 });
+        for (const y of [0.12, 0.45, 0.78]) {
+          bt.box(MP, 0.6, 0.008, 0.095, M(-0.36, y, -0.055), { color: 0xf1efe6 });
+          bt.box(MP, 0.6, 0.06, 0.006, M(-0.36, y + 0.03, -0.1), { color: 0xe6e6de });
+          for (const s of [-1, 1])
+            bt.box(MP, 0.006, 0.06, 0.095, M(-0.36 + s * 0.3, y + 0.03, -0.055), {
+              color: 0xe6e6de,
+            });
+        }
+        jar(bt, -0.58, 0.125, 0xc0281f, 0xe9e4d6, 0.03, 0.16);
+        jar(bt, -0.5, 0.125, 0xd9b23a, 0xd9b23a, 0.028, 0.14);
+        jar(bt, -0.4, 0.125, 0xe9e4d6, 0x2f5fb0, 0.04, 0.12);
+        jar(bt, -0.28, 0.125, 0x3a2a1c, 0xc0281f, 0.026, 0.17);
+        jar(bt, -0.18, 0.125, 0x6a8a2a, 0xe9e4d6, 0.036, 0.11);
+        jar(bt, -0.56, 0.455, 0xb5622a, 0x16171a, 0.03, 0.15);
+        jar(bt, -0.46, 0.455, 0xf1efe6, 0xc0281f, 0.03, 0.1);
+        jar(bt, -0.3, 0.455, 0x7a4a1a, 0xd9b23a, 0.032, 0.19);
+        jar(bt, -0.2, 0.455, 0xc0281f, 0x2f7f3a, 0.022, 0.13);
+        bt.box(MP, 0.16, 0.05, 0.07, M(-0.5, 0.815, -0.055), { color: 0xe9d98a, bevel: 0.004 });
+        jar(bt, -0.24, 0.785, 0xe9e4d6, 0xd9b23a, 0.04, 0.09);
+        A.plane(bt, 'kid', M(-0.4, 0.8, 0.0572, 0, 0, 0.04), 0.3, 0.232);
+        magnet(bt, 0, -0.52, 0.915, 0.05);
+        magnet(bt, 1, -0.27, 0.92, 0.045, 0.2);
+        A.plane(bt, 'tide', M(-0.2, 0.42, 0.0572, 0, 0, -0.03), 0.17, 0.238);
+        magnet(bt, 2, -0.2, 0.54, 0.05);
+        A.plane(bt, 'strip', M(-0.56, 0.42, 0.0574, 0, 0, 0.06), 0.05, 0.169);
+        magnet(bt, 3, -0.56, 0.5, 0.05, -0.1);
+        A.plane(bt, 'coupon', M(-0.42, 0.22, 0.0576, 0, 0, -0.08), 0.2, 0.11);
+        magnet(bt, 1, -0.42, 0.275, 0.04);
+        A.plane(bt, 'menu', M(-0.36, 0.5, 0.0573, 0, 0, 0.02), 0.11, 0.1925);
+      },
+      (o) => {
+        fL.on = o;
+        fbulb.emissiveIntensity = o ? 3 : 0;
+      },
+    );
     fdoor('freezer_door', 'freezer', 1.215, 0.465, (bt, h) => {
-      bt.box(MP, 0.03, 0.2, 0.022, M(-0.675, 0.14, 0.085), { color: 0xb9b5a8, bevel: 0.008 }); for (const y of [0.06, 0.22]) bt.box(MP, 0.024, 0.03, 0.04, M(-0.675, y, 0.065), { color: 0xb9b5a8, bevel: 0.004 });
-      bt.box(MP, 0.6, 0.008, 0.095, M(-0.36, 0.08, -0.055), { color: 0xf1efe6 }); bt.box(MP, 0.6, 0.06, 0.006, M(-0.36, 0.11, -0.1), { color: 0xe6e6de }); jar(bt, -0.5, 0.085, 0xe9e4d6, 0x2f5fb0, 0.05, 0.1); jar(bt, -0.3, 0.085, 0xd9722a, 0xe9e4d6, 0.03, 0.11); bt.box(MP, 0.12, 0.09, 0.06, M(-0.16, 0.13, -0.055), { color: 0x2f7f3a, bevel: 0.004 });
-      bt.box(MP, 0.05, 0.05, 0.004, M(-0.2, 0.3, 0.058, 0, 0, 0.1), { color: 0xc0281f, bevel: 0.002 }); bt.cyl(MP, 0.02, 0.02, 0.005, M(-0.5, 0.25, 0.058, PI / 2, 0, 0), { seg: 12, color: 0xd9b23a }); bt.box(MP, 0.09, 0.022, 0.004, M(-0.38, 0.36, 0.058, 0, 0, -0.05), { color: 0xe9e4d6 });
+      bt.box(MP, 0.03, 0.2, 0.022, M(-0.675, 0.14, 0.085), { color: 0xb9b5a8, bevel: 0.008 });
+      for (const y of [0.06, 0.22])
+        bt.box(MP, 0.024, 0.03, 0.04, M(-0.675, y, 0.065), { color: 0xb9b5a8, bevel: 0.004 });
+      bt.box(MP, 0.6, 0.008, 0.095, M(-0.36, 0.08, -0.055), { color: 0xf1efe6 });
+      bt.box(MP, 0.6, 0.06, 0.006, M(-0.36, 0.11, -0.1), { color: 0xe6e6de });
+      jar(bt, -0.5, 0.085, 0xe9e4d6, 0x2f5fb0, 0.05, 0.1);
+      jar(bt, -0.3, 0.085, 0xd9722a, 0xe9e4d6, 0.03, 0.11);
+      bt.box(MP, 0.12, 0.09, 0.06, M(-0.16, 0.13, -0.055), { color: 0x2f7f3a, bevel: 0.004 });
+      bt.box(MP, 0.05, 0.05, 0.004, M(-0.2, 0.3, 0.058, 0, 0, 0.1), {
+        color: 0xc0281f,
+        bevel: 0.002,
+      });
+      bt.cyl(MP, 0.02, 0.02, 0.005, M(-0.5, 0.25, 0.058, PI / 2, 0, 0), {
+        seg: 12,
+        color: 0xd9b23a,
+      });
+      bt.box(MP, 0.09, 0.022, 0.004, M(-0.38, 0.36, 0.058, 0, 0, -0.05), { color: 0xe9e4d6 });
     });
     // on top of the fridge: cereal, bread, a bottle
-    I.box(MT, 0.19, 0.28, 0.06, G(-0.18, 1.82, -0.1, 0, 0.3, 0), { color: 0xe8a23a, bevel: 0.003 }); A.plane(I, 'cereal1', G(-0.18, 1.82, -0.1, 0, 0.3, 0).multiply(M(0, 0, 0.031)), 0.19, 0.28); I.geo(JER, soft(0.28, 0.11, 0.12, { r: 0.045, puff: 0.012 }), G(0.14, 1.735, 0.0, 0, -0.2, 0), { color: 0xd9a868, uvMul: [1, 1] }); bottle(I, PG, G(0.2, 1.68, -0.2), 0.038, 0.27, 0x7a4a1a, 0x16171a);
+    I.box(MT, 0.19, 0.28, 0.06, G(-0.18, 1.82, -0.1, 0, 0.3, 0), { color: 0xe8a23a, bevel: 0.003 });
+    A.plane(I, 'cereal1', G(-0.18, 1.82, -0.1, 0, 0.3, 0).multiply(M(0, 0, 0.031)), 0.19, 0.28);
+    I.geo(JER, soft(0.28, 0.11, 0.12, { r: 0.045, puff: 0.012 }), G(0.14, 1.735, 0.0, 0, -0.2, 0), {
+      color: 0xd9a868,
+      uvMul: [1, 1],
+    });
+    bottle(I, PG, G(0.2, 1.68, -0.2), 0.038, 0.27, 0x7a4a1a, 0x16171a);
     // trash can with a liner and a pizza box, cooler
-    const tc = LE(0.34, 0, 0.06); I.geo(PL, lathe([[0, 0], [0.13, 0], [0.135, 0.01], [0.16, 0.5], [0.165, 0.5], [0.165, 0.515], [0.152, 0.515], [0.128, 0.014], [0, 0.012]], 20), tc, { color: 0x5a6a5a }); I.geo(MT, lathe([[0.17, 0.4], [0.172, 0.52], [0.15, 0.53], [0.146, 0.46], [0.12, 0.42]], 20), tc, { color: 0xf1efe8 });
-    I.box(MT, 0.33, 0.035, 0.33, tc.clone().multiply(M(0.02, 0.56, 0, 0.9, 0.3, 0.2)), { color: 0xe9e2cf, bevel: 0.003 }); A.plane(I, 'pizza', tc.clone().multiply(M(0.02, 0.56, 0, 0.9, 0.3, 0.2)).multiply(M(0, 0.018, 0, -PI / 2, 0, 0)), 0.32, 0.32); for (let i = 0; i < 3; i++) beerCan(I, tc.clone().multiply(M(j(0.07), 0.47 + i * 0.03, j(0.07), r() * 3, r() * 3, 1.3)));
-    const cm = LE(0.9, 0, 0.04, 0, 0.06, 0), CK = (x, y, z, rx = 0, ry = 0, rz = 0) => cm.clone().multiply(M(x, y, z, rx, ry, rz)); I.geo(PL, soft(0.6, 0.3, 0.34, { r: 0.03 }), CK(0, 0.155, 0), { color: 0xe9e6dc }); I.geo(PL, soft(0.62, 0.07, 0.36, { r: 0.025 }), CK(0, 0.34, 0), { color: 0x2f6fa8 }); for (const s of [-1, 1]) I.box(PL, 0.02, 0.05, 0.16, CK(s * 0.31, 0.24, 0), { color: 0xd9d4c6, bevel: 0.006 }); I.cyl(PL, 0.014, 0.014, 0.02, CK(-0.28, 0.06, 0.175, PI / 2, 0, 0), { seg: 8, color: 0xd9d4c6 });
-    I.tube(RB, [wpt(cm, -0.2, 0.39, 0.05), wpt(cm, -0.1, 0.41, -0.05), wpt(cm, 0.05, 0.4, 0.06), wpt(cm, 0.15, 0.41, -0.04), wpt(cm, 0.0, 0.4, -0.1), wpt(cm, -0.18, 0.4, -0.04)], 0.007, { seg: 5, color: 0xd9d0b8 }); I.geo(PG, new THREE.SphereGeometry(0.03, 10, 8), CK(0.2, 0.405, 0.06), { color: 0xd9722a });
-    const cal = place(1.943, F + 1.62, 0.78, -PI / 2); A.plane(I, 'calendar', cal(0, 0, 0.004), 0.3, 0.43); I.box(MT, 0.3, 0.43, 0.003, cal(0, 0, 0.002), { color: 0xf1ede2 }); I.cyl(ST, 0.003, 0.003, 0.012, cal(0, 0.205, 0.006, PI / 2, 0, 0), { seg: 6, color: 0x77726a });
+    const tc = LE(0.34, 0, 0.06);
+    I.geo(
+      PL,
+      lathe(
+        [
+          [0, 0],
+          [0.13, 0],
+          [0.135, 0.01],
+          [0.16, 0.5],
+          [0.165, 0.5],
+          [0.165, 0.515],
+          [0.152, 0.515],
+          [0.128, 0.014],
+          [0, 0.012],
+        ],
+        20,
+      ),
+      tc,
+      { color: 0x5a6a5a },
+    );
+    I.geo(
+      MT,
+      lathe(
+        [
+          [0.17, 0.4],
+          [0.172, 0.52],
+          [0.15, 0.53],
+          [0.146, 0.46],
+          [0.12, 0.42],
+        ],
+        20,
+      ),
+      tc,
+      { color: 0xf1efe8 },
+    );
+    I.box(MT, 0.33, 0.035, 0.33, tc.clone().multiply(M(0.02, 0.56, 0, 0.9, 0.3, 0.2)), {
+      color: 0xe9e2cf,
+      bevel: 0.003,
+    });
+    A.plane(
+      I,
+      'pizza',
+      tc
+        .clone()
+        .multiply(M(0.02, 0.56, 0, 0.9, 0.3, 0.2))
+        .multiply(M(0, 0.018, 0, -PI / 2, 0, 0)),
+      0.32,
+      0.32,
+    );
+    for (let i = 0; i < 3; i++)
+      beerCan(I, tc.clone().multiply(M(j(0.07), 0.47 + i * 0.03, j(0.07), r() * 3, r() * 3, 1.3)));
+    const cm = LE(0.9, 0, 0.04, 0, 0.06, 0),
+      CK = (x, y, z, rx = 0, ry = 0, rz = 0) => cm.clone().multiply(M(x, y, z, rx, ry, rz));
+    I.geo(PL, soft(0.6, 0.3, 0.34, { r: 0.03 }), CK(0, 0.155, 0), { color: 0xe9e6dc });
+    I.geo(PL, soft(0.62, 0.07, 0.36, { r: 0.025 }), CK(0, 0.34, 0), { color: 0x2f6fa8 });
+    for (const s of [-1, 1])
+      I.box(PL, 0.02, 0.05, 0.16, CK(s * 0.31, 0.24, 0), { color: 0xd9d4c6, bevel: 0.006 });
+    I.cyl(PL, 0.014, 0.014, 0.02, CK(-0.28, 0.06, 0.175, PI / 2, 0, 0), {
+      seg: 8,
+      color: 0xd9d4c6,
+    });
+    I.tube(
+      RB,
+      [
+        wpt(cm, -0.2, 0.39, 0.05),
+        wpt(cm, -0.1, 0.41, -0.05),
+        wpt(cm, 0.05, 0.4, 0.06),
+        wpt(cm, 0.15, 0.41, -0.04),
+        wpt(cm, 0.0, 0.4, -0.1),
+        wpt(cm, -0.18, 0.4, -0.04),
+      ],
+      0.007,
+      { seg: 5, color: 0xd9d0b8 },
+    );
+    I.geo(PG, new THREE.SphereGeometry(0.03, 10, 8), CK(0.2, 0.405, 0.06), { color: 0xd9722a });
+    const cal = place(1.943, F + 1.62, 0.78, -PI / 2);
+    A.plane(I, 'calendar', cal(0, 0, 0.004), 0.3, 0.43);
+    I.box(MT, 0.3, 0.43, 0.003, cal(0, 0, 0.002), { color: 0xf1ede2 });
+    I.cyl(ST, 0.003, 0.003, 0.012, cal(0, 0.205, 0.006, PI / 2, 0, 0), { seg: 6, color: 0x77726a });
     col.box(1.5725, F + 1.0, 0.04, 0.745, 2.0, 2.48, { tag: 'furniture' });
   }
 
   // =====================================================================================================================
   // DINETTE under the porch window, key hooks, ceiling light and switch
   // =====================================================================================================================
-  { const L = place(0.65, F, 2.26, 0), H = 0.745, tc = 0xd9c886;
-    I.box(PG, 0.76, 0.028, 0.6, L(0, H - 0.014, 0), { color: tc, bevel: 0.01 }); for (const s of [-1, 1]) { I.box(ST, 0.764, 0.03, 0.004, L(0, H - 0.014, s * 0.3), { color: 0xc9c9c4 }); I.box(ST, 0.004, 0.03, 0.6, L(s * 0.38, H - 0.014, 0), { color: 0xc9c9c4 }); }
-    for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { I.rod(CH, wpt(L(), x * 0.3, H - 0.03, z * 0.22), wpt(L(), x * 0.35, 0.01, z * 0.27), 0.013, { color: 0xcfd2d2 }); I.cyl(RB, 0.016, 0.016, 0.02, L(x * 0.35, 0.01, z * 0.27), { seg: 8, color: 0x16171a }); } I.box(ST, 0.6, 0.04, 0.44, L(0, H - 0.05, 0), { color: 0x8a8a86, bevel: 0.004 });
-    const chair = (x, z, ry) => { const C = place(x, F, z, ry), vc = v(0xb5483a, 0.04); for (const [a, b] of [[-1, 1], [1, 1]]) I.rod(CH, wpt(C(), a * 0.17, 0.44, b * 0.17), wpt(C(), a * 0.2, 0.01, b * 0.21), 0.011, { color: 0xcfd2d2 }); for (const s of [-1, 1]) { I.rod(CH, wpt(C(), s * 0.17, 0.44, -0.17), wpt(C(), s * 0.2, 0.01, -0.22), 0.011, { color: 0xcfd2d2 }); I.rod(CH, wpt(C(), s * 0.17, 0.44, -0.17), wpt(C(), s * 0.16, 0.9, -0.24), 0.011, { color: 0xcfd2d2 }); }
-      I.geo(LEA, soft(0.4, 0.06, 0.4, { r: 0.028, puff: 0.012 }), C(0, 0.465, 0), { color: vc, uvMul: [1.2, 1.2] }); I.box(ST, 0.39, 0.02, 0.39, C(0, 0.435, 0), { color: 0xc9c9c4, bevel: 0.004 }); I.geo(LEA, soft(0.38, 0.05, 0.22, { r: 0.022, puff: 0.01, puffB: 1 }), C(0, 0.8, -0.23, PI / 2 - 0.15), { color: vc, uvMul: [1.2, 0.8] }); I.box(MT, 0.09, 0.002, 0.05, C(0.08, 0.4975, 0.06, 0, 0.4, 0), { color: 0x9c9c98 }); };
-    chair(0.6, 1.66, 0.12); chair(1.36, 2.2, -PI / 2 - 0.25);
-    const ty = H; bowl(I, CE, L(-0.12, ty, -0.08), 0xe9e4d6, 0.075, 0.06); I.cyl(MT, 0.06, 0.06, 0.004, L(-0.12, ty + 0.04, -0.08), { seg: 14, color: 0xf1ece0 }); for (let i = 0; i < 9; i++) I.cyl(MT, 0.008, 0.008, 0.004, L(-0.12 + j(0.04), ty + 0.043, -0.08 + j(0.04)), { seg: 6, color: 0xd9a23a }); I.box(ST, 0.012, 0.003, 0.15, L(-0.07, ty + 0.055, -0.04, 0.3, 0.9, 0), { color: 0xc9c9c4 });
-    I.box(MT, 0.19, 0.28, 0.06, L(-0.2, ty + 0.14, 0.14, 0, 0.5, 0), { color: 0x3a5fa8, bevel: 0.003 }); A.plane(I, 'cereal2', L(-0.2, ty + 0.14, 0.14, 0, 0.5 + PI, 0).multiply(M(0, 0, 0.031)), 0.19, 0.28);
-    bottle(I, PG, L(0.06, ty, 0.12), 0.022, 0.16, 0xb5322a, 0x2f7f3a); A.wrap(I, 'hot', L(0.06, ty + 0.055, 0.12), 0.0225, 0.05, 10); for (const [x, c] of [[0.14, 0xf1efe8], [0.19, 0x3a3a3e]]) { I.cyl(PG, 0.016, 0.02, 0.06, L(x, ty + 0.03, 0.16), { seg: 8, color: 0xcfe0e0 }); I.cyl(CH, 0.017, 0.017, 0.014, L(x, ty + 0.066, 0.16), { seg: 8, color: 0xcfd2d2 }); I.cyl(MT, 0.014, 0.018, 0.03, L(x, ty + 0.017, 0.16), { seg: 8, color: c }); }
-    A.plane(I, 'news', L(0.18, ty + 0.003, -0.1, -PI / 2, PI + 0.25, 0), 0.28, 0.37); I.box(MT, 0.28, 0.004, 0.37, L(0.18, ty + 0.001, -0.1, 0, 0.25, 0), { color: 0xe4dfcf }); for (let i = 0; i < 2; i++) A.plane(I, 'scratch', L(0.02 + i * 0.07, ty + 0.0045 + i * 0.001, -0.2 + i * 0.03, -PI / 2, PI + 0.5 - i * 0.8, 0), 0.1, 0.05); I.cyl(ST, 0.012, 0.012, 0.002, L(0.1, ty + 0.006, -0.24), { seg: 10, color: 0xb9925a });
-    mug(L(0.3, ty, 0.02, 0, 2, 0), 0xd9d4c6); I.geo(CE, lathe([[0, 0], [0.05, 0], [0.058, 0.008], [0.06, 0.026], [0.052, 0.026], [0.046, 0.009], [0, 0.008]], 14), L(-0.28, ty, -0.18), { color: 0xb5822f }); for (let i = 0; i < 3; i++) I.cyl(MT, 0.004, 0.004, 0.03, L(-0.28 + j(0.02), ty + 0.016, -0.18 + j(0.02), PI / 2, r() * 6, 0), { seg: 5, color: 0xd9a05a });
+  {
+    const L = place(0.65, F, 2.26, 0),
+      H = 0.745,
+      tc = 0xd9c886;
+    I.box(PG, 0.76, 0.028, 0.6, L(0, H - 0.014, 0), { color: tc, bevel: 0.01 });
+    for (const s of [-1, 1]) {
+      I.box(ST, 0.764, 0.03, 0.004, L(0, H - 0.014, s * 0.3), { color: 0xc9c9c4 });
+      I.box(ST, 0.004, 0.03, 0.6, L(s * 0.38, H - 0.014, 0), { color: 0xc9c9c4 });
+    }
+    for (const [x, z] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ]) {
+      I.rod(CH, wpt(L(), x * 0.3, H - 0.03, z * 0.22), wpt(L(), x * 0.35, 0.01, z * 0.27), 0.013, {
+        color: 0xcfd2d2,
+      });
+      I.cyl(RB, 0.016, 0.016, 0.02, L(x * 0.35, 0.01, z * 0.27), { seg: 8, color: 0x16171a });
+    }
+    I.box(ST, 0.6, 0.04, 0.44, L(0, H - 0.05, 0), { color: 0x8a8a86, bevel: 0.004 });
+    const chair = (x, z, ry) => {
+      const C = place(x, F, z, ry),
+        vc = v(0xb5483a, 0.04);
+      for (const [a, b] of [
+        [-1, 1],
+        [1, 1],
+      ])
+        I.rod(CH, wpt(C(), a * 0.17, 0.44, b * 0.17), wpt(C(), a * 0.2, 0.01, b * 0.21), 0.011, {
+          color: 0xcfd2d2,
+        });
+      for (const s of [-1, 1]) {
+        I.rod(CH, wpt(C(), s * 0.17, 0.44, -0.17), wpt(C(), s * 0.2, 0.01, -0.22), 0.011, {
+          color: 0xcfd2d2,
+        });
+        I.rod(CH, wpt(C(), s * 0.17, 0.44, -0.17), wpt(C(), s * 0.16, 0.9, -0.24), 0.011, {
+          color: 0xcfd2d2,
+        });
+      }
+      I.geo(LEA, soft(0.4, 0.06, 0.4, { r: 0.028, puff: 0.012 }), C(0, 0.465, 0), {
+        color: vc,
+        uvMul: [1.2, 1.2],
+      });
+      I.box(ST, 0.39, 0.02, 0.39, C(0, 0.435, 0), { color: 0xc9c9c4, bevel: 0.004 });
+      I.geo(
+        LEA,
+        soft(0.38, 0.05, 0.22, { r: 0.022, puff: 0.01, puffB: 1 }),
+        C(0, 0.8, -0.23, PI / 2 - 0.15),
+        { color: vc, uvMul: [1.2, 0.8] },
+      );
+      I.box(MT, 0.09, 0.002, 0.05, C(0.08, 0.4975, 0.06, 0, 0.4, 0), { color: 0x9c9c98 });
+    };
+    chair(0.6, 1.66, 0.12);
+    chair(1.36, 2.2, -PI / 2 - 0.25);
+    const ty = H;
+    bowl(I, CE, L(-0.12, ty, -0.08), 0xe9e4d6, 0.075, 0.06);
+    I.cyl(MT, 0.06, 0.06, 0.004, L(-0.12, ty + 0.04, -0.08), { seg: 14, color: 0xf1ece0 });
+    for (let i = 0; i < 9; i++)
+      I.cyl(MT, 0.008, 0.008, 0.004, L(-0.12 + j(0.04), ty + 0.043, -0.08 + j(0.04)), {
+        seg: 6,
+        color: 0xd9a23a,
+      });
+    I.box(ST, 0.012, 0.003, 0.15, L(-0.07, ty + 0.055, -0.04, 0.3, 0.9, 0), { color: 0xc9c9c4 });
+    I.box(MT, 0.19, 0.28, 0.06, L(-0.2, ty + 0.14, 0.14, 0, 0.5, 0), {
+      color: 0x3a5fa8,
+      bevel: 0.003,
+    });
+    A.plane(
+      I,
+      'cereal2',
+      L(-0.2, ty + 0.14, 0.14, 0, 0.5 + PI, 0).multiply(M(0, 0, 0.031)),
+      0.19,
+      0.28,
+    );
+    bottle(I, PG, L(0.06, ty, 0.12), 0.022, 0.16, 0xb5322a, 0x2f7f3a);
+    A.wrap(I, 'hot', L(0.06, ty + 0.055, 0.12), 0.0225, 0.05, 10);
+    for (const [x, c] of [
+      [0.14, 0xf1efe8],
+      [0.19, 0x3a3a3e],
+    ]) {
+      I.cyl(PG, 0.016, 0.02, 0.06, L(x, ty + 0.03, 0.16), { seg: 8, color: 0xcfe0e0 });
+      I.cyl(CH, 0.017, 0.017, 0.014, L(x, ty + 0.066, 0.16), { seg: 8, color: 0xcfd2d2 });
+      I.cyl(MT, 0.014, 0.018, 0.03, L(x, ty + 0.017, 0.16), { seg: 8, color: c });
+    }
+    A.plane(I, 'news', L(0.18, ty + 0.003, -0.1, -PI / 2, PI + 0.25, 0), 0.28, 0.37);
+    I.box(MT, 0.28, 0.004, 0.37, L(0.18, ty + 0.001, -0.1, 0, 0.25, 0), { color: 0xe4dfcf });
+    for (let i = 0; i < 2; i++)
+      A.plane(
+        I,
+        'scratch',
+        L(
+          0.02 + i * 0.07,
+          ty + 0.0045 + i * 0.001,
+          -0.2 + i * 0.03,
+          -PI / 2,
+          PI + 0.5 - i * 0.8,
+          0,
+        ),
+        0.1,
+        0.05,
+      );
+    I.cyl(ST, 0.012, 0.012, 0.002, L(0.1, ty + 0.006, -0.24), { seg: 10, color: 0xb9925a });
+    mug(L(0.3, ty, 0.02, 0, 2, 0), 0xd9d4c6);
+    I.geo(
+      CE,
+      lathe(
+        [
+          [0, 0],
+          [0.05, 0],
+          [0.058, 0.008],
+          [0.06, 0.026],
+          [0.052, 0.026],
+          [0.046, 0.009],
+          [0, 0.008],
+        ],
+        14,
+      ),
+      L(-0.28, ty, -0.18),
+      { color: 0xb5822f },
+    );
+    for (let i = 0; i < 3; i++)
+      I.cyl(
+        MT,
+        0.004,
+        0.004,
+        0.03,
+        L(-0.28 + j(0.02), ty + 0.016, -0.18 + j(0.02), PI / 2, r() * 6, 0),
+        { seg: 5, color: 0xd9a05a },
+      );
     col.box(0.975, F + 0.45, 1.975, 1.55, 0.9, 1.35, { tag: 'furniture' });
     // keys on a hook board by the door
-    const Lk = place(-0.42, F + 1.48, 2.647, PI); I.box(WD, 0.26, 0.07, 0.016, Lk(0, 0, 0.008), { color: v(0x9a7a52), bevel: 0.004 }); for (let i = 0; i < 4; i++) { I.cyl(ST, 0.003, 0.003, 0.03, Lk(-0.09 + i * 0.06, -0.012, 0.03, PI / 2 - 0.5, 0, 0), { seg: 5, color: 0xb9925a }); }
-    I.geo(ST, new THREE.TorusGeometry(0.014, 0.0012, 4, 12), Lk(-0.09, -0.04, 0.036), { color: 0xb9b9b4 }); for (let i = 0; i < 3; i++) I.box(ST, 0.009, 0.05, 0.002, Lk(-0.095 + i * 0.006, -0.075, 0.034 + i * 0.003, 0, 0, -0.2 + i * 0.2), { color: i ? 0xc9c9c4 : 0xc9a23a }); I.geo(PL, soft(0.03, 0.07, 0.03, { r: 0.014, seg: 4 }), Lk(-0.07, -0.1, 0.04, 0, 0, 0.15), { color: 0xe8792a });
-    I.geo(ST, new THREE.TorusGeometry(0.012, 0.0012, 4, 12), Lk(0.03, -0.038, 0.036), { color: 0xb9b9b4 }); I.box(ST, 0.009, 0.045, 0.002, Lk(0.03, -0.07, 0.036), { color: 0xc9c9c4 }); I.tube(RB, [wpt(Lk(), 0.09, -0.01, 0.04), wpt(Lk(), 0.075, -0.16, 0.03), wpt(Lk(), 0.09, -0.3, 0.025), wpt(Lk(), 0.105, -0.16, 0.03), wpt(Lk(), 0.09, -0.01, 0.04)], 0.003, { seg: 4, color: 0x2f6f7a });
+    const Lk = place(-0.42, F + 1.48, 2.647, PI);
+    I.box(WD, 0.26, 0.07, 0.016, Lk(0, 0, 0.008), { color: v(0x9a7a52), bevel: 0.004 });
+    for (let i = 0; i < 4; i++) {
+      I.cyl(ST, 0.003, 0.003, 0.03, Lk(-0.09 + i * 0.06, -0.012, 0.03, PI / 2 - 0.5, 0, 0), {
+        seg: 5,
+        color: 0xb9925a,
+      });
+    }
+    I.geo(ST, new THREE.TorusGeometry(0.014, 0.0012, 4, 12), Lk(-0.09, -0.04, 0.036), {
+      color: 0xb9b9b4,
+    });
+    for (let i = 0; i < 3; i++)
+      I.box(
+        ST,
+        0.009,
+        0.05,
+        0.002,
+        Lk(-0.095 + i * 0.006, -0.075, 0.034 + i * 0.003, 0, 0, -0.2 + i * 0.2),
+        { color: i ? 0xc9c9c4 : 0xc9a23a },
+      );
+    I.geo(PL, soft(0.03, 0.07, 0.03, { r: 0.014, seg: 4 }), Lk(-0.07, -0.1, 0.04, 0, 0, 0.15), {
+      color: 0xe8792a,
+    });
+    I.geo(ST, new THREE.TorusGeometry(0.012, 0.0012, 4, 12), Lk(0.03, -0.038, 0.036), {
+      color: 0xb9b9b4,
+    });
+    I.box(ST, 0.009, 0.045, 0.002, Lk(0.03, -0.07, 0.036), { color: 0xc9c9c4 });
+    I.tube(
+      RB,
+      [
+        wpt(Lk(), 0.09, -0.01, 0.04),
+        wpt(Lk(), 0.075, -0.16, 0.03),
+        wpt(Lk(), 0.09, -0.3, 0.025),
+        wpt(Lk(), 0.105, -0.16, 0.03),
+        wpt(Lk(), 0.09, -0.01, 0.04),
+      ],
+      0.003,
+      { seg: 4, color: 0x2f6f7a },
+    );
     // fluorescent box fixture and its switch (east wall, beside the hall opening)
-    const lx = 0.0, lz = -0.85; I.box(MP, 1.27, 0.07, 0.34, M(lx, CEIL - 0.035, lz), { color: 0xe6e1d0, bevel: 0.006 }); const dM = own({ color: 0xeef0ea, emissive: 0xf2f6ff, emissiveIntensity: 0, roughness: 0.6 }), db = kit.batch('kitchen_diffuser'); db.box(dM, 1.21, 0.04, 0.29, M(lx, CEIL - 0.085, lz), { bevel: 0.012 }); db.build(ctx.groups.int, { cast: false });
-    for (let i = 0; i < 6; i++) I.box(MT, 0.02 + r() * 0.03, 0.002, 0.01, M(lx + j(0.5), CEIL - 0.1045, lz + j(0.1)), { color: 0x4a4638 });                                  // dead bugs in the diffuser
-    const kL = ctx.addLight({ id: 'kitchen_ceiling', pos: [lx, CEIL - 0.3, lz], color: 0xf0f4ff, intensity: 38, range: 9, on: false }); let man = null;
-    const Ls = place(1.943, F + 1.22, -2.5, -PI / 2); I.box(PL, 0.075, 0.118, 0.006, Ls(0, 0, 0.003), { color: 0xe6e1d2, bevel: 0.002 }); I.box(PL, 0.012, 0.026, 0.01, Ls(0, 0.004, 0.008, 0.35, 0, 0), { color: 0xf1eee4, bevel: 0.002 }); for (const s of [-1, 1]) I.cyl(ST, 0.003, 0.003, 0.002, Ls(0, s * 0.03, 0.0065, PI / 2, 0, 0), { seg: 6, color: 0x9a9a94 });
-    ctx.addInteract({ id: 'switch_kitchen', kind: 'switch', label: () => (kL.on ? 'Kitchen light off' : 'Kitchen light on'), pos: [1.84, F + 1.22, -2.5], radius: 1.3, use: () => { man = !kL.on; return man; } });
-    let flick = 0, was = false; ctx.updaters.push((dt, env) => { const on = man ?? night(env?.timeOfDay ?? 12); if (on && !was) flick = 0.5; was = on; flick = Math.max(0, flick - dt); const k = on ? (flick > 0 ? (Math.sin(flick * 70) > 0.2 ? 1 : 0.15) : 1) : 0; kL.on = on; kL.intensity = 38 * k; dM.emissiveIntensity = 1.9 * k; });
+    const lx = 0.0,
+      lz = -0.85;
+    I.box(MP, 1.27, 0.07, 0.34, M(lx, CEIL - 0.035, lz), { color: 0xe6e1d0, bevel: 0.006 });
+    const dM = own({ color: 0xeef0ea, emissive: 0xf2f6ff, emissiveIntensity: 0, roughness: 0.6 }),
+      db = kit.batch('kitchen_diffuser');
+    db.box(dM, 1.21, 0.04, 0.29, M(lx, CEIL - 0.085, lz), { bevel: 0.012 });
+    db.build(ctx.groups.int, { cast: false });
+    for (let i = 0; i < 6; i++)
+      I.box(MT, 0.02 + r() * 0.03, 0.002, 0.01, M(lx + j(0.5), CEIL - 0.1045, lz + j(0.1)), {
+        color: 0x4a4638,
+      }); // dead bugs in the diffuser
+    const kL = ctx.addLight({
+      id: 'kitchen_ceiling',
+      pos: [lx, CEIL - 0.3, lz],
+      color: 0xf0f4ff,
+      intensity: 38,
+      range: 9,
+      on: false,
+    });
+    let man = null;
+    const Ls = place(1.943, F + 1.22, -2.5, -PI / 2);
+    I.box(PL, 0.075, 0.118, 0.006, Ls(0, 0, 0.003), { color: 0xe6e1d2, bevel: 0.002 });
+    I.box(PL, 0.012, 0.026, 0.01, Ls(0, 0.004, 0.008, 0.35, 0, 0), {
+      color: 0xf1eee4,
+      bevel: 0.002,
+    });
+    for (const s of [-1, 1])
+      I.cyl(ST, 0.003, 0.003, 0.002, Ls(0, s * 0.03, 0.0065, PI / 2, 0, 0), {
+        seg: 6,
+        color: 0x9a9a94,
+      });
+    ctx.addInteract({
+      id: 'switch_kitchen',
+      kind: 'switch',
+      label: () => (kL.on ? 'Kitchen light off' : 'Kitchen light on'),
+      pos: [1.84, F + 1.22, -2.5],
+      radius: 1.3,
+      use: () => {
+        man = !kL.on;
+        return man;
+      },
+    });
+    let flick = 0,
+      was = false;
+    ctx.updaters.push((dt, env) => {
+      const on = man ?? night(env?.timeOfDay ?? 12);
+      if (on && !was) flick = 0.5;
+      was = on;
+      flick = Math.max(0, flick - dt);
+      const k = on ? (flick > 0 ? (Math.sin(flick * 70) > 0.2 ? 1 : 0.15) : 1) : 0;
+      kL.on = on;
+      kL.intensity = 38 * k;
+      dM.emissiveIntensity = 1.9 * k;
+    });
   }
 }

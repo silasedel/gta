@@ -10,27 +10,37 @@
 // y stack (m over the graded ground): land 0, sand 0.01, grass 0.02, paved / parking / wood 0.03, asphalt 0.05,
 // junction 0.055, shoulder 0.058, decals 0.062, markings 0.065, lines 0.066, sidewalk slabs CURB 0.15.
 // ?ladder=0 = the old offsets.
-export const LADDER_ON = !(typeof location !== 'undefined' && /[?&]ladder=0\b/.test(location.search));
+export const LADDER_ON = !(
+  typeof location !== 'undefined' && /[?&]ladder=0\b/.test(location.search)
+);
 // rung: [units, factor]
 export const LADDER = {
-  land: [-1, -0.5],          // unchanged (dressing.v2.js looks the land material up by these exact values)
+  land: [-1, -0.5], // unchanged (dressing.v2.js looks the land material up by these exact values)
   sand: [-2, -0.75],
   grass: [-3, -1],
   parking: [-4, -1.25],
   wood: [-5, -1.5],
-  sidewalk: [-7, -1.75], promenade: [-7, -1.75], panels: [-7, -1.75],
-  paving2: [-8, -1.875],     // a dressing pavement laid over the sidewalk slab (brickellRow), under the grates / pools below
-  overSidewalk: [-9, -2],    // tree grates, mulch collars, lamp light pools, flush covers on a sidewalk
+  sidewalk: [-7, -1.75],
+  promenade: [-7, -1.75],
+  panels: [-7, -1.75],
+  paving2: [-8, -1.875], // a dressing pavement laid over the sidewalk slab (brickellRow), under the grates / pools below
+  overSidewalk: [-9, -2], // tree grates, mulch collars, lamp light pools, flush covers on a sidewalk
   dirtRoad: [-9, -2],
   asphalt: [-11, -2.25],
   junction: [-13, -2.5],
   shoulder: [-15, -2.75],
-  decal: [-17, -3], cover: [-17, -3],
-  markings: [-19, -3.25], lines: [-19, -3.25],
+  decal: [-17, -3],
+  cover: [-17, -3],
+  markings: [-19, -3.25],
+  lines: [-19, -3.25],
 };
 export function ladder(mat, key) {
   if (!LADDER_ON || !mat || !mat.isMaterial) return mat;
-  const r = LADDER[key]; if (!r) return mat;
-  mat.polygonOffset = true; mat.polygonOffsetUnits = r[0]; mat.polygonOffsetFactor = r[1]; mat.userData.ladder = key;
+  const r = LADDER[key];
+  if (!r) return mat;
+  mat.polygonOffset = true;
+  mat.polygonOffsetUnits = r[0];
+  mat.polygonOffsetFactor = r[1];
+  mat.userData.ladder = key;
   return mat;
 }

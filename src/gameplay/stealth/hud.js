@@ -1,6 +1,9 @@
 // W6 stealth: the suspicion meter (top centre, under the compass area). One shared element; each zone reports its level
 // (0..1, >1 = detected) and the highest one shows. Injected CSS, no dependency on src/ui.
-let el = null, fill = null, lab = null, zone = null;
+let el = null,
+  fill = null,
+  lab = null,
+  zone = null;
 const levels = new Map();
 function ensure() {
   if (el) return;
@@ -12,23 +15,33 @@ function ensure() {
 .ps-sus.det svg{animation:psSusP .5s ease-in-out infinite alternate}@keyframes psSusP{to{opacity:.35}}
 .ps-sus .z{opacity:.6;font-weight:600}`;
   document.head.appendChild(st);
-  el = document.createElement('div'); el.className = 'ps-sus';
-  el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg><div><div class="lab" style="margin-bottom:5px">NOTICED <span class="z"></span></div><div class="bar"><i></i></div></div>';
-  document.body.appendChild(el); fill = el.querySelector('.bar i'); lab = el.querySelector('.lab'); zone = el.querySelector('.z');
+  el = document.createElement('div');
+  el.className = 'ps-sus';
+  el.innerHTML =
+    '<svg viewBox="0 0 24 24"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg><div><div class="lab" style="margin-bottom:5px">NOTICED <span class="z"></span></div><div class="bar"><i></i></div></div>';
+  document.body.appendChild(el);
+  fill = el.querySelector('.bar i');
+  lab = el.querySelector('.lab');
+  zone = el.querySelector('.z');
 }
 export function meter() {
   return {
     set(id, v, text = '', zoneName = '') {
       if (typeof document === 'undefined') return;
-      if (v > 0.015) levels.set(id, { v, text, zoneName }); else levels.delete(id);
-      let top = null; for (const l of levels.values()) if (!top || l.v > top.v) top = l;
+      if (v > 0.015) levels.set(id, { v, text, zoneName });
+      else levels.delete(id);
+      let top = null;
+      for (const l of levels.values()) if (!top || l.v > top.v) top = l;
       ensure();
       el.classList.toggle('on', !!top);
       if (!top) return;
-      el.classList.toggle('det', top.v > 1); el.classList.toggle('hot', top.v > 0.6 && top.v <= 1);
+      el.classList.toggle('det', top.v > 1);
+      el.classList.toggle('hot', top.v > 0.6 && top.v <= 1);
       el.style.color = top.v > 1 ? '#ff6a60' : top.v > 0.6 ? '#ffb070' : '#f3ede2';
-      const w = Math.round(Math.min(1, top.v) * 100) + '%'; if (fill.style.width !== w) fill.style.width = w;
-      const t = (top.text || 'NOTICED') + ' '; if (lab.firstChild.nodeValue !== t) lab.firstChild.nodeValue = t;
+      const w = Math.round(Math.min(1, top.v) * 100) + '%';
+      if (fill.style.width !== w) fill.style.width = w;
+      const t = (top.text || 'NOTICED') + ' ';
+      if (lab.firstChild.nodeValue !== t) lab.firstChild.nodeValue = t;
       if (zone.textContent !== top.zoneName) zone.textContent = top.zoneName || '';
     },
   };

@@ -11,7 +11,10 @@ let last = performance.now();
 // heartbeat: a cheap timer that only runs between tasks, so `beat` is about when the current task started (other code's
 // own awaits count as yields too). Runs until the game is ready.
 let beat = performance.now();
-(function hb() { beat = performance.now(); if (typeof window === 'undefined' || !(window.game && window.game.ready)) setTimeout(hb, 4); })();
+(function hb() {
+  beat = performance.now();
+  if (typeof window === 'undefined' || !(window.game && window.game.ready)) setTimeout(hb, 4);
+})();
 const since = () => performance.now() - Math.max(last, beat);
 
 export async function yieldTask() {
@@ -24,8 +27,23 @@ export async function yieldTask() {
 function noteLong() {
   const ms = since();
   if (ms < 150 || typeof window === 'undefined') return;
-  const B = (window.__boot ||= { stages: [] }); const L = (B.slices ||= []);
-  if (L.length < 60) L.push([Math.round(ms), (new Error().stack || '').split('\n').slice(3, 6).map((l) => l.trim().replace(/^at /, '').replace(/https?:\/\/[^/]+\//, '').replace(/\?[^:)]*/, '')).join(' < ')]);
+  const B = (window.__boot ||= { stages: [] });
+  const L = (B.slices ||= []);
+  if (L.length < 60)
+    L.push([
+      Math.round(ms),
+      (new Error().stack || '')
+        .split('\n')
+        .slice(3, 6)
+        .map((l) =>
+          l
+            .trim()
+            .replace(/^at /, '')
+            .replace(/https?:\/\/[^/]+\//, '')
+            .replace(/\?[^:)]*/, ''),
+        )
+        .join(' < '),
+    ]);
 }
 export async function breathe(budgetMs = 12) {
   if (since() < budgetMs) return;
@@ -33,7 +51,9 @@ export async function breathe(budgetMs = 12) {
   await yieldTask();
 }
 
-export function markTask() { last = performance.now(); }
+export function markTask() {
+  last = performance.now();
+}
 
 const decoded = new WeakSet();
 export async function initTexturesSliced(renderer, textures, budgetMs = 12) {
@@ -41,11 +61,25 @@ export async function initTexturesSliced(renderer, textures, budgetMs = 12) {
     if (!t || !t.isTexture) continue;
     const img = t.image;
     // decode the image off the main thread first; the upload then does not decode synchronously
-    if (img && typeof HTMLImageElement !== 'undefined' && img instanceof HTMLImageElement && img.decode && !decoded.has(img)) {
+    if (
+      img &&
+      typeof HTMLImageElement !== 'undefined' &&
+      img instanceof HTMLImageElement &&
+      img.decode &&
+      !decoded.has(img)
+    ) {
       decoded.add(img);
-      try { await img.decode(); } catch (e) { /* not decodable: upload decodes it as before */ }
+      try {
+        await img.decode();
+      } catch (e) {
+        /* not decodable: upload decodes it as before */
+      }
     }
-    try { renderer.initTexture(t); } catch (e) { /* older three */ }
+    try {
+      renderer.initTexture(t);
+    } catch (e) {
+      /* older three */
+    }
     await breathe(budgetMs);
   }
 }
@@ -64,9 +98,11 @@ export async function programsReady(renderer, maxMs = 20000) {
     const progs = renderer.info.programs || [];
     const ts = performance.now();
     while (i < progs.length && performance.now() - ts < 6) {
-      if (!progs[i].isReady || progs[i].isReady()) i++; else break;
+      if (!progs[i].isReady || progs[i].isReady()) i++;
+      else break;
     }
-    compileProgress.programs = progs.length; compileProgress.linked = i;
+    compileProgress.programs = progs.length;
+    compileProgress.linked = i;
     if (i >= progs.length) return;
     await new Promise((r) => setTimeout(r, 16));
     last = performance.now();
@@ -85,7 +121,8 @@ export function compileTarget(THREE) {
 // 16 point + 4 spot lights, baked into every program): run them around the compile too, or the compile builds programs
 // for a different light count than the frame will use.
 export function compileForGame(renderer, THREE, obj, camera, scene) {
-  const prev = renderer.getRenderTarget(), rt = compileTarget(THREE);
+  const prev = renderer.getRenderTarget(),
+    rt = compileTarget(THREE);
   renderer.setRenderTarget(rt);
   const hooks = scene && scene.isScene;
   try {
@@ -98,23 +135,42 @@ export function compileForGame(renderer, THREE, obj, camera, scene) {
 }
 // split big subtrees (the city root holds hundreds of meshes) into compile units of at most ~UNIT material users
 const UNIT = 40;
-function countMats(o) { let n = 0; o.traverse((c) => { if (c.material) n++; }); return n; }
+function countMats(o) {
+  let n = 0;
+  o.traverse((c) => {
+    if (c.material) n++;
+  });
+  return n;
+}
 function units(o, out) {
-  if (!o.children.length || countMats(o) <= UNIT) { out.push(o); return; }
+  if (!o.children.length || countMats(o) <= UNIT) {
+    out.push(o);
+    return;
+  }
   if (o.material) out.push({ __self: o });
   for (const c of o.children) units(c, out);
 }
 export async function compileSliced(renderer, THREE, objects, camera, scene, budgetMs = 12) {
   const list = [];
   for (const o of objects) if (o) units(o, list);
-  compileProgress.units = list.length; compileProgress.unitsDone = 0;
+  compileProgress.units = list.length;
+  compileProgress.unitsDone = 0;
   for (const u of list) {
     try {
-      if (u.__self) { // a node with its own material and many children: compile just that node
-        const o = u.__self, kids = o.children; o.children = [];
-        try { compileForGame(renderer, THREE, o, camera, scene); } finally { o.children = kids; }
+      if (u.__self) {
+        // a node with its own material and many children: compile just that node
+        const o = u.__self,
+          kids = o.children;
+        o.children = [];
+        try {
+          compileForGame(renderer, THREE, o, camera, scene);
+        } finally {
+          o.children = kids;
+        }
       } else compileForGame(renderer, THREE, u, camera, scene);
-    } catch (e) { console.warn('[pace] compile', e); }
+    } catch (e) {
+      console.warn('[pace] compile', e);
+    }
     compileProgress.unitsDone++;
     await breathe(budgetMs);
   }

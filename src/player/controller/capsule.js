@@ -2,4 +2,4 @@
 // deep; tools/v2/player/measure.py): radius 0.28 m covers the shoulders and hanging arms, the top reaches 1.80 m (the
 // crown of the head, hair excluded) so he cannot walk his head into low beams / ceilings. Feet = capsule bottom.
 export const PLAYER_CAPSULE = { half: 0.62, r: 0.28 };
-export const PLAYER_CENTER = PLAYER_CAPSULE.half + PLAYER_CAPSULE.r;      // capsule center above the feet (0.90 m)
+export const PLAYER_CENTER = PLAYER_CAPSULE.half + PLAYER_CAPSULE.r; // capsule center above the feet (0.90 m)

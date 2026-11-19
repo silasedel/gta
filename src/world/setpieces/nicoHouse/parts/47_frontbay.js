@@ -31,7 +31,7 @@ export async function build(ctx) {
   const GLASS = mat.glass();
   const TEAL = 0x3c9b9b;
   const frontZ = 2.8;
-  const fb = ctx.frontBay = { vines: [], pots: [], net: null };
+  const fb = (ctx.frontBay = { vines: [], pots: [], net: null });
 
   // ---------- slab: three broom-finished panels with saw cuts, a long crack, oil and rust stains ----------
   const panels = [
@@ -40,29 +40,43 @@ export async function build(ctx) {
     [-1.55, 1.3, 1.9, 7.4],
   ];
   for (const [cx, cz, sx, sz] of panels) {
-    B.box(SLAB, sx + 0.035, 0.1, sz - 0.004, M(cx, 0.003 + rs(0.004), cz, rs(0.002), 0, rs(0.002)), {   // panels butt together (the open joints showed the dark ground as a black line and let grass through)
-      color: V(0xe2e0da, 0.04),
-      wear: 0.95,
-      bevel: 0.012,
-      rand: r,
-    });
+    B.box(
+      SLAB,
+      sx + 0.035,
+      0.1,
+      sz - 0.004,
+      M(cx, 0.003 + rs(0.004), cz, rs(0.002), 0, rs(0.002)),
+      {
+        // panels butt together (the open joints showed the dark ground as a black line and let grass through)
+        color: V(0xe2e0da, 0.04),
+        wear: 0.95,
+        bevel: 0.012,
+        rand: r,
+      },
+    );
   }
   // stains: soft dark decals (oil under the truck, rust rings from the drum, tire scuffs into the bay)
-  const STAIN = mat.art('fb_stain', 256, 256, (g, w, h) => {
-    const q = kit.rng(91);
-    const grd = g.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2);
-    grd.addColorStop(0, 'rgba(20,18,15,0.75)');
-    grd.addColorStop(0.55, 'rgba(25,22,18,0.35)');
-    grd.addColorStop(1, 'rgba(30,26,20,0)');
-    g.fillStyle = grd;
-    g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 40; i++) {
-      g.fillStyle = `rgba(15,12,10,${q() * 0.3})`;
-      g.beginPath();
-      g.arc(w / 2 + (q() - 0.5) * w * 0.6, h / 2 + (q() - 0.5) * h * 0.6, 3 + q() * 14, 0, 7);
-      g.fill();
-    }
-  }, { transparent: true });
+  const STAIN = mat.art(
+    'fb_stain',
+    256,
+    256,
+    (g, w, h) => {
+      const q = kit.rng(91);
+      const grd = g.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2);
+      grd.addColorStop(0, 'rgba(20,18,15,0.75)');
+      grd.addColorStop(0.55, 'rgba(25,22,18,0.35)');
+      grd.addColorStop(1, 'rgba(30,26,20,0)');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, w, h);
+      for (let i = 0; i < 40; i++) {
+        g.fillStyle = `rgba(15,12,10,${q() * 0.3})`;
+        g.beginPath();
+        g.arc(w / 2 + (q() - 0.5) * w * 0.6, h / 2 + (q() - 0.5) * h * 0.6, 3 + q() * 14, 0, 7);
+        g.fill();
+      }
+    },
+    { transparent: true },
+  );
   STAIN.transparent = true;
   STAIN.depthWrite = false;
   STAIN.polygonOffset = true;
@@ -85,17 +99,48 @@ export async function build(ctx) {
       const [ax, az] = pts[i];
       const [bx, bz] = pts[i + 1];
       const len = Math.hypot(bx - ax, bz - az);
-      B.box(CONC, len + 0.01, 0.012, 0.008 + r() * 0.006, M((ax + bx) / 2, 0.05, (az + bz) / 2, 0, Math.atan2(-(bz - az), bx - ax), 0), {
-        color: 0x2c2a26,
-      });
+      B.box(
+        CONC,
+        len + 0.01,
+        0.012,
+        0.008 + r() * 0.006,
+        M((ax + bx) / 2, 0.05, (az + bz) / 2, 0, Math.atan2(-(bz - az), bx - ax), 0),
+        {
+          color: 0x2c2a26,
+        },
+      );
     }
   };
-  crack([[-6.9, 2.3], [-6.2, 2.1], [-5.6, 2.4], [-4.9, 2.2], [-4.6, 2.6]]);
-  crack([[-3.4, 4.9], [-3.6, 3.9], [-3.3, 2.8], [-3.5, 1.6], [-3.2, 0.4]]);
-  crack([[-2.4, 3.2], [-1.9, 3.4], [-1.3, 3.0]]);
-  crack([[-4.7, -1.5], [-4.2, -1.0], [-3.9, -1.3]]);
+  crack([
+    [-6.9, 2.3],
+    [-6.2, 2.1],
+    [-5.6, 2.4],
+    [-4.9, 2.2],
+    [-4.6, 2.6],
+  ]);
+  crack([
+    [-3.4, 4.9],
+    [-3.6, 3.9],
+    [-3.3, 2.8],
+    [-3.5, 1.6],
+    [-3.2, 0.4],
+  ]);
+  crack([
+    [-2.4, 3.2],
+    [-1.9, 3.4],
+    [-1.3, 3.0],
+  ]);
+  crack([
+    [-4.7, -1.5],
+    [-4.2, -1.0],
+    [-3.9, -1.3],
+  ]);
   // weeds in the saw cuts and along the slab edge
-  fb.weeds = [[-6.95, 3.4], [-6.9, -0.6], [-0.5, 4.95]];   // only along the outer slab edge: nothing grows through the slab
+  fb.weeds = [
+    [-6.95, 3.4],
+    [-6.9, -0.6],
+    [-0.5, 4.95],
+  ]; // only along the outer slab edge: nothing grows through the slab
   col.box(-3.8, -0.02, 0.9, 6.4, 0.1, 8.2, { tag: 'ground', surface: 'concrete' });
 
   // ---------- heavy piers: concrete-sleeved piles, peeling white paint, grime at the foot ----------
@@ -109,13 +154,25 @@ export async function build(ctx) {
       shade: [0.78, 1.05],
     });
     // whitewash skin flaking off in sheets (thin peeling paint boxes on each face)
-    for (const [fx, fz, ry2] of [[0, 1, 0], [1, 0, PI / 2], [0, -1, PI], [-1, 0, -PI / 2]]) {
-      B.box(PEEL, s * 0.98, h - 0.5, 0.006, M(x + fx * (s / 2 + 0.003), 0.45 + (h - 0.5) / 2, z + fz * (s / 2 + 0.003), 0, ry + ry2, 0), {
-        grain: 1,
-        color: V(0xe9e6dc, 0.03),
-        wear: [0.6, 0.3 + r() * 0.2],
-        rand: r,
-      });
+    for (const [fx, fz, ry2] of [
+      [0, 1, 0],
+      [1, 0, PI / 2],
+      [0, -1, PI],
+      [-1, 0, -PI / 2],
+    ]) {
+      B.box(
+        PEEL,
+        s * 0.98,
+        h - 0.5,
+        0.006,
+        M(x + fx * (s / 2 + 0.003), 0.45 + (h - 0.5) / 2, z + fz * (s / 2 + 0.003), 0, ry + ry2, 0),
+        {
+          grain: 1,
+          color: V(0xe9e6dc, 0.03),
+          wear: [0.6, 0.3 + r() * 0.2],
+          rand: r,
+        },
+      );
     }
     B.box(CONC, s + 0.03, 0.32, s + 0.03, M(x, 0.16, z, 0, ry, 0), {
       color: V(0x8f8a7c, 0.06),
@@ -128,9 +185,16 @@ export async function build(ctx) {
       const y = 0.4 + r() * (h - 0.8);
       const sx = r() > 0.5 ? 1 : -1;
       const sz = r() > 0.5 ? 1 : -1;
-      B.box(CONC, 0.05 + r() * 0.05, 0.06 + r() * 0.12, 0.05 + r() * 0.04, M(x + sx * s / 2, y, z + sz * s / 2, 0, PI / 4, 0), {
-        color: 0x9a9384,
-      });
+      B.box(
+        CONC,
+        0.05 + r() * 0.05,
+        0.06 + r() * 0.12,
+        0.05 + r() * 0.04,
+        M(x + (sx * s) / 2, y, z + (sz * s) / 2, 0, PI / 4, 0),
+        {
+          color: 0x9a9384,
+        },
+      );
     }
     col.box(x, h / 2, z, s + 0.02, h, s + 0.02, { tag: 'pile' });
   };
@@ -141,13 +205,20 @@ export async function build(ctx) {
   // ---------- heavy front beam face (the hoop hangs off it) ----------
   for (let x = -6.65, k = 0; x < 2.2; k++) {
     const len = Math.min(2.25 + r() * 1.2, 2.25 - x);
-    B.box(W, len - 0.006, girTop - girBot + 0.02, 0.05, M(x + len / 2, (girTop + girBot) / 2, frontZ + 0.2, 0, 0, rs(0.002)), {
-      grain: 0,
-      color: V(0x8a8174, 0.1),
-      wear: 0.75,
-      bevel: 0.006,
-      rand: r,
-    });
+    B.box(
+      W,
+      len - 0.006,
+      girTop - girBot + 0.02,
+      0.05,
+      M(x + len / 2, (girTop + girBot) / 2, frontZ + 0.2, 0, 0, rs(0.002)),
+      {
+        grain: 0,
+        color: V(0x8a8174, 0.1),
+        wear: 0.75,
+        bevel: 0.006,
+        rand: r,
+      },
+    );
     x += len;
   }
 
@@ -155,21 +226,74 @@ export async function build(ctx) {
   const PVC = 0xe2e0d6;
   const pipe = (pts, rad, c = PVC) => B.tube(PL, pts, rad, { seg: 10, color: V(c, 0.03) });
   const yJ = girTop - 0.07;
-  pipe([[-1.4, yJ - 0.02, 1.7], [-3.5, yJ - 0.02, 1.7], [-5.95, yJ - 0.04, 1.7], [-6.12, yJ - 0.06, 1.95], [-6.12, yJ - 0.2, 2.45]], 0.048);
-  pipe([[-6.12, yJ - 0.2, 2.45], [-6.12, yJ - 0.24, 2.62], [-6.1, 2.0, 3.12], [-6.1, 0.42, 3.12]], 0.048);
+  pipe(
+    [
+      [-1.4, yJ - 0.02, 1.7],
+      [-3.5, yJ - 0.02, 1.7],
+      [-5.95, yJ - 0.04, 1.7],
+      [-6.12, yJ - 0.06, 1.95],
+      [-6.12, yJ - 0.2, 2.45],
+    ],
+    0.048,
+  );
+  pipe(
+    [
+      [-6.12, yJ - 0.2, 2.45],
+      [-6.12, yJ - 0.24, 2.62],
+      [-6.1, 2.0, 3.12],
+      [-6.1, 0.42, 3.12],
+    ],
+    0.048,
+  );
   B.cyl(PL, 0.06, 0.06, 0.1, M(-6.1, 0.4, 3.12), { color: PVC, seg: 12 });
   B.cyl(PL, 0.057, 0.06, 0.06, M(-6.1, 0.06, 3.12), { color: PVC, seg: 12 });
-  pipe([[-4.9, yJ, -3.0], [-4.9, yJ, 1.6]], 0.03);
-  pipe([[-2.3, yJ + 0.01, -3.0], [-2.3, yJ + 0.01, 2.5], [-2.3, girBot - 0.05, 2.62]], 0.024);
+  pipe(
+    [
+      [-4.9, yJ, -3.0],
+      [-4.9, yJ, 1.6],
+    ],
+    0.03,
+  );
+  pipe(
+    [
+      [-2.3, yJ + 0.01, -3.0],
+      [-2.3, yJ + 0.01, 2.5],
+      [-2.3, girBot - 0.05, 2.62],
+    ],
+    0.024,
+  );
   // pipe hangers: galvanized straps
-  for (const [x, z] of [[-1.9, 1.7], [-3.1, 1.7], [-4.3, 1.7], [-5.5, 1.7], [-4.9, -2.0], [-4.9, -0.6], [-4.9, 0.8], [-2.3, -1.8], [-2.3, 0.4]]) {
+  for (const [x, z] of [
+    [-1.9, 1.7],
+    [-3.1, 1.7],
+    [-4.3, 1.7],
+    [-5.5, 1.7],
+    [-4.9, -2.0],
+    [-4.9, -0.6],
+    [-4.9, 0.8],
+    [-2.3, -1.8],
+    [-2.3, 0.4],
+  ]) {
     B.box(ST, 0.02, 0.1, 0.02, M(x, yJ + 0.06, z), { color: 0x9da09c });
   }
   // conduit along the beam from the pier panel, with offset bends at every joist
-  B.tube(ST, [[1.6, 1.0, frontZ + 0.29], [1.6, girBot - 0.05, frontZ + 0.29], [1.4, girBot + 0.05, frontZ + 0.25], [-0.5, girBot + 0.08, frontZ + 0.25], [-1.1, girBot + 0.2, frontZ + 0.1], [-1.1, yJ, 1.0], [-1.1, yJ, -2.5]], 0.012, {
-    seg: 6,
-    color: 0x8f938f,
-  });
+  B.tube(
+    ST,
+    [
+      [1.6, 1.0, frontZ + 0.29],
+      [1.6, girBot - 0.05, frontZ + 0.29],
+      [1.4, girBot + 0.05, frontZ + 0.25],
+      [-0.5, girBot + 0.08, frontZ + 0.25],
+      [-1.1, girBot + 0.2, frontZ + 0.1],
+      [-1.1, yJ, 1.0],
+      [-1.1, yJ, -2.5],
+    ],
+    0.012,
+    {
+      seg: 6,
+      color: 0x8f938f,
+    },
+  );
   // loose wiring: catenaries between the joists, some drooping down; they move in the wind
   const wires = new THREE.Group();
   const wb = kit.batch('fb_wires');
@@ -177,7 +301,11 @@ export async function build(ctx) {
     const pts = [];
     for (let i = 0; i <= 12; i++) {
       const t = i / 12;
-      pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - Math.sin(t * PI) * s, a[2] + (b[2] - a[2]) * t]);
+      pts.push([
+        a[0] + (b[0] - a[0]) * t,
+        a[1] + (b[1] - a[1]) * t - Math.sin(t * PI) * s,
+        a[2] + (b[2] - a[2]) * t,
+      ]);
     }
     wb.tube(RUB, pts, rad, { seg: 4, color: c });
   };
@@ -190,7 +318,12 @@ export async function build(ctx) {
   ctx.groups.dyn.add(wires);
   // a bare bulb socket on the joists
   B.cyl(PL, 0.04, 0.05, 0.08, M(-3.0, yJ - 0.02, 0.4), { color: 0xd8d0b8, seg: 10 });
-  B.geo(mat.emissive(0xffd9a0, 0.3, 'fb_bulb'), new THREE.SphereGeometry(0.035, 10, 8), M(-3.0, yJ - 0.1, 0.4), {});
+  B.geo(
+    mat.emissive(0xffd9a0, 0.3, 'fb_bulb'),
+    new THREE.SphereGeometry(0.035, 10, 8),
+    M(-3.0, yJ - 0.1, 0.4),
+    {},
+  );
 
   // ---------- backboard, rim and net on the beam ----------
   const bbx = -3.3;
@@ -238,30 +371,63 @@ export async function build(ctx) {
     }
   });
   for (const sx of [-0.4, 0.4]) {
-    B.box(W, 0.089, 0.95, 0.038, M(bbx + sx, bby, bbz - 0.08), { grain: 1, color: V(0x8d857a), wear: 0.7, rand: r });
+    B.box(W, 0.089, 0.95, 0.038, M(bbx + sx, bby, bbz - 0.08), {
+      grain: 1,
+      color: V(0x8d857a),
+      wear: 0.7,
+      rand: r,
+    });
   }
   for (const y of [bby - 0.3, bby + 0.3]) {
-    B.box(W, 1.02, 0.089, 0.038, M(bbx, y, bbz - 0.04), { grain: 0, color: V(0x8d857a), wear: 0.7, rand: r });
+    B.box(W, 1.02, 0.089, 0.038, M(bbx, y, bbz - 0.04), {
+      grain: 0,
+      color: V(0x8d857a),
+      wear: 0.7,
+      rand: r,
+    });
   }
-  B.box(mat.pbr('plywood', { rep: 1.2 }), 1.22, 0.86, 0.02, M(bbx, bby, bbz, 0, 0, 0.012), { color: V(0xd9d2c0), wear: 0.85, bevel: 0.003 });
+  B.box(mat.pbr('plywood', { rep: 1.2 }), 1.22, 0.86, 0.02, M(bbx, bby, bbz, 0, 0, 0.012), {
+    color: V(0xd9d2c0),
+    wear: 0.85,
+    bevel: 0.003,
+  });
   {
     const g = new THREE.PlaneGeometry(1.22, 0.86);
     B.geo(BOARD, g, M(bbx, bby, bbz + 0.0105, 0, 0, 0.012), {});
     g.dispose();
   }
-  for (const [dx, dy] of [[-0.4, 0.3], [0.4, 0.3], [-0.4, -0.3], [0.4, -0.3]]) {
-    B.cyl(RUST, 0.012, 0.012, 0.012, M(bbx + dx, bby + dy, bbz + 0.015, PI / 2), { color: 0x8a7a6a, seg: 8 });
+  for (const [dx, dy] of [
+    [-0.4, 0.3],
+    [0.4, 0.3],
+    [-0.4, -0.3],
+    [0.4, -0.3],
+  ]) {
+    B.cyl(RUST, 0.012, 0.012, 0.012, M(bbx + dx, bby + dy, bbz + 0.015, PI / 2), {
+      color: 0x8a7a6a,
+      seg: 8,
+    });
   }
   col.box(bbx, bby, bbz, 1.22, 0.86, 0.06, { tag: 'backboard', surface: 'wood' });
   // rim: bent, on a rusty bracket
   const OR = 0xc4531c;
   const rimY = bby - 0.36;
   const rimZ = bbz + 0.05 + 0.24;
-  B.geo(MP, new THREE.TorusGeometry(0.2335, 0.009, 6, 32), M(bbx, rimY, rimZ, PI / 2 + 0.06, 0, 0.03), { color: OR });
+  B.geo(
+    MP,
+    new THREE.TorusGeometry(0.2335, 0.009, 6, 32),
+    M(bbx, rimY, rimZ, PI / 2 + 0.06, 0, 0.03),
+    { color: OR },
+  );
   B.box(MP, 0.15, 0.13, 0.008, M(bbx, rimY - 0.04, bbz + 0.02), { color: kit.mul(OR, 0.8) });
   B.box(MP, 0.12, 0.008, 0.06, M(bbx, rimY, bbz + 0.05), { color: OR });
   for (const s of [-1, 1]) {
-    B.rod(MP, [bbx + s * 0.05, rimY - 0.09, bbz + 0.03], [bbx + s * 0.16, rimY - 0.005, rimZ - 0.17], 0.005, { color: kit.mul(OR, 0.75) });
+    B.rod(
+      MP,
+      [bbx + s * 0.05, rimY - 0.09, bbz + 0.03],
+      [bbx + s * 0.16, rimY - 0.005, rimZ - 0.17],
+      0.005,
+      { color: kit.mul(OR, 0.75) },
+    );
   }
   // rust runs under the bracket
   B.box(RUST, 0.03, 0.12, 0.002, M(bbx + 0.03, rimY - 0.15, bbz + 0.012), { color: 0x9a6a48 });
@@ -271,10 +437,17 @@ export async function build(ctx) {
     net.position.set(bbx, rimY, rimZ);
     const nb = kit.batch('fb_net');
     const NC = 0xd9d4c6;
-    const rings = [[0.232, -0.01], [0.205, -0.09], [0.178, -0.17], [0.158, -0.25], [0.146, -0.33], [0.142, -0.4]];
+    const rings = [
+      [0.232, -0.01],
+      [0.205, -0.09],
+      [0.178, -0.17],
+      [0.158, -0.25],
+      [0.146, -0.33],
+      [0.142, -0.4],
+    ];
     const pt = (k, i) => {
       const [rad, y] = rings[k];
-      const a = (i + (k % 2) * 0.5) / 12 * PI * 2;
+      const a = ((i + (k % 2) * 0.5) / 12) * PI * 2;
       const j = k ? 0.008 : 0;
       return [Math.cos(a) * rad + rs(j), y + rs(j), Math.sin(a) * rad + rs(j)];
     };
@@ -283,13 +456,21 @@ export async function build(ctx) {
       for (let i = 0; i < 12; i++) {
         if ((k >= 2 && i >= 7 && i <= 9) || (k >= 3 && r() < 0.25)) continue;
         nb.rod(MP, N[k][i], N[k + 1][i], 0.003, { seg: 4, color: kit.vary(NC, r, 0.05) });
-        nb.rod(MP, N[k][i], N[k + 1][(i + 11) % 12], 0.003, { seg: 4, color: kit.vary(NC, r, 0.05) });
+        nb.rod(MP, N[k][i], N[k + 1][(i + 11) % 12], 0.003, {
+          seg: 4,
+          color: kit.vary(NC, r, 0.05),
+        });
       }
     }
     // frayed strands hanging loose
     for (const i of [7, 8, 9, 3]) {
       const a = N[2][i];
-      nb.tube(MP, [a, [a[0] * 1.05, -0.36, a[2] * 1.05], [a[0] * 0.95, -0.5 - r() * 0.08, a[2] * 1.1]], 0.0028, { seg: 4, color: NC });
+      nb.tube(
+        MP,
+        [a, [a[0] * 1.05, -0.36, a[2] * 1.05], [a[0] * 0.95, -0.5 - r() * 0.08, a[2] * 1.1]],
+        0.0028,
+        { seg: 4, color: NC },
+      );
     }
     nb.build(net);
     ctx.groups.dyn.add(net);
@@ -333,7 +514,7 @@ export async function build(ctx) {
   ctx.anchors.hoop = { pos: new THREE.Vector3(bbx, 0, 6.2), heading: PI };
   // player spawn outside: in the yard beside the pickup, facing the street (the camera then sits under the deck edge and frames
   // the yard, both of Nico's cars and the STOP corner like the front-deck mock-up)
-  ctx.anchors.spawnYard = { pos: new THREE.Vector3(-12.6, 0, 5.4), heading: -0.4 };   // r2-keys: Nico's spot in the mock-up, at the pickup's driver door, facing the STOP corner
+  ctx.anchors.spawnYard = { pos: new THREE.Vector3(-12.6, 0, 5.4), heading: -0.4 }; // r2-keys: Nico's spot in the mock-up, at the pickup's driver door, facing the STOP corner
   // test tools (s1-tour `house` spot) look for anchors.front: the same yard spot, so shots land in the yard, never in the bay
   ctx.anchors.front = { pos: new THREE.Vector3(-10.5, 0, 9.5), heading: 2.3 };
   ctx.anchors.hoopRim = { pos: new THREE.Vector3(bbx, rimY, rimZ), heading: 0 };
@@ -352,28 +533,49 @@ export async function build(ctx) {
       let free = [[y0, y1]];
       for (const [h0, h1, hy0, hy1] of holes) {
         if (u1 > h0 && u < h1) {
-          free = free.flatMap(([a, b]) => (hy1 <= a || hy0 >= b) ? [[a, b]] : [[a, Math.min(b, hy0)], [Math.max(a, hy1), b]].filter(([p, q]) => q - p > 0.03));
+          free = free.flatMap(([a, b]) =>
+            hy1 <= a || hy0 >= b
+              ? [[a, b]]
+              : [
+                  [a, Math.min(b, hy0)],
+                  [Math.max(a, hy1), b],
+                ].filter(([p, q]) => q - p > 0.03),
+          );
         }
       }
       const tone = kit.mix(V(TEAL, 0.12), 0x9fbcb6, r() * 0.25);
       const wr = 0.35 + r() * 0.35;
       for (const [a, b] of free) {
-        B.box(PAINT, u1 - u, b - a, 0.022, M(ax + ux * uc, (a + b) / 2, az + uz * uc, 0, ry, rs(0.004)), {
-          grain: 1,
-          color: tone,
-          wear: [Math.min(1, wr + 0.45), wr],
-          bevel: 0.003,
-          rand: r,
-        });
+        B.box(
+          PAINT,
+          u1 - u,
+          b - a,
+          0.022,
+          M(ax + ux * uc, (a + b) / 2, az + uz * uc, 0, ry, rs(0.004)),
+          {
+            grain: 1,
+            color: tone,
+            wear: [Math.min(1, wr + 0.45), wr],
+            bevel: 0.003,
+            rand: r,
+          },
+        );
       }
     }
     // rails behind the boards, seen through the gaps
     for (const y of [0.35, (y0 + y1) / 2, y1 - 0.2]) {
-      B.box(W, len, 0.09, 0.04, M((ax + bx) / 2 - Math.sin(ry) * 0, y, (az + bz) / 2, 0, ry, 0).multiply(M(0, 0, -0.035)), {
-        grain: 0,
-        color: 0x4a4238,
-        wear: 0.5,
-      });
+      B.box(
+        W,
+        len,
+        0.09,
+        0.04,
+        M((ax + bx) / 2 - Math.sin(ry) * 0, y, (az + bz) / 2, 0, ry, 0).multiply(M(0, 0, -0.035)),
+        {
+          grain: 0,
+          color: 0x4a4238,
+          wear: 0.5,
+        },
+      );
     }
     if (o.collide !== false) {
       col.box((ax + bx) / 2, (y0 + y1) / 2, (az + bz) / 2, len, y1 - y0, 0.1, { ry, tag: 'wall' });
@@ -388,21 +590,57 @@ export async function build(ctx) {
   wall(6.5, 4.4, 6.5, -0.2, 0.06, roomTop);
   wall(6.5, -0.2, -1.0, -0.2, 0.06, roomTop);
   // dark inside: a plywood ceiling under the joists so no daylight leaks in from above
-  B.box(mat.pbr('plywood', { rep: 1.2 }), 7.5, 0.02, 4.6, M(2.75, roomTop - 0.01, 2.1), { color: 0x6a6258, wear: 0.4 });
+  B.box(mat.pbr('plywood', { rep: 1.2 }), 7.5, 0.02, 4.6, M(2.75, roomTop - 0.01, 2.1), {
+    color: 0x6a6258,
+    wear: 0.4,
+  });
   // door: six-panel white door, grimy at the latch and the bottom, in a weathered casing
   {
     const dx = -0.97 + 1.81;
     const dz = fz + 0.02;
     const DOOR = 0xe6e2d6;
-    B.box(PEEL, 0.82, 2.03, 0.04, M(dx, 0.08 + 1.015, dz), { grain: 2, color: DOOR, wear: [0.42, 0.18], bevel: 0.004, rand: r });
-    for (const [px, py, pw, ph] of [[-0.19, 1.7, 0.28, 0.48], [0.19, 1.7, 0.28, 0.48], [-0.19, 1.05, 0.28, 0.6], [0.19, 1.05, 0.28, 0.6], [-0.19, 0.38, 0.28, 0.5], [0.19, 0.38, 0.28, 0.5]]) {
-      B.box(PEEL, pw, ph, 0.012, M(dx + px, 0.08 + py, dz + 0.024), { grain: 2, color: kit.mul(DOOR, 0.96), wear: 0.25 + r() * 0.2, bevel: 0.01, rand: r });
+    B.box(PEEL, 0.82, 2.03, 0.04, M(dx, 0.08 + 1.015, dz), {
+      grain: 2,
+      color: DOOR,
+      wear: [0.42, 0.18],
+      bevel: 0.004,
+      rand: r,
+    });
+    for (const [px, py, pw, ph] of [
+      [-0.19, 1.7, 0.28, 0.48],
+      [0.19, 1.7, 0.28, 0.48],
+      [-0.19, 1.05, 0.28, 0.6],
+      [0.19, 1.05, 0.28, 0.6],
+      [-0.19, 0.38, 0.28, 0.5],
+      [0.19, 0.38, 0.28, 0.5],
+    ]) {
+      B.box(PEEL, pw, ph, 0.012, M(dx + px, 0.08 + py, dz + 0.024), {
+        grain: 2,
+        color: kit.mul(DOOR, 0.96),
+        wear: 0.25 + r() * 0.2,
+        bevel: 0.01,
+        rand: r,
+      });
     }
     for (const s of [-1, 1]) {
-      B.box(PAINT, 0.08, 2.15, 0.03, M(dx + s * 0.45, 1.13, dz + 0.012), { grain: 1, color: V(0xdcd8cb), wear: 0.8, bevel: 0.004, rand: r });
+      B.box(PAINT, 0.08, 2.15, 0.03, M(dx + s * 0.45, 1.13, dz + 0.012), {
+        grain: 1,
+        color: V(0xdcd8cb),
+        wear: 0.8,
+        bevel: 0.004,
+        rand: r,
+      });
     }
-    B.box(PAINT, 1.0, 0.09, 0.03, M(dx, 2.2, dz + 0.012), { grain: 0, color: V(0xdcd8cb), wear: 0.8, bevel: 0.004 });
-    B.cyl(mat.chrome(), 0.028, 0.028, 0.05, M(dx + 0.33, 1.0, dz + 0.04, PI / 2), { color: 0x8a8070, seg: 12 });
+    B.box(PAINT, 1.0, 0.09, 0.03, M(dx, 2.2, dz + 0.012), {
+      grain: 0,
+      color: V(0xdcd8cb),
+      wear: 0.8,
+      bevel: 0.004,
+    });
+    B.cyl(mat.chrome(), 0.028, 0.028, 0.05, M(dx + 0.33, 1.0, dz + 0.04, PI / 2), {
+      color: 0x8a8070,
+      seg: 12,
+    });
     B.box(MP, 0.06, 0.14, 0.006, M(dx + 0.33, 1.0, dz + 0.023), { color: 0x7a7266 });
     B.box(STAIN, 0.3, 0.4, 0.002, M(dx + 0.3, 1.05, dz + 0.031), { color: 0xffffff });
     B.box(CONC, 1.0, 0.06, 0.28, M(dx, 0.03, dz + 0.16), { color: 0xa8a294, bevel: 0.01 });
@@ -415,18 +653,50 @@ export async function build(ctx) {
     const y1 = 2.08;
     const FR = 0xe1ddd1;
     for (const s of [-1, 1]) {
-      B.box(PAINT, 0.07, y1 - y0 + 0.1, 0.06, M(wx + s * 0.63, (y0 + y1) / 2, wz + 0.02), { grain: 1, color: V(FR), wear: 0.75, rand: r });
+      B.box(PAINT, 0.07, y1 - y0 + 0.1, 0.06, M(wx + s * 0.63, (y0 + y1) / 2, wz + 0.02), {
+        grain: 1,
+        color: V(FR),
+        wear: 0.75,
+        rand: r,
+      });
     }
-    B.box(PAINT, 1.36, 0.07, 0.06, M(wx, y1 + 0.03, wz + 0.02), { grain: 0, color: V(FR), wear: 0.75, rand: r });
-    B.box(PAINT, 1.44, 0.05, 0.1, M(wx, y0 - 0.02, wz + 0.05), { grain: 0, color: V(FR), wear: 0.85, rand: r });
-    B.box(PAINT, 0.05, y1 - y0, 0.05, M(wx, (y0 + y1) / 2, wz + 0.02), { grain: 1, color: V(FR), wear: 0.7, rand: r });
+    B.box(PAINT, 1.36, 0.07, 0.06, M(wx, y1 + 0.03, wz + 0.02), {
+      grain: 0,
+      color: V(FR),
+      wear: 0.75,
+      rand: r,
+    });
+    B.box(PAINT, 1.44, 0.05, 0.1, M(wx, y0 - 0.02, wz + 0.05), {
+      grain: 0,
+      color: V(FR),
+      wear: 0.85,
+      rand: r,
+    });
+    B.box(PAINT, 0.05, y1 - y0, 0.05, M(wx, (y0 + y1) / 2, wz + 0.02), {
+      grain: 1,
+      color: V(FR),
+      wear: 0.7,
+      rand: r,
+    });
     const sash = (cx, cz, ry, rz) => {
       const m0 = M(cx, (y0 + y1) / 2, cz, 0, ry, rz);
       const L = (x, y, z) => m0.clone().multiply(M(x, y, z));
       const sw = 0.56;
       const sh = y1 - y0 - 0.04;
-      for (const s of [-1, 1]) B.box(PAINT, 0.045, sh, 0.035, L(s * (sw / 2 - 0.022), 0, 0), { grain: 1, color: V(FR), wear: 0.7, rand: r });
-      for (const s of [-1, 1]) B.box(PAINT, sw, 0.045, 0.035, L(0, s * (sh / 2 - 0.022), 0), { grain: 0, color: V(FR), wear: 0.7, rand: r });
+      for (const s of [-1, 1])
+        B.box(PAINT, 0.045, sh, 0.035, L(s * (sw / 2 - 0.022), 0, 0), {
+          grain: 1,
+          color: V(FR),
+          wear: 0.7,
+          rand: r,
+        });
+      for (const s of [-1, 1])
+        B.box(PAINT, sw, 0.045, 0.035, L(0, s * (sh / 2 - 0.022), 0), {
+          grain: 0,
+          color: V(FR),
+          wear: 0.7,
+          rand: r,
+        });
       B.box(PAINT, sw, 0.025, 0.02, L(0, 0, 0), { grain: 0, color: V(FR), wear: 0.6, rand: r });
       B.box(GLASS, sw - 0.08, sh - 0.08, 0.004, L(0, 0, 0), {});
     };
@@ -457,19 +727,47 @@ export async function build(ctx) {
           let ya = 0;
           let xb = s > 0 ? c + h : c;
           let yb = h;
-          if (xa < 0) { ya += -xa; xa = 0; }
-          if (xa > len) { ya += xa - len; xa = len; }
-          if (xb > len) { yb -= xb - len; xb = len; }
-          if (xb < 0) { yb -= -xb; xb = 0; }
+          if (xa < 0) {
+            ya += -xa;
+            xa = 0;
+          }
+          if (xa > len) {
+            ya += xa - len;
+            xa = len;
+          }
+          if (xb > len) {
+            yb -= xb - len;
+            xb = len;
+          }
+          if (xb < 0) {
+            yb -= -xb;
+            xb = 0;
+          }
           const l = Math.hypot(xb - xa, yb - ya);
           if (l < 0.06 || r() < 0.03) continue;
-          B.box(PEEL, l, 0.036, 0.007, base.clone().multiply(M((xa + xb) / 2, (ya + yb) / 2, s * 0.004, 0, 0, Math.atan2(yb - ya, xb - xa))), {
-            color: V(L, 0.04),
-            wear: 0.55 + r() * 0.3,
-          });
+          B.box(
+            PEEL,
+            l,
+            0.036,
+            0.007,
+            base
+              .clone()
+              .multiply(
+                M((xa + xb) / 2, (ya + yb) / 2, s * 0.004, 0, 0, Math.atan2(yb - ya, xb - xa)),
+              ),
+            {
+              color: V(L, 0.04),
+              wear: 0.55 + r() * 0.3,
+            },
+          );
         }
       }
-      for (const y of [0.02, h - 0.02]) B.box(PEEL, len, 0.045, 0.03, base.clone().multiply(M(len / 2, y, 0)), { grain: 0, color: V(L), wear: 0.6 });
+      for (const y of [0.02, h - 0.02])
+        B.box(PEEL, len, 0.045, 0.03, base.clone().multiply(M(len / 2, y, 0)), {
+          grain: 0,
+          color: V(L),
+          wear: 0.6,
+        });
     };
     lat(2.3, 4.47, 6.45, 4.47, roomTop, F_DECK(P) - 0.05);
     lat(-0.95, fz + 0.03, 1.75, fz + 0.03, roomTop, girTop);
@@ -490,8 +788,17 @@ export async function build(ctx) {
     const ay = girBot - 0.3;
     const az = frontZ + 0.62;
     for (const s of [-0.24, 0.24]) {
-      B.box(W, 0.045, 0.14, 0.62, M(ax + s, ay - 0.31, az - 0.06), { grain: 2, color: V(0x8a8072), wear: 0.7, rand: r });
-      B.strut(W, [ax + s, ay - 0.36, az + 0.2], [ax + s, ay - 0.95, pz + 0.04], 0.045, 0.09, { color: V(0x8a8072), wear: 0.7, rand: r });
+      B.box(W, 0.045, 0.14, 0.62, M(ax + s, ay - 0.31, az - 0.06), {
+        grain: 2,
+        color: V(0x8a8072),
+        wear: 0.7,
+        rand: r,
+      });
+      B.strut(W, [ax + s, ay - 0.36, az + 0.2], [ax + s, ay - 0.95, pz + 0.04], 0.045, 0.09, {
+        color: V(0x8a8072),
+        wear: 0.7,
+        rand: r,
+      });
     }
     B.box(MP, 0.66, 0.46, 0.6, M(ax, ay, az), { color: 0xd3d0c3, bevel: 0.02, wear: 0.7 });
     const LOUV = mat.art('fb_acl', 128, 128, (g, w, h) => {
@@ -507,7 +814,16 @@ export async function build(ctx) {
     for (const s of [-1, 1]) B.box(LOUV, 0.004, 0.36, 0.5, M(ax + s * 0.332, ay, az), {});
     B.box(LOUV, 0.6, 0.38, 0.004, M(ax, ay, az + 0.302), {});
     B.box(RUST, 0.62, 0.03, 0.02, M(ax, ay - 0.22, az + 0.3), { color: 0x9a6a44 });
-    B.tube(RUB, [[ax - 0.2, ay - 0.23, az + 0.1], [ax - 0.22, ay - 0.6, az + 0.12], [ax - 0.3, 0.5, az + 0.1]], 0.008, { seg: 5, color: 0x2a2a28 });
+    B.tube(
+      RUB,
+      [
+        [ax - 0.2, ay - 0.23, az + 0.1],
+        [ax - 0.22, ay - 0.6, az + 0.12],
+        [ax - 0.3, 0.5, az + 0.1],
+      ],
+      0.008,
+      { seg: 5, color: 0x2a2a28 },
+    );
     col.box(ax, ay, az, 0.7, 0.5, 0.62, { tag: 'prop' });
   }
 
@@ -524,14 +840,21 @@ export async function build(ctx) {
     body.dispose();
     B.box(PL, 0.5, 0.012, 0.6, M(bx, 0.13, bz, 0, 0.12, 0), { color: kit.mul(G, 0.8) });
     B.box(PL, 0.5, 0.05, 0.62, M(bx, 1.14, bz, 0.05, 0.12, 0), { color: V(G, 0.05), bevel: 0.015 });
-    for (const s of [-1, 1]) B.cyl(RUB, 0.1, 0.1, 0.05, M(bx + s * 0.22, 0.1, bz - 0.32, 0, 0, PI / 2), { color: 0x1c1c1c, seg: 14 });
+    for (const s of [-1, 1])
+      B.cyl(RUB, 0.1, 0.1, 0.05, M(bx + s * 0.22, 0.1, bz - 0.32, 0, 0, PI / 2), {
+        color: 0x1c1c1c,
+        seg: 14,
+      });
     B.box(STAIN, 0.4, 0.5, 0.002, M(bx, 0.55, bz + 0.37, 0, 0.12, 0), {});
     col.box(bx, 0.6, bz, 0.6, 1.2, 0.7, { tag: 'prop' });
     // drum
     const dx = 0.3;
     const dz = fz + 0.4;
     B.cyl(RUST, 0.29, 0.29, 0.88, M(dx, 0.5, dz), { color: 0xa07a5c, seg: 22 });
-    for (const y of [0.3, 0.7]) B.geo(RUST, new THREE.TorusGeometry(0.292, 0.012, 5, 22), M(dx, y, dz, PI / 2, 0, 0), { color: 0x7a5a40 });
+    for (const y of [0.3, 0.7])
+      B.geo(RUST, new THREE.TorusGeometry(0.292, 0.012, 5, 22), M(dx, y, dz, PI / 2, 0, 0), {
+        color: 0x7a5a40,
+      });
     B.cyl(RUST, 0.28, 0.28, 0.01, M(dx, 0.945, dz), { color: 0x6a4a34, seg: 22 });
     col.cyl(dx, 0.5, dz, 0.3, 0.95, { tag: 'prop' });
   }
@@ -539,9 +862,16 @@ export async function build(ctx) {
   // ---------- potted plants on the front deck rail (plants grown by part 50) ----------
   const TERRA = mat.pbr('plywood', { rep: 0.4 });
   const railY = P.F + (P.rail?.h ?? 1.07) + 0.02;
-  for (const [x, z, s] of [[0.67, 5.9, 1.0]]) {   // (the pots at the deck corner sat in the mock-up camera's face: removed)   // (the corner pot at (1.4, 7.88) sat in the mock-up camera's face: removed)
-    B.cyl(mat.ceramic(), 0.11 * s, 0.08 * s, 0.17 * s, M(x, railY + 0.085 * s, z), { color: V(0xb05f3a, 0.06), seg: 16 });
-    B.cyl(mat.ceramic(), 0.118 * s, 0.118 * s, 0.03 * s, M(x, railY + 0.16 * s, z), { color: V(0xa0583a, 0.06), seg: 16 });
+  for (const [x, z, s] of [[0.67, 5.9, 1.0]]) {
+    // (the pots at the deck corner sat in the mock-up camera's face: removed)   // (the corner pot at (1.4, 7.88) sat in the mock-up camera's face: removed)
+    B.cyl(mat.ceramic(), 0.11 * s, 0.08 * s, 0.17 * s, M(x, railY + 0.085 * s, z), {
+      color: V(0xb05f3a, 0.06),
+      seg: 16,
+    });
+    B.cyl(mat.ceramic(), 0.118 * s, 0.118 * s, 0.03 * s, M(x, railY + 0.16 * s, z), {
+      color: V(0xa0583a, 0.06),
+      seg: 16,
+    });
     B.cyl(TERRA, 0.1 * s, 0.1 * s, 0.01, M(x, railY + 0.15 * s, z), { color: 0x3a2c20, seg: 14 });
     fb.pots.push([x, railY + 0.155 * s, z, s]);
   }
@@ -564,34 +894,36 @@ export async function build(ctx) {
   for (let k = 0; k < 5; k++) climb(2.35 + k * 0.14, 4.43, 0, 1, 1.4 + r() * 1.0, 0.05, 1);
 
   // ---------- the old pickup in the left bay (shared car bodies; static, parked) ----------
-  ctx.async.push((async () => {
-    try {
-      const cm = await import('../../../../vehicles/carModel2.js');
-      const key = cm.CAR_TYPES.ridgeback_mid ? 'ridgeback_mid' : 'pickup';
-      const look = cm.rollLook(key, 4318);
-      look.color = 0x23494a;
-      look.wear = { ...(look.wear || {}), dirt: 0.4, rust: 0.45, fade: 0.3, seed: 7 };
-      look.twoTone = null;
-      const car = cm.buildCar(key, look, {});
-      car.root.position.set(-5.2, 0.055, -0.1);
-      car.shell.position.y = 0;
-      for (const w of car.wheels) {
-        w.steer.position.set(w.x, w.r, w.z);
-        if (w.front) w.steer.rotation.y = -0.18;
-      }
-      car.root.rotation.y = 0.04;
-      car.root.traverse((o) => {
-        if (o.isMesh) {
-          o.castShadow = true;
-          o.receiveShadow = true;
+  ctx.async.push(
+    (async () => {
+      try {
+        const cm = await import('../../../../vehicles/carModel2.js');
+        const key = cm.CAR_TYPES.ridgeback_mid ? 'ridgeback_mid' : 'pickup';
+        const look = cm.rollLook(key, 4318);
+        look.color = 0x23494a;
+        look.wear = { ...(look.wear || {}), dirt: 0.4, rust: 0.45, fade: 0.3, seed: 7 };
+        look.twoTone = null;
+        const car = cm.buildCar(key, look, {});
+        car.root.position.set(-5.2, 0.055, -0.1);
+        car.shell.position.y = 0;
+        for (const w of car.wheels) {
+          w.steer.position.set(w.x, w.r, w.z);
+          if (w.front) w.steer.rotation.y = -0.18;
         }
-      });
-      ctx.groups.detail.add(car.root);
-      fb.truck = car;
-    } catch (e) {
-      console.warn('[nicoHouse] pickup model unavailable', e);
-    }
-  })());
+        car.root.rotation.y = 0.04;
+        car.root.traverse((o) => {
+          if (o.isMesh) {
+            o.castShadow = true;
+            o.receiveShadow = true;
+          }
+        });
+        ctx.groups.detail.add(car.root);
+        fb.truck = car;
+      } catch (e) {
+        console.warn('[nicoHouse] pickup model unavailable', e);
+      }
+    })(),
+  );
   col.box(-5.2, 0.95, -0.1, 1.95, 1.9, 5.1, { tag: 'vehicle', ry: 0.04 });
   ctx.anchors.truck = { pos: new THREE.Vector3(-5.2, 0, -0.1), heading: 0.04 };
 

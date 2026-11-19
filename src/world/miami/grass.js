@@ -3,4 +3,6 @@
 // createGrassField({ M, root, data, lawnAt, lawnTester }) -> { mesh, update(camera), dispose(), api }; also sets game.grass.
 import { createLawn } from '../vegetation/lawn.js';
 
-export function createGrassField(opts) { return createLawn(opts); }
+export function createGrassField(opts) {
+  return createLawn(opts);
+}

@@ -3,9 +3,27 @@
 //   ?preload=all   -> full preload (today's behavior, also forced in the app)
 //   ?preload=lazy  -> streamed load, even in the app protocol or dev server (for testing)
 // Default: lazy on the web build, off on the dev server (127.0.0.1:5200, localhost) so everyone's tests keep their timing.
-const q = (() => { try { return new URLSearchParams(location.search).get('preload'); } catch (e) { return null; } })();
-const isApp = (() => { try { return location.protocol === 'app:'; } catch (e) { return false; } })();
-const isDev = (() => { try { return /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && !!import.meta.env?.DEV; } catch (e) { return false; } })();
+const q = (() => {
+  try {
+    return new URLSearchParams(location.search).get('preload');
+  } catch (e) {
+    return null;
+  }
+})();
+const isApp = (() => {
+  try {
+    return location.protocol === 'app:';
+  } catch (e) {
+    return false;
+  }
+})();
+const isDev = (() => {
+  try {
+    return /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && !!import.meta.env?.DEV;
+  } catch (e) {
+    return false;
+  }
+})();
 export const LAZY = q === 'lazy' || (q !== 'all' && !isApp && !isDev);
 // run fn once the game is playable (game.ready), then a short grace so the first frames are not shared with downloads
 export function afterReady(fn, graceMs = 2500) {
@@ -20,7 +38,16 @@ export function afterReady(fn, graceMs = 2500) {
 // run async jobs one after another, each starting only when the page is idle enough (no long frames), never in a burst
 export async function trickle(jobs, { gapMs = 250 } = {}) {
   for (const job of jobs) {
-    try { await new Promise((r) => (globalThis.requestIdleCallback ? requestIdleCallback(r, { timeout: 1500 }) : setTimeout(r, 50))); await job(); } catch (e) { console.warn('[load] background job failed', e); }
+    try {
+      await new Promise((r) =>
+        globalThis.requestIdleCallback
+          ? requestIdleCallback(r, { timeout: 1500 })
+          : setTimeout(r, 50),
+      );
+      await job();
+    } catch (e) {
+      console.warn('[load] background job failed', e);
+    }
     await new Promise((r) => setTimeout(r, gapMs));
   }
 }

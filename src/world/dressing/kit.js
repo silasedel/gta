@@ -36,11 +36,24 @@ class Parts {
     this.list = [];
   }
   box(x, y, z, w, h, d, surf, color, o = {}) {
-    this.list.push({ g: BOX, m: mtx(x, y, z, o.rx || 0, o.ry || 0, o.rz || 0, w, h, d), surf, color, tint: o.tint ?? 0, emis: o.emis || 0 });
+    this.list.push({
+      g: BOX,
+      m: mtx(x, y, z, o.rx || 0, o.ry || 0, o.rz || 0, w, h, d),
+      surf,
+      color,
+      tint: o.tint ?? 0,
+      emis: o.emis || 0,
+    });
     return this;
   }
   cyl(x, y, z, r, h, surf, color, o = {}) {
-    this.list.push({ g: o.lo ? CYL6 : CYL, m: mtx(x, y, z, o.rx || 0, o.ry || 0, o.rz || 0, r * 2, h, r * 2), surf, color, tint: o.tint ?? 0 });
+    this.list.push({
+      g: o.lo ? CYL6 : CYL,
+      m: mtx(x, y, z, o.rx || 0, o.ry || 0, o.rz || 0, r * 2, h, r * 2),
+      surf,
+      color,
+      tint: o.tint ?? 0,
+    });
     return this;
   }
   geo(g, m, surf, color, o = {}) {
@@ -53,7 +66,13 @@ class Parts {
     const L = d.length();
     const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize());
     const mid = new THREE.Vector3().addVectors(a, b).multiplyScalar(0.5);
-    this.list.push({ g: BOX, m: new THREE.Matrix4().compose(mid, q, new THREE.Vector3(t, o.th ?? t, L)), surf, color, tint: o.tint ?? 0 });
+    this.list.push({
+      g: BOX,
+      m: new THREE.Matrix4().compose(mid, q, new THREE.Vector3(t, o.th ?? t, L)),
+      surf,
+      color,
+      tint: o.tint ?? 0,
+    });
     return this;
   }
   build() {
@@ -96,9 +115,7 @@ export function payStation() {
 
 export function signPost(w = 0.6, h = 0.75) {
   // post only; the face is a separate textured board (see signBoard)
-  return new Parts()
-    .cyl(0, 1.3, 0, 0.035, 2.6, SURF.galv, 0xa8acb0, { lo: 1 })
-    .build();
+  return new Parts().cyl(0, 1.3, 0, 0.035, 2.6, SURF.galv, 0xa8acb0, { lo: 1 }).build();
 }
 
 export function mailbox(r) {
@@ -135,7 +152,10 @@ export function crabTrapStack(r) {
   const n = 2 + ((r() * 4) | 0);
   for (let i = 0; i < n; i++) {
     const c = [0xd8c43a, 0x3a8a4a, 0x2a2a2a, 0xc86a2a][(r() * 4) | 0];
-    p.box((r() - 0.5) * 0.1, 0.3 + i * 0.6, (r() - 0.5) * 0.1, 0.6, 0.58, 0.6, SURF.galv, c, { ry: (r() - 0.5) * 0.3, tint: 1 });
+    p.box((r() - 0.5) * 0.1, 0.3 + i * 0.6, (r() - 0.5) * 0.1, 0.6, 0.58, 0.6, SURF.galv, c, {
+      ry: (r() - 0.5) * 0.3,
+      tint: 1,
+    });
   }
   if (r() < 0.6) p.box(0.65, 0.3, 0.1, 0.6, 0.58, 0.6, SURF.galv, 0xd8c43a, { ry: 0.4, tint: 1 });
   return p.build();
@@ -145,7 +165,11 @@ export function buoyPile(r) {
   const p = new Parts();
   for (let i = 0; i < 5; i++) {
     const c = [0xf06a2a, 0xffffff, 0xe8d02a, 0xd83a3a][(r() * 4) | 0];
-    p.cyl((r() - 0.5) * 1.2, 0.14, (r() - 0.5) * 1.2, 0.14, 0.42, SURF.plastic, c, { rx: Math.PI / 2, ry: r() * 3, tint: 1 });
+    p.cyl((r() - 0.5) * 1.2, 0.14, (r() - 0.5) * 1.2, 0.14, 0.42, SURF.plastic, c, {
+      rx: Math.PI / 2,
+      ry: r() * 3,
+      tint: 1,
+    });
   }
   return p.build();
 }
@@ -161,7 +185,9 @@ export function coralRock(r) {
     P.setXYZ(i, x * k, Math.max(-0.1, y) * k * 0.7, z * k);
   }
   g.computeVertexNormals();
-  return new Parts().geo(g, mtx(0, 0.15, 0, 0, 0, 0, 1.4, 1, 1.1), SURF.concrete, 0xd8ccb0, { tint: 1 }).build();
+  return new Parts()
+    .geo(g, mtx(0, 0.15, 0, 0, 0, 0, 1.4, 1, 1.1), SURF.concrete, 0xd8ccb0, { tint: 1 })
+    .build();
 }
 
 export function propaneTank() {
@@ -216,8 +242,20 @@ export function boatOnTrailer(r) {
   const p = new Parts();
   // trailer frame, axle, wheels, tongue, jack
   for (const s of [-1, 1]) p.box(s * 0.75, 0.55, -0.2, 0.08, 0.1, L * 0.9, SURF.galv, 0xb0b4b8);
-  p.beam(new THREE.Vector3(-0.75, 0.55, L * 0.42), new THREE.Vector3(0, 0.55, L * 0.42 + 1.6), 0.09, SURF.galv, 0xb0b4b8);
-  p.beam(new THREE.Vector3(0.75, 0.55, L * 0.42), new THREE.Vector3(0, 0.55, L * 0.42 + 1.6), 0.09, SURF.galv, 0xb0b4b8);
+  p.beam(
+    new THREE.Vector3(-0.75, 0.55, L * 0.42),
+    new THREE.Vector3(0, 0.55, L * 0.42 + 1.6),
+    0.09,
+    SURF.galv,
+    0xb0b4b8,
+  );
+  p.beam(
+    new THREE.Vector3(0.75, 0.55, L * 0.42),
+    new THREE.Vector3(0, 0.55, L * 0.42 + 1.6),
+    0.09,
+    SURF.galv,
+    0xb0b4b8,
+  );
   p.box(0, 0.45, L * 0.42 + 1.75, 0.12, 0.12, 0.4, SURF.iron, 0x404040);
   p.cyl(0.18, 0.3, L * 0.42 + 1.3, 0.04, 0.6, SURF.galv, 0xa0a0a0, { lo: 1 });
   p.box(0, 0.38, -0.6, 1.9, 0.08, 0.08, SURF.galv, 0xa0a4a8);
@@ -236,11 +274,30 @@ export function boatOnTrailer(r) {
     p.box(0, hy + 1.45, 0.05, 0.75, 0.1, 0.4, SURF.glass, 0x506070);
     if (r() < 0.5) {
       // T-top
-      for (const s of [-1, 1]) p.cyl(s * 0.55, hy + 1.6, -0.1, 0.025, 2.1, SURF.steel, 0xd0d0d0, { lo: 1 });
-      p.box(0, hy + 2.65, -0.1, 1.5, 0.08, 1.7, SURF.plastic, [0x1d3a5a, 0x2a5a4a, 0xd8d4c8][(r() * 3) | 0]);
+      for (const s of [-1, 1])
+        p.cyl(s * 0.55, hy + 1.6, -0.1, 0.025, 2.1, SURF.steel, 0xd0d0d0, { lo: 1 });
+      p.box(
+        0,
+        hy + 2.65,
+        -0.1,
+        1.5,
+        0.08,
+        1.7,
+        SURF.plastic,
+        [0x1d3a5a, 0x2a5a4a, 0xd8d4c8][(r() * 3) | 0],
+      );
     }
   }
-  p.box(0, hy + 0.5, -L / 2 - 0.25, 0.45, 0.8, 0.5, SURF.plastic, [0x1d1d1d, 0xe8e8e8, 0x3a4a5a][(r() * 3) | 0]);
+  p.box(
+    0,
+    hy + 0.5,
+    -L / 2 - 0.25,
+    0.45,
+    0.8,
+    0.5,
+    SURF.plastic,
+    [0x1d1d1d, 0xe8e8e8, 0x3a4a5a][(r() * 3) | 0],
+  );
   p.box(0, hy - 0.2, -L / 2 - 0.3, 0.14, 0.8, 0.18, SURF.plastic, 0x2a2a2a);
   return { geo: p.build(), L: L + 2, W: W + 0.2 };
 }
@@ -253,7 +310,14 @@ export function utilityPole(r, transformer = false) {
     .box(0, 10.2, 0, 2.4, 0.12, 0.12, SURF.creosote, 0x7a6a58)
     .box(0, 9.5, 0, 1.4, 0.09, 0.09, SURF.creosote, 0x7a6a58);
   for (const x of [-1.05, 0, 1.05]) p.cyl(x, 10.36, 0, 0.05, 0.2, SURF.glass, 0x6a8a9a, { lo: 1 });
-  for (const s of [-1, 1]) p.beam(new THREE.Vector3(0, 9.7, 0), new THREE.Vector3(s * 0.8, 10.15, 0), 0.05, SURF.galv, 0x909090);
+  for (const s of [-1, 1])
+    p.beam(
+      new THREE.Vector3(0, 9.7, 0),
+      new THREE.Vector3(s * 0.8, 10.15, 0),
+      0.05,
+      SURF.galv,
+      0x909090,
+    );
   if (transformer) {
     p.cyl(0.32, 8.3, 0, 0.26, 1.0, SURF.galv, 0x8a9096);
     p.box(0.32, 8.85, 0, 0.3, 0.06, 0.3, SURF.galv, 0x7a8086);
@@ -265,7 +329,8 @@ export function utilityPole(r, transformer = false) {
 export function fenceSegment(type, len, r) {
   const p = new Parts();
   if (type === 'chain') {
-    for (let x = 0; x <= len + 0.01; x += len) p.cyl(x - len / 2, 0.75, 0, 0.03, 1.5, SURF.galv, 0xa8acb0, { lo: 1 });
+    for (let x = 0; x <= len + 0.01; x += len)
+      p.cyl(x - len / 2, 0.75, 0, 0.03, 1.5, SURF.galv, 0xa8acb0, { lo: 1 });
     p.cyl(0, 1.48, 0, 0.02, len, SURF.galv, 0xa8acb0, { lo: 1, rz: Math.PI / 2 });
     // mesh panel: a thin galvanized sheet (the triplanar texture reads as a weave at range)
     p.box(0, 0.74, 0, len, 1.42, 0.01, SURF.galv, 0x8e9296);
@@ -277,7 +342,10 @@ export function fenceSegment(type, len, r) {
     for (let x = -len / 2 + 0.06; x < len / 2; x += 0.16) {
       if (r() < 0.05) continue;
       const h = 1.15 + (r() - 0.5) * 0.06;
-      p.box(x, h / 2, 0.03, 0.09, h, 0.02, SURF.planks, col, { rz: r() < 0.06 ? (r() - 0.5) * 0.3 : 0, tint: 1 });
+      p.box(x, h / 2, 0.03, 0.09, h, 0.02, SURF.planks, col, {
+        rz: r() < 0.06 ? (r() - 0.5) * 0.3 : 0,
+        tint: 1,
+      });
     }
     p.box(-len / 2, 0.6, -0.02, 0.09, 1.2, 0.09, SURF.planks, 0x9a8a70);
   }
@@ -286,7 +354,10 @@ export function fenceSegment(type, len, r) {
 
 // ---------------------------------------------------------------- Keys house (stilt or ground floor), unique per seed
 // returns { geo, w, d, h, colliders: [{x,y,z,hx,hy,hz}] (local), roofY, front: z of the front wall, door: [x, z] }
-const SIDING = [0x8fb8a8, 0xe8d8a8, 0xf0ece0, 0x9ab8d0, 0xe8b8a0, 0xc8d8a0, 0xd8a8b8, 0xb0c8c0, 0xf0d890, 0xa8c0b8];
+const SIDING = [
+  0x8fb8a8, 0xe8d8a8, 0xf0ece0, 0x9ab8d0, 0xe8b8a0, 0xc8d8a0, 0xd8a8b8, 0xb0c8c0, 0xf0d890,
+  0xa8c0b8,
+];
 const ROOFC = [0xb8bcc0, 0x9aa0a8, 0x8a4a3a, 0x5a6a72, 0xd8d4c8, 0x6a7a5a];
 export function keysHouse(seed) {
   const r = rng(seed);
@@ -304,11 +375,14 @@ export function keysHouse(seed) {
   // foundation / piles
   if (stilt) {
     for (const x of [-w / 2 + 0.3, -w / 6, w / 6, w / 2 - 0.3]) {
-      for (const z of [-d / 2 + 0.3, 0, d / 2 - 0.3]) p.box(x, base / 2, z, 0.35, base, 0.35, r() < 0.5 ? SURF.concrete : SURF.planks, 0xd0ccc0);
+      for (const z of [-d / 2 + 0.3, 0, d / 2 - 0.3])
+        p.box(x, base / 2, z, 0.35, base, 0.35, r() < 0.5 ? SURF.concrete : SURF.planks, 0xd0ccc0);
     }
     // lattice skirt on part of the front, storage room under one end
-    if (r() < 0.6) p.box(-w / 4, base / 2, d / 2 - 0.3, w / 2 - 0.4, base - 0.2, 0.04, SURF.planks, 0xf0ece0);
-    if (r() < 0.6) p.box(w / 4, base / 2 - 0.05, 0, w / 3, base - 0.1, d - 1, siding, col, { tint: 1 });
+    if (r() < 0.6)
+      p.box(-w / 4, base / 2, d / 2 - 0.3, w / 2 - 0.4, base - 0.2, 0.04, SURF.planks, 0xf0ece0);
+    if (r() < 0.6)
+      p.box(w / 4, base / 2 - 0.05, 0, w / 3, base - 0.1, d - 1, siding, col, { tint: 1 });
     p.box(0, base - 0.12, 0, w + 0.2, 0.24, d + 0.2, SURF.planks, 0x9a8a70);
   } else {
     p.box(0, base / 2, 0, w + 0.3, base, d + 0.3, SURF.concrete, 0xc8c4b8);
@@ -318,7 +392,17 @@ export function keysHouse(seed) {
   cols.push({ x: 0, y: base + wallH / 2, z: 0, hx: w / 2, hy: (base + wallH) / 2, hz: d / 2 });
   // corner boards and band
   for (const sx of [-1, 1]) {
-    for (const sz of [-1, 1]) p.box(sx * (w / 2 + 0.02), base + wallH / 2, sz * (d / 2 + 0.02), 0.14, wallH, 0.14, SURF.paint, trim);
+    for (const sz of [-1, 1])
+      p.box(
+        sx * (w / 2 + 0.02),
+        base + wallH / 2,
+        sz * (d / 2 + 0.02),
+        0.14,
+        wallH,
+        0.14,
+        SURF.paint,
+        trim,
+      );
   }
   p.box(0, base + 0.06, 0, w + 0.08, 0.12, d + 0.08, SURF.paint, trim);
   // windows with frames and shutters on front and back, door on the front
@@ -332,7 +416,16 @@ export function keysHouse(seed) {
       const x = -w / 2 + (i + 0.5) * (w / nWin);
       const fz = sz * (d / 2 + 0.03);
       if (sz > 0 && i === doorI) {
-        p.box(x, base + 1.05, fz, 0.95, 2.1, 0.06, SURF.wood, [0x6a4a3a, 0xe8e4da, 0x3a5a6a][(r() * 3) | 0]);
+        p.box(
+          x,
+          base + 1.05,
+          fz,
+          0.95,
+          2.1,
+          0.06,
+          SURF.wood,
+          [0x6a4a3a, 0xe8e4da, 0x3a5a6a][(r() * 3) | 0],
+        );
         p.box(x, base + 2.15, fz, 1.1, 0.1, 0.08, SURF.paint, trim);
         door = [x, d / 2];
         continue;
@@ -342,13 +435,15 @@ export function keysHouse(seed) {
       p.box(x, base + 0.86, fz + sz * 0.03, 1.2, 0.08, 0.12, SURF.paint, trim);
       p.box(x, base + 1.5, fz + sz * 0.01, 0.06, 1.2, 0.05, SURF.paint, trim);
       if (shutter) {
-        for (const s of [-1, 1]) p.box(x + s * 0.72, base + 1.5, fz, 0.42, 1.3, 0.05, SURF.planks, shC, { tint: 1 });
+        for (const s of [-1, 1])
+          p.box(x + s * 0.72, base + 1.5, fz, 0.42, 1.3, 0.05, SURF.planks, shC, { tint: 1 });
       }
       if (r() < 0.15) p.box(x, base + 1.2, fz + sz * 0.3, 0.6, 0.4, 0.55, SURF.galv, 0xc8c8c0); // window AC
     }
   }
   // side windows
-  for (const sx of [-1, 1]) p.box(sx * (w / 2 + 0.03), base + 1.5, 0, 0.04, 1.1, 0.9, SURF.glass, 0x30404a);
+  for (const sx of [-1, 1])
+    p.box(sx * (w / 2 + 0.03), base + 1.5, 0, 0.04, 1.1, 0.9, SURF.glass, 0x30404a);
   // roof: gable (metal) or hip-ish low pitch
   const pitch = 0.32 + r() * 0.2;
   const ov = 0.6;
@@ -356,18 +451,32 @@ export function keysHouse(seed) {
   const rise = rw * Math.tan(pitch);
   const top = base + wallH;
   for (const s of [-1, 1]) {
-    p.box(0, top + rise / 2, s * rw / 2, w + ov * 2, 0.08, rw / Math.cos(pitch), r() < 0.8 ? SURF.galv : SURF.rustPaint, roofCol, { rx: s * pitch, tint: 1 });
+    p.box(
+      0,
+      top + rise / 2,
+      (s * rw) / 2,
+      w + ov * 2,
+      0.08,
+      rw / Math.cos(pitch),
+      r() < 0.8 ? SURF.galv : SURF.rustPaint,
+      roofCol,
+      { rx: s * pitch, tint: 1 },
+    );
   }
   // gable ends
   const tri = new THREE.BufferGeometry();
-  tri.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, -d / 2, 0, 0, d / 2, 0, rise, 0], 3));
+  tri.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute([0, 0, -d / 2, 0, 0, d / 2, 0, rise, 0], 3),
+  );
   tri.setAttribute('normal', new THREE.Float32BufferAttribute([1, 0, 0, 1, 0, 0, 1, 0, 0], 3));
   for (const sx of [-1, 1]) {
-    const m = mtx(sx * w / 2, top, 0, 0, sx > 0 ? 0 : Math.PI, 0);
+    const m = mtx((sx * w) / 2, top, 0, 0, sx > 0 ? 0 : Math.PI, 0);
     p.geo(tri, m, siding, col, { tint: 1 });
   }
   // fascia
-  for (const s of [-1, 1]) p.box(0, top - 0.05, s * (d / 2 + ov), w + ov * 2, 0.16, 0.05, SURF.paint, trim);
+  for (const s of [-1, 1])
+    p.box(0, top - 0.05, s * (d / 2 + ov), w + ov * 2, 0.16, 0.05, SURF.paint, trim);
   // porch: deck across the front with posts, rail and roof, stairs down
   const porchD = 2.2 + r() * 0.8;
   if (stilt || r() < 0.6) {
@@ -377,9 +486,20 @@ export function keysHouse(seed) {
       p.box(x, (py + 2.6) / 2, d / 2 + porchD - 0.1, 0.14, py + 2.6, 0.14, SURF.planks, trim);
     }
     p.box(0, py + 0.95, d / 2 + porchD - 0.1, w * 0.9, 0.06, 0.08, SURF.planks, trim);
-    for (let x = -w * 0.45; x < w * 0.45; x += 0.14) p.box(x, py + 0.5, d / 2 + porchD - 0.1, 0.04, 0.85, 0.04, SURF.planks, trim);
-    p.box(0, py + 2.7, d / 2 + porchD / 2, w * 0.95, 0.06, porchD + 0.3, SURF.galv, roofCol, { rx: -0.1, tint: 1 });
-    cols.push({ x: 0, y: py - 0.08, z: d / 2 + porchD / 2, hx: w * 0.45, hy: 0.06, hz: porchD / 2 });
+    for (let x = -w * 0.45; x < w * 0.45; x += 0.14)
+      p.box(x, py + 0.5, d / 2 + porchD - 0.1, 0.04, 0.85, 0.04, SURF.planks, trim);
+    p.box(0, py + 2.7, d / 2 + porchD / 2, w * 0.95, 0.06, porchD + 0.3, SURF.galv, roofCol, {
+      rx: -0.1,
+      tint: 1,
+    });
+    cols.push({
+      x: 0,
+      y: py - 0.08,
+      z: d / 2 + porchD / 2,
+      hx: w * 0.45,
+      hy: 0.06,
+      hz: porchD / 2,
+    });
     if (stilt) {
       // straight stair down the side of the porch
       const steps = Math.ceil(py / 0.19);
@@ -389,14 +509,31 @@ export function keysHouse(seed) {
         p.box(sx, y + 0.02, d / 2 + porchD - 0.6 - i * 0.26, 1.0, 0.05, 0.3, SURF.planks, 0xa89a80);
       }
       for (const s of [-0.5, 0.5]) {
-        p.beam(new THREE.Vector3(sx + s, py, d / 2 + porchD - 0.5), new THREE.Vector3(sx + s, 0.05, d / 2 + porchD - 0.5 - steps * 0.26), 0.06, SURF.planks, 0x9a8a70, { th: 0.25 });
+        p.beam(
+          new THREE.Vector3(sx + s, py, d / 2 + porchD - 0.5),
+          new THREE.Vector3(sx + s, 0.05, d / 2 + porchD - 0.5 - steps * 0.26),
+          0.06,
+          SURF.planks,
+          0x9a8a70,
+          { th: 0.25 },
+        );
       }
     }
   }
   // AC condenser, meter, hose bib
   p.box(-w / 2 - 0.5, stilt ? base - 0.4 : 0.4, -d / 4, 0.7, 0.7, 0.7, SURF.galv, 0xd0d0c8);
   p.box(w / 2 + 0.06, base + 1.4, -d / 3, 0.06, 0.4, 0.3, SURF.galv, 0xa0a0a0);
-  return { geo: p.build(), w, d, h: top + rise, colliders: cols, door, stilt, base, roofY: top + rise };
+  return {
+    geo: p.build(),
+    w,
+    d,
+    h: top + rise,
+    colliders: cols,
+    door,
+    stilt,
+    base,
+    roofY: top + rise,
+  };
 }
 
 // bait and tackle shop: low block building, deep porch, sign board slot (textured board added by the caller)
@@ -412,7 +549,8 @@ export function baitShop(seed) {
   p.box(0, 0.3 + h + 0.05, 0, w + 0.6, 0.12, d + 0.6, SURF.rustPaint, 0x9a9890);
   // porch
   p.box(0, 0.22, d / 2 + 1.6, w, 0.14, 3.2, SURF.planks, 0x9a8a70);
-  for (const x of [-w / 2 + 0.2, -w / 6, w / 6, w / 2 - 0.2]) p.box(x, 1.8, d / 2 + 3.0, 0.16, 3.2, 0.16, SURF.planks, 0xe8e4da);
+  for (const x of [-w / 2 + 0.2, -w / 6, w / 6, w / 2 - 0.2])
+    p.box(x, 1.8, d / 2 + 3.0, 0.16, 3.2, 0.16, SURF.planks, 0xe8e4da);
   p.box(0, 3.45, d / 2 + 1.6, w + 0.3, 0.08, 3.4, SURF.galv, 0xb0b4b8, { rx: -0.08 });
   // storefront glazing and screen door
   p.box(-3, 1.6, d / 2 + 0.03, 4.2, 1.6, 0.04, SURF.glass, 0x30404a);
@@ -424,9 +562,27 @@ export function baitShop(seed) {
   // bait tanks, bench, crab traps, buoys hung on the wall
   p.box(-4.5, 0.75, d / 2 + 0.8, 1.2, 0.7, 0.7, SURF.plastic, 0x2a6a8a);
   p.box(-1.6, 0.5, d / 2 + 2.6, 1.6, 0.08, 0.4, SURF.planks, 0xa89a80);
-  for (let i = 0; i < 4; i++) p.cyl(-5 + i * 0.6, 2.4, d / 2 + 0.12, 0.14, 0.4, SURF.plastic, [0xf06a2a, 0xffffff, 0xe8d02a, 0xd83a3a][i], { rx: Math.PI / 2 });
+  for (let i = 0; i < 4; i++)
+    p.cyl(
+      -5 + i * 0.6,
+      2.4,
+      d / 2 + 0.12,
+      0.14,
+      0.4,
+      SURF.plastic,
+      [0xf06a2a, 0xffffff, 0xe8d02a, 0xd83a3a][i],
+      { rx: Math.PI / 2 },
+    );
   p.box(-w / 2 - 0.5, 0.4, -1, 0.7, 0.7, 0.7, SURF.galv, 0xd0d0c8);
-  return { geo: p.build(), w, d, h: h + 0.8, signY: 0.3 + h + 0.45, signZ: d / 2 + 0.12, colliders: [{ x: 0, y: 0.3 + h / 2, z: 0, hx: w / 2, hy: h / 2 + 0.3, hz: d / 2 }] };
+  return {
+    geo: p.build(),
+    w,
+    d,
+    h: h + 0.8,
+    signY: 0.3 + h + 0.45,
+    signZ: d / 2 + 0.12,
+    colliders: [{ x: 0, y: 0.3 + h / 2, z: 0, hx: w / 2, hy: h / 2 + 0.3, hz: d / 2 }],
+  };
 }
 
 // canvas sign board texture
@@ -440,7 +596,12 @@ export function signTexture(lines, opts = {}) {
   // weathering: streaks and chips
   for (let i = 0; i < 260; i++) {
     g.fillStyle = `rgba(80,60,40,${Math.random() * 0.08})`;
-    g.fillRect(Math.random() * c.width, Math.random() * c.height, 2 + Math.random() * 6, 6 + Math.random() * 40);
+    g.fillRect(
+      Math.random() * c.width,
+      Math.random() * c.height,
+      2 + Math.random() * 6,
+      6 + Math.random() * 40,
+    );
   }
   g.strokeStyle = opts.edge || '#1d4a5a';
   g.lineWidth = 14;

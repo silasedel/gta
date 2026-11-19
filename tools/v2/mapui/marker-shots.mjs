@@ -55,13 +55,22 @@ await withBrowser({ width: 1600, height: 900, maxSeconds: 900 }, async (b) => {
   console.log('road', setup);
   if (setup === 'no road') return;
   await b.sleep(20000); // let the streamed ground and roads around the stretch finish loading
-  for (const [tod, name] of [[13, 'day'], [21.5, 'night']]) {
-    await b.eval(`(() => { game.timeOfDay = ${tod}; game.env?.regenerateEnvMap?.(); return 1; })()`);
+  for (const [tod, name] of [
+    [13, 'day'],
+    [21.5, 'night'],
+  ]) {
+    await b.eval(
+      `(() => { game.timeOfDay = ${tod}; game.env?.regenerateEnvMap?.(); return 1; })()`,
+    );
     for (const far of [false, true]) {
       await b.eval(`(() => { window.__mkCam(${far}); return 1; })()`);
       for (const which of ['old', 'new']) {
-        await b.eval(`(() => { __mk.OLD.visible = ${which === 'old'}; __mk.NEW.visible = ${which === 'new'}; return 1; })()`);
-        await b.eval('(window.__hideCars(), 1)'); await b.sleep(2500); await b.eval('(window.__hideCars(), 1)');
+        await b.eval(
+          `(() => { __mk.OLD.visible = ${which === 'old'}; __mk.NEW.visible = ${which === 'new'}; return 1; })()`,
+        );
+        await b.eval('(window.__hideCars(), 1)');
+        await b.sleep(2500);
+        await b.eval('(window.__hideCars(), 1)');
         await b.screenshot(`${OUT}/markers_${which}_${name}${far ? '_far' : ''}.jpg`);
       }
     }

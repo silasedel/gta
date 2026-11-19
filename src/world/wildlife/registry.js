@@ -4,9 +4,22 @@ const mods = import.meta.glob(['./species/**/*.js', './reef/**/*.js', '!./**/_*.
 export const registry = { defs: new Map(), failed: [], loaded: false };
 export async function loadSpecies() {
   if (registry.loaded) return registry;
-  await Promise.all(Object.keys(mods).map(async (k) => {
-    try { const m = await mods[k](); const list = Array.isArray(m.default) ? m.default : m.default ? [m.default] : []; for (const d of list) if (d && d.id) { d.file = k; registry.defs.set(d.id, d); } }
-    catch (e) { registry.failed.push(k + ': ' + (e?.message || e)); console.warn('[wildlife] species module failed', k, e); }
-  }));
-  registry.loaded = true; return registry;
+  await Promise.all(
+    Object.keys(mods).map(async (k) => {
+      try {
+        const m = await mods[k]();
+        const list = Array.isArray(m.default) ? m.default : m.default ? [m.default] : [];
+        for (const d of list)
+          if (d && d.id) {
+            d.file = k;
+            registry.defs.set(d.id, d);
+          }
+      } catch (e) {
+        registry.failed.push(k + ': ' + (e?.message || e));
+        console.warn('[wildlife] species module failed', k, e);
+      }
+    }),
+  );
+  registry.loaded = true;
+  return registry;
 }

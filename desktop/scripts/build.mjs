@@ -42,7 +42,8 @@ if (!args.has('--skip-web')) {
   ]);
 }
 
-const platformFlag = process.platform === 'darwin' ? '--mac' : process.platform === 'win32' ? '--win' : '--linux';
+const platformFlag =
+  process.platform === 'darwin' ? '--mac' : process.platform === 'win32' ? '--win' : '--linux';
 const builderArgs = [
   '-n',
   '10',
@@ -62,7 +63,9 @@ if (process.platform !== 'darwin') {
 }
 
 const dist = path.join(ROOT, 'desktop/dist');
-const macDir = fs.readdirSync(dist).find((d) => /^mac/.test(d) && fs.existsSync(path.join(dist, d, 'Southline.app')));
+const macDir = fs
+  .readdirSync(dist)
+  .find((d) => /^mac/.test(d) && fs.existsSync(path.join(dist, d, 'Southline.app')));
 if (!macDir) {
   console.error('no Southline.app found in desktop/dist');
   process.exit(1);
@@ -89,8 +92,5 @@ fs.rmSync(target, {
   force: true,
 });
 // ditto keeps the bundle's symlinks, permissions and extended attributes intact.
-run('ditto', [
-  built,
-  target,
-]);
+run('ditto', [built, target]);
 console.log(`Copied to ${target}`);

@@ -13,15 +13,24 @@ const SIGMA = 0.5;
 export const specularAA = { kappa: KAPPA, sigma: SIGMA, patched: false };
 (function patch() {
   const C = THREE.ShaderChunk;
-  if (C.lights_physical_fragment.includes('stage1 specular AA')) { specularAA.patched = true; return; }
+  if (C.lights_physical_fragment.includes('stage1 specular AA')) {
+    specularAA.patched = true;
+    return;
+  }
   const find = 'material.roughness = min( material.roughness, 1.0 );';
-  if (!C.lights_physical_fragment.includes(find)) { console.warn('[specularAA] chunk layout changed; not patched'); return; }
-  C.lights_physical_fragment = C.lights_physical_fragment.replace(find, `${find}
+  if (!C.lights_physical_fragment.includes(find)) {
+    console.warn('[specularAA] chunk layout changed; not patched');
+    return;
+  }
+  C.lights_physical_fragment = C.lights_physical_fragment.replace(
+    find,
+    `${find}
 { // stage1 specular AA: widen highlights where the shading normal varies inside a pixel
   vec3 sdx = dFdx( normal ), sdy = dFdy( normal );
   float sVar = ${SIGMA.toFixed(2)} * ( dot( sdx, sdx ) + dot( sdy, sdy ) );
   float sA2 = material.roughness * material.roughness + min( 2.0 * sVar, ${KAPPA.toFixed(2)} );
   material.roughness = min( sqrt( sA2 ), 1.0 );
-}`);
+}`,
+  );
   specularAA.patched = true;
 })();

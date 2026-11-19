@@ -23,21 +23,37 @@ export const STATION_SITES = [
 export function createStations(game, C) {
   const list = [];
   const b = C?.bounds;
-  const inB = (p) => !b || (p.x > b.minX + 20 && p.x < b.maxX - 20 && p.z > b.minZ + 20 && p.z < b.maxZ - 20);
+  const inB = (p) =>
+    !b || (p.x > b.minX + 20 && p.x < b.maxX - 20 && p.z > b.minZ + 20 && p.z < b.maxZ - 20);
   function add(s) {
     if (!Number.isFinite(s.x) || !inB(s)) return;
     let road = null;
-    try { const ne = C?.nearestEdge?.(s.x, s.z); if (ne && ne.dist < 260) road = { x: ne.point.x, z: ne.point.z }; } catch (e) { /* no graph */ }
+    try {
+      const ne = C?.nearestEdge?.(s.x, s.z);
+      if (ne && ne.dist < 260) road = { x: ne.point.x, z: ne.point.z };
+    } catch (e) {
+      /* no graph */
+    }
     if (!road) return; // not reachable by road in the current map
     if (list.some((q) => Math.hypot(q.x - s.x, q.z - s.z) < 250)) return;
     list.push({ name: s.name, callsign: s.callsign || 'Southline', x: s.x, z: s.z, road });
   }
   const pois = C?.city?.pois?.police || C?.city?.pois?.police_station;
-  if (Array.isArray(pois)) for (const p of pois) add({ name: p.name ? `Southline PD ${p.name}` : 'Southline PD Station', x: p.x ?? p.pos?.x, z: p.z ?? p.pos?.z });
-  for (const sf of C?.city?.storefronts || []) if (sf.kind === 'police' || sf.poi === 'police') add({ name: 'Southline PD Station', x: sf.x, z: sf.z });
+  if (Array.isArray(pois))
+    for (const p of pois)
+      add({
+        name: p.name ? `Southline PD ${p.name}` : 'Southline PD Station',
+        x: p.x ?? p.pos?.x,
+        z: p.z ?? p.pos?.z,
+      });
+  for (const sf of C?.city?.storefronts || [])
+    if (sf.kind === 'police' || sf.poi === 'police')
+      add({ name: 'Southline PD Station', x: sf.x, z: sf.z });
   for (const s of STATION_SITES) add(s);
   function nearest(pos, n = 1) {
-    const s = list.slice().sort((a, q) => Math.hypot(a.x - pos.x, a.z - pos.z) - Math.hypot(q.x - pos.x, q.z - pos.z));
+    const s = list
+      .slice()
+      .sort((a, q) => Math.hypot(a.x - pos.x, a.z - pos.z) - Math.hypot(q.x - pos.x, q.z - pos.z));
     return n === 1 ? s[0] || null : s.slice(0, n);
   }
   return { list, nearest };

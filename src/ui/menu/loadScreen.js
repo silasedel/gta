@@ -48,36 +48,70 @@ const CSS = `
 .ps-reduced .sl-art, .ps-reduced .sl-rays { animation: none !important; }
 `;
 export function createLoadScreen(o = {}) {
-  if (!document.getElementById('sl-load-css')) { const st = document.createElement('style'); st.id = 'sl-load-css'; st.textContent = CSS; document.head.appendChild(st); }
+  if (!document.getElementById('sl-load-css')) {
+    const st = document.createElement('style');
+    st.id = 'sl-load-css';
+    st.textContent = CSS;
+    document.head.appendChild(st);
+  }
   const tips = (o.tips || TIPS).slice().sort(() => Math.random() - 0.5);
   if (o.firstTip) tips.unshift(o.firstTip);
-  const L = document.createElement('div'); L.className = 'sl-load';
+  const L = document.createElement('div');
+  L.className = 'sl-load';
   L.innerHTML = `<div class="sl-art"><div class="sl-rays"></div></div><div class="sl-shade"></div>
     <div class="sl-logo">${logoSVG()}</div>
     <div class="sl-place"></div>
     <div class="sl-left"><div class="sl-word">LOADING<i>.</i><i>.</i><i>.</i></div><div class="sl-bar"><b></b></div><div class="sl-stat"><span class="sl-msg"></span><span class="sl-pct">0%</span></div></div>
     <div class="sl-tip"><span class="sl-tip-i">i</span><p></p></div>`;
   const art = L.querySelector('.sl-art');
-  const img = new Image(); img.onload = () => { art.style.backgroundImage = `url('${img.src}')`; }; img.src = o.art || '/assets/ui/keyart_loading.webp';
+  const img = new Image();
+  img.onload = () => {
+    art.style.backgroundImage = `url('${img.src}')`;
+  };
+  img.src = o.art || '/assets/ui/keyart_loading.webp';
   (o.mount || document.body).appendChild(L);
   requestAnimationFrame(() => L.classList.add('in'));
-  const bar = L.querySelector('.sl-bar'), pct = L.querySelector('.sl-pct'), msg = L.querySelector('.sl-msg'), tipP = L.querySelector('.sl-tip p'), place = L.querySelector('.sl-place');
-  let ti = 0, shown = 0;
+  const bar = L.querySelector('.sl-bar'),
+    pct = L.querySelector('.sl-pct'),
+    msg = L.querySelector('.sl-msg'),
+    tipP = L.querySelector('.sl-tip p'),
+    place = L.querySelector('.sl-place');
+  let ti = 0,
+    shown = 0;
   const fill = o.fillTip || ((s) => s);
-  const nextTip = () => { tipP.classList.add('swap'); setTimeout(() => { tipP.innerHTML = fill(tips[ti++ % tips.length]); tipP.classList.remove('swap'); }, 300); };
+  const nextTip = () => {
+    tipP.classList.add('swap');
+    setTimeout(() => {
+      tipP.innerHTML = fill(tips[ti++ % tips.length]);
+      tipP.classList.remove('swap');
+    }, 300);
+  };
   tipP.innerHTML = fill(tips[ti++ % tips.length]);
   const tipT = setInterval(nextTip, 6500);
   return {
     el: L,
-    set(p, m) { shown = Math.max(shown, Math.min(100, p)); bar.style.setProperty('--p', (shown / 100).toFixed(3)); pct.textContent = Math.floor(shown) + '%'; if (m != null) msg.textContent = m; },
-    place(t) { place.textContent = t || ''; },
+    set(p, m) {
+      shown = Math.max(shown, Math.min(100, p));
+      bar.style.setProperty('--p', (shown / 100).toFixed(3));
+      pct.textContent = Math.floor(shown) + '%';
+      if (m != null) msg.textContent = m;
+    },
+    place(t) {
+      place.textContent = t || '';
+    },
     // r2 (QA first minutes #1): a short, decisive fade, then gone from layout and the DOM (no half-transparent ghost
     // over the first gameplay frames, whatever the frame rate is doing)
     close() {
       clearInterval(tipT);
-      L.style.pointerEvents = 'none'; L.style.transition = 'opacity .4s ease';
-      L.classList.remove('in'); L.classList.add('out'); L.style.opacity = '0';
-      setTimeout(() => { L.style.display = 'none'; L.remove(); }, 450);
+      L.style.pointerEvents = 'none';
+      L.style.transition = 'opacity .4s ease';
+      L.classList.remove('in');
+      L.classList.add('out');
+      L.style.opacity = '0';
+      setTimeout(() => {
+        L.style.display = 'none';
+        L.remove();
+      }, 450);
     },
   };
 }

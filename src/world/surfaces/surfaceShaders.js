@@ -17,11 +17,17 @@ export const SRF_U = { value: new THREE.Vector4(1, 1, 0, 0) };
 // (r3-world) `?tar=old`: the previous tar crack-sealer look (thin smooth lines), for A/B shots
 const TAR_OLD = typeof location !== 'undefined' && /[?&]tar=old\b/.test(location.search);
 export const SURF_OFF = typeof location !== 'undefined' && /[?&]surfaces=0\b/.test(location.search);
-if (typeof window !== 'undefined') window.__surfaces = { u: SRF_U, set(on) { SRF_U.value.x = on ? 1 : 0; } };
+if (typeof window !== 'undefined')
+  window.__surfaces = {
+    u: SRF_U,
+    set(on) {
+      SRF_U.value.x = on ? 1 : 0;
+    },
+  };
 
 const C = THREE.ShaderChunk;
 
-const COMMON = /* glsl */`
+const COMMON = /* glsl */ `
 uniform vec4 uSrf;
 #ifdef SRF_CONC
 uniform sampler2D tSrfConc;
@@ -64,7 +70,7 @@ float srfTarBand(float d, float tw, vec2 w, float fwM) {
 vec4 srfTex(sampler2D t, vec2 uv) { vec4 a = texture2D(t, uv); if (uSrf.x < 0.5) return a; return mix(a, texture2D(t, srfUV2(uv)), srfBW()); }
 `;
 
-const VERT_DECL = /* glsl */`
+const VERT_DECL = /* glsl */ `
 varying vec3 vSrfW;
 #ifdef SRF_LANE
 attribute vec4 aSrfA;
@@ -73,7 +79,7 @@ varying vec4 vSrfA;
 varying vec4 vSrfB;
 #endif
 `;
-const VERT_BODY = /* glsl */`
+const VERT_BODY = /* glsl */ `
   { vec4 sw4 = vec4(transformed, 1.0);
     #ifdef USE_INSTANCING
       sw4 = instanceMatrix * sw4;
@@ -85,7 +91,7 @@ const VERT_BODY = /* glsl */`
   }`;
 
 // lane frame -> wheel paths etc. (shared by asphalt and paint)
-const LANE_FN = /* glsl */`
+const LANE_FN = /* glsl */ `
 #ifdef SRF_LANE
 // x: wheel path weight, y: drip line, z: lane-center offset (m), w: junction fade
 vec4 srfLane() {
@@ -103,7 +109,7 @@ vec4 srfLane() {
 #endif
 `;
 
-const ASPHALT_MAIN = /* glsl */`
+const ASPHALT_MAIN = /* glsl */ `
 vec2 srfTilt = vec2(0.0); float srfLow = 0.5, srfPolish = 0.0;
 if (uSrf.x > 0.5) {
   vec2 w = vSrfW.xz, wl = mod(w, 128.0);
@@ -139,28 +145,36 @@ if (uSrf.x > 0.5) {
     float dT = abs(ss - tcPos + (srfN(vec2(o * 0.8, tc)) - 0.5) * 0.9 + (srfN(vec2(o * 5.0, tc + 5.0)) - 0.5) * 0.08);
     float ext = smoothstep(0.38, 0.52, srfN(vec2(o * 0.22 + tc * 3.1, tc))) * step(srfH(vec2(tc, seed * 5.0)), age * 0.85 - 0.1) * jf;
     float sealed = step(0.4, srfH(vec2(tc + 2.0, seed)));
-${TAR_OLD ? `
+${
+  TAR_OLD
+    ? `
     float tw = mix(0.0035, 0.03, sealed);
     float tline = (1.0 - smoothstep(tw, tw + fwM, dT)) * ext * clamp(tw * 2.0 / fwM, 0.0, 1.0);
-` : `
+`
+    : `
     float tw = mix(0.0035, 0.024 + 0.03 * srfN(vec2(o * 1.3, tc + 9.0)), sealed); // (r3-world) sealed: 2.5-5.5 cm, uneven along the crack
     float tline = sealed > 0.5 ? srfTarBand(dT, tw, w, fwM) * ext : (1.0 - smoothstep(tw, tw + fwM, dT)) * ext * clamp(tw * 2.0 / fwM, 0.0, 1.0);
-`}
+`
+}
     tar = max(tar, tline * sealed); crk = max(crk, tline * (1.0 - sealed));
     // longitudinal cracks (tar-sealed on most streets) wandering along a wheel path for 10-40 m
     { float lc2 = L.z; float side = srfH(vec2(sec, seed * 3.3)) < 0.5 ? -1.0 : 1.0;
       float run = floor(ss / 23.0), on = step(srfH(vec2(run, seed * 7.7 + sec)), 0.25 + age * 0.45);
       float dLc = abs(lc2 - side * (0.9 + 0.5 * (srfH(vec2(run, 1.0)) - 0.5)) + (srfN(vec2(s * 0.35, run)) - 0.5) * 0.45 + (srfN(vec2(s * 2.1, run)) - 0.5) * 0.06);
-${TAR_OLD ? `
+${
+  TAR_OLD
+    ? `
       float lw2 = 0.012 + 0.016 * srfN(vec2(s * 0.5, run + 3.0));
       float fadeE = smoothstep(0.0, 0.25, fract(ss / 23.0)) * smoothstep(1.0, 0.75, fract(ss / 23.0));
       tar = max(tar, (1.0 - smoothstep(lw2, lw2 + fwM, dLc)) * on * fadeE * jf * clamp(lw2 * 2.5 / fwM, 0.0, 1.0)); }
-` : `
+`
+    : `
       dLc = abs(dLc + (srfN(vec2(s * 4.3, run + 5.0)) - 0.5) * 0.03); // (r3-world) the crack under the seal kinks at cm scale
       float lw2 = 0.016 + 0.026 * srfN(vec2(s * 0.5, run + 3.0));
       float fadeE = smoothstep(0.0, 0.25, fract(ss / 23.0)) * smoothstep(1.0, 0.75, fract(ss / 23.0));
       tar = max(tar, srfTarBand(dLc, lw2, w, fwM) * on * fadeE * jf); }
-`}
+`
+}
     // concrete gutter pan along curbed streets (0.5 m), contraction joints every 3 m
     float dg = hw - abs(o);
     gut = curbed * (1.0 - smoothstep(0.5, 0.5 + fwM * 1.5, dg));
@@ -174,12 +188,15 @@ ${TAR_OLD ? `
   {
     float nC = srfN(w * 0.065 + vec2(srfN(w * 0.19), srfN(w * 0.19 + 4.0)) * 1.1);
     float gC = max(fwidth(nC), 1e-6) / fwM;
-${TAR_OLD ? `
+${
+  TAR_OLD
+    ? `
     float dC = abs(nC - 0.5) / max(gC, 0.02);
     float mC = smoothstep(0.4, 0.56, srfN(w * 0.021 + 11.0)) * smoothstep(0.2, 0.6, age);
     float tw2 = 0.018 + 0.016 * srfN(w * 0.7);
     tar = max(tar, (1.0 - smoothstep(tw2, tw2 + fwM, dC)) * mC * clamp(tw2 * 2.5 / fwM, 0.0, 1.0));
-` : `
+`
+    : `
     // (r3-world, user Nov 17: the smooth pen-drawn curves read fake) the crack under the seal wanders and kinks at 2-60 cm scale,
     // the band width changes along it (thin pour 1-3 cm, squeegeed overband sections 4.5-7.5 cm) and its rim is ragged
     float sC = (nC - 0.5) / max(gC, 0.02) + (srfN(w * 1.7 + 2.0) - 0.5) * 0.06 + (srfN(w * 5.3 + 7.0) - 0.5) * 0.022 + (srfN(w * 13.0 + 1.0) - 0.5) * 0.008;
@@ -188,7 +205,8 @@ ${TAR_OLD ? `
     float over = smoothstep(0.45, 0.75, srfN(w * 0.23 + 5.0));
     float tw2 = mix(0.011 + 0.016 * srfN(w * 0.9), 0.045 + 0.03 * srfN(w * 0.6 + 1.0), over);
     tar = max(tar, srfTarBand(dC, tw2, w, fwM) * mC);
-`}
+`
+}
   }
   // alligator (fatigue) cracking in old wheel paths
   {
@@ -234,11 +252,14 @@ ${TAR_OLD ? `
     diffuseColor.rgb = mix(diffuseColor.rgb, cc * (1.0 - 0.55 * gutJ), gut);
     roughnessFactor = mix(roughnessFactor, 0.88, gut);
   }
-${TAR_OLD ? `
+${
+  TAR_OLD
+    ? `
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.026, 0.025, 0.024), tar * 0.8);
   diffuseColor.rgb *= 1.0 - 0.6 * crk;
   roughnessFactor = mix(roughnessFactor, 0.64, tar * 0.8); // sealant: satin, not a mirror line at grazing angles
-` : `
+`
+    : `
   // (r3-world) tar sealant body: near-black binder with sand / fine-aggregate grit pressed into it (pale flecks, darker pools),
   // a slight sheen where it is thick and smooth, rougher where the grit shows; the grit fades out by pixel footprint
   float tGF = 1.0 - smoothstep(0.004, 0.012, fwM);
@@ -248,7 +269,8 @@ ${TAR_OLD ? `
   diffuseColor.rgb = mix(diffuseColor.rgb, tarCol, tar * 0.88);
   diffuseColor.rgb *= 1.0 - 0.6 * crk;
   roughnessFactor = mix(roughnessFactor, 0.44 + 0.3 * tGrit * tGF + 0.25 * tFleck, tar * 0.85); // sealant: slight satin sheen, gritty (not a mirror line)
-`}
+`
+}
   roughnessFactor *= 1.0 - 0.24 * wheel - 0.12 * drip;
   roughnessFactor = mix(roughnessFactor, roughnessFactor * 0.9, 1.0 - age);
   srfLow = clamp(0.2 + srfF(w * 0.16) * 0.5 + wheel * age * 0.3 + edgeLow * 0.45 + crk * 0.2, 0.0, 1.0);
@@ -256,7 +278,7 @@ ${TAR_OLD ? `
 }
 `;
 
-const PAINT_MAIN = /* glsl */`
+const PAINT_MAIN = /* glsl */ `
 if (uSrf.x > 0.5) {
   vec2 w = vSrfW.xz;
   float fwM = max((fwidth(w.x) + fwidth(w.y)) * 0.5, 1e-4);
@@ -281,7 +303,7 @@ if (uSrf.x > 0.5) {
 }
 `;
 
-const WALK_MAIN = /* glsl */`
+const WALK_MAIN = /* glsl */ `
 vec2 srfTilt = vec2(0.0);
 if (uSrf.x > 0.5) {
   vec2 w = vSrfW.xz, wl = mod(w, 128.0);
@@ -349,54 +371,104 @@ if (uSrf.x > 0.5) {
 }
 `;
 
-const TILT_APPLY = '\n{ if (uSrf.x > 0.5) normal = normalize(normal + (viewMatrix * vec4(srfTilt.x, 0.0, srfTilt.y, 0.0)).xyz); }\n';
+const TILT_APPLY =
+  '\n{ if (uSrf.x > 0.5) normal = normalize(normal + (viewMatrix * vec4(srfTilt.x, 0.0, srfTilt.y, 0.0)).xyz); }\n';
 
-function wetChunk() { // the global wet chunk with puddles steered to the surface's low spots and a sheen in the wheel paths
+function wetChunk() {
+  // the global wet chunk with puddles steered to the surface's low spots and a sheen in the wheel paths
   let s = C.lights_physical_fragment;
   const p0 = 'float puddle = uWeather.y * up * smoothstep( 0.52, 0.66, pn + 0.18 * uWeather.y );';
-  const r0 = 'material.roughness = mix( material.roughness, mix( 0.24, 0.42, 1.0 - up ), sheen * 0.85 );';
+  const r0 =
+    'material.roughness = mix( material.roughness, mix( 0.24, 0.42, 1.0 - up ), sheen * 0.85 );';
   if (!s.includes(p0) || !s.includes(r0)) return null;
-  s = s.replace(p0, 'float puddle = uWeather.y * up * smoothstep( 0.52, 0.66, ( uSrf.x > 0.5 ? mix( pn, srfLow, 0.7 ) : pn ) + 0.18 * uWeather.y );');
-  s = s.replace(r0, r0 + '\n  if ( uSrf.x > 0.5 ) material.roughness = mix( material.roughness, mix( 0.35, 0.11, srfPolish ), sheen * 0.9 ); // wet asphalt: ~0.35, polished wheel paths / tar ~0.1 (puddles go to 0.04 below)');
+  s = s.replace(
+    p0,
+    'float puddle = uWeather.y * up * smoothstep( 0.52, 0.66, ( uSrf.x > 0.5 ? mix( pn, srfLow, 0.7 ) : pn ) + 0.18 * uWeather.y );',
+  );
+  s = s.replace(
+    r0,
+    r0 +
+      '\n  if ( uSrf.x > 0.5 ) material.roughness = mix( material.roughness, mix( 0.35, 0.11, srfPolish ), sheen * 0.9 ); // wet asphalt: ~0.35, polished wheel paths / tar ~0.1 (puddles go to 0.04 below)',
+  );
   return s;
 }
 
-function resolved(name, from, to) { const c = C[name]; return c && c.includes(from) ? c.split(from).join(to) : null; }
+function resolved(name, from, to) {
+  const c = C[name];
+  return c && c.includes(from) ? c.split(from).join(to) : null;
+}
 
 // kind: 'asphalt' | 'paint' | 'walk'; lane: the mesh carries aSrfA / aSrfB (roadChannel.js)
 export function patchSurface(mat, kind, { lane = false, conc = null, slab = false } = {}) {
   if (!mat || SURF_OFF || mat.userData['srf_' + kind]) return mat;
   mat.userData['srf_' + kind] = true;
-  const prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
+  const prev = mat.onBeforeCompile,
+    prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
   mat.onBeforeCompile = (sh, r) => {
     if (prev) prev.call(mat, sh, r);
     sh.uniforms.uSrf = SRF_U;
     if (lane) sh.defines = Object.assign(sh.defines || {}, { SRF_LANE: '' });
     if (slab) sh.defines = Object.assign(sh.defines || {}, { SRF_SLAB: '' });
-    if (lane && conc && kind === 'asphalt') { sh.defines.SRF_CONC = ''; sh.uniforms.tSrfConc = { value: conc }; }
-    sh.vertexShader = VERT_DECL + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>' + VERT_BODY);
+    if (lane && conc && kind === 'asphalt') {
+      sh.defines.SRF_CONC = '';
+      sh.uniforms.tSrfConc = { value: conc };
+    }
+    sh.vertexShader =
+      VERT_DECL +
+      sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>' + VERT_BODY);
     let fs = sh.fragmentShader;
     const head = COMMON + (kind !== 'walk' ? LANE_FN : '');
     fs = fs.replace('void main() {', head + 'void main() {');
     if (kind === 'asphalt') {
       // stochastic sampling of the scan (albedo with groundWear's mip bias, roughness / AO / normal)
       fs = fs.replace(/texture2D\( map, vMapUv, ([0-9.]+) \)/, 'srfTexB( map, vMapUv, $1 )');
-      if (!/srfTexB\( map/.test(fs)) fs = fs.replace('#include <map_fragment>', resolved('map_fragment', 'texture2D( map, vMapUv )', 'srfTexB( map, vMapUv, 0.0 )') || '#include <map_fragment>');
-      const rough = resolved('roughnessmap_fragment', 'texture2D( roughnessMap, vRoughnessMapUv )', 'srfTex( roughnessMap, vRoughnessMapUv )') || C.roughnessmap_fragment;
+      if (!/srfTexB\( map/.test(fs))
+        fs = fs.replace(
+          '#include <map_fragment>',
+          resolved('map_fragment', 'texture2D( map, vMapUv )', 'srfTexB( map, vMapUv, 0.0 )') ||
+            '#include <map_fragment>',
+        );
+      const rough =
+        resolved(
+          'roughnessmap_fragment',
+          'texture2D( roughnessMap, vRoughnessMapUv )',
+          'srfTex( roughnessMap, vRoughnessMapUv )',
+        ) || C.roughnessmap_fragment;
       fs = fs.replace('#include <roughnessmap_fragment>', rough + ASPHALT_MAIN);
-      const ao = resolved('aomap_fragment', 'texture2D( aoMap, vAoMapUv )', 'srfTex( aoMap, vAoMapUv )'); if (ao) fs = fs.replace('#include <aomap_fragment>', ao);
-      const nm = resolved('normal_fragment_maps', 'texture2D( normalMap, vNormalMapUv )', 'srfTex( normalMap, vNormalMapUv )') || C.normal_fragment_maps;
+      const ao = resolved(
+        'aomap_fragment',
+        'texture2D( aoMap, vAoMapUv )',
+        'srfTex( aoMap, vAoMapUv )',
+      );
+      if (ao) fs = fs.replace('#include <aomap_fragment>', ao);
+      const nm =
+        resolved(
+          'normal_fragment_maps',
+          'texture2D( normalMap, vNormalMapUv )',
+          'srfTex( normalMap, vNormalMapUv )',
+        ) || C.normal_fragment_maps;
       fs = fs.replace('#include <normal_fragment_maps>', nm + TILT_APPLY);
-      const wet = wetChunk(); if (wet) fs = fs.replace('#include <lights_physical_fragment>', wet);
+      const wet = wetChunk();
+      if (wet) fs = fs.replace('#include <lights_physical_fragment>', wet);
     } else if (kind === 'paint') {
-      fs = fs.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>' + PAINT_MAIN);
+      fs = fs.replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>' + PAINT_MAIN,
+      );
     } else {
-      fs = fs.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>' + WALK_MAIN);
-      fs = fs.replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + TILT_APPLY);
+      fs = fs.replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>' + WALK_MAIN,
+      );
+      fs = fs.replace(
+        '#include <normal_fragment_maps>',
+        '#include <normal_fragment_maps>' + TILT_APPLY,
+      );
     }
     sh.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => prevKey() + '|srf-' + kind + (lane ? 'L' : '') + (slab ? 'S' : '');
+  mat.customProgramCacheKey = () =>
+    prevKey() + '|srf-' + kind + (lane ? 'L' : '') + (slab ? 'S' : '');
   mat.needsUpdate = true;
   return mat;
 }
@@ -404,7 +476,8 @@ export function patchSurface(mat, kind, { lane = false, conc = null, slab = fals
 // a copy of an already-patched material (same maps, same shader chain) for meshes that carry the road channel
 export function laneCopy(mat) {
   const m = mat.clone();
-  m.onBeforeCompile = mat.onBeforeCompile; const k = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
+  m.onBeforeCompile = mat.onBeforeCompile;
+  const k = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
   m.customProgramCacheKey = () => k();
   m.userData = { ...mat.userData };
   return m;
@@ -414,8 +487,19 @@ export function laneCopy(mat) {
 export function patchCitySurfaces(M) {
   if (SURF_OFF || !M) return;
   if (M.junction) patchSurface(M.junction, 'asphalt');
-  if (M.roadDecals) patchSurface(M.roadDecals, 'asphalt', { lane: true, conc: M.parking && M.parking !== M.asphalt ? M.parking.map : null }); // decals carry the road channel too: same age / tone as the asphalt under them
-  if (M.asphalt) { M.roadLane = patchSurface(laneCopy(M.asphalt), 'asphalt', { lane: true, conc: M.parking && M.parking !== M.asphalt ? M.parking.map : null }); M.roadLane.name = 'roadLane'; patchSurface(M.asphalt, 'asphalt'); }
+  if (M.roadDecals)
+    patchSurface(M.roadDecals, 'asphalt', {
+      lane: true,
+      conc: M.parking && M.parking !== M.asphalt ? M.parking.map : null,
+    }); // decals carry the road channel too: same age / tone as the asphalt under them
+  if (M.asphalt) {
+    M.roadLane = patchSurface(laneCopy(M.asphalt), 'asphalt', {
+      lane: true,
+      conc: M.parking && M.parking !== M.asphalt ? M.parking.map : null,
+    });
+    M.roadLane.name = 'roadLane';
+    patchSurface(M.asphalt, 'asphalt');
+  }
   if (M.lines) patchSurface(M.lines, 'paint', { lane: true });
   if (M.sidewalk) patchSurface(M.sidewalk, 'walk', { slab: !!M.sidewalk.userData.job4 });
   for (const m of [M.panels, M.promenade]) if (m && m !== M.sidewalk) patchSurface(m, 'walk');

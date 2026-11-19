@@ -6,9 +6,16 @@
 //   node tools/v2/render/lightsnap.mjs [--hour 18.2] [--secs 40] [--rate 1] [--view deck|street] [--q "&x=1"] [--tag t]
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const SECS = +(o.secs || 40), THR = +(o.thr || 0.025), TAG = o.tag || 'run';
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const SECS = +(o.secs || 40),
+  THR = +(o.thr || 0.025),
+  TAG = o.tag || 'run';
 const out = {};
 await withBrowser({ width: 1280, height: 720, maxSeconds: SECS + 600 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
@@ -35,17 +42,43 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: SECS + 600 }, async (b
     requestAnimationFrame(() => requestAnimationFrame(loop)); return 1; })()`);
   await b.sleep(SECS * 1000);
   const r = JSON.parse(await b.eval('JSON.stringify(window.__ls)'));
-  out.rows = r.rows; out.err = r.err; out.errors = b.errors.slice(0, 10);
+  out.rows = r.rows;
+  out.err = r.err;
+  out.errors = b.errors.slice(0, 10);
 });
 const R = out.rows || [];
 const cols = ['t', 'luma', 'expo', 'envI', 'sunI', 'hemiI', 'aeComp', 'envNew', 'tod', 'scale'];
 const steps = [];
 for (let i = 1; i < R.length; i++) {
-  const p = R[i - 1], q = R[i]; const d = (q[1] - p[1]) / Math.max(1, p[1]);
-  if (Math.abs(d) > THR) { const ch = []; for (let c = 2; c < cols.length; c++) if (c === 7 ? q[c] : Math.abs(q[c] - p[c]) > 1e-3 * Math.max(1, Math.abs(p[c]))) ch.push(`${cols[c]} ${p[c]}->${q[c]}`); steps.push({ t: q[0], luma: `${p[1]}->${q[1]}`, pct: +(d * 100).toFixed(1), changed: ch.join(', ') }); }
+  const p = R[i - 1],
+    q = R[i];
+  const d = (q[1] - p[1]) / Math.max(1, p[1]);
+  if (Math.abs(d) > THR) {
+    const ch = [];
+    for (let c = 2; c < cols.length; c++)
+      if (c === 7 ? q[c] : Math.abs(q[c] - p[c]) > 1e-3 * Math.max(1, Math.abs(p[c])))
+        ch.push(`${cols[c]} ${p[c]}->${q[c]}`);
+    steps.push({
+      t: q[0],
+      luma: `${p[1]}->${q[1]}`,
+      pct: +(d * 100).toFixed(1),
+      changed: ch.join(', '),
+    });
+  }
 }
 const envRegens = R.filter((r) => r[7]).length;
-console.log(JSON.stringify({ frames: R.length, envRegens, lumaRange: [Math.min(...R.map((r) => r[1])), Math.max(...R.map((r) => r[1]))], steps: steps.length, err: out.err }));
+console.log(
+  JSON.stringify({
+    frames: R.length,
+    envRegens,
+    lumaRange: [Math.min(...R.map((r) => r[1])), Math.max(...R.map((r) => r[1]))],
+    steps: steps.length,
+    err: out.err,
+  }),
+);
 for (const s of steps.slice(0, 40)) console.log(s.t, s.luma, s.pct + '%', s.changed);
 fs.mkdirSync('docs/v2/reports', { recursive: true });
-fs.writeFileSync(`docs/v2/reports/lightsnap-${TAG}.json`, JSON.stringify({ cols, steps, envRegens, rows: R.filter((_, i) => i % 3 === 0) }, null, 0));
+fs.writeFileSync(
+  `docs/v2/reports/lightsnap-${TAG}.json`,
+  JSON.stringify({ cols, steps, envRegens, rows: R.filter((_, i) => i % 3 === 0) }, null, 0),
+);

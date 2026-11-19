@@ -14,47 +14,84 @@ export const order = 4;
 
 const S = new THREE.Sphere();
 const camPos = new THREE.Vector3();
-let pxPerRad = 1000;       // screen pixels per radian at the view center (updated each frame from the camera)
+let pxPerRad = 1000; // screen pixels per radian at the view center (updated each frame from the camera)
 let inShadow = false;
-let active = false;          // only while the renderer draws the game camera's view (never post quads or other cameras)
+let active = false; // only while the renderer draws the game camera's view (never post quads or other cameras)
 
 export async function initV2(game) {
-  const cfg = game.detailCull = { on: true, mainPx: 1.6, shadowPx: 10, shadowFar: 180, stats: { main: 0, shadow: 0 } };
+  const cfg = (game.detailCull = {
+    on: true,
+    mainPx: 1.6,
+    shadowPx: 10,
+    shadowFar: 180,
+    stats: { main: 0, shadow: 0 },
+  });
   const proto = THREE.Frustum.prototype;
   if (proto.__detailCull) return;
   const orig = proto.intersectsObject;
   proto.__detailCull = true;
   proto.intersectsObject = function (object) {
     if (!orig.call(this, object)) return false;
-    if (!active || !cfg.on || object.isInstancedMesh || object.isSkinnedMesh || object.userData.noDetailCull) return true;
+    if (
+      !active ||
+      !cfg.on ||
+      object.isInstancedMesh ||
+      object.isSkinnedMesh ||
+      object.userData.noDetailCull
+    )
+      return true;
     const g = object.geometry;
     if (!g) return true;
     if (g.boundingSphere === null) g.computeBoundingSphere();
     S.copy(g.boundingSphere).applyMatrix4(object.matrixWorld);
     const d = Math.max(0.01, S.center.distanceTo(camPos) - S.radius);
-    const px = (2 * S.radius / d) * pxPerRad;
+    const px = ((2 * S.radius) / d) * pxPerRad;
     if (inShadow) {
-      if (px < cfg.shadowPx || d > cfg.shadowFar + S.radius) { cfg.stats.shadow++; return false; }
-    } else if (px < cfg.mainPx) { cfg.stats.main++; return false; }
+      if (px < cfg.shadowPx || d > cfg.shadowFar + S.radius) {
+        cfg.stats.shadow++;
+        return false;
+      }
+    } else if (px < cfg.mainPx) {
+      cfg.stats.main++;
+      return false;
+    }
     return true;
   };
   // only cull inside renderer.render(scene, game.camera) (the shadow pass runs inside it)
-  const r = game.renderer, rRender = r.render.bind(r);
-  r.render = (scene, camera) => { const was = active; active = camera === game.camera; try { rRender(scene, camera); } finally { active = was; } };
+  const r = game.renderer,
+    rRender = r.render.bind(r);
+  r.render = (scene, camera) => {
+    const was = active;
+    active = camera === game.camera;
+    try {
+      rRender(scene, camera);
+    } finally {
+      active = was;
+    }
+  };
   // flag the shadow pass, and refresh the camera numbers once per frame
   const sm = game.renderer.shadowMap;
   const smRender = sm.render.bind(sm);
-  sm.render = (...a) => { inShadow = true; try { smRender(...a); } finally { inShadow = false; } };
+  sm.render = (...a) => {
+    inShadow = true;
+    try {
+      smRender(...a);
+    } finally {
+      inShadow = false;
+    }
+  };
   // perf (Nov 19, 30 fps floor while driving): a frame-time governor. The render is CPU-bound on draw calls downtown;
   // when frames run long the screen-size threshold rises (tiny props a few pixels wide go first) and the shadow pass
   // drops small casters and its far range. It relaxes back to the base values once frames are fast again.
   // ?dcgov=0 turns it off.
   const GOV = !(typeof location !== 'undefined' && /[?&]dcgov=0\b/.test(location.search));
   const base = { mainPx: cfg.mainPx, shadowPx: cfg.shadowPx, shadowFar: cfg.shadowFar };
-  const gov = cfg.gov = { on: GOV, k: 0, ema: 1 / 60, last: 0 };
+  const gov = (cfg.gov = { on: GOV, k: 0, ema: 1 / 60, last: 0 });
   game.updaters.push(function detailCullGov() {
     if (!gov.on || !cfg.on) return;
-    const now = performance.now(), d = gov.last ? Math.min(0.25, (now - gov.last) / 1000) : 1 / 60; gov.last = now;
+    const now = performance.now(),
+      d = gov.last ? Math.min(0.25, (now - gov.last) / 1000) : 1 / 60;
+    gov.last = now;
     gov.ema += (d - gov.ema) * 0.1;
     if (gov.ema > 1 / 38) gov.k = Math.min(1, gov.k + 0.02);
     else if (gov.ema < 1 / 52) gov.k = Math.max(0, gov.k - 0.005);
@@ -66,7 +103,8 @@ export async function initV2(game) {
     const cam = game.camera;
     cam.getWorldPosition(camPos);
     const h = game.renderer.domElement.height || 1080;
-    pxPerRad = h / (THREE.MathUtils.degToRad(cam.fov || 60));
-    cfg.stats.main = 0; cfg.stats.shadow = 0;
+    pxPerRad = h / THREE.MathUtils.degToRad(cam.fov || 60);
+    cfg.stats.main = 0;
+    cfg.stats.shadow = 0;
   });
 }

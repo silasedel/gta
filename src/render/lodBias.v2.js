@@ -15,11 +15,18 @@ export const order = 8; // after quality.v2.js (6) and tiers.v2.js (7)
 
 export const PRESET_BIAS = { ultra: 0.85, high: 1, medium: 1.3, low: 1.6 };
 
-const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3();
+const _v1 = new THREE.Vector3(),
+  _v2 = new THREE.Vector3();
 
 export async function initV2(game) {
   const qs = new URLSearchParams(location.search);
-  const B = game.lodBias = { on: qs.get('lodbias') === '1', preset: 1, k: 1, PRESET_BIAS, stats: { lodUpdates: 0 } };
+  const B = (game.lodBias = {
+    on: qs.get('lodbias') === '1',
+    preset: 1,
+    k: 1,
+    PRESET_BIAS,
+    stats: { lodUpdates: 0 },
+  });
   // base values of the systems we scale (captured once, so the bias never compounds)
   const base = { cfg: LOD_CFG ? { ...LOD_CFG } : null, dc: null };
 
@@ -40,7 +47,10 @@ export async function initV2(game) {
         for (i = 1, l = levels.length; i < l; i++) {
           let d = levels[i].distance;
           if (levels[i].object.visible) d -= d * levels[i].hysteresis;
-          if (distance >= d) { levels[i - 1].object.visible = false; levels[i].object.visible = true; } else break;
+          if (distance >= d) {
+            levels[i - 1].object.visible = false;
+            levels[i].object.visible = true;
+          } else break;
         }
         this._currentLevel = i - 1;
         for (; i < l; i++) levels[i].object.visible = false;
@@ -49,23 +59,34 @@ export async function initV2(game) {
     };
   }
 
-  let lastK = 1, lastOn = false;
+  let lastK = 1,
+    lastOn = false;
   function apply() {
     const k = B.on ? B.k : 1;
     if (k === lastK && B.on === lastOn) return;
-    lastK = k; lastOn = B.on;
+    lastK = k;
+    lastOn = B.on;
     try {
-      if (LOD_CFG && base.cfg) for (const key of ['up1', 'down0', 'up2', 'down1', 'far', 'shadowDist']) if (Number.isFinite(base.cfg[key])) LOD_CFG[key] = base.cfg[key] / k;
-    } catch (e) { /* character module missing */ }
+      if (LOD_CFG && base.cfg)
+        for (const key of ['up1', 'down0', 'up2', 'down1', 'far', 'shadowDist'])
+          if (Number.isFinite(base.cfg[key])) LOD_CFG[key] = base.cfg[key] / k;
+    } catch (e) {
+      /* character module missing */
+    }
     try {
       const dc = game.detailCull;
       if (dc) {
         if (!base.dc) base.dc = { mainPx: dc.mainPx, shadowPx: dc.shadowPx };
-        dc.mainPx = base.dc.mainPx * k; dc.shadowPx = base.dc.shadowPx * k;
+        dc.mainPx = base.dc.mainPx * k;
+        dc.shadowPx = base.dc.shadowPx * k;
       }
-    } catch (e) { /* */ }
+    } catch (e) {
+      /* */
+    }
   }
-  game.on?.('quality:changed', (d) => { B.preset = PRESET_BIAS[d?.name] ?? 1; });
+  game.on?.('quality:changed', (d) => {
+    B.preset = PRESET_BIAS[d?.name] ?? 1;
+  });
   B.preset = PRESET_BIAS[game.quality?.name] ?? 1;
   game.updaters.push(function lodBiasTick() {
     const s = Math.max(0.5, Math.min(1, game.post?.renderScale ?? 1));

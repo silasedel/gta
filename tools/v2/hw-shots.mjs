@@ -6,24 +6,30 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { withBrowser, GAME_READY } from './browser.mjs';
 
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'after';
-const DIR = path.resolve('docs/v2/shots/highways'); fs.mkdirSync(DIR, { recursive: true });
+const DIR = path.resolve('docs/v2/shots/highways');
+fs.mkdirSync(DIR, { recursive: true });
 // eye / look in world metres (+X east, +Z south). 'deck' spots put the eye on the deck surface at the given x, z.
 const SPOTS = {
-  ramp_air: { eye: [-2470, 34, 880], look: [-2640, 4, 790] },          // US-1 / SR 970 ramps landing downtown (user's screenshot area)
-  ramp_low: { eye: [-2520, 4.5, 830], look: [-2700, 6, 805] },         // street level, looking up the ramp
-  ramp_deck: { deck: [-2800, 816], dir: [1, 0.05], h: 1.6 },           // driver's eye on the ramp deck, heading east / down
-  jt_deck: { deck: [-700, -3492], dir: [1, 0.015], h: 1.6 },            // Julia Tuttle Causeway, eastbound deck
-  jt_air: { eye: [-1300, 70, -3200], look: [200, 4, -3500] },         // Julia Tuttle from above the bay
-  macarthur: { eye: [-900, 40, -250], look: [0, 2, 120] },             // MacArthur over the restored Watson run
-  wall_i95: { eye: [-3448, 1.8, 2010], look: [-3492, 2.4, 1935] },     // I-95 / US-1 embankment: retaining wall, coping, panels
-  wall_mac: { eye: [-2195, 1.8, -775], look: [-2262, 2.4, -846] },     // MacArthur west approach embankment + ramp split
-  wall_port: { eye: [636, 1.7, 897], look: [655, 2.2, 868] },          // East Port Boulevard embankment: retaining wall, coping, panels
-  wall_22: { eye: [3364, 1.7, -2161], look: [3384, 2.2, -2131] },      // 22nd Street ramp embankment (Miami Beach)
-  jt_med: { eye: [-660, 21, -3528], look: [-540, 12, -3500] },         // Julia Tuttle: the two decks side by side (median)
-  join_air: { eye: [-2230, 26, -760], look: [-2330, 6, -830] },        // MacArthur / I-395 ramp split from above: barrier joins, lines
+  ramp_air: { eye: [-2470, 34, 880], look: [-2640, 4, 790] }, // US-1 / SR 970 ramps landing downtown (user's screenshot area)
+  ramp_low: { eye: [-2520, 4.5, 830], look: [-2700, 6, 805] }, // street level, looking up the ramp
+  ramp_deck: { deck: [-2800, 816], dir: [1, 0.05], h: 1.6 }, // driver's eye on the ramp deck, heading east / down
+  jt_deck: { deck: [-700, -3492], dir: [1, 0.015], h: 1.6 }, // Julia Tuttle Causeway, eastbound deck
+  jt_air: { eye: [-1300, 70, -3200], look: [200, 4, -3500] }, // Julia Tuttle from above the bay
+  macarthur: { eye: [-900, 40, -250], look: [0, 2, 120] }, // MacArthur over the restored Watson run
+  wall_i95: { eye: [-3448, 1.8, 2010], look: [-3492, 2.4, 1935] }, // I-95 / US-1 embankment: retaining wall, coping, panels
+  wall_mac: { eye: [-2195, 1.8, -775], look: [-2262, 2.4, -846] }, // MacArthur west approach embankment + ramp split
+  wall_port: { eye: [636, 1.7, 897], look: [655, 2.2, 868] }, // East Port Boulevard embankment: retaining wall, coping, panels
+  wall_22: { eye: [3364, 1.7, -2161], look: [3384, 2.2, -2131] }, // 22nd Street ramp embankment (Miami Beach)
+  jt_med: { eye: [-660, 21, -3528], look: [-540, 12, -3500] }, // Julia Tuttle: the two decks side by side (median)
+  join_air: { eye: [-2230, 26, -760], look: [-2330, 6, -830] }, // MacArthur / I-395 ramp split from above: barrier joins, lines
 };
 const HIDE = `(() => { game.timeExternal = true; game.timeOfDay = ${o.tod || 11}; if (!window.__hw) { window.__hw = document.createElement('style'); window.__hw.textContent = 'body > *:not(canvas) { visibility: hidden !important; } #title, #ps-hud, #ps-hud * { display: none !important; }'; document.head.appendChild(window.__hw); } return true; })()`;
 const CAM = (s) => `(() => { const s = ${JSON.stringify(s)}, C = game.city; let eye, look;
@@ -34,30 +40,58 @@ const CAM = (s) => `(() => { const s = ${JSON.stringify(s)}, C = game.city; let 
   return JSON.stringify({ eye: eye.map((v) => +v.toFixed(1)), street: C.streetNameAt(eye[0], eye[2]) }); })()`;
 const SETTLED = `(() => { const s = game.city.streamer; return !s || s.pending() === 0; })()`;
 const rep = { set: SET, when: new Date().toISOString(), shots: {} };
-await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(o.max || 900) }, async (b) => {
-  await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
-  await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
-  await b.eval(HIDE);
-  for (const id of Object.keys(SPOTS).filter((k) => !o.only || String(o.only).split(',').includes(k))) {
-    const s = SPOTS[id], p = s.deck || [s.eye[0], s.eye[2]];
-    let info = null;
-    for (let attempt = 0; attempt < 3 && !info; attempt++) { // the dev server hot-reloads while other agents edit: re-wait and retry
-      try {
-        await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480); await b.eval(HIDE);
-        const t0 = await b.eval('performance.timeOrigin');
-        await b.eval(`game.teleport(${p[0]}, null, ${p[1]}, 0) || true`); await b.eval(HIDE);
-        await b.sleep(2500); await b.waitFor(SETTLED, 90).catch(() => {}); await b.sleep(1500);
-        const r = JSON.parse(await b.eval(CAM(s))); await b.sleep(+(o.settle || 3000));
-        if ((await b.eval('performance.timeOrigin')) !== t0 || !(await b.eval("typeof game !== 'undefined' && !!game.cameraOverride"))) throw new Error('page reloaded');
-        info = r;
-      } catch (e) { console.log(id, 'retry', attempt, String(e.message).slice(0, 120)); await b.sleep(5000); }
+await withBrowser(
+  { width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(o.max || 900) },
+  async (b) => {
+    await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
+    await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
+    await b.eval(HIDE);
+    for (const id of Object.keys(SPOTS).filter(
+      (k) => !o.only || String(o.only).split(',').includes(k),
+    )) {
+      const s = SPOTS[id],
+        p = s.deck || [s.eye[0], s.eye[2]];
+      let info = null;
+      for (let attempt = 0; attempt < 3 && !info; attempt++) {
+        // the dev server hot-reloads while other agents edit: re-wait and retry
+        try {
+          await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
+          await b.eval(HIDE);
+          const t0 = await b.eval('performance.timeOrigin');
+          await b.eval(`game.teleport(${p[0]}, null, ${p[1]}, 0) || true`);
+          await b.eval(HIDE);
+          await b.sleep(2500);
+          await b.waitFor(SETTLED, 90).catch(() => {});
+          await b.sleep(1500);
+          const r = JSON.parse(await b.eval(CAM(s)));
+          await b.sleep(+(o.settle || 3000));
+          if (
+            (await b.eval('performance.timeOrigin')) !== t0 ||
+            !(await b.eval("typeof game !== 'undefined' && !!game.cameraOverride"))
+          )
+            throw new Error('page reloaded');
+          info = r;
+        } catch (e) {
+          console.log(id, 'retry', attempt, String(e.message).slice(0, 120));
+          await b.sleep(5000);
+        }
+      }
+      if (!info) continue;
+      rep.shots[id] = info;
+      console.log(
+        id,
+        JSON.stringify(info),
+        'SHOT',
+        await b.screenshot(path.join(DIR, `${SET}_${id}.png`)),
+      );
     }
-    if (!info) continue;
-    rep.shots[id] = info; console.log(id, JSON.stringify(info), 'SHOT', await b.screenshot(path.join(DIR, `${SET}_${id}.png`)));
-  }
-  if (o.eval) console.log('EVAL', await b.eval(o.eval));
-  await b.eval('game.cameraOverride = null; true');
-  if (b.errors.length) rep.consoleErrors = [...new Set(b.errors)].slice(0, 20);
-});
-fs.writeFileSync(path.resolve(`docs/v2/reports/highways-${SET}.json`), JSON.stringify(rep, null, 1));
+    if (o.eval) console.log('EVAL', await b.eval(o.eval));
+    await b.eval('game.cameraOverride = null; true');
+    if (b.errors.length) rep.consoleErrors = [...new Set(b.errors)].slice(0, 20);
+  },
+);
+fs.writeFileSync(
+  path.resolve(`docs/v2/reports/highways-${SET}.json`),
+  JSON.stringify(rep, null, 1),
+);
 console.log('errors', rep.consoleErrors || 'none');

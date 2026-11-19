@@ -21,7 +21,7 @@ const _q = new THREE.Quaternion();
 const _c = new THREE.Vector3();
 const tread = new THREE.Vector3();
 const _zero = new THREE.Vector3();
-let soak = 0;                                        // wet cloth is heavy and clings: less drag, stiffer, less reach
+let soak = 0; // wet cloth is heavy and clings: less drag, stiffer, less reach
 const _air = { x: 0, z: 0 };
 
 // pick control points in bind space from the garment's loose vertices (color.b = looseness, color.g = edge)
@@ -44,15 +44,19 @@ function pickPoints(geo, open) {
     const x = pos.getX(i);
     if (y < 1.0 && Math.abs(x) < 0.3) {
       const a = Math.atan2(pos.getZ(i), x);
-      const b = Math.floor((a + Math.PI) / (Math.PI * 2) * 16) % 16;
+      const b = Math.floor(((a + Math.PI) / (Math.PI * 2)) * 16) % 16;
       if (hem[b] < 0 || y < pos.getY(hem[b])) hem[b] = i;
     } else if (y > 1.05 && Math.abs(x) > 0.15) {
       const s = x > 0 ? 'L' : 'R';
-      sc[s].x += x; sc[s].y += y; sc[s].z += pos.getZ(i);
+      sc[s].x += x;
+      sc[s].y += y;
+      sc[s].z += pos.getZ(i);
       scn[s]++;
     }
   }
-  hem.forEach((i, k) => { if (i >= 0) add(i, 'hem', k); });
+  hem.forEach((i, k) => {
+    if (i >= 0) add(i, 'hem', k);
+  });
   for (const s of ['L', 'R']) {
     if (!scn[s]) continue;
     sc[s].divideScalar(scn[s]);
@@ -61,14 +65,19 @@ function pickPoints(geo, open) {
     for (let i = 0; i < n; i++) {
       const f = col.getZ(i);
       const x = pos.getX(i);
-      if (f < 0.35 || pos.getY(i) <= 1.05 || Math.abs(x) <= 0.15 || (x > 0) !== (s === 'L')) continue;
+      if (f < 0.35 || pos.getY(i) <= 1.05 || Math.abs(x) <= 0.15 || x > 0 !== (s === 'L')) continue;
       _v.set(x, pos.getY(i), pos.getZ(i)).sub(sc[s]);
       const a = Math.atan2(_v.z, _v.y);
-      const b = Math.floor((a + Math.PI) / (Math.PI * 2) * 6) % 6;
+      const b = Math.floor(((a + Math.PI) / (Math.PI * 2)) * 6) % 6;
       const d = Math.abs(x);
-      if (d > bestD[b]) { bestD[b] = d; best[b] = i; }
+      if (d > bestD[b]) {
+        bestD[b] = d;
+        best[b] = i;
+      }
     }
-    best.forEach((i, k) => { if (i >= 0) add(i, 'sleeve' + s, k); });
+    best.forEach((i, k) => {
+      if (i >= 0) add(i, 'sleeve' + s, k);
+    });
   }
   // lapels / open placket edge and collar tips: collar-fall vertices (looseness 0.1..0.45, high, front)
   for (const side of [1, -1]) {
@@ -78,21 +87,29 @@ function pickPoints(geo, open) {
       let bd = 1e9;
       for (let i = 0; i < n; i++) {
         const f = col.getZ(i);
-        if (f < 0.12 || (!open && f > 0.5) || pos.getZ(i) < 0.02 || Math.sign(pos.getX(i)) !== side) continue;
+        if (f < 0.12 || (!open && f > 0.5) || pos.getZ(i) < 0.02 || Math.sign(pos.getX(i)) !== side)
+          continue;
         if (open && Math.abs(pos.getX(i)) > 0.13) continue;
         const d = open
-          ? Math.abs(pos.getY(i) - by) * 4 + Math.abs(pos.getX(i)) * 0.5                 // the free front edge
+          ? Math.abs(pos.getY(i) - by) * 4 + Math.abs(pos.getX(i)) * 0.5 // the free front edge
           : Math.abs(pos.getY(i) - by) * 4 + (1 - col.getY(i)) * 0.05 - Math.abs(pos.getX(i)) * 0.2;
-        if (d < bd) { bd = d; bi = i; }
+        if (d < bd) {
+          bd = d;
+          bi = i;
+        }
       }
       if (bi >= 0) add(bi, side > 0 ? 'lapelL' : 'lapelR', k);
     });
   }
   // per-vertex weights: interpolate between the two neighboring particles of the vertex's own chain (continuous, so
   // the cloth bends instead of tearing), scaled by how loose the vertex is (0 at the waist / shoulder, 1 at the edge)
-  const P = pts.slice(0, MAX_CP).map((p) => new THREE.Vector3(pos.getX(p.i), pos.getY(p.i), pos.getZ(p.i)));
+  const P = pts
+    .slice(0, MAX_CP)
+    .map((p) => new THREE.Vector3(pos.getX(p.i), pos.getY(p.i), pos.getZ(p.i)));
   const idx = {};
-  pts.slice(0, MAX_CP).forEach((p, j) => { idx[p.group + ':' + p.k] = j; });
+  pts.slice(0, MAX_CP).forEach((p, j) => {
+    idx[p.group + ':' + p.k] = j;
+  });
   const find = (g, k, n) => {
     for (let d = 0; d < n; d++) {
       const a = idx[g + ':' + ((k + d) % n)];
@@ -107,44 +124,60 @@ function pickPoints(geo, open) {
   for (let i = 0; i < n; i++) {
     const f = col.getZ(i);
     if (f < 0.02) continue;
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    let g = null, a = 0, nb = 0, amp = 0;
+    const x = pos.getX(i),
+      y = pos.getY(i),
+      z = pos.getZ(i);
+    let g = null,
+      a = 0,
+      nb = 0,
+      amp = 0;
     const inLapel = open
-      ? (z > 0.0 && Math.abs(x) < 0.13 && y > 0.95 && y < 1.47)
-      : (y > 1.3 && z > 0.0 && f >= 0.08 && f <= 0.5);
+      ? z > 0.0 && Math.abs(x) < 0.13 && y > 0.95 && y < 1.47
+      : y > 1.3 && z > 0.0 && f >= 0.08 && f <= 0.5;
     if (inLapel) {
       g = x > 0 ? 'lapelL' : 'lapelR';
       const nL = lapY.length;
       let k = 0;
       while (k < nL - 2 && y > lapY[k + 1]) k++;
       const t = THREE.MathUtils.clamp((y - lapY[k]) / (lapY[k + 1] - lapY[k]), 0, 1);
-      const j0 = idx[g + ':' + k], j1 = idx[g + ':' + (k + 1)];
+      const j0 = idx[g + ':' + k],
+        j1 = idx[g + ':' + (k + 1)];
       if (j0 !== undefined && j1 !== undefined) {
         amp = Math.min(1, f / 0.4) * (open ? 1.0 : 0.6);
         if (open && y < 1.05) {
           // bottom of an open panel: share with the hem chain so the corner moves with both
           amp *= 0.6;
         }
-        W[i * 4] = j0; W[i * 4 + 1] = (1 - t) * amp; W[i * 4 + 2] = j1; W[i * 4 + 3] = t * amp;
+        W[i * 4] = j0;
+        W[i * 4 + 1] = (1 - t) * amp;
+        W[i * 4 + 2] = j1;
+        W[i * 4 + 3] = t * amp;
         continue;
       }
       g = null;
     }
     if (y < 1.05 && Math.abs(x) < 0.3) {
-      g = 'hem'; nb = 16;
-      a = (Math.atan2(z, x) + Math.PI) / (Math.PI * 2) * 16 - 0.5;
+      g = 'hem';
+      nb = 16;
+      a = ((Math.atan2(z, x) + Math.PI) / (Math.PI * 2)) * 16 - 0.5;
       amp = Math.min(1, f / 0.85);
     } else if (y > 1.05 && Math.abs(x) > 0.15 && f >= 0.25) {
       const sd = x > 0 ? 'L' : 'R';
       if (!scn[sd]) continue;
-      g = 'sleeve' + sd; nb = 6;
-      a = (Math.atan2(z - sc[sd].z, y - sc[sd].y) + Math.PI) / (Math.PI * 2) * 6 - 0.5;
+      g = 'sleeve' + sd;
+      nb = 6;
+      a = ((Math.atan2(z - sc[sd].z, y - sc[sd].y) + Math.PI) / (Math.PI * 2)) * 6 - 0.5;
       amp = Math.min(1, f / 0.55);
     }
     if (!g) continue;
-    const k0 = Math.floor(a), t = a - k0;
-    const j0 = find(g, ((k0 % nb) + nb) % nb, nb), j1 = find(g, (((k0 + 1) % nb) + nb) % nb, nb);
-    W[i * 4] = j0; W[i * 4 + 1] = (1 - t) * amp; W[i * 4 + 2] = j1; W[i * 4 + 3] = t * amp;
+    const k0 = Math.floor(a),
+      t = a - k0;
+    const j0 = find(g, ((k0 % nb) + nb) % nb, nb),
+      j1 = find(g, (((k0 + 1) % nb) + nb) % nb, nb);
+    W[i * 4] = j0;
+    W[i * 4 + 1] = (1 - t) * amp;
+    W[i * 4 + 2] = j1;
+    W[i * 4 + 3] = t * amp;
   }
   geo.setAttribute('clothW', new THREE.BufferAttribute(W, 4));
   return pts.slice(0, MAX_CP).map((p, k) => ({
@@ -165,21 +198,43 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
   const sw = geo.attributes.skinWeight;
   // dominant bone per point; rest offset in that bone's space
   const P = defs.map((d) => {
-    let bb = 0, bw = -1;
+    let bb = 0,
+      bw = -1;
     for (let c = 0; c < 4; c++) {
       const w = sw.getComponent(d.i, c);
-      if (w > bw) { bw = w; bb = si.getComponent(d.i, c); }
+      if (w > bw) {
+        bw = w;
+        bb = si.getComponent(d.i, c);
+      }
     }
     const local = d.rest.clone().applyMatrix4(mesh.bindMatrix).applyMatrix4(skin.boneInverses[bb]);
-    const nLocal = d.nrm.clone().transformDirection(_m.copy(skin.boneInverses[bb]).multiply(mesh.bindMatrix));
-    return { ...d, b: skin.bones[bb], local, nLocal, x: new THREE.Vector3(), px: new THREE.Vector3(), anchor: new THREE.Vector3(), an: new THREE.Vector3(), pa: new THREE.Vector3(), av: new THREE.Vector3(), init: false };
+    const nLocal = d.nrm
+      .clone()
+      .transformDirection(_m.copy(skin.boneInverses[bb]).multiply(mesh.bindMatrix));
+    return {
+      ...d,
+      b: skin.bones[bb],
+      local,
+      nLocal,
+      x: new THREE.Vector3(),
+      px: new THREE.Vector3(),
+      anchor: new THREE.Vector3(),
+      an: new THREE.Vector3(),
+      pa: new THREE.Vector3(),
+      av: new THREE.Vector3(),
+      init: false,
+    };
   });
   const thighs = ['Left', 'Right'].map((s) => [bone(s + 'UpLeg'), bone(s + 'Leg')]);
   let acc = 0;
   let t = Math.random() * 50;
   const restLen = new Map();
   const ring = (g) => P.filter((p) => p.group === g).sort((a, b) => a.k - b.k);
-  const chains = ['hem', 'sleeveL', 'sleeveR', 'lapelL', 'lapelR'].map((g) => ({ g, pts: ring(g), closed: g !== 'lapelL' && g !== 'lapelR' }));
+  const chains = ['hem', 'sleeveL', 'sleeveR', 'lapelL', 'lapelR'].map((g) => ({
+    g,
+    pts: ring(g),
+    closed: g !== 'lapelL' && g !== 'lapelR',
+  }));
 
   function anchors() {
     for (const p of P) {
@@ -195,10 +250,14 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
       out.set(_air.x, 0, _air.z);
       if (gw.strength) s = gw.strength(p.x, p.z, t);
     } else if (gw && typeof gw.speed === 'number' && gw.dir) {
-      out.set(gw.dir.x, 0, gw.dir.y ?? gw.dir.z ?? 0).multiplyScalar(gw.speed * (1 + (gw.gust || 0)));
+      out
+        .set(gw.dir.x, 0, gw.dir.y ?? gw.dir.z ?? 0)
+        .multiplyScalar(gw.speed * (1 + (gw.gust || 0)));
     } else {
       const a = 0.6 + Math.sin(t * 0.05) * 0.8;
-      out.set(Math.sin(a), 0, Math.cos(a)).multiplyScalar(1.6 + 1.2 * Math.max(0, Math.sin(t * 0.7) * Math.sin(t * 1.9)));
+      out
+        .set(Math.sin(a), 0, Math.cos(a))
+        .multiplyScalar(1.6 + 1.2 * Math.max(0, Math.sin(t * 0.7) * Math.sin(t * 1.9)));
     }
     return s;
   }
@@ -207,38 +266,42 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
     for (const p of P) {
       // verlet with a stiff spring back to the anchor; damping acts on motion RELATIVE to the body, so the shirt moves
       // with him instead of trailing behind, and settles in one soft overshoot at most (woven cotton, not silk)
-      _v.subVectors(p.x, p.px);                                    // velocity * h
-      _c.copy(p.av);                                               // the body's own motion this substep
-      _v.sub(_c);                                                  // relative motion * h
+      _v.subVectors(p.x, p.px); // velocity * h
+      _c.copy(p.av); // the body's own motion this substep
+      _v.sub(_c); // relative motion * h
       const vel = _w.copy(_v).add(_c).divideScalar(h);
       const s = wind(p.x, _a);
       const gust = game?.wind?.gust ?? 0.3;
       // turbulence: slow, coherent along each edge (neighbors move together), never a per-point flutter
-      const ph = p.k * 0.35 + (p.group.length * 0.9);
+      const ph = p.k * 0.35 + p.group.length * 0.9;
       const turb = 0.7 + 0.3 * Math.sin(t * 1.6 + ph) * Math.sin(t * 0.9 + ph * 0.5);
       _a.multiplyScalar(s * turb);
-      _a.sub(vel).sub(tread);                                      // air relative to the cloth
+      _a.sub(vel).sub(tread); // air relative to the cloth
       const air = _a.length();
       const k = 240 * (1.15 - p.loose * 0.35) * (1 + soak * 1.5);
-      const damp = Math.exp(-2 * 0.8 * Math.sqrt(k) * h);          // zeta about 0.8
-      _b.subVectors(p.anchor, p.x).multiplyScalar(k);              // spring
-      _b.addScaledVector(_a, 0.12 * air * p.loose * (1 - soak * 0.8));                // quadratic drag: 6 m/s pushes the loose cloth 1 to 2 cm
+      const damp = Math.exp(-2 * 0.8 * Math.sqrt(k) * h); // zeta about 0.8
+      _b.subVectors(p.anchor, p.x).multiplyScalar(k); // spring
+      _b.addScaledVector(_a, 0.12 * air * p.loose * (1 - soak * 0.8)); // quadratic drag: 6 m/s pushes the loose cloth 1 to 2 cm
       _b.y += air * air * 0.03 * gust * p.loose * (p.group === 'hem' ? 1 : 0.4) * (1 - soak); // strong gusts lift the hem a little
       p.px.copy(p.x);
-      p.x.add(_c).addScaledVector(_v, damp).addScaledVector(_b, h * h);
+      p.x
+        .add(_c)
+        .addScaledVector(_v, damp)
+        .addScaledVector(_b, h * h);
     }
     // keep chains coherent (neighbor distance near the rest distance)
     for (const c of chains) {
       const n = c.pts.length;
       for (let i = 0; i < (c.closed ? n : n - 1); i++) {
-        const a = c.pts[i], b = c.pts[(i + 1) % n];
+        const a = c.pts[i],
+          b = c.pts[(i + 1) % n];
         const key = a.i + ':' + b.i;
         if (!restLen.has(key)) restLen.set(key, a.anchor.distanceTo(b.anchor));
         const r = restLen.get(key);
         _v.subVectors(b.x, a.x);
         const d = _v.length();
         if (d < 1e-6) continue;
-        const corr = (d - r) / d * 0.45;                            // fabric barely stretches along an edge
+        const corr = ((d - r) / d) * 0.45; // fabric barely stretches along an edge
         a.x.addScaledVector(_v, corr);
         b.x.addScaledVector(_v, -corr);
       }
@@ -249,7 +312,7 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
       const dn = _v.dot(p.an);
       if (dn < 0) p.x.addScaledVector(p.an, -dn);
       _v.subVectors(p.x, p.anchor);
-      const maxR = (0.01 + 0.022 * p.loose) * (1 - soak * 0.6);           // panels shift, never balloon or flap
+      const maxR = (0.01 + 0.022 * p.loose) * (1 - soak * 0.6); // panels shift, never balloon or flap
       if (_v.length() > maxR) p.x.copy(p.anchor).add(_v.setLength(maxR));
       if (p.group === 'hem') {
         for (const [u, l] of thighs) {
@@ -281,7 +344,8 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
       model.updateMatrixWorld(true);
       anchors();
       for (const p of P) {
-        if (!p.init || p.x.distanceToSquared(p.anchor) > 1) {          // first frame and teleports
+        if (!p.init || p.x.distanceToSquared(p.anchor) > 1) {
+          // first frame and teleports
           p.x.copy(p.anchor);
           p.px.copy(p.anchor);
           p.pa.copy(p.anchor);

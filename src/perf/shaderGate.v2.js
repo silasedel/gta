@@ -26,19 +26,29 @@ export function initV2(game) {
   r.renderBufferDirect = function (camera, scene, geometry, material, object, group) {
     // perf (Nov 19): instanced pools with no live instances still cost a full draw setup (program, uniforms, VAO) every
     // pass: about half of the ~400 city prop pools are empty at any time (measured 968 main-pass draws downtown)
-    if (object.isInstancedMesh && object.count === 0) { stats.empty++; return; }
+    if (object.isInstancedMesh && object.count === 0) {
+      stats.empty++;
+      return;
+    }
     if (stats.on && game.ready && scene === game.scene && material !== scene.overrideMaterial) {
       const om = object.material;
       if (om === material || (Array.isArray(om) && om.includes(material))) {
         const mp = props.get(material);
         const prog = mp.currentProgram;
         if (!prog) {
-          if (!object.__psGateQ) { object.__psGateQ = true; queue.push(object); stats.queued++; }
+          if (!object.__psGateQ) {
+            object.__psGateQ = true;
+            queue.push(object);
+            stats.queued++;
+          }
           stats.skipped++;
           return;
         }
         if (!prog.__psOk) {
-          if (!prog.isReady()) { stats.skipped++; return; }
+          if (!prog.isReady()) {
+            stats.skipped++;
+            return;
+          }
           prog.__psOk = true;
         }
       }
@@ -50,9 +60,11 @@ export function initV2(game) {
   // frame (glass, decals: ~15 a frame measured), CPU time plus old-space garbage. Drawn in one pass instead (thin glass and
   // decals look the same). ?singlepass=0 = old.
   if (!/[?&]singlepass=0\b/.test(location.search)) {
-    const MP = THREE.Material.prototype, obr = MP.onBeforeRender;
+    const MP = THREE.Material.prototype,
+      obr = MP.onBeforeRender;
     MP.onBeforeRender = function (...a) {
-      if (this.transparent && this.side === THREE.DoubleSide && !this.forceSinglePass) this.forceSinglePass = true;
+      if (this.transparent && this.side === THREE.DoubleSide && !this.forceSinglePass)
+        this.forceSinglePass = true;
       return obr.apply(this, a);
     };
   }
@@ -62,15 +74,47 @@ export function initV2(game) {
   // ?shadowdepth=0 = old.
   if (!/[?&]shadowdepth=0\b/.test(location.search)) {
     const DM = new Map();
-    const SIDE = { [THREE.FrontSide]: THREE.BackSide, [THREE.BackSide]: THREE.FrontSide, [THREE.DoubleSide]: THREE.DoubleSide };
-    const OP = THREE.Object3D.prototype, obs = OP.onBeforeShadow;
-    OP.onBeforeShadow = function (renderer, object, camera, shadowCamera, geometry, depthMaterial, group) {
-      if (this.customDepthMaterial === undefined && depthMaterial && depthMaterial.isMeshDepthMaterial && depthMaterial.depthPacking === THREE.RGBADepthPacking && !Array.isArray(this.material) && this.material) {
+    const SIDE = {
+      [THREE.FrontSide]: THREE.BackSide,
+      [THREE.BackSide]: THREE.FrontSide,
+      [THREE.DoubleSide]: THREE.DoubleSide,
+    };
+    const OP = THREE.Object3D.prototype,
+      obs = OP.onBeforeShadow;
+    OP.onBeforeShadow = function (
+      renderer,
+      object,
+      camera,
+      shadowCamera,
+      geometry,
+      depthMaterial,
+      group,
+    ) {
+      if (
+        this.customDepthMaterial === undefined &&
+        depthMaterial &&
+        depthMaterial.isMeshDepthMaterial &&
+        depthMaterial.depthPacking === THREE.RGBADepthPacking &&
+        !Array.isArray(this.material) &&
+        this.material
+      ) {
         const m = this.material;
-        const side = m.shadowSide !== null && m.shadowSide !== undefined ? m.shadowSide : SIDE[m.side];
-        const k = side + '|' + (this.isInstancedMesh ? 1 : 0) + '|' + (this.isSkinnedMesh ? 1 : 0) + '|' + (this.isBatchedMesh ? 1 : 0);
+        const side =
+          m.shadowSide !== null && m.shadowSide !== undefined ? m.shadowSide : SIDE[m.side];
+        const k =
+          side +
+          '|' +
+          (this.isInstancedMesh ? 1 : 0) +
+          '|' +
+          (this.isSkinnedMesh ? 1 : 0) +
+          '|' +
+          (this.isBatchedMesh ? 1 : 0);
         let d = DM.get(k);
-        if (!d) { d = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }); d.name = 'psShadowDepth ' + k; DM.set(k, d); }
+        if (!d) {
+          d = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+          d.name = 'psShadowDepth ' + k;
+          DM.set(k, d);
+        }
         this.customDepthMaterial = d;
       }
       return obs.call(this, renderer, object, camera, shadowCamera, geometry, depthMaterial, group);
@@ -79,15 +123,28 @@ export function initV2(game) {
   // the queued objects' programs, created between frames in one compile call (one light traversal for all of them)
   const batch = [];
   const fake = {
-    traverse(cb) { for (let i = 0; i < batch.length; i++) cb(batch[i]); },
-    traverseVisible() { /* the queued objects hold no lights */ },
+    traverse(cb) {
+      for (let i = 0; i < batch.length; i++) cb(batch[i]);
+    },
+    traverseVisible() {
+      /* the queued objects hold no lights */
+    },
   };
   game.updaters.push(function shaderGateCompile() {
     if (!queue.length) return;
     batch.length = 0;
-    for (let i = 0; i < queue.length && batch.length < 64; i++) { const o = queue[i]; o.__psGateQ = false; if (o.material) batch.push(o); }
+    for (let i = 0; i < queue.length && batch.length < 64; i++) {
+      const o = queue[i];
+      o.__psGateQ = false;
+      if (o.material) batch.push(o);
+    }
     queue.splice(0, Math.min(queue.length, 64));
-    try { compileForGame(r, THREE, fake, game.camera, game.scene); stats.compiled += batch.length; } catch (e) { console.warn('[shaderGate] compile', e); }
+    try {
+      compileForGame(r, THREE, fake, game.camera, game.scene);
+      stats.compiled += batch.length;
+    } catch (e) {
+      console.warn('[shaderGate] compile', e);
+    }
     batch.length = 0;
   });
 }

@@ -9,341 +9,2269 @@ import { makeSandMaterial } from '../../ground/sandMaterial.js';
 export const KEYS_BAR = ART.BAR;
 
 export function buildKeysBar(THREE, opts = {}) {
-  const base = opts.assetBase ?? '/', design = opts.design || null, R = ART.rng(opts.seed ?? 1968), aniso = opts.anisotropy ?? 8, P = ART.PAL;
-  const group = new THREE.Group(); group.name = 'keysBar';
-  const colliders = [], interact = [], lights = [], anchors = { patrons: [], staff: [], perches: [], parking: [] }, nightMats = [], spinners = [];
-  const manager = new THREE.LoadingManager(), tl = new THREE.TextureLoader(manager);
-  const ready = new Promise((res) => { manager.onLoad = res; manager.onError = () => {}; setTimeout(res, 8000); });
-  const V3 = THREE.Vector3, UP = new V3(0, 1, 0);
-  const findBrand = (id, name) => { try { return design?.getBrand?.(id) || design?.brands?.find?.((b) => b.name === name) || null; } catch (e) { return null; } };
-  const brandBeer = findBrand('tern-key-brewing', 'Tern Key Brewing Co.'), brandRum = findBrand('ron-marinero', 'Ron Marinero'), brandCola = findBrand('zafra-cola', 'Zafra');
-  const ctex = (canvas, rep = true) => { const t = new THREE.CanvasTexture(canvas); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = aniso; if (rep) t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; };
-  const ltex = (name, srgb) => { const t = tl.load(`${base}assets/city/pbr/${name}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = aniso; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
-  const pbr = (name, tile, o = {}) => { const arm = ltex(name + '_arm'); const m = new THREE.MeshStandardMaterial({ map: ltex(name + '_col', true), normalMap: ltex(name + '_nrm'), roughnessMap: arm, aoMap: arm, metalnessMap: arm, metalness: 1, roughness: 1, vertexColors: true, ...o }); m.userData.tile = tile; return m; };
-  const cmat = (canvas, tile, o = {}) => { const m = new THREE.MeshStandardMaterial({ map: ctex(canvas), roughness: 0.8, metalness: 0, vertexColors: true, ...o }); m.userData.tile = tile; return m; };
+  const base = opts.assetBase ?? '/',
+    design = opts.design || null,
+    R = ART.rng(opts.seed ?? 1968),
+    aniso = opts.anisotropy ?? 8,
+    P = ART.PAL;
+  const group = new THREE.Group();
+  group.name = 'keysBar';
+  const colliders = [],
+    interact = [],
+    lights = [],
+    anchors = { patrons: [], staff: [], perches: [], parking: [] },
+    nightMats = [],
+    spinners = [];
+  const manager = new THREE.LoadingManager(),
+    tl = new THREE.TextureLoader(manager);
+  const ready = new Promise((res) => {
+    manager.onLoad = res;
+    manager.onError = () => {};
+    setTimeout(res, 8000);
+  });
+  const V3 = THREE.Vector3,
+    UP = new V3(0, 1, 0);
+  const findBrand = (id, name) => {
+    try {
+      return design?.getBrand?.(id) || design?.brands?.find?.((b) => b.name === name) || null;
+    } catch (e) {
+      return null;
+    }
+  };
+  const brandBeer = findBrand('tern-key-brewing', 'Tern Key Brewing Co.'),
+    brandRum = findBrand('ron-marinero', 'Ron Marinero'),
+    brandCola = findBrand('zafra-cola', 'Zafra');
+  const ctex = (canvas, rep = true) => {
+    const t = new THREE.CanvasTexture(canvas);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = aniso;
+    if (rep) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    return t;
+  };
+  const ltex = (name, srgb) => {
+    const t = tl.load(`${base}assets/city/pbr/${name}.jpg`);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = aniso;
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  };
+  const pbr = (name, tile, o = {}) => {
+    const arm = ltex(name + '_arm');
+    const m = new THREE.MeshStandardMaterial({
+      map: ltex(name + '_col', true),
+      normalMap: ltex(name + '_nrm'),
+      roughnessMap: arm,
+      aoMap: arm,
+      metalnessMap: arm,
+      metalness: 1,
+      roughness: 1,
+      vertexColors: true,
+      ...o,
+    });
+    m.userData.tile = tile;
+    return m;
+  };
+  const cmat = (canvas, tile, o = {}) => {
+    const m = new THREE.MeshStandardMaterial({
+      map: ctex(canvas),
+      roughness: 0.8,
+      metalness: 0,
+      vertexColors: true,
+      ...o,
+    });
+    m.userData.tile = tile;
+    return m;
+  };
 
   // ---- materials (every one carries a texture; tint comes from vertex colors) ----
   const M = {
     paint: cmat(ART.paintWear(1), 1.3, { roughness: 0.72 }),
     wood: cmat(ART.bareWood(2), 1.3, { roughness: 0.9 }),
     varnish: cmat(ART.bareWood(7), 1.1, { roughness: 0.35 }),
-    tin: cmat(ART.tinRoof(5), 1, { roughness: 0.42, metalness: 0.75, side: THREE.DoubleSide, normalMap: ltex('corrugated_iron_nrm'), normalScale: new THREE.Vector2(0.25, 0.25) }),
+    tin: cmat(ART.tinRoof(5), 1, {
+      roughness: 0.42,
+      metalness: 0.75,
+      side: THREE.DoubleSide,
+      normalMap: ltex('corrugated_iron_nrm'),
+      normalScale: new THREE.Vector2(0.25, 0.25),
+    }),
     metal: cmat(ART.noise('#b9b9b9', 3), 0.3, { roughness: 0.38, metalness: 0.85 }),
     plastic: cmat(ART.noise('#d8d8d8', 4, 128, 0.06), 0.3, { roughness: 0.55 }),
     rubber: cmat(ART.noise('#555', 6, 128, 0.2), 0.2, { roughness: 0.95 }),
-    glass: cmat(ART.noise('#ffffff', 8, 64, 0.03), 0.3, { roughness: 0.06, metalness: 0.1, transparent: true, opacity: 0.5, depthWrite: false }),
-    pane: cmat(ART.noise('#cfe3e6', 9, 64, 0.05), 1, { roughness: 0.08, metalness: 0.3, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }),
-    screen: cmat(ART.noise('#2b2f30', 10, 64, 0.3), 0.05, { roughness: 0.9, transparent: true, opacity: 0.45, depthWrite: false, side: THREE.DoubleSide }),
-    block: pbr('concrete_block_wall', 1.2), gravel: makeSandMaterial(THREE, { base, loader: tl, anisotropy: aniso, tint: 0xb9a888, shells: 1.0, litter: 0.5, damp: 0.3, ripples: 0.2, marks: 0.55, vertexColors: true, ...(opts.sand || {}) }),
-    liquid: cmat(ART.noise('#ffffff', 13, 32, 0.04), 0.2, { roughness: 0.12 }), paintWorn: cmat(ART.paintWear(21, 512, 3), 1.1, { roughness: 0.84 }), rock: pbr('coral_stone_wall', 1.4), bark: pbr('palm_tree_bark', 1), rust: pbr('rusty_painted_metal', 1),
-    bulb: cmat(ART.noise('#fff4d6', 11, 32, 0.03), 0.2, { emissive: 0xffb45a, emissiveIntensity: 0.25, roughness: 0.3 }),
-    glow: cmat(ART.noise('#fff8e8', 12, 32, 0.02), 0.2, { emissive: 0xfff0d0, emissiveIntensity: 0.6, roughness: 0.4 }),
+    glass: cmat(ART.noise('#ffffff', 8, 64, 0.03), 0.3, {
+      roughness: 0.06,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.5,
+      depthWrite: false,
+    }),
+    pane: cmat(ART.noise('#cfe3e6', 9, 64, 0.05), 1, {
+      roughness: 0.08,
+      metalness: 0.3,
+      transparent: true,
+      opacity: 0.32,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+    screen: cmat(ART.noise('#2b2f30', 10, 64, 0.3), 0.05, {
+      roughness: 0.9,
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+    block: pbr('concrete_block_wall', 1.2),
+    gravel: makeSandMaterial(THREE, {
+      base,
+      loader: tl,
+      anisotropy: aniso,
+      tint: 0xb9a888,
+      shells: 1.0,
+      litter: 0.5,
+      damp: 0.3,
+      ripples: 0.2,
+      marks: 0.55,
+      vertexColors: true,
+      ...(opts.sand || {}),
+    }),
+    liquid: cmat(ART.noise('#ffffff', 13, 32, 0.04), 0.2, { roughness: 0.12 }),
+    paintWorn: cmat(ART.paintWear(21, 512, 3), 1.1, { roughness: 0.84 }),
+    rock: pbr('coral_stone_wall', 1.4),
+    bark: pbr('palm_tree_bark', 1),
+    rust: pbr('rusty_painted_metal', 1),
+    bulb: cmat(ART.noise('#fff4d6', 11, 32, 0.03), 0.2, {
+      emissive: 0xffb45a,
+      emissiveIntensity: 0.25,
+      roughness: 0.3,
+    }),
+    glow: cmat(ART.noise('#fff8e8', 12, 32, 0.02), 0.2, {
+      emissive: 0xfff0d0,
+      emissiveIntensity: 0.6,
+      roughness: 0.4,
+    }),
     lattice: cmat(ART.lattice(), 0.45, { alphaTest: 0.5, side: THREE.DoubleSide }),
     balus: cmat(ART.balusters(), 1, { alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.7 }),
   };
-  M.gravel.userData.tile = 2.6; nightMats.push([M.bulb, 0.25, 3.2], [M.glow, 0.5, 2.2]);
-  for (const k of ['croton', 'hibiscus', 'grape', 'frond', 'grass']) M['f_' + k] = cmat(ART.foliage(k === 'grass' ? 'blade' : k, 20 + k.length), 1, { alphaTest: 0.42, side: THREE.DoubleSide, roughness: 0.8 });
+  M.gravel.userData.tile = 2.6;
+  nightMats.push([M.bulb, 0.25, 3.2], [M.glow, 0.5, 2.2]);
+  for (const k of ['croton', 'hibiscus', 'grape', 'frond', 'grass'])
+    M['f_' + k] = cmat(ART.foliage(k === 'grass' ? 'blade' : k, 20 + k.length), 1, {
+      alphaTest: 0.42,
+      side: THREE.DoubleSide,
+      roughness: 0.8,
+    });
   for (const k in M) M[k].name = 'keysBar:' + k;
 
   // ---- batching: everything is merged per material, with per-piece vertex color ----
-  let buckets = new Map(), CUR = new THREE.Matrix4();
-  const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new V3(), _s = new V3(), _c = new THREE.Color();
+  let buckets = new Map(),
+    CUR = new THREE.Matrix4();
+  const _m = new THREE.Matrix4(),
+    _q = new THREE.Quaternion(),
+    _e = new THREE.Euler(),
+    _p = new V3(),
+    _s = new V3(),
+    _c = new THREE.Color();
   const tileOf = (mat) => mat.userData.tile || 1;
   function add(mat, g, x = 0, y = 0, z = 0, o = {}) {
     if (!g.index) g.setIndex([...Array(g.attributes.position.count).keys()]);
-    for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') g.deleteAttribute(k);
-    _e.set(o.rx || 0, o.ry || 0, o.rz || 0, 'YXZ'); if (o.q) _q.copy(o.q); else _q.setFromEuler(_e);
-    const s = o.s; _s.set(s ? s[0] : 1, s ? s[1] : 1, s ? s[2] : 1); _m.compose(_p.set(x, y, z), _q, _s).premultiply(CUR); g.applyMatrix4(_m);
-    const n = g.attributes.position.count, col = new Float32Array(n * 3); _c.set(o.c ?? 0xffffff); for (let i = 0; i < n; i++) { col[i * 3] = _c.r; col[i * 3 + 1] = _c.g; col[i * 3 + 2] = _c.b; }
+    for (const k of Object.keys(g.attributes))
+      if (k !== 'position' && k !== 'normal' && k !== 'uv') g.deleteAttribute(k);
+    _e.set(o.rx || 0, o.ry || 0, o.rz || 0, 'YXZ');
+    if (o.q) _q.copy(o.q);
+    else _q.setFromEuler(_e);
+    const s = o.s;
+    _s.set(s ? s[0] : 1, s ? s[1] : 1, s ? s[2] : 1);
+    _m.compose(_p.set(x, y, z), _q, _s).premultiply(CUR);
+    g.applyMatrix4(_m);
+    const n = g.attributes.position.count,
+      col = new Float32Array(n * 3);
+    _c.set(o.c ?? 0xffffff);
+    for (let i = 0; i < n; i++) {
+      col[i * 3] = _c.r;
+      col[i * 3 + 1] = _c.g;
+      col[i * 3 + 2] = _c.b;
+    }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    if (!buckets.has(mat)) buckets.set(mat, []); buckets.get(mat).push(g);
+    if (!buckets.has(mat)) buckets.set(mat, []);
+    buckets.get(mat).push(g);
   }
-  function at(x, y, z, ry, fn) { const prev = CUR; CUR = new THREE.Matrix4().compose(new V3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new V3(1, 1, 1)).premultiply(prev); fn(); CUR = prev; }
-  function flush(target) { for (const [mat, gs] of buckets) { const g = mergeGeometries(gs, false); for (const x of gs) x.dispose(); if (!g) continue; const m = new THREE.Mesh(g, mat); m.castShadow = !mat.transparent; m.receiveShadow = true; m.name = mat.name; target.add(m); } buckets = new Map(); }
-  function capture(fn) { const pb = buckets, pc = CUR; buckets = new Map(); CUR = new THREE.Matrix4(); fn(); const g = new THREE.Group(); flush(g); buckets = pb; CUR = pc; return g; }
-  const jit = (hex, a = 0.06) => { const c = new THREE.Color(hex), k = 1 + (R() - 0.5) * 2 * a; c.multiplyScalar(k); return c; };
-  function scaleUV(g, su, sv, ou = R(), ov = R()) { const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * su + ou, uv.getY(i) * sv + ov); return g; }
-  function box(mat, w, h, d, x, y, z, o) { const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv, t = tileOf(mat), D = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]], ou = R(), ov = R(); for (let f = 0; f < 6; f++) for (let i = 0; i < 4; i++) { const k = f * 4 + i; uv.setXY(k, uv.getX(k) * D[f][0] / t + ou, uv.getY(k) * D[f][1] / t + ov); } add(mat, g, x, y, z, o); }
-  function cyl(mat, rt, rb, h, x, y, z, o = {}) { const g = new THREE.CylinderGeometry(rt, rb, h, o.seg || 12, 1, !!o.open); scaleUV(g, 6.283 * Math.max(rt, rb) / tileOf(mat), h / tileOf(mat)); add(mat, g, x, y, z, o); }
-  function tube(mat, a, b, r, c, seg = 6) { const d = new V3(b[0] - a[0], b[1] - a[1], b[2] - a[2]), l = d.length(); if (l < 1e-5) return; const q = new THREE.Quaternion().setFromUnitVectors(UP, d.normalize()); const g = new THREE.CylinderGeometry(r, r, l, seg, 1); scaleUV(g, 6.283 * r / tileOf(mat), l / tileOf(mat)); add(mat, g, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2, { q, c }); }
-  function sph(mat, r, x, y, z, o = {}) { add(mat, scaleUV(new THREE.SphereGeometry(r, o.ws || 10, o.hs || 7), 2, 1), x, y, z, o); }
-  function tor(mat, RR, r, x, y, z, o = {}) { add(mat, scaleUV(new THREE.TorusGeometry(RR, r, o.rs || 6, o.ts || 16, o.arc || 6.2832), 4, 1), x, y, z, o); }
+  function at(x, y, z, ry, fn) {
+    const prev = CUR;
+    CUR = new THREE.Matrix4()
+      .compose(
+        new V3(x, y, z),
+        new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)),
+        new V3(1, 1, 1),
+      )
+      .premultiply(prev);
+    fn();
+    CUR = prev;
+  }
+  function flush(target) {
+    for (const [mat, gs] of buckets) {
+      const g = mergeGeometries(gs, false);
+      for (const x of gs) x.dispose();
+      if (!g) continue;
+      const m = new THREE.Mesh(g, mat);
+      m.castShadow = !mat.transparent;
+      m.receiveShadow = true;
+      m.name = mat.name;
+      target.add(m);
+    }
+    buckets = new Map();
+  }
+  function capture(fn) {
+    const pb = buckets,
+      pc = CUR;
+    buckets = new Map();
+    CUR = new THREE.Matrix4();
+    fn();
+    const g = new THREE.Group();
+    flush(g);
+    buckets = pb;
+    CUR = pc;
+    return g;
+  }
+  const jit = (hex, a = 0.06) => {
+    const c = new THREE.Color(hex),
+      k = 1 + (R() - 0.5) * 2 * a;
+    c.multiplyScalar(k);
+    return c;
+  };
+  function scaleUV(g, su, sv, ou = R(), ov = R()) {
+    const uv = g.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * su + ou, uv.getY(i) * sv + ov);
+    return g;
+  }
+  function box(mat, w, h, d, x, y, z, o) {
+    const g = new THREE.BoxGeometry(w, h, d),
+      uv = g.attributes.uv,
+      t = tileOf(mat),
+      D = [
+        [d, h],
+        [d, h],
+        [w, d],
+        [w, d],
+        [w, h],
+        [w, h],
+      ],
+      ou = R(),
+      ov = R();
+    for (let f = 0; f < 6; f++)
+      for (let i = 0; i < 4; i++) {
+        const k = f * 4 + i;
+        uv.setXY(k, (uv.getX(k) * D[f][0]) / t + ou, (uv.getY(k) * D[f][1]) / t + ov);
+      }
+    add(mat, g, x, y, z, o);
+  }
+  function cyl(mat, rt, rb, h, x, y, z, o = {}) {
+    const g = new THREE.CylinderGeometry(rt, rb, h, o.seg || 12, 1, !!o.open);
+    scaleUV(g, (6.283 * Math.max(rt, rb)) / tileOf(mat), h / tileOf(mat));
+    add(mat, g, x, y, z, o);
+  }
+  function tube(mat, a, b, r, c, seg = 6) {
+    const d = new V3(b[0] - a[0], b[1] - a[1], b[2] - a[2]),
+      l = d.length();
+    if (l < 1e-5) return;
+    const q = new THREE.Quaternion().setFromUnitVectors(UP, d.normalize());
+    const g = new THREE.CylinderGeometry(r, r, l, seg, 1);
+    scaleUV(g, (6.283 * r) / tileOf(mat), l / tileOf(mat));
+    add(mat, g, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2, { q, c });
+  }
+  function sph(mat, r, x, y, z, o = {}) {
+    add(mat, scaleUV(new THREE.SphereGeometry(r, o.ws || 10, o.hs || 7), 2, 1), x, y, z, o);
+  }
+  function tor(mat, RR, r, x, y, z, o = {}) {
+    add(
+      mat,
+      scaleUV(new THREE.TorusGeometry(RR, r, o.rs || 6, o.ts || 16, o.arc || 6.2832), 4, 1),
+      x,
+      y,
+      z,
+      o,
+    );
+  }
   // quad seen from its front: top-left, top-right, bottom-right, bottom-left; UV in meters / tile (or 0..1 with o.fit)
-  function quad(mat, tlp, trp, brp, blp, o = {}) { const A = new V3(...tlp), B = new V3(...trp), C = new V3(...brp), D = new V3(...blp), u = B.clone().sub(A).normalize(), dn = D.clone().sub(A), v = dn.clone().addScaledVector(u, -dn.dot(u)).normalize(), n = v.clone().cross(u).normalize(), tu = o.tu || tileOf(mat), tv = o.tv || tileOf(mat);
-    const g = new THREE.BufferGeometry(), pos = [], nor = [], uv = [], fit = [[0, 1], [1, 1], [1, 0], [0, 0]]; [A, B, C, D].forEach((p, i) => { pos.push(p.x, p.y, p.z); nor.push(n.x, n.y, n.z); const d = p.clone().sub(A); if (o.fit) uv.push(fit[i][0], fit[i][1]); else uv.push(d.dot(u) / tu, -d.dot(v) / tv); });
-    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex([0, 3, 2, 0, 2, 1]); add(mat, g, 0, 0, 0, o); }
+  function quad(mat, tlp, trp, brp, blp, o = {}) {
+    const A = new V3(...tlp),
+      B = new V3(...trp),
+      C = new V3(...brp),
+      D = new V3(...blp),
+      u = B.clone().sub(A).normalize(),
+      dn = D.clone().sub(A),
+      v = dn.clone().addScaledVector(u, -dn.dot(u)).normalize(),
+      n = v.clone().cross(u).normalize(),
+      tu = o.tu || tileOf(mat),
+      tv = o.tv || tileOf(mat);
+    const g = new THREE.BufferGeometry(),
+      pos = [],
+      nor = [],
+      uv = [],
+      fit = [
+        [0, 1],
+        [1, 1],
+        [1, 0],
+        [0, 0],
+      ];
+    [A, B, C, D].forEach((p, i) => {
+      pos.push(p.x, p.y, p.z);
+      nor.push(n.x, n.y, n.z);
+      const d = p.clone().sub(A);
+      if (o.fit) uv.push(fit[i][0], fit[i][1]);
+      else uv.push(d.dot(u) / tu, -d.dot(v) / tv);
+    });
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setIndex([0, 3, 2, 0, 2, 1]);
+    add(mat, g, 0, 0, 0, o);
+  }
   // a separate art mesh (canvas texture) placed in the current frame
-  function art(canvas, w, h, x, y, z, o = {}) { const mat = new THREE.MeshStandardMaterial({ map: ctex(canvas, false), roughness: o.rough ?? 0.75, metalness: 0, side: o.side ?? THREE.FrontSide, transparent: !!o.transparent }); if (o.alphaTest) mat.alphaTest = o.alphaTest; if (o.emissive) { mat.emissive = new THREE.Color(0xffffff); mat.emissiveMap = mat.map; mat.emissiveIntensity = o.emissive[0]; nightMats.push([mat, o.emissive[0], o.emissive[1]]); } const m = new THREE.Mesh(o.geo || new THREE.PlaneGeometry(w, h), mat); m.position.set(x, y, z); m.rotation.set(o.rx || 0, o.ry || 0, o.rz || 0, 'YXZ'); m.updateMatrix(); m.applyMatrix4(CUR); m.receiveShadow = true; m.castShadow = !!o.cast; m.name = 'keysBar:art:' + (o.name || ''); group.add(m); return m; }
+  function art(canvas, w, h, x, y, z, o = {}) {
+    const mat = new THREE.MeshStandardMaterial({
+      map: ctex(canvas, false),
+      roughness: o.rough ?? 0.75,
+      metalness: 0,
+      side: o.side ?? THREE.FrontSide,
+      transparent: !!o.transparent,
+    });
+    if (o.alphaTest) mat.alphaTest = o.alphaTest;
+    if (o.emissive) {
+      mat.emissive = new THREE.Color(0xffffff);
+      mat.emissiveMap = mat.map;
+      mat.emissiveIntensity = o.emissive[0];
+      nightMats.push([mat, o.emissive[0], o.emissive[1]]);
+    }
+    const m = new THREE.Mesh(o.geo || new THREE.PlaneGeometry(w, h), mat);
+    m.position.set(x, y, z);
+    m.rotation.set(o.rx || 0, o.ry || 0, o.rz || 0, 'YXZ');
+    m.updateMatrix();
+    m.applyMatrix4(CUR);
+    m.receiveShadow = true;
+    m.castShadow = !!o.cast;
+    m.name = 'keysBar:art:' + (o.name || '');
+    group.add(m);
+    return m;
+  }
   const col = (c) => colliders.push(c);
-  const world = (x, y, z) => { const v = new V3(x, y, z).applyMatrix4(CUR); return [v.x, v.y, v.z]; };
+  const world = (x, y, z) => {
+    const v = new V3(x, y, z).applyMatrix4(CUR);
+    return [v.x, v.y, v.z];
+  };
 
   // ================= dimensions =================
-  const FL = 0.6, WT = FL + 3.1, PITCH = Math.tan(35 * Math.PI / 180), ZC = -4.0, RIDGE = WT + PITCH * 3.25, PH = 3.35, PL = 2.9;
-  const CREAM = 0xf1e6cc, CORAL = 0xe2664c, SEA = 0x1d5873, MINT = 0xa9d8c6, HAINT = 0xbfe0e2, DECK = 0xb8ab98;
-  const porchY = (d) => PH - d * (PH - PL) / 3.4;      // porch roof height at distance d from the house wall
+  const FL = 0.6,
+    WT = FL + 3.1,
+    PITCH = Math.tan((35 * Math.PI) / 180),
+    ZC = -4.0,
+    RIDGE = WT + PITCH * 3.25,
+    PH = 3.35,
+    PL = 2.9;
+  const CREAM = 0xf1e6cc,
+    CORAL = 0xe2664c,
+    SEA = 0x1d5873,
+    MINT = 0xa9d8c6,
+    HAINT = 0xbfe0e2,
+    DECK = 0xb8ab98;
+  const porchY = (d) => PH - (d * (PH - PL)) / 3.4; // porch roof height at distance d from the house wall
 
   // ================= ground: crushed-shell yard, tire tracks =================
-  { const g = new THREE.CircleGeometry(1, 56); g.rotateX(-Math.PI / 2); g.scale(19, 1, 15.5); const uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / 2.6, p.getZ(i) / 2.6); add(M.gravel, g, 0, 0.04, 3.2, { c: 0xffffff });
-    const t = art(ART.tracks(), 30, 22, 2, 0.06, 6, { rx: -Math.PI / 2, transparent: true, name: 'tracks' }); t.material.depthWrite = false; t.material.polygonOffset = true; t.material.polygonOffsetFactor = -2; t.renderOrder = 1; }
+  {
+    const g = new THREE.CircleGeometry(1, 56);
+    g.rotateX(-Math.PI / 2);
+    g.scale(19, 1, 15.5);
+    const uv = g.attributes.uv,
+      p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / 2.6, p.getZ(i) / 2.6);
+    add(M.gravel, g, 0, 0.04, 3.2, { c: 0xffffff });
+    const t = art(ART.tracks(), 30, 22, 2, 0.06, 6, {
+      rx: -Math.PI / 2,
+      transparent: true,
+      name: 'tracks',
+    });
+    t.material.depthWrite = false;
+    t.material.polygonOffset = true;
+    t.material.polygonOffsetFactor = -2;
+    t.renderOrder = 1;
+  }
 
   // ================= piers, floor structure, lattice skirt =================
-  for (let x = -4.3; x <= 7.4; x += 2.34) for (const z of [-7.05, -4.0, -0.95, 2.05]) { if (x < 4.6 || z < 2.2) { box(M.block, 0.42, FL - 0.14, 0.42, x, (FL - 0.14) / 2, z, { c: jit(0xd9d4c8) }); } }
-  box(M.wood, 12.0, 0.2, 0.07, 1.5, FL - 0.14, 2.22, { c: 0x9a8c78 }); box(M.wood, 0.07, 0.2, 9.5, 7.47, FL - 0.14, -2.5, { c: 0x9a8c78 }); box(M.wood, 0.07, 0.2, 3.0, -4.47, FL - 0.14, 0.75, { c: 0x9a8c78 });
-  const skirt = (x0, z0, x1, z1) => { const l = Math.hypot(x1 - x0, z1 - z0), g = scaleUV(new THREE.PlaneGeometry(l, 0.42), l / 0.45, 0.42 / 0.45, 0, 0); add(M.lattice, g, (x0 + x1) / 2, 0.25, (z0 + z1) / 2, { ry: Math.atan2(-(z1 - z0), x1 - x0), c: 0xe9e2d2 }); };
-  skirt(-4.5, 2.2, 0.35, 2.2); skirt(2.65, 2.2, 7.45, 2.2); skirt(7.45, 2.2, 7.45, -7.25); skirt(-4.47, 2.2, -4.47, -7.25); skirt(-4.5, -7.25, 7.45, -7.25);
+  for (let x = -4.3; x <= 7.4; x += 2.34)
+    for (const z of [-7.05, -4.0, -0.95, 2.05]) {
+      if (x < 4.6 || z < 2.2) {
+        box(M.block, 0.42, FL - 0.14, 0.42, x, (FL - 0.14) / 2, z, { c: jit(0xd9d4c8) });
+      }
+    }
+  box(M.wood, 12.0, 0.2, 0.07, 1.5, FL - 0.14, 2.22, { c: 0x9a8c78 });
+  box(M.wood, 0.07, 0.2, 9.5, 7.47, FL - 0.14, -2.5, { c: 0x9a8c78 });
+  box(M.wood, 0.07, 0.2, 3.0, -4.47, FL - 0.14, 0.75, { c: 0x9a8c78 });
+  const skirt = (x0, z0, x1, z1) => {
+    const l = Math.hypot(x1 - x0, z1 - z0),
+      g = scaleUV(new THREE.PlaneGeometry(l, 0.42), l / 0.45, 0.42 / 0.45, 0, 0);
+    add(M.lattice, g, (x0 + x1) / 2, 0.25, (z0 + z1) / 2, {
+      ry: Math.atan2(-(z1 - z0), x1 - x0),
+      c: 0xe9e2d2,
+    });
+  };
+  skirt(-4.5, 2.2, 0.35, 2.2);
+  skirt(2.65, 2.2, 7.45, 2.2);
+  skirt(7.45, 2.2, 7.45, -7.25);
+  skirt(-4.47, 2.2, -4.47, -7.25);
+  skirt(-4.5, -7.25, 7.45, -7.25);
   // deck boards (front porch runs along z, side porch along x), interior floor
-  for (let x = -4.43; x < 7.5; x += 0.146) box(M.wood, 0.14, 0.04, 3.02, x, FL - 0.02, 0.75, { c: jit(DECK, 0.1) });
-  for (let z = -7.18; z < -0.76; z += 0.146) box(M.wood, 2.98, 0.04, 0.14, 6.0, FL - 0.02, z, { c: jit(DECK, 0.1) });
-  for (let z = -7.18; z < -0.78; z += 0.146) box(M.varnish, 8.9, 0.04, 0.14, 0, FL - 0.02, z, { c: jit(0xa07a52, 0.1) });
+  for (let x = -4.43; x < 7.5; x += 0.146)
+    box(M.wood, 0.14, 0.04, 3.02, x, FL - 0.02, 0.75, { c: jit(DECK, 0.1) });
+  for (let z = -7.18; z < -0.76; z += 0.146)
+    box(M.wood, 2.98, 0.04, 0.14, 6.0, FL - 0.02, z, { c: jit(DECK, 0.1) });
+  for (let z = -7.18; z < -0.78; z += 0.146)
+    box(M.varnish, 8.9, 0.04, 0.14, 0, FL - 0.02, z, { c: jit(0xa07a52, 0.1) });
   col({ type: 'box', x: 1.5, y: FL / 2, z: -2.5, hx: 6.0, hy: FL / 2, hz: 4.75 });
 
   // ================= walls: individual lap boards with openings =================
   // siding weathers unevenly: rain splash and mildew on the bottom courses, soot and damp under the eaves, the odd grayed board
-  const DIRT = new THREE.Color(0xa9a084), MILDEW = new THREE.Color(0x8f9a80);
-  const sidingC = (up, down) => { const c = jit(CREAM, 0.04); c.lerp(DIRT, Math.max(0, 0.5 - up * 0.8) + (R() < 0.08 ? 0.25 : 0)); c.lerp(MILDEW, Math.max(0, 0.22 - down * 0.5) * R() + Math.max(0, 0.3 - up) * 0.3 * R()); return c; };
+  const DIRT = new THREE.Color(0xa9a084),
+    MILDEW = new THREE.Color(0x8f9a80);
+  const sidingC = (up, down) => {
+    const c = jit(CREAM, 0.04);
+    c.lerp(DIRT, Math.max(0, 0.5 - up * 0.8) + (R() < 0.08 ? 0.25 : 0));
+    c.lerp(MILDEW, Math.max(0, 0.22 - down * 0.5) * R() + Math.max(0, 0.3 - up) * 0.3 * R());
+    return c;
+  };
   function lapWall(len, y0, y1, ops = [], gable = null) {
     const ys = [...new Set([y0, y1, ...ops.flatMap((o) => [o.y0, o.y1])])].sort((a, b) => a - b);
-    const spans = (ya, yb) => { let iv = [[-len / 2, len / 2]]; for (const o of ops) if (o.y0 < yb - 1e-3 && o.y1 > ya + 1e-3) iv = iv.flatMap(([a, b]) => o.b <= a || o.a >= b ? [[a, b]] : [[a, o.a], [o.b, b]].filter(([p, q]) => q - p > 0.02)); return iv; };
-    for (let i = 0; i < ys.length - 1; i++) for (const [a, b] of spans(ys[i], ys[i + 1])) box(M.paint, b - a, ys[i + 1] - ys[i], 0.09, (a + b) / 2, (ys[i] + ys[i + 1]) / 2, -0.045, { c: MINT });
-    const bh = 0.15; for (let y = y0; y < y1 - 0.01; y += bh) for (const [a, b] of spans(y, y + bh)) box(R() < 0.16 ? M.paintWorn : M.paint, b - a, bh + 0.025, 0.02, (a + b) / 2, y + bh / 2 + (R() - 0.5) * 0.004, 0.022, { rx: -0.11 + (R() - 0.5) * 0.03, rz: (R() - 0.5) * 0.0025, c: sidingC(y - y0, y1 - y) });
-    if (gable) { quad(M.paint, [-0.002, gable, -0.045], [0.002, gable, -0.045], [len / 2, y1, -0.045], [-len / 2, y1, -0.045], { c: CREAM }); for (let y = y1; y < gable - 0.05; y += bh) { const hw = (gable - y - bh) / PITCH; if (hw > 0.08) box(R() < 0.16 ? M.paintWorn : M.paint, hw * 2, bh + 0.025, 0.02, 0, y + bh / 2, 0.022, { rx: -0.11 + (R() - 0.5) * 0.03, c: sidingC(3, gable - y) }); } }
-    box(M.paint, len + 0.1, 0.2, 0.035, 0, y0 + 0.02, 0.03, { c: CORAL }); box(M.paint, len + 0.1, 0.16, 0.035, 0, y1 - 0.08, 0.035, { c: CORAL });
-    for (const s of [-1, 1]) box(M.paint, 0.12, y1 - y0, 0.05, s * (len / 2 - 0.03), (y0 + y1) / 2, 0.04, { c: CORAL });
+    const spans = (ya, yb) => {
+      let iv = [[-len / 2, len / 2]];
+      for (const o of ops)
+        if (o.y0 < yb - 1e-3 && o.y1 > ya + 1e-3)
+          iv = iv.flatMap(([a, b]) =>
+            o.b <= a || o.a >= b
+              ? [[a, b]]
+              : [
+                  [a, o.a],
+                  [o.b, b],
+                ].filter(([p, q]) => q - p > 0.02),
+          );
+      return iv;
+    };
+    for (let i = 0; i < ys.length - 1; i++)
+      for (const [a, b] of spans(ys[i], ys[i + 1]))
+        box(M.paint, b - a, ys[i + 1] - ys[i], 0.09, (a + b) / 2, (ys[i] + ys[i + 1]) / 2, -0.045, {
+          c: MINT,
+        });
+    const bh = 0.15;
+    for (let y = y0; y < y1 - 0.01; y += bh)
+      for (const [a, b] of spans(y, y + bh))
+        box(
+          R() < 0.16 ? M.paintWorn : M.paint,
+          b - a,
+          bh + 0.025,
+          0.02,
+          (a + b) / 2,
+          y + bh / 2 + (R() - 0.5) * 0.004,
+          0.022,
+          { rx: -0.11 + (R() - 0.5) * 0.03, rz: (R() - 0.5) * 0.0025, c: sidingC(y - y0, y1 - y) },
+        );
+    if (gable) {
+      quad(
+        M.paint,
+        [-0.002, gable, -0.045],
+        [0.002, gable, -0.045],
+        [len / 2, y1, -0.045],
+        [-len / 2, y1, -0.045],
+        { c: CREAM },
+      );
+      for (let y = y1; y < gable - 0.05; y += bh) {
+        const hw = (gable - y - bh) / PITCH;
+        if (hw > 0.08)
+          box(R() < 0.16 ? M.paintWorn : M.paint, hw * 2, bh + 0.025, 0.02, 0, y + bh / 2, 0.022, {
+            rx: -0.11 + (R() - 0.5) * 0.03,
+            c: sidingC(3, gable - y),
+          });
+      }
+    }
+    box(M.paint, len + 0.1, 0.2, 0.035, 0, y0 + 0.02, 0.03, { c: CORAL });
+    box(M.paint, len + 0.1, 0.16, 0.035, 0, y1 - 0.08, 0.035, { c: CORAL });
+    for (const s of [-1, 1])
+      box(M.paint, 0.12, y1 - y0, 0.05, s * (len / 2 - 0.03), (y0 + y1) / 2, 0.04, { c: CORAL });
   }
-  function shutter(u, y0, y1, w, open = true) { at(u, 0, 0.06, 0, () => { const h = y1 - y0; for (const s of [-1, 1]) box(M.paint, 0.05, h, 0.035, s * (w / 2 - 0.025), (y0 + y1) / 2, 0, { c: SEA }); for (const y of [y0 + 0.03, (y0 + y1) / 2, y1 - 0.03]) box(M.paint, w, 0.06, 0.035, 0, y, 0, { c: SEA }); for (let y = y0 + 0.1; y < y1 - 0.08; y += 0.075) if (Math.abs(y - (y0 + y1) / 2) > 0.05) box(M.paint, w - 0.1, 0.012, 0.06, 0, y, 0, { rx: 0.7, c: jit(SEA, 0.08) }); if (open) for (const y of [y0 + 0.15, y1 - 0.15]) box(M.metal, 0.1, 0.03, 0.012, 0, y, 0.022, { c: 0x222222 }); }); }
-  function windowTrim(a, b, y0, y1, glass = true) { const w = b - a, cx = (a + b) / 2; box(M.paint, w + 0.2, 0.09, 0.07, cx, y1 + 0.045, 0.05, { c: CORAL }); box(M.paint, w + 0.26, 0.05, 0.12, cx, y0 - 0.025, 0.07, { c: CORAL }); for (const s of [a - 0.04, b + 0.04]) box(M.paint, 0.08, y1 - y0, 0.06, s, (y0 + y1) / 2, 0.045, { c: CORAL });
-    if (glass) { box(M.pane, w, y1 - y0, 0.008, cx, (y0 + y1) / 2, -0.03, {}); box(M.paint, w, 0.04, 0.035, cx, (y0 + y1) / 2, -0.03, { c: 0xf4f1e8 }); box(M.paint, 0.035, y1 - y0, 0.035, cx, (y0 + y1) / 2, -0.03, { c: 0xf4f1e8 }); } }
-  const W0 = FL + 0.95, W1 = FL + 2.15;
+  function shutter(u, y0, y1, w, open = true) {
+    at(u, 0, 0.06, 0, () => {
+      const h = y1 - y0;
+      for (const s of [-1, 1])
+        box(M.paint, 0.05, h, 0.035, s * (w / 2 - 0.025), (y0 + y1) / 2, 0, { c: SEA });
+      for (const y of [y0 + 0.03, (y0 + y1) / 2, y1 - 0.03])
+        box(M.paint, w, 0.06, 0.035, 0, y, 0, { c: SEA });
+      for (let y = y0 + 0.1; y < y1 - 0.08; y += 0.075)
+        if (Math.abs(y - (y0 + y1) / 2) > 0.05)
+          box(M.paint, w - 0.1, 0.012, 0.06, 0, y, 0, { rx: 0.7, c: jit(SEA, 0.08) });
+      if (open)
+        for (const y of [y0 + 0.15, y1 - 0.15])
+          box(M.metal, 0.1, 0.03, 0.012, 0, y, 0.022, { c: 0x222222 });
+    });
+  }
+  function windowTrim(a, b, y0, y1, glass = true) {
+    const w = b - a,
+      cx = (a + b) / 2;
+    box(M.paint, w + 0.2, 0.09, 0.07, cx, y1 + 0.045, 0.05, { c: CORAL });
+    box(M.paint, w + 0.26, 0.05, 0.12, cx, y0 - 0.025, 0.07, { c: CORAL });
+    for (const s of [a - 0.04, b + 0.04])
+      box(M.paint, 0.08, y1 - y0, 0.06, s, (y0 + y1) / 2, 0.045, { c: CORAL });
+    if (glass) {
+      box(M.pane, w, y1 - y0, 0.008, cx, (y0 + y1) / 2, -0.03, {});
+      box(M.paint, w, 0.04, 0.035, cx, (y0 + y1) / 2, -0.03, { c: 0xf4f1e8 });
+      box(M.paint, 0.035, y1 - y0, 0.035, cx, (y0 + y1) / 2, -0.03, { c: 0xf4f1e8 });
+    }
+  }
+  const W0 = FL + 0.95,
+    W1 = FL + 2.15;
   // front wall (u = world x)
   at(0, 0, -0.75, 0, () => {
-    lapWall(9, FL, WT, [{ a: -3.9, b: -0.3, y0: FL + 1.05, y1: FL + 2.25 }, { a: 1.2, b: 2.2, y0: FL, y1: FL + 2.1 }, { a: 2.8, b: 3.8, y0: W0, y1: W1 }]);
-    windowTrim(2.8, 3.8, W0, W1); shutter(2.55, W0, W1, 0.42); shutter(4.05, W0, W1, 0.42);
+    lapWall(9, FL, WT, [
+      { a: -3.9, b: -0.3, y0: FL + 1.05, y1: FL + 2.25 },
+      { a: 1.2, b: 2.2, y0: FL, y1: FL + 2.1 },
+      { a: 2.8, b: 3.8, y0: W0, y1: W1 },
+    ]);
+    windowTrim(2.8, 3.8, W0, W1);
+    shutter(2.55, W0, W1, 0.42);
+    shutter(4.05, W0, W1, 0.42);
     windowTrim(-3.9, -0.3, FL + 1.05, FL + 2.25, false);
     // bar counter through the serving window, brass foot rail, prop-up storm flap
-    box(M.varnish, 3.85, 0.07, 0.95, -2.1, FL + 1.085, -0.08, { c: 0xb07a45 }); box(M.varnish, 3.85, 0.12, 0.04, -2.1, FL + 1.02, 0.38, { c: 0x8d5f35 });
-    for (let u = -3.85; u < -0.3; u += 0.118) box(M.paint, 0.11, 0.9, 0.02, u, FL + 0.55, 0.045, { c: jit(SEA, 0.06) });
-    tube(M.metal, [-3.8, FL + 0.2, 0.3], [-0.4, FL + 0.2, 0.3], 0.022, 0xd8a94a, 8); for (const u of [-3.7, -2.1, -0.5]) { tube(M.metal, [u, FL + 0.2, 0.3], [u, FL + 0.2, 0.06], 0.012, 0xd8a94a); }
-    const fa = 0.33; box(M.paint, 3.7, 0.03, 1.15, -2.1, FL + 2.3 + Math.sin(fa) * 0.575, 0.06 + Math.cos(fa) * 0.575, { rx: -fa, c: SEA }); for (const u of [-3.6, -0.6]) { tube(M.wood, [u, FL + 1.12, 0.36], [u, FL + 2.3 + Math.sin(fa) * 1.1, 0.06 + Math.cos(fa) * 1.1], 0.018, 0x9a8c78, 4); }
-    for (const [i, u] of [-3.4, -2.55, -1.7, -0.85].entries()) { at(u, FL, 0.72, R() * 3, () => { cyl(M.plastic, 0.17, 0.17, 0.06, 0, 0.75, 0, { c: i % 2 ? CORAL : SEA, seg: 14 }); cyl(M.metal, 0.175, 0.175, 0.02, 0, 0.71, 0, { c: 0xcccccc, seg: 14 }); for (let k = 0; k < 4; k++) { const a = k * 1.5708 + 0.78; tube(M.metal, [Math.cos(a) * 0.1, 0.7, Math.sin(a) * 0.1], [Math.cos(a) * 0.2, 0, Math.sin(a) * 0.2], 0.014, 0xbfbfbf); } tor(M.metal, 0.16, 0.011, 0, 0.26, 0, { rx: Math.PI / 2, c: 0xbfbfbf }); }); anchors.patrons.push({ id: 'stool' + i, pos: [u, FL + 0.78, -0.03], heading: Math.PI, pose: i === 2 ? 'sit_stool_lean_bar' : 'sit_stool_drink', seat: true }); col({ type: 'cyl', x: u, y: FL + 0.38, z: -0.03, hh: 0.38, r: 0.18 }); }
+    box(M.varnish, 3.85, 0.07, 0.95, -2.1, FL + 1.085, -0.08, { c: 0xb07a45 });
+    box(M.varnish, 3.85, 0.12, 0.04, -2.1, FL + 1.02, 0.38, { c: 0x8d5f35 });
+    for (let u = -3.85; u < -0.3; u += 0.118)
+      box(M.paint, 0.11, 0.9, 0.02, u, FL + 0.55, 0.045, { c: jit(SEA, 0.06) });
+    tube(M.metal, [-3.8, FL + 0.2, 0.3], [-0.4, FL + 0.2, 0.3], 0.022, 0xd8a94a, 8);
+    for (const u of [-3.7, -2.1, -0.5]) {
+      tube(M.metal, [u, FL + 0.2, 0.3], [u, FL + 0.2, 0.06], 0.012, 0xd8a94a);
+    }
+    const fa = 0.33;
+    box(
+      M.paint,
+      3.7,
+      0.03,
+      1.15,
+      -2.1,
+      FL + 2.3 + Math.sin(fa) * 0.575,
+      0.06 + Math.cos(fa) * 0.575,
+      { rx: -fa, c: SEA },
+    );
+    for (const u of [-3.6, -0.6]) {
+      tube(
+        M.wood,
+        [u, FL + 1.12, 0.36],
+        [u, FL + 2.3 + Math.sin(fa) * 1.1, 0.06 + Math.cos(fa) * 1.1],
+        0.018,
+        0x9a8c78,
+        4,
+      );
+    }
+    for (const [i, u] of [-3.4, -2.55, -1.7, -0.85].entries()) {
+      at(u, FL, 0.72, R() * 3, () => {
+        cyl(M.plastic, 0.17, 0.17, 0.06, 0, 0.75, 0, { c: i % 2 ? CORAL : SEA, seg: 14 });
+        cyl(M.metal, 0.175, 0.175, 0.02, 0, 0.71, 0, { c: 0xcccccc, seg: 14 });
+        for (let k = 0; k < 4; k++) {
+          const a = k * 1.5708 + 0.78;
+          tube(
+            M.metal,
+            [Math.cos(a) * 0.1, 0.7, Math.sin(a) * 0.1],
+            [Math.cos(a) * 0.2, 0, Math.sin(a) * 0.2],
+            0.014,
+            0xbfbfbf,
+          );
+        }
+        tor(M.metal, 0.16, 0.011, 0, 0.26, 0, { rx: Math.PI / 2, c: 0xbfbfbf });
+      });
+      anchors.patrons.push({
+        id: 'stool' + i,
+        pos: [u, FL + 0.78, -0.03],
+        heading: Math.PI,
+        pose: i === 2 ? 'sit_stool_lean_bar' : 'sit_stool_drink',
+        seat: true,
+      });
+      col({ type: 'cyl', x: u, y: FL + 0.38, z: -0.03, hh: 0.38, r: 0.18 });
+    }
     // tap tower, glasses, bar clutter
-    cyl(M.metal, 0.035, 0.045, 0.32, -2.3, FL + 1.28, -0.3, { c: 0xd8a94a }); tube(M.metal, [-2.62, FL + 1.44, -0.3], [-1.98, FL + 1.44, -0.3], 0.035, 0xd8a94a, 8); box(M.metal, 0.7, 0.015, 0.2, -2.3, FL + 1.128, -0.16, { c: 0x999999 });
-    [0x1d5873, 0xe2664c, 0xf2b441, 0x2b2b2b].forEach((c, i) => { const u = -2.56 + i * 0.175; cyl(M.metal, 0.012, 0.012, 0.1, u, FL + 1.4, -0.22, { rx: 0.5, c: 0xcccccc }); cyl(M.plastic, 0.022, 0.014, 0.17, u, FL + 1.56, -0.25, { rx: -0.25, c }); });
-    for (let i = 0; i < 7; i++) { const u = -3.6 + R() * 3.1, z = -0.3 + R() * 0.5; cyl(M.glass, 0.036, 0.028, 0.14, u, FL + 1.19, z, { c: 0xffffff, seg: 10, open: true }); { const lv = R() < 0.45 ? 0 : 0.015 + R() * 0.1; if (lv) { cyl(M.liquid, 0.027 + lv * 0.05, 0.026, lv, u, FL + 1.125 + lv / 2, z, { c: 0xd89a1c, seg: 8 }); if (R() < 0.6) cyl(M.paint, 0.027 + lv * 0.05, 0.027 + lv * 0.05, 0.008, u, FL + 1.129 + lv, z, { c: 0xfff6e0, seg: 8 }); } else cyl(M.paint, 0.024, 0.024, 0.003, u, FL + 1.126, z, { c: 0xf2e6c8, seg: 8 }); } cyl(M.paint, 0.05, 0.05, 0.004, u, FL + 1.122, z, { c: 0xe8dcc0, seg: 10 }); }
-    box(M.metal, 0.13, 0.16, 0.1, -0.7, FL + 1.2, -0.28, { c: 0xbdbdbd }); box(M.paint, 0.11, 0.1, 0.085, -0.7, FL + 1.22, -0.28, { c: 0xffffff }); cyl(M.glass, 0.06, 0.05, 0.16, -1.25, FL + 1.2, -0.38, { c: 0xffffff, open: true }); cyl(M.paint, 0.045, 0.045, 0.07, -1.25, FL + 1.16, -0.38, { c: 0x4a8a4a }); cyl(M.metal, 0.05, 0.06, 0.045, -3.55, FL + 1.14, 0.2, { c: 0xd8a94a }); cyl(M.plastic, 0.07, 0.05, 0.05, -1.5, FL + 1.145, 0.12, { c: 0x8a5a2a });
+    cyl(M.metal, 0.035, 0.045, 0.32, -2.3, FL + 1.28, -0.3, { c: 0xd8a94a });
+    tube(M.metal, [-2.62, FL + 1.44, -0.3], [-1.98, FL + 1.44, -0.3], 0.035, 0xd8a94a, 8);
+    box(M.metal, 0.7, 0.015, 0.2, -2.3, FL + 1.128, -0.16, { c: 0x999999 });
+    [0x1d5873, 0xe2664c, 0xf2b441, 0x2b2b2b].forEach((c, i) => {
+      const u = -2.56 + i * 0.175;
+      cyl(M.metal, 0.012, 0.012, 0.1, u, FL + 1.4, -0.22, { rx: 0.5, c: 0xcccccc });
+      cyl(M.plastic, 0.022, 0.014, 0.17, u, FL + 1.56, -0.25, { rx: -0.25, c });
+    });
+    for (let i = 0; i < 7; i++) {
+      const u = -3.6 + R() * 3.1,
+        z = -0.3 + R() * 0.5;
+      cyl(M.glass, 0.036, 0.028, 0.14, u, FL + 1.19, z, { c: 0xffffff, seg: 10, open: true });
+      {
+        const lv = R() < 0.45 ? 0 : 0.015 + R() * 0.1;
+        if (lv) {
+          cyl(M.liquid, 0.027 + lv * 0.05, 0.026, lv, u, FL + 1.125 + lv / 2, z, {
+            c: 0xd89a1c,
+            seg: 8,
+          });
+          if (R() < 0.6)
+            cyl(M.paint, 0.027 + lv * 0.05, 0.027 + lv * 0.05, 0.008, u, FL + 1.129 + lv, z, {
+              c: 0xfff6e0,
+              seg: 8,
+            });
+        } else cyl(M.paint, 0.024, 0.024, 0.003, u, FL + 1.126, z, { c: 0xf2e6c8, seg: 8 });
+      }
+      cyl(M.paint, 0.05, 0.05, 0.004, u, FL + 1.122, z, { c: 0xe8dcc0, seg: 10 });
+    }
+    box(M.metal, 0.13, 0.16, 0.1, -0.7, FL + 1.2, -0.28, { c: 0xbdbdbd });
+    box(M.paint, 0.11, 0.1, 0.085, -0.7, FL + 1.22, -0.28, { c: 0xffffff });
+    cyl(M.glass, 0.06, 0.05, 0.16, -1.25, FL + 1.2, -0.38, { c: 0xffffff, open: true });
+    cyl(M.paint, 0.045, 0.045, 0.07, -1.25, FL + 1.16, -0.38, { c: 0x4a8a4a });
+    cyl(M.metal, 0.05, 0.06, 0.045, -3.55, FL + 1.14, 0.2, { c: 0xd8a94a });
+    cyl(M.plastic, 0.07, 0.05, 0.05, -1.5, FL + 1.145, 0.12, { c: 0x8a5a2a });
     // door frame, screen door standing open, chalkboard frame
-    for (const s of [1.14, 2.26]) box(M.paint, 0.1, 2.2, 0.08, s, FL + 1.1, 0.03, { c: CORAL }); box(M.paint, 1.24, 0.11, 0.08, 1.7, FL + 2.16, 0.03, { c: CORAL });
-    at(2.22, FL, 0.08, 1.25, () => { for (const s of [-0.03, -0.93]) box(M.paint, 0.07, 2.02, 0.03, s, 1.03, 0, { c: SEA }); for (const y of [0.06, 0.95, 2.0]) box(M.paint, 0.96, 0.09, 0.03, -0.48, y, 0, { c: SEA }); box(M.screen, 0.84, 1.9, 0.004, -0.48, 1.03, 0, { c: 0x888888 }); tube(M.paint, [-0.06, 0.1, 0.02], [-0.9, 0.9, 0.02], 0.012, SEA, 4); cyl(M.metal, 0.012, 0.012, 0.12, -0.86, 1.05, 0.03, { c: 0xd8a94a }); tube(M.metal, [-0.05, 1.9, 0.03], [-0.5, 1.75, 0.03], 0.008, 0x888888); });
-    box(M.wood, 1.12, 1.52, 0.04, 0.42, FL + 1.5, 0.05, { c: 0x7a5a3a }); art(ART.chalkboard(beerNames()), 1.0, 1.4, 0.42, FL + 1.5, 0.075, { name: 'chalkboard', rough: 0.95 });
-    box(M.wood, 0.3, 0.03, 0.06, 0.42, FL + 0.76, 0.08, { c: 0x7a5a3a }); for (let i = 0; i < 3; i++) cyl(M.paint, 0.008, 0.008, 0.07, 0.34 + i * 0.07, FL + 0.785, 0.09, { rz: 1.5708, c: [0xffffff, 0xffd66b, 0xff9c8a][i] });
+    for (const s of [1.14, 2.26]) box(M.paint, 0.1, 2.2, 0.08, s, FL + 1.1, 0.03, { c: CORAL });
+    box(M.paint, 1.24, 0.11, 0.08, 1.7, FL + 2.16, 0.03, { c: CORAL });
+    at(2.22, FL, 0.08, 1.25, () => {
+      for (const s of [-0.03, -0.93]) box(M.paint, 0.07, 2.02, 0.03, s, 1.03, 0, { c: SEA });
+      for (const y of [0.06, 0.95, 2.0]) box(M.paint, 0.96, 0.09, 0.03, -0.48, y, 0, { c: SEA });
+      box(M.screen, 0.84, 1.9, 0.004, -0.48, 1.03, 0, { c: 0x888888 });
+      tube(M.paint, [-0.06, 0.1, 0.02], [-0.9, 0.9, 0.02], 0.012, SEA, 4);
+      cyl(M.metal, 0.012, 0.012, 0.12, -0.86, 1.05, 0.03, { c: 0xd8a94a });
+      tube(M.metal, [-0.05, 1.9, 0.03], [-0.5, 1.75, 0.03], 0.008, 0x888888);
+    });
+    box(M.wood, 1.12, 1.52, 0.04, 0.42, FL + 1.5, 0.05, { c: 0x7a5a3a });
+    art(ART.chalkboard(beerNames()), 1.0, 1.4, 0.42, FL + 1.5, 0.075, {
+      name: 'chalkboard',
+      rough: 0.95,
+    });
+    box(M.wood, 0.3, 0.03, 0.06, 0.42, FL + 0.76, 0.08, { c: 0x7a5a3a });
+    for (let i = 0; i < 3; i++)
+      cyl(M.paint, 0.008, 0.008, 0.07, 0.34 + i * 0.07, FL + 0.785, 0.09, {
+        rz: 1.5708,
+        c: [0xffffff, 0xffd66b, 0xff9c8a][i],
+      });
     // neon: beer brand above the door, OPEN in the window
-    box(M.metal, 0.9, 0.46, 0.05, 1.7, FL + 2.55, 0.06, { c: 0x1a1a1a }); art(ART.neon('Cold Beer', '#ff5a3c', brandBeer), 0.84, 0.42, 1.7, FL + 2.55, 0.09, { name: 'neon_beer', emissive: [0.9, 2.6], rough: 0.3 });
-    art(ART.neon('OPEN', '#37e0c8', null, 'cold beer'), 0.62, 0.31, 3.3, W0 + 0.5, -0.06, { name: 'neon_open', emissive: [0.9, 2.6], rough: 0.3 });
-    lights.push({ pos: world(1.7, FL + 2.5, 0.5), color: 0xff6a4a, range: 5, intensity: 30, kind: 'neon' }, { pos: world(3.3, W0 + 0.5, 0.4), color: 0x37e0c8, range: 4, intensity: 18, kind: 'neon' });
-    col({ type: 'box', x: -1.65, y: FL + 1.55, z: -0.8, hx: 2.85, hy: 1.55, hz: 0.07 }); col({ type: 'box', x: 3.35, y: FL + 1.55, z: -0.8, hx: 1.15, hy: 1.55, hz: 0.07 }); col({ type: 'box', x: -2.1, y: FL + 0.55, z: -0.6, hx: 1.95, hy: 0.55, hz: 0.5 });
+    box(M.metal, 0.9, 0.46, 0.05, 1.7, FL + 2.55, 0.06, { c: 0x1a1a1a });
+    art(ART.neon('Cold Beer', '#ff5a3c', brandBeer), 0.84, 0.42, 1.7, FL + 2.55, 0.09, {
+      name: 'neon_beer',
+      emissive: [0.9, 2.6],
+      rough: 0.3,
+    });
+    art(ART.neon('OPEN', '#37e0c8', null, 'cold beer'), 0.62, 0.31, 3.3, W0 + 0.5, -0.06, {
+      name: 'neon_open',
+      emissive: [0.9, 2.6],
+      rough: 0.3,
+    });
+    lights.push(
+      { pos: world(1.7, FL + 2.5, 0.5), color: 0xff6a4a, range: 5, intensity: 30, kind: 'neon' },
+      { pos: world(3.3, W0 + 0.5, 0.4), color: 0x37e0c8, range: 4, intensity: 18, kind: 'neon' },
+    );
+    col({ type: 'box', x: -1.65, y: FL + 1.55, z: -0.8, hx: 2.85, hy: 1.55, hz: 0.07 });
+    col({ type: 'box', x: 3.35, y: FL + 1.55, z: -0.8, hx: 1.15, hy: 1.55, hz: 0.07 });
+    col({ type: 'box', x: -2.1, y: FL + 0.55, z: -0.6, hx: 1.95, hy: 0.55, hz: 0.5 });
   });
   // right wall (u = -(z + 4)), faces the side porch
-  at(4.5, 0, ZC, Math.PI / 2, () => { lapWall(6.5, FL, WT, [{ a: -2.3, b: -1.3, y0: W0, y1: W1 }], RIDGE); windowTrim(-2.3, -1.3, W0, W1); shutter(-2.55, W0, W1, 0.42); shutter(-1.05, W0, W1, 0.42); windowTrim(1.3, 2.3, W0, W1, false); shutter(1.55, W0, W1, 0.5, false); shutter(2.05, W0, W1, 0.5, false);
-    box(M.metal, 1.0, 0.5, 0.05, 0.1, FL + 1.95, 0.06, { c: 0x1a1a1a }); art(ART.neon('Rum Runners', '#ffd23a', brandRum), 0.94, 0.47, 0.1, FL + 1.95, 0.09, { name: 'neon_rum', emissive: [0.9, 2.6], rough: 0.3 }); lights.push({ pos: world(0.1, FL + 1.9, 0.5), color: 0xffd23a, range: 5, intensity: 26, kind: 'neon' });
-    box(M.metal, 0.22, 0.3, 0.12, 2.9, FL + 1.5, 0.08, { c: 0x8a8f92 }); cyl(M.glass, 0.07, 0.07, 0.06, 2.9, FL + 1.56, 0.15, { rx: 1.5708, c: 0xffffff }); tube(M.metal, [2.9, FL + 1.65, 0.07], [2.9, WT - 0.2, 0.07], 0.018, 0x8a8f92);     // electric meter and conduit
-    box(M.paint, 0.5, 0.5, 0.03, 0, FL + 3.9, 0.05, { rz: 0.785, c: SEA }); col({ type: 'box', x: 4.45, y: FL + 1.55, z: ZC, hx: 0.07, hy: 1.55, hz: 3.25 }); });
+  at(4.5, 0, ZC, Math.PI / 2, () => {
+    lapWall(6.5, FL, WT, [{ a: -2.3, b: -1.3, y0: W0, y1: W1 }], RIDGE);
+    windowTrim(-2.3, -1.3, W0, W1);
+    shutter(-2.55, W0, W1, 0.42);
+    shutter(-1.05, W0, W1, 0.42);
+    windowTrim(1.3, 2.3, W0, W1, false);
+    shutter(1.55, W0, W1, 0.5, false);
+    shutter(2.05, W0, W1, 0.5, false);
+    box(M.metal, 1.0, 0.5, 0.05, 0.1, FL + 1.95, 0.06, { c: 0x1a1a1a });
+    art(ART.neon('Rum Runners', '#ffd23a', brandRum), 0.94, 0.47, 0.1, FL + 1.95, 0.09, {
+      name: 'neon_rum',
+      emissive: [0.9, 2.6],
+      rough: 0.3,
+    });
+    lights.push({
+      pos: world(0.1, FL + 1.9, 0.5),
+      color: 0xffd23a,
+      range: 5,
+      intensity: 26,
+      kind: 'neon',
+    });
+    box(M.metal, 0.22, 0.3, 0.12, 2.9, FL + 1.5, 0.08, { c: 0x8a8f92 });
+    cyl(M.glass, 0.07, 0.07, 0.06, 2.9, FL + 1.56, 0.15, { rx: 1.5708, c: 0xffffff });
+    tube(M.metal, [2.9, FL + 1.65, 0.07], [2.9, WT - 0.2, 0.07], 0.018, 0x8a8f92); // electric meter and conduit
+    box(M.paint, 0.5, 0.5, 0.03, 0, FL + 3.9, 0.05, { rz: 0.785, c: SEA });
+    col({ type: 'box', x: 4.45, y: FL + 1.55, z: ZC, hx: 0.07, hy: 1.55, hz: 3.25 });
+  });
   // left wall (u = z + 4)
-  at(-4.5, 0, ZC, -Math.PI / 2, () => { lapWall(6.5, FL, WT, [{ a: 1.0, b: 2.0, y0: W0, y1: W1 }], RIDGE); windowTrim(1.0, 2.0, W0, W1); shutter(0.75, W0, W1, 0.42); shutter(2.25, W0, W1, 0.42); windowTrim(-2.4, -1.4, W0, W1, false); shutter(-2.15, W0, W1, 0.5, false); shutter(-1.65, W0, W1, 0.5, false);
+  at(-4.5, 0, ZC, -Math.PI / 2, () => {
+    lapWall(6.5, FL, WT, [{ a: 1.0, b: 2.0, y0: W0, y1: W1 }], RIDGE);
+    windowTrim(1.0, 2.0, W0, W1);
+    shutter(0.75, W0, W1, 0.42);
+    shutter(2.25, W0, W1, 0.42);
+    windowTrim(-2.4, -1.4, W0, W1, false);
+    shutter(-2.15, W0, W1, 0.5, false);
+    shutter(-1.65, W0, W1, 0.5, false);
     box(M.paint, 0.5, 0.5, 0.03, 0, FL + 3.9, 0.05, { rz: 0.785, c: SEA });
     // hose reel and spigot
-    at(2.75, FL + 0.35, 0.16, 0, () => { box(M.metal, 0.06, 0.5, 0.04, 0, 0.1, -0.1, { c: 0x3a3a3a }); for (const s of [-0.09, 0.09]) cyl(M.metal, 0.2, 0.2, 0.012, s, 0.1, 0.06, { rz: 1.5708, c: 0x35506a, seg: 16 }); for (let i = 0; i < 6; i++) tor(M.rubber, 0.13 + (i % 2) * 0.022, 0.016, -0.065 + i * 0.026, 0.1, 0.06, { ry: 1.5708, c: 0x3f8a4a }); tube(M.rubber, [0.05, 0, 0.1], [0.3, -0.9, 0.3], 0.016, 0x3f8a4a); tube(M.rubber, [0.3, -0.9, 0.3], [1.3, -0.92, 0.6], 0.016, 0x3f8a4a); cyl(M.metal, 0.02, 0.02, 0.1, -0.5, -0.2, 0, { rx: 1.5708, c: 0xb08d3a }); });
-    col({ type: 'box', x: -4.45, y: FL + 1.55, z: ZC, hx: 0.07, hy: 1.55, hz: 3.25 }); });
+    at(2.75, FL + 0.35, 0.16, 0, () => {
+      box(M.metal, 0.06, 0.5, 0.04, 0, 0.1, -0.1, { c: 0x3a3a3a });
+      for (const s of [-0.09, 0.09])
+        cyl(M.metal, 0.2, 0.2, 0.012, s, 0.1, 0.06, { rz: 1.5708, c: 0x35506a, seg: 16 });
+      for (let i = 0; i < 6; i++)
+        tor(M.rubber, 0.13 + (i % 2) * 0.022, 0.016, -0.065 + i * 0.026, 0.1, 0.06, {
+          ry: 1.5708,
+          c: 0x3f8a4a,
+        });
+      tube(M.rubber, [0.05, 0, 0.1], [0.3, -0.9, 0.3], 0.016, 0x3f8a4a);
+      tube(M.rubber, [0.3, -0.9, 0.3], [1.3, -0.92, 0.6], 0.016, 0x3f8a4a);
+      cyl(M.metal, 0.02, 0.02, 0.1, -0.5, -0.2, 0, { rx: 1.5708, c: 0xb08d3a });
+    });
+    col({ type: 'box', x: -4.45, y: FL + 1.55, z: ZC, hx: 0.07, hy: 1.55, hz: 3.25 });
+  });
   // back wall (u = -x): kitchen door, AC unit, propane, kegs
-  at(0, 0, -7.25, Math.PI, () => { lapWall(9, FL, WT, []); for (const s of [-0.56, 0.46]) box(M.paint, 0.1, 2.1, 0.06, s, FL + 1.05, 0.04, { c: CORAL }); box(M.paint, 0.92, 2.0, 0.04, -0.05, FL + 1.0, 0.035, { c: SEA }); cyl(M.metal, 0.025, 0.025, 0.05, 0.28, FL + 1.0, 0.08, { rx: 1.5708, c: 0xd8a94a });
-    for (let i = 0; i < 3; i++) box(M.wood, 1.2, 0.04, 0.3, -0.05, FL - 0.02 - i * 0.2, 0.2 + i * 0.3, { c: DECK }); box(M.rust, 0.9, 0.7, 0.4, -2.6, FL + 1.6, 0.22, { c: 0xcfd3d0 }); for (let i = 0; i < 9; i++) box(M.metal, 0.8, 0.012, 0.03, -2.6, FL + 1.32 + i * 0.07, 0.43, { c: 0x777777 });
-    for (const u of [2.2, 2.75]) { cyl(M.rust, 0.19, 0.19, 1.0, u, 0.55, 0.4, { c: 0xe8e8e2, seg: 14 }); sph(M.rust, 0.19, u, 1.05, 0.4, { c: 0xe8e8e2 }); cyl(M.metal, 0.07, 0.07, 0.12, u, 1.26, 0.4, { c: 0x555555 }); }
-    for (const [u, z, y] of [[3.6, 0.5, 0], [4.05, 0.55, 0], [3.8, 0.52, 0.6], [-3.8, 0.6, 0]]) { cyl(M.metal, 0.2, 0.2, 0.58, u, y + 0.29, z, { c: 0xb5b8ba, seg: 14 }); for (const k of [0.16, 0.42]) tor(M.metal, 0.2, 0.012, u, y + k, z, { rx: 1.5708, c: 0x9a9da0 }); }
-    col({ type: 'box', x: 0, y: FL + 1.55, z: -7.2, hx: 4.5, hy: 1.55, hz: 0.07 }); anchors.staff.push({ id: 'cook_break', pos: world(-1.2, 0, 1.3), heading: 3.6, pose: 'stand_smoke', role: 'cook' }); });
+  at(0, 0, -7.25, Math.PI, () => {
+    lapWall(9, FL, WT, []);
+    for (const s of [-0.56, 0.46]) box(M.paint, 0.1, 2.1, 0.06, s, FL + 1.05, 0.04, { c: CORAL });
+    box(M.paint, 0.92, 2.0, 0.04, -0.05, FL + 1.0, 0.035, { c: SEA });
+    cyl(M.metal, 0.025, 0.025, 0.05, 0.28, FL + 1.0, 0.08, { rx: 1.5708, c: 0xd8a94a });
+    for (let i = 0; i < 3; i++)
+      box(M.wood, 1.2, 0.04, 0.3, -0.05, FL - 0.02 - i * 0.2, 0.2 + i * 0.3, { c: DECK });
+    box(M.rust, 0.9, 0.7, 0.4, -2.6, FL + 1.6, 0.22, { c: 0xcfd3d0 });
+    for (let i = 0; i < 9; i++)
+      box(M.metal, 0.8, 0.012, 0.03, -2.6, FL + 1.32 + i * 0.07, 0.43, { c: 0x777777 });
+    for (const u of [2.2, 2.75]) {
+      cyl(M.rust, 0.19, 0.19, 1.0, u, 0.55, 0.4, { c: 0xe8e8e2, seg: 14 });
+      sph(M.rust, 0.19, u, 1.05, 0.4, { c: 0xe8e8e2 });
+      cyl(M.metal, 0.07, 0.07, 0.12, u, 1.26, 0.4, { c: 0x555555 });
+    }
+    for (const [u, z, y] of [
+      [3.6, 0.5, 0],
+      [4.05, 0.55, 0],
+      [3.8, 0.52, 0.6],
+      [-3.8, 0.6, 0],
+    ]) {
+      cyl(M.metal, 0.2, 0.2, 0.58, u, y + 0.29, z, { c: 0xb5b8ba, seg: 14 });
+      for (const k of [0.16, 0.42])
+        tor(M.metal, 0.2, 0.012, u, y + k, z, { rx: 1.5708, c: 0x9a9da0 });
+    }
+    col({ type: 'box', x: 0, y: FL + 1.55, z: -7.2, hx: 4.5, hy: 1.55, hz: 0.07 });
+    anchors.staff.push({
+      id: 'cook_break',
+      pos: world(-1.2, 0, 1.3),
+      heading: 3.6,
+      pose: 'stand_smoke',
+      role: 'cook',
+    });
+  });
 
   // ================= interior: bar room behind the serving window =================
-  box(M.paint, 8.9, 3.1, 0.1, 0, FL + 1.55, -4.3, { c: MINT }); box(M.paint, 8.9, 0.05, 3.5, 0, WT - 0.1, -2.5, { c: 0xf4f1e8 }); col({ type: 'box', x: 0, y: FL + 1.55, z: -4.3, hx: 4.45, hy: 1.55, hz: 0.06 });
-  box(M.varnish, 4.6, 0.92, 0.5, -1.9, FL + 0.46, -3.98, { c: 0x8d5f35 }); box(M.varnish, 4.7, 0.05, 0.56, -1.9, FL + 0.945, -3.96, { c: 0xb07a45 }); box(M.metal, 4.3, 1.15, 0.02, -1.9, FL + 1.75, -4.24, { c: 0xdfe8ea }); col({ type: 'box', x: -1.9, y: FL + 0.5, z: -3.98, hx: 2.3, hy: 0.5, hz: 0.27 });
-  const bottleProfile = [[0, 0], [0.03, 0], [0.031, 0.12], [0.026, 0.15], [0.013, 0.19], [0.012, 0.235], [0.014, 0.24], [0, 0.24]].map(([x, y]) => new THREE.Vector2(x, y));
-  function bottle(x, y, z, s = 1, glass = 0x7a4a1a, lab = 0xf1e6cc, wide = 1, fill = null) { const f = fill ?? (R() < 0.6 ? 0 : R() < 0.65 ? 0.08 + R() * 0.4 : 0.55 + R() * 0.4); if (f > 0.02) cyl(M.liquid, 0.0262 * s * wide, 0.0262 * s * wide, 0.118 * f * s, x, y + (0.006 + 0.059 * f) * s, z, { c: glass === 0xffffff ? 0xd9b25a : glass === 0x2f6a3a ? 0x6f8f3a : glass === 0xc8d8a0 ? 0xcfd9a8 : 0xb8741a, seg: 8 }); add(M.glass, new THREE.LatheGeometry(bottleProfile, 8), x, y, z, { s: [s * wide, s, s * wide], c: glass }); cyl(M.paint, 0.032 * s * wide, 0.032 * s * wide, 0.05 * s, x, y + 0.075 * s, z, { c: lab, seg: 8, open: true, ry: R() * 6 }); cyl(M.metal, 0.014 * s, 0.014 * s, 0.012 * s, x, y + 0.243 * s, z, { c: 0xd8a94a, seg: 6 }); }
-  const GLASS = [0x7a4a1a, 0x2f6a3a, 0xffffff, 0x9a5a1a, 0x1d4a6a, 0x3a2a1a, 0xc8d8a0], LAB = [0xf1e6cc, 0xe2664c, 0x1d5873, 0xf2b441, 0xffffff, 0x8c1c13, 0x0077b6, 0x2b1a12];
-  for (const [k, sy] of [1.28, 1.63, 1.98].entries()) { box(M.varnish, 4.3, 0.03, 0.2, -1.9, FL + sy - 0.015, -4.13, { c: 0x9a6a3c }); for (let x = -3.95; x < 0.15; x += 0.1 + R() * 0.05) { if (R() < 0.12) continue; bottle(x, FL + sy, -4.13 + (R() - 0.5) * 0.06, 1.15 + R() * 0.25, GLASS[Math.floor(R() * GLASS.length)], LAB[Math.floor(R() * LAB.length)], 1.1 + R() * 0.35, R() < 0.12 ? 0.05 : 0.2 + R() * 0.75); } if (k < 2) for (const x of [-4.0, -2.6, -1.2, 0.2]) box(M.metal, 0.02, 0.1, 0.16, x, FL + sy - 0.07, -4.15, { c: 0x333333 }); }
-  box(M.metal, 0.4, 0.3, 0.36, -3.5, FL + 1.12, -3.95, { c: 0x2a2a2a }); box(M.glow, 0.26, 0.1, 0.01, -3.5, FL + 1.2, -3.76, { c: 0x9ad8c8 }); for (let i = 0; i < 10; i++) cyl(M.glass, 0.034, 0.027, 0.13, -2.9 + (i % 5) * 0.09, FL + 1.035, -3.85 - Math.floor(i / 5) * 0.1, { c: 0xffffff, seg: 8, open: true });
+  box(M.paint, 8.9, 3.1, 0.1, 0, FL + 1.55, -4.3, { c: MINT });
+  box(M.paint, 8.9, 0.05, 3.5, 0, WT - 0.1, -2.5, { c: 0xf4f1e8 });
+  col({ type: 'box', x: 0, y: FL + 1.55, z: -4.3, hx: 4.45, hy: 1.55, hz: 0.06 });
+  box(M.varnish, 4.6, 0.92, 0.5, -1.9, FL + 0.46, -3.98, { c: 0x8d5f35 });
+  box(M.varnish, 4.7, 0.05, 0.56, -1.9, FL + 0.945, -3.96, { c: 0xb07a45 });
+  box(M.metal, 4.3, 1.15, 0.02, -1.9, FL + 1.75, -4.24, { c: 0xdfe8ea });
+  col({ type: 'box', x: -1.9, y: FL + 0.5, z: -3.98, hx: 2.3, hy: 0.5, hz: 0.27 });
+  const bottleProfile = [
+    [0, 0],
+    [0.03, 0],
+    [0.031, 0.12],
+    [0.026, 0.15],
+    [0.013, 0.19],
+    [0.012, 0.235],
+    [0.014, 0.24],
+    [0, 0.24],
+  ].map(([x, y]) => new THREE.Vector2(x, y));
+  function bottle(x, y, z, s = 1, glass = 0x7a4a1a, lab = 0xf1e6cc, wide = 1, fill = null) {
+    const f = fill ?? (R() < 0.6 ? 0 : R() < 0.65 ? 0.08 + R() * 0.4 : 0.55 + R() * 0.4);
+    if (f > 0.02)
+      cyl(
+        M.liquid,
+        0.0262 * s * wide,
+        0.0262 * s * wide,
+        0.118 * f * s,
+        x,
+        y + (0.006 + 0.059 * f) * s,
+        z,
+        {
+          c:
+            glass === 0xffffff
+              ? 0xd9b25a
+              : glass === 0x2f6a3a
+                ? 0x6f8f3a
+                : glass === 0xc8d8a0
+                  ? 0xcfd9a8
+                  : 0xb8741a,
+          seg: 8,
+        },
+      );
+    add(M.glass, new THREE.LatheGeometry(bottleProfile, 8), x, y, z, {
+      s: [s * wide, s, s * wide],
+      c: glass,
+    });
+    cyl(M.paint, 0.032 * s * wide, 0.032 * s * wide, 0.05 * s, x, y + 0.075 * s, z, {
+      c: lab,
+      seg: 8,
+      open: true,
+      ry: R() * 6,
+    });
+    cyl(M.metal, 0.014 * s, 0.014 * s, 0.012 * s, x, y + 0.243 * s, z, { c: 0xd8a94a, seg: 6 });
+  }
+  const GLASS = [0x7a4a1a, 0x2f6a3a, 0xffffff, 0x9a5a1a, 0x1d4a6a, 0x3a2a1a, 0xc8d8a0],
+    LAB = [0xf1e6cc, 0xe2664c, 0x1d5873, 0xf2b441, 0xffffff, 0x8c1c13, 0x0077b6, 0x2b1a12];
+  for (const [k, sy] of [1.28, 1.63, 1.98].entries()) {
+    box(M.varnish, 4.3, 0.03, 0.2, -1.9, FL + sy - 0.015, -4.13, { c: 0x9a6a3c });
+    for (let x = -3.95; x < 0.15; x += 0.1 + R() * 0.05) {
+      if (R() < 0.12) continue;
+      bottle(
+        x,
+        FL + sy,
+        -4.13 + (R() - 0.5) * 0.06,
+        1.15 + R() * 0.25,
+        GLASS[Math.floor(R() * GLASS.length)],
+        LAB[Math.floor(R() * LAB.length)],
+        1.1 + R() * 0.35,
+        R() < 0.12 ? 0.05 : 0.2 + R() * 0.75,
+      );
+    }
+    if (k < 2)
+      for (const x of [-4.0, -2.6, -1.2, 0.2])
+        box(M.metal, 0.02, 0.1, 0.16, x, FL + sy - 0.07, -4.15, { c: 0x333333 });
+  }
+  box(M.metal, 0.4, 0.3, 0.36, -3.5, FL + 1.12, -3.95, { c: 0x2a2a2a });
+  box(M.glow, 0.26, 0.1, 0.01, -3.5, FL + 1.2, -3.76, { c: 0x9ad8c8 });
+  for (let i = 0; i < 10; i++)
+    cyl(
+      M.glass,
+      0.034,
+      0.027,
+      0.13,
+      -2.9 + (i % 5) * 0.09,
+      FL + 1.035,
+      -3.85 - Math.floor(i / 5) * 0.1,
+      { c: 0xffffff, seg: 8, open: true },
+    );
   // glass-door beer cooler
-  at(1.45, FL, -3.92, 0, () => { box(M.metal, 1.15, 1.95, 0.62, 0, 0.975, -0.02, { c: 0x2a2d30 }); box(M.glow, 1.02, 1.6, 0.02, 0, 0.95, 0.24, { c: 0xdff2ff }); box(M.pane, 1.02, 1.6, 0.01, 0, 0.95, 0.31, {}); box(M.metal, 0.03, 1.6, 0.03, 0, 0.95, 0.32, { c: 0x999999 }); const CAN = [0x1d5873, 0xe2664c, 0xf2b441, 0xdddddd, 0x0077b6]; for (let s = 0; s < 4; s++) { box(M.metal, 1.0, 0.012, 0.3, 0, 0.3 + s * 0.38, 0.14, { c: 0xbbbbbb }); for (let i = 0; i < 12; i++) { if (i === 5 || i === 6) continue; const c = CAN[(s + Math.floor(i / 3)) % CAN.length]; if (s % 2) bottle(-0.46 + i * 0.083, 0.306 + s * 0.38, 0.2, 1, i % 2 ? 0x7a4a1a : 0x2f6a3a, c, 1, 0.93); else cyl(M.metal, 0.033, 0.033, 0.122, -0.46 + i * 0.083, 0.367 + s * 0.38, 0.2, { c, seg: 8 }); } } art(ART.label(brandBeer, 'ICE COLD', P.navy, P.cream), 1.0, 0.22, 0, 1.83, 0.3, { name: 'cooler_header', emissive: [0.5, 1.6] }); });
-  col({ type: 'box', x: 1.45, y: FL + 1, z: -3.94, hx: 0.58, hy: 1, hz: 0.33 }); lights.push({ pos: [1.45, FL + 1.2, -3.2], color: 0xdff2ff, range: 4, intensity: 16, kind: 'cooler' });
-  for (const x of [-3.3, -2.1, -0.9]) { tube(M.rubber, [x, WT - 0.12, -1.25], [x, FL + 2.5, -1.25], 0.006, 0x222222, 4); cyl(M.metal, 0.03, 0.15, 0.14, x, FL + 2.45, -1.25, { c: 0x1d5873, open: true, seg: 14 }); sph(M.bulb, 0.04, x, FL + 2.4, -1.25); lights.push({ pos: [x, FL + 2.3, -1.25], color: 0xffc98a, range: 6, intensity: 30, kind: 'pendant' }); }
-  for (const [x, z] of [[2.9, -1.6], [3.5, -2.6]]) { cyl(M.varnish, 0.3, 0.3, 0.04, x, FL + 1.05, z, { c: 0x9a6a3c, seg: 16 }); cyl(M.metal, 0.03, 0.03, 1.03, x, FL + 0.52, z, { c: 0x333333 }); cyl(M.metal, 0.2, 0.22, 0.03, x, FL + 0.015, z, { c: 0x333333 }); bottle(x + 0.08, FL + 1.07, z + 0.05, 1); }
-  anchors.staff.push({ id: 'bartender', pos: [-2.0, FL, -1.75], heading: 0, pose: 'bartend_wipe_counter', role: 'bartender' }, { id: 'barback', pos: [-0.6, FL, -3.3], heading: Math.PI, pose: 'restock_shelf', role: 'barback' });
-  anchors.patrons.push({ id: 'inside_hightop', pos: [3.0, FL, -2.1], heading: 0.4, pose: 'stand_drink' });
-  interact.push({ id: 'order_drink', pos: [-2.1, FL + 1.1, 0.3], radius: 1.6, prompt: 'Order a drink', kind: 'bar' }, { id: 'read_menu', pos: [0.42, FL + 1.5, 0.2], radius: 1.4, prompt: 'Read the menu', kind: 'menu' });
+  at(1.45, FL, -3.92, 0, () => {
+    box(M.metal, 1.15, 1.95, 0.62, 0, 0.975, -0.02, { c: 0x2a2d30 });
+    box(M.glow, 1.02, 1.6, 0.02, 0, 0.95, 0.24, { c: 0xdff2ff });
+    box(M.pane, 1.02, 1.6, 0.01, 0, 0.95, 0.31, {});
+    box(M.metal, 0.03, 1.6, 0.03, 0, 0.95, 0.32, { c: 0x999999 });
+    const CAN = [0x1d5873, 0xe2664c, 0xf2b441, 0xdddddd, 0x0077b6];
+    for (let s = 0; s < 4; s++) {
+      box(M.metal, 1.0, 0.012, 0.3, 0, 0.3 + s * 0.38, 0.14, { c: 0xbbbbbb });
+      for (let i = 0; i < 12; i++) {
+        if (i === 5 || i === 6) continue;
+        const c = CAN[(s + Math.floor(i / 3)) % CAN.length];
+        if (s % 2)
+          bottle(
+            -0.46 + i * 0.083,
+            0.306 + s * 0.38,
+            0.2,
+            1,
+            i % 2 ? 0x7a4a1a : 0x2f6a3a,
+            c,
+            1,
+            0.93,
+          );
+        else
+          cyl(M.metal, 0.033, 0.033, 0.122, -0.46 + i * 0.083, 0.367 + s * 0.38, 0.2, {
+            c,
+            seg: 8,
+          });
+      }
+    }
+    art(ART.label(brandBeer, 'ICE COLD', P.navy, P.cream), 1.0, 0.22, 0, 1.83, 0.3, {
+      name: 'cooler_header',
+      emissive: [0.5, 1.6],
+    });
+  });
+  col({ type: 'box', x: 1.45, y: FL + 1, z: -3.94, hx: 0.58, hy: 1, hz: 0.33 });
+  lights.push({
+    pos: [1.45, FL + 1.2, -3.2],
+    color: 0xdff2ff,
+    range: 4,
+    intensity: 16,
+    kind: 'cooler',
+  });
+  for (const x of [-3.3, -2.1, -0.9]) {
+    tube(M.rubber, [x, WT - 0.12, -1.25], [x, FL + 2.5, -1.25], 0.006, 0x222222, 4);
+    cyl(M.metal, 0.03, 0.15, 0.14, x, FL + 2.45, -1.25, { c: 0x1d5873, open: true, seg: 14 });
+    sph(M.bulb, 0.04, x, FL + 2.4, -1.25);
+    lights.push({
+      pos: [x, FL + 2.3, -1.25],
+      color: 0xffc98a,
+      range: 6,
+      intensity: 30,
+      kind: 'pendant',
+    });
+  }
+  for (const [x, z] of [
+    [2.9, -1.6],
+    [3.5, -2.6],
+  ]) {
+    cyl(M.varnish, 0.3, 0.3, 0.04, x, FL + 1.05, z, { c: 0x9a6a3c, seg: 16 });
+    cyl(M.metal, 0.03, 0.03, 1.03, x, FL + 0.52, z, { c: 0x333333 });
+    cyl(M.metal, 0.2, 0.22, 0.03, x, FL + 0.015, z, { c: 0x333333 });
+    bottle(x + 0.08, FL + 1.07, z + 0.05, 1);
+  }
+  anchors.staff.push(
+    {
+      id: 'bartender',
+      pos: [-2.0, FL, -1.75],
+      heading: 0,
+      pose: 'bartend_wipe_counter',
+      role: 'bartender',
+    },
+    {
+      id: 'barback',
+      pos: [-0.6, FL, -3.3],
+      heading: Math.PI,
+      pose: 'restock_shelf',
+      role: 'barback',
+    },
+  );
+  anchors.patrons.push({
+    id: 'inside_hightop',
+    pos: [3.0, FL, -2.1],
+    heading: 0.4,
+    pose: 'stand_drink',
+  });
+  interact.push(
+    {
+      id: 'order_drink',
+      pos: [-2.1, FL + 1.1, 0.3],
+      radius: 1.6,
+      prompt: 'Order a drink',
+      kind: 'bar',
+    },
+    {
+      id: 'read_menu',
+      pos: [0.42, FL + 1.5, 0.2],
+      radius: 1.4,
+      prompt: 'Read the menu',
+      kind: 'menu',
+    },
+  );
 
   // ================= roofs: main gable, porch hip, seams, cupola =================
-  const EZ = 3.72, EY = RIDGE - PITCH * EZ + 0.07, RX = 4.98;
-  quad(M.tin, [-RX, RIDGE + 0.07, ZC], [RX, RIDGE + 0.07, ZC], [RX, EY, ZC + EZ], [-RX, EY, ZC + EZ], { tu: 3.2, tv: 4 }); quad(M.tin, [RX, RIDGE + 0.07, ZC], [-RX, RIDGE + 0.07, ZC], [-RX, EY, ZC - EZ], [RX, EY, ZC - EZ], { tu: 3.2, tv: 4 });
-  for (let x = -RX; x <= RX + 0.01; x += 0.4) for (const s of [-1, 1]) tube(M.metal, [x, RIDGE + 0.09, ZC], [x, EY + 0.02, ZC + s * EZ], 0.02, jit(0xa9adb0, 0.08), 4);
+  const EZ = 3.72,
+    EY = RIDGE - PITCH * EZ + 0.07,
+    RX = 4.98;
+  quad(
+    M.tin,
+    [-RX, RIDGE + 0.07, ZC],
+    [RX, RIDGE + 0.07, ZC],
+    [RX, EY, ZC + EZ],
+    [-RX, EY, ZC + EZ],
+    { tu: 3.2, tv: 4 },
+  );
+  quad(
+    M.tin,
+    [RX, RIDGE + 0.07, ZC],
+    [-RX, RIDGE + 0.07, ZC],
+    [-RX, EY, ZC - EZ],
+    [RX, EY, ZC - EZ],
+    { tu: 3.2, tv: 4 },
+  );
+  for (let x = -RX; x <= RX + 0.01; x += 0.4)
+    for (const s of [-1, 1])
+      tube(
+        M.metal,
+        [x, RIDGE + 0.09, ZC],
+        [x, EY + 0.02, ZC + s * EZ],
+        0.02,
+        jit(0xa9adb0, 0.08),
+        4,
+      );
   tube(M.metal, [-RX - 0.03, RIDGE + 0.1, ZC], [RX + 0.03, RIDGE + 0.1, ZC], 0.07, 0x9ea2a5, 8);
-  for (const s of [-1, 1]) { for (const e of [-1, 1]) { box(M.paint, 0.04, 0.16, Math.hypot(EZ, PITCH * EZ), s * (RX - 0.02), (RIDGE + EY) / 2 - 0.06, ZC + e * EZ / 2, { rx: e * Math.atan(PITCH), c: CORAL }); } box(M.paint, 2 * RX, 0.16, 0.04, 0, EY - 0.09, ZC + s * EZ, { c: CORAL }); }
+  for (const s of [-1, 1]) {
+    for (const e of [-1, 1]) {
+      box(
+        M.paint,
+        0.04,
+        0.16,
+        Math.hypot(EZ, PITCH * EZ),
+        s * (RX - 0.02),
+        (RIDGE + EY) / 2 - 0.06,
+        ZC + (e * EZ) / 2,
+        { rx: e * Math.atan(PITCH), c: CORAL },
+      );
+    }
+    box(M.paint, 2 * RX, 0.16, 0.04, 0, EY - 0.09, ZC + s * EZ, { c: CORAL });
+  }
   // porch roof: front run and side run meeting on a hip; haint-blue ceiling and exposed rafters beneath
-  const FA = [-4.95, PH, -0.75], FB = [4.5, PH, -0.75], FC = [7.9, PL, 2.65], FD = [-4.95, PL, 2.65], SB = [4.5, PH, -7.7], SC = [7.9, PL, -7.7];
-  quad(M.tin, FA, FB, FC, FD, { tu: 3.2, tv: 4 }); quad(M.tin, FB, SB, SC, FC, { tu: 3.2, tv: 4 });
-  const dn = (p, d = 0.1) => [p[0], p[1] - d, p[2]]; quad(M.paint, dn(FB), dn(FA), dn(FD), dn(FC), { c: HAINT }); quad(M.paint, dn(SB), dn(FB), dn(FC), dn(SC), { c: HAINT });
-  for (let x = -4.95; x <= 7.9; x += 0.4) { const zt = x > 4.5 ? -0.75 + (x - 4.5) : -0.75; tube(M.metal, [x, porchY(zt + 0.75) + 0.02, zt], [x, PL + 0.02, 2.65], 0.02, jit(0xa9adb0, 0.08), 4); }
-  for (let z = -7.7; z <= 2.65; z += 0.4) { const xt = z > -0.75 ? 4.5 + (z + 0.75) : 4.5; tube(M.metal, [xt, porchY(xt - 4.5) + 0.02, z], [7.9, PL + 0.02, z], 0.02, jit(0xa9adb0, 0.08), 4); }
+  const FA = [-4.95, PH, -0.75],
+    FB = [4.5, PH, -0.75],
+    FC = [7.9, PL, 2.65],
+    FD = [-4.95, PL, 2.65],
+    SB = [4.5, PH, -7.7],
+    SC = [7.9, PL, -7.7];
+  quad(M.tin, FA, FB, FC, FD, { tu: 3.2, tv: 4 });
+  quad(M.tin, FB, SB, SC, FC, { tu: 3.2, tv: 4 });
+  const dn = (p, d = 0.1) => [p[0], p[1] - d, p[2]];
+  quad(M.paint, dn(FB), dn(FA), dn(FD), dn(FC), { c: HAINT });
+  quad(M.paint, dn(SB), dn(FB), dn(FC), dn(SC), { c: HAINT });
+  for (let x = -4.95; x <= 7.9; x += 0.4) {
+    const zt = x > 4.5 ? -0.75 + (x - 4.5) : -0.75;
+    tube(
+      M.metal,
+      [x, porchY(zt + 0.75) + 0.02, zt],
+      [x, PL + 0.02, 2.65],
+      0.02,
+      jit(0xa9adb0, 0.08),
+      4,
+    );
+  }
+  for (let z = -7.7; z <= 2.65; z += 0.4) {
+    const xt = z > -0.75 ? 4.5 + (z + 0.75) : 4.5;
+    tube(
+      M.metal,
+      [xt, porchY(xt - 4.5) + 0.02, z],
+      [7.9, PL + 0.02, z],
+      0.02,
+      jit(0xa9adb0, 0.08),
+      4,
+    );
+  }
   tube(M.metal, [4.5, PH + 0.03, -0.75], [7.9, PL + 0.03, 2.65], 0.05, 0x9ea2a5, 8);
-  for (let x = -4.6; x <= 4.4; x += 0.75) tube(M.paint, [x, PH - 0.16, -0.7], [x, PL - 0.14, 2.6], 0.045, 0xf4f1e8, 4); for (let z = -7.4; z <= -0.9; z += 0.75) tube(M.paint, [4.55, PH - 0.16, z], [7.85, PL - 0.14, z], 0.045, 0xf4f1e8, 4);
-  box(M.paint, 12.9, 0.14, 0.035, 1.475, PL - 0.06, 2.66, { c: CORAL }); box(M.paint, 0.035, 0.14, 10.4, 7.91, PL - 0.06, -2.52, { c: CORAL });
+  for (let x = -4.6; x <= 4.4; x += 0.75)
+    tube(M.paint, [x, PH - 0.16, -0.7], [x, PL - 0.14, 2.6], 0.045, 0xf4f1e8, 4);
+  for (let z = -7.4; z <= -0.9; z += 0.75)
+    tube(M.paint, [4.55, PH - 0.16, z], [7.85, PL - 0.14, z], 0.045, 0xf4f1e8, 4);
+  box(M.paint, 12.9, 0.14, 0.035, 1.475, PL - 0.06, 2.66, { c: CORAL });
+  box(M.paint, 0.035, 0.14, 10.4, 7.91, PL - 0.06, -2.52, { c: CORAL });
   // cupola with louvers, pyramid tin cap and a heron weathervane
-  at(0, RIDGE, ZC, 0, () => { box(M.paint, 1.05, 0.95, 1.05, 0, 0.3, 0, { c: CREAM }); for (let k = 0; k < 4; k++) at(0, 0, 0, k * 1.5708, () => { for (let i = 0; i < 5; i++) box(M.paint, 0.7, 0.015, 0.09, 0, 0.3 + i * 0.09, 0.54, { rx: 0.7, c: SEA }); box(M.paint, 0.86, 0.06, 0.03, 0, 0.75, 0.535, { c: CORAL }); box(M.paint, 0.86, 0.06, 0.03, 0, 0.23, 0.535, { c: CORAL }); for (const s of [-1, 1]) box(M.paint, 0.08, 0.6, 0.03, s * 0.41, 0.49, 0.535, { c: CORAL }); });
-    add(M.tin, scaleUV(new THREE.CylinderGeometry(0, 0.95, 0.6, 4, 1), 1, 0.3), 0, 1.07, 0, { ry: 0.785 }); sph(M.metal, 0.06, 0, 1.4, 0, { c: 0xb08d3a }); tube(M.metal, [0, 1.35, 0], [0, 2.0, 0], 0.012, 0x333333); tube(M.metal, [-0.35, 1.75, 0], [0.35, 1.75, 0], 0.008, 0x333333); box(M.metal, 0.3, 0.2, 0.008, 0.02, 1.9, 0, { rz: 0.2, c: 0x2a2a2a }); box(M.metal, 0.12, 0.06, 0.008, 0.38, 1.75, 0, { rz: 0.785, c: 0x2a2a2a }); anchors.perches.push({ pos: world(0, 1.42, 0.4), kind: 'gull' }); });
-  anchors.perches.push({ pos: [-4.6, RIDGE + 0.17, ZC], kind: 'gull' }, { pos: [4.7, RIDGE + 0.17, ZC], kind: 'pelican' });
+  at(0, RIDGE, ZC, 0, () => {
+    box(M.paint, 1.05, 0.95, 1.05, 0, 0.3, 0, { c: CREAM });
+    for (let k = 0; k < 4; k++)
+      at(0, 0, 0, k * 1.5708, () => {
+        for (let i = 0; i < 5; i++)
+          box(M.paint, 0.7, 0.015, 0.09, 0, 0.3 + i * 0.09, 0.54, { rx: 0.7, c: SEA });
+        box(M.paint, 0.86, 0.06, 0.03, 0, 0.75, 0.535, { c: CORAL });
+        box(M.paint, 0.86, 0.06, 0.03, 0, 0.23, 0.535, { c: CORAL });
+        for (const s of [-1, 1]) box(M.paint, 0.08, 0.6, 0.03, s * 0.41, 0.49, 0.535, { c: CORAL });
+      });
+    add(M.tin, scaleUV(new THREE.CylinderGeometry(0, 0.95, 0.6, 4, 1), 1, 0.3), 0, 1.07, 0, {
+      ry: 0.785,
+    });
+    sph(M.metal, 0.06, 0, 1.4, 0, { c: 0xb08d3a });
+    tube(M.metal, [0, 1.35, 0], [0, 2.0, 0], 0.012, 0x333333);
+    tube(M.metal, [-0.35, 1.75, 0], [0.35, 1.75, 0], 0.008, 0x333333);
+    box(M.metal, 0.3, 0.2, 0.008, 0.02, 1.9, 0, { rz: 0.2, c: 0x2a2a2a });
+    box(M.metal, 0.12, 0.06, 0.008, 0.38, 1.75, 0, { rz: 0.785, c: 0x2a2a2a });
+    anchors.perches.push({ pos: world(0, 1.42, 0.4), kind: 'gull' });
+  });
+  anchors.perches.push(
+    { pos: [-4.6, RIDGE + 0.17, ZC], kind: 'gull' },
+    { pos: [4.7, RIDGE + 0.17, ZC], kind: 'pelican' },
+  );
 
   // ================= porch: posts, brackets, header beam, sawn-baluster rail, steps, fans =================
-  const frontPosts = [-4.4, -2.0, 0.35, 2.65, 5.0, 7.4], sidePosts = [-0.2, -2.55, -4.9, -7.15];
-  box(M.paint, 12.0, 0.18, 0.14, 1.5, PL - 0.2, 2.15, { c: 0xf4f1e8 }); box(M.paint, 0.14, 0.18, 9.4, 7.4, PL - 0.2, -2.5, { c: 0xf4f1e8 });
-  function post(x, z, ry) { at(x, FL, z, ry, () => { const h = PL - 0.29 - FL; box(M.paint, 0.13, h, 0.13, 0, h / 2, 0, { c: 0xf4f1e8 }); box(M.paint, 0.2, 0.26, 0.2, 0, 0.13, 0, { c: CORAL }); box(M.paint, 0.23, 0.04, 0.23, 0, 0.28, 0, { c: 0xf4f1e8 }); box(M.paint, 0.2, 0.07, 0.2, 0, h - 0.035, 0, { c: CORAL }); for (const s of [-1, 1]) { tor(M.paint, 0.42, 0.028, s * 0.48, h - 0.46, 0, { rz: s > 0 ? 1.5708 : 0, arc: 1.5708, ts: 8, rs: 4, c: CORAL }); tor(M.paint, 0.22, 0.02, s * 0.3, h - 0.28, 0, { rz: s > 0 ? 1.5708 : 0, arc: 1.5708, ts: 6, rs: 4, c: SEA }); sph(M.paint, 0.04, s * 0.07, h - 0.47, 0, { c: CORAL }); } }); col({ type: 'cyl', x, y: FL + 1.1, z, hh: 1.1, r: 0.09 }); }
-  frontPosts.forEach((x) => post(x, 2.15, 0)); sidePosts.forEach((z) => post(7.4, z, Math.PI / 2)); post(-4.4, -0.6, Math.PI / 2);
-  function rail(x0, z0, x1, z1) { const l = Math.hypot(x1 - x0, z1 - z0), ry = Math.atan2(-(z1 - z0), x1 - x0); at((x0 + x1) / 2, FL, (z0 + z1) / 2, ry, () => { box(M.paint, l, 0.05, 0.11, 0, 0.96, 0, { c: CORAL }); box(M.paint, l, 0.07, 0.05, 0, 0.9, 0, { c: 0xf4f1e8 }); box(M.paint, l, 0.07, 0.05, 0, 0.13, 0, { c: 0xf4f1e8 }); for (const z of [-0.012, 0.012]) add(M.balus, scaleUV(new THREE.PlaneGeometry(l, 0.72), Math.round(l / 0.52), 1, 0, 0), 0, 0.52, z, { c: 0xf6f2e6 }); }); col({ type: 'box', x: (x0 + x1) / 2, y: FL + 0.5, z: (z0 + z1) / 2, hx: l / 2, hy: 0.5, hz: 0.05, ry }); }
-  for (let i = 0; i < frontPosts.length - 1; i++) if (i !== 2) rail(frontPosts[i] + 0.09, 2.15, frontPosts[i + 1] - 0.09, 2.15);
-  for (let i = 0; i < sidePosts.length - 1; i++) rail(7.4, sidePosts[i] - 0.09, 7.4, sidePosts[i + 1] + 0.09); rail(7.4, 2.06, 7.4, -0.11); rail(7.4, -7.2, 4.6, -7.2); rail(-4.4, 2.06, -4.4, -0.5);
-  for (let i = 0; i < 3; i++) { const y = FL - (i + 1) * 0.15, z = 2.25 + 0.16 + i * 0.3; for (const dz of [-0.075, 0.075]) box(M.wood, 2.3, 0.04, 0.145, 1.5, y - 0.02, z + dz, { c: jit(DECK, 0.1) }); col({ type: 'box', x: 1.5, y: y / 2, z, hx: 1.15, hy: y / 2, hz: 0.15 }); }
-  for (const s of [0.36, 2.64]) { tube(M.wood, [s, FL - 0.1, 2.25], [s, 0.0, 3.2], 0.075, 0x9a8c78, 4); tube(M.paint, [s, FL + 0.95, 2.2], [s, 1.0, 3.2], 0.035, CORAL, 6); tube(M.paint, [s, 0, 3.2], [s, 1.05, 3.2], 0.05, 0xf4f1e8, 4); }
-  function fan(x, y, z) { tube(M.metal, [x, y + 0.35, z], [x, y, z], 0.014, 0x3a3a3a); cyl(M.metal, 0.1, 0.12, 0.14, x, y, z, { c: 0x3a3a3a }); sph(M.bulb, 0.06, x, y - 0.12, z); const rotor = capture(() => { for (let k = 0; k < 4; k++) at(0, 0, 0, k * 1.5708, () => { box(M.varnish, 0.55, 0.012, 0.14, 0.42, 0, 0, { rx: 0.2, c: 0x8d5f35 }); box(M.metal, 0.16, 0.01, 0.04, 0.14, 0, 0, { c: 0xb08d3a }); }); }); rotor.position.set(x, y - 0.03, z); group.add(rotor); spinners.push([rotor, 3 + R() * 2]); lights.push({ pos: [x, y - 0.25, z], color: 0xffc98a, range: 7, intensity: 34, kind: 'fan' }); }
-  fan(-2.1, 2.72, 0.85); fan(3.9, 2.72, 0.85); fan(6.0, 2.72, -3.6);
+  const frontPosts = [-4.4, -2.0, 0.35, 2.65, 5.0, 7.4],
+    sidePosts = [-0.2, -2.55, -4.9, -7.15];
+  box(M.paint, 12.0, 0.18, 0.14, 1.5, PL - 0.2, 2.15, { c: 0xf4f1e8 });
+  box(M.paint, 0.14, 0.18, 9.4, 7.4, PL - 0.2, -2.5, { c: 0xf4f1e8 });
+  function post(x, z, ry) {
+    at(x, FL, z, ry, () => {
+      const h = PL - 0.29 - FL;
+      box(M.paint, 0.13, h, 0.13, 0, h / 2, 0, { c: 0xf4f1e8 });
+      box(M.paint, 0.2, 0.26, 0.2, 0, 0.13, 0, { c: CORAL });
+      box(M.paint, 0.23, 0.04, 0.23, 0, 0.28, 0, { c: 0xf4f1e8 });
+      box(M.paint, 0.2, 0.07, 0.2, 0, h - 0.035, 0, { c: CORAL });
+      for (const s of [-1, 1]) {
+        tor(M.paint, 0.42, 0.028, s * 0.48, h - 0.46, 0, {
+          rz: s > 0 ? 1.5708 : 0,
+          arc: 1.5708,
+          ts: 8,
+          rs: 4,
+          c: CORAL,
+        });
+        tor(M.paint, 0.22, 0.02, s * 0.3, h - 0.28, 0, {
+          rz: s > 0 ? 1.5708 : 0,
+          arc: 1.5708,
+          ts: 6,
+          rs: 4,
+          c: SEA,
+        });
+        sph(M.paint, 0.04, s * 0.07, h - 0.47, 0, { c: CORAL });
+      }
+    });
+    col({ type: 'cyl', x, y: FL + 1.1, z, hh: 1.1, r: 0.09 });
+  }
+  frontPosts.forEach((x) => post(x, 2.15, 0));
+  sidePosts.forEach((z) => post(7.4, z, Math.PI / 2));
+  post(-4.4, -0.6, Math.PI / 2);
+  function rail(x0, z0, x1, z1) {
+    const l = Math.hypot(x1 - x0, z1 - z0),
+      ry = Math.atan2(-(z1 - z0), x1 - x0);
+    at((x0 + x1) / 2, FL, (z0 + z1) / 2, ry, () => {
+      box(M.paint, l, 0.05, 0.11, 0, 0.96, 0, { c: CORAL });
+      box(M.paint, l, 0.07, 0.05, 0, 0.9, 0, { c: 0xf4f1e8 });
+      box(M.paint, l, 0.07, 0.05, 0, 0.13, 0, { c: 0xf4f1e8 });
+      for (const z of [-0.012, 0.012])
+        add(
+          M.balus,
+          scaleUV(new THREE.PlaneGeometry(l, 0.72), Math.round(l / 0.52), 1, 0, 0),
+          0,
+          0.52,
+          z,
+          { c: 0xf6f2e6 },
+        );
+    });
+    col({
+      type: 'box',
+      x: (x0 + x1) / 2,
+      y: FL + 0.5,
+      z: (z0 + z1) / 2,
+      hx: l / 2,
+      hy: 0.5,
+      hz: 0.05,
+      ry,
+    });
+  }
+  for (let i = 0; i < frontPosts.length - 1; i++)
+    if (i !== 2) rail(frontPosts[i] + 0.09, 2.15, frontPosts[i + 1] - 0.09, 2.15);
+  for (let i = 0; i < sidePosts.length - 1; i++)
+    rail(7.4, sidePosts[i] - 0.09, 7.4, sidePosts[i + 1] + 0.09);
+  rail(7.4, 2.06, 7.4, -0.11);
+  rail(7.4, -7.2, 4.6, -7.2);
+  rail(-4.4, 2.06, -4.4, -0.5);
+  for (let i = 0; i < 3; i++) {
+    const y = FL - (i + 1) * 0.15,
+      z = 2.25 + 0.16 + i * 0.3;
+    for (const dz of [-0.075, 0.075])
+      box(M.wood, 2.3, 0.04, 0.145, 1.5, y - 0.02, z + dz, { c: jit(DECK, 0.1) });
+    col({ type: 'box', x: 1.5, y: y / 2, z, hx: 1.15, hy: y / 2, hz: 0.15 });
+  }
+  for (const s of [0.36, 2.64]) {
+    tube(M.wood, [s, FL - 0.1, 2.25], [s, 0.0, 3.2], 0.075, 0x9a8c78, 4);
+    tube(M.paint, [s, FL + 0.95, 2.2], [s, 1.0, 3.2], 0.035, CORAL, 6);
+    tube(M.paint, [s, 0, 3.2], [s, 1.05, 3.2], 0.05, 0xf4f1e8, 4);
+  }
+  function fan(x, y, z) {
+    tube(M.metal, [x, y + 0.35, z], [x, y, z], 0.014, 0x3a3a3a);
+    cyl(M.metal, 0.1, 0.12, 0.14, x, y, z, { c: 0x3a3a3a });
+    sph(M.bulb, 0.06, x, y - 0.12, z);
+    const rotor = capture(() => {
+      for (let k = 0; k < 4; k++)
+        at(0, 0, 0, k * 1.5708, () => {
+          box(M.varnish, 0.55, 0.012, 0.14, 0.42, 0, 0, { rx: 0.2, c: 0x8d5f35 });
+          box(M.metal, 0.16, 0.01, 0.04, 0.14, 0, 0, { c: 0xb08d3a });
+        });
+    });
+    rotor.position.set(x, y - 0.03, z);
+    group.add(rotor);
+    spinners.push([rotor, 3 + R() * 2]);
+    lights.push({ pos: [x, y - 0.25, z], color: 0xffc98a, range: 7, intensity: 34, kind: 'fan' });
+  }
+  fan(-2.1, 2.72, 0.85);
+  fan(3.9, 2.72, 0.85);
+  fan(6.0, 2.72, -3.6);
   // lobster buoys hung from the header, cooler and stage gear on the porch
-  for (let i = 0; i < 8; i++) { const x = 2.95 + i * 0.26, y = PL - 0.5 - (i % 3) * 0.09, c1 = [0xe2664c, 0xf2b441, 0x1d5873, 0xffffff, 0x3f8a4a][i % 5], c2 = [0xffffff, 0x1d5873, 0xf2b441, 0xe2664c][i % 4]; tube(M.rubber, [x, PL - 0.28, 2.22], [x, y + 0.14, 2.22], 0.005, 0xcbbf9f, 4); cyl(M.paint, 0.06, 0.07, 0.1, x, y + 0.08, 2.22, { c: c1, seg: 10 }); cyl(M.paint, 0.07, 0.07, 0.07, x, y, 2.22, { c: c2, seg: 10 }); cyl(M.paint, 0.07, 0.035, 0.12, x, y - 0.09, 2.22, { c: c1, seg: 10 }); cyl(M.wood, 0.012, 0.012, 0.16, x, y - 0.2, 2.22, { c: 0x9a8c78, seg: 5 }); }
-  at(5.9, FL, 0.2, 0, () => { art(ART.rug(), 2.0, 1.4, 0, 0.012, 0.4, { rx: -Math.PI / 2, name: 'rug', rough: 1 }); box(M.rubber, 0.55, 0.5, 0.28, -0.6, 0.25, -0.2, { c: 0x2a2a2a }); box(M.plastic, 0.5, 0.36, 0.01, -0.6, 0.27, -0.055, { c: 0xb8a070 }); box(M.metal, 0.5, 0.05, 0.02, -0.6, 0.47, -0.05, { c: 0xcccccc }); cyl(M.metal, 0.14, 0.16, 0.02, 0.35, 0.01, 0.75, { c: 0x222222 }); tube(M.metal, [0.35, 0, 0.75], [0.35, 1.45, 0.75], 0.011, 0x888888); tube(M.metal, [0.35, 1.45, 0.75], [0.3, 1.52, 0.9], 0.016, 0x222222); sph(M.metal, 0.028, 0.29, 1.535, 0.93, { c: 0x999999 }); cyl(M.varnish, 0.16, 0.16, 0.04, 0.2, 0.7, 0.1, { c: 0x8d5f35 }); for (let k = 0; k < 3; k++) { const a = k * 2.094; tube(M.varnish, [0.2 + Math.cos(a) * 0.1, 0.68, 0.1 + Math.sin(a) * 0.1], [0.2 + Math.cos(a) * 0.2, 0, 0.1 + Math.sin(a) * 0.2], 0.016, 0x8d5f35); } box(M.rubber, 0.4, 0.26, 0.32, 0.85, 0.13, 0.2, { rx: -0.5, c: 0x1f1f1f }); anchors.staff.push({ id: 'musician', pos: world(0.2, 0.72, 0.1), heading: 0, pose: 'sit_stool_guitar', role: 'musician', seat: true }); });
-  at(-4.0, FL, 1.5, 0.2, () => { box(M.plastic, 0.7, 0.36, 0.4, 0, 0.18, 0, { c: 0xf4f4f0 }); box(M.plastic, 0.72, 0.07, 0.42, 0, 0.395, 0, { c: 0x1d5873 }); tube(M.plastic, [-0.36, 0.3, 0], [-0.36, 0.3, 0.001], 0.02, 0xffffff); });
-  [[-3.0, 1.95, 0], [-1.0, 1.95, 0], [4.0, 1.95, 0.1], [7.15, -1.4, 1.5708], [7.15, -3.8, 1.5708]].forEach(([x, z, h], i) => anchors.patrons.push({ id: 'rail' + i, pos: [x, FL, z], heading: h, pose: i % 2 ? 'lean_rail_drink' : 'lean_rail_elbows' }));
-  anchors.staff.push({ id: 'server', pos: [1.6, FL, 1.2], heading: 0, pose: 'carry_tray', role: 'server', route: [[1.6, 1.2], [1.5, 4.5], [-3, 7], [1.5, 4.5]] });
+  for (let i = 0; i < 8; i++) {
+    const x = 2.95 + i * 0.26,
+      y = PL - 0.5 - (i % 3) * 0.09,
+      c1 = [0xe2664c, 0xf2b441, 0x1d5873, 0xffffff, 0x3f8a4a][i % 5],
+      c2 = [0xffffff, 0x1d5873, 0xf2b441, 0xe2664c][i % 4];
+    tube(M.rubber, [x, PL - 0.28, 2.22], [x, y + 0.14, 2.22], 0.005, 0xcbbf9f, 4);
+    cyl(M.paint, 0.06, 0.07, 0.1, x, y + 0.08, 2.22, { c: c1, seg: 10 });
+    cyl(M.paint, 0.07, 0.07, 0.07, x, y, 2.22, { c: c2, seg: 10 });
+    cyl(M.paint, 0.07, 0.035, 0.12, x, y - 0.09, 2.22, { c: c1, seg: 10 });
+    cyl(M.wood, 0.012, 0.012, 0.16, x, y - 0.2, 2.22, { c: 0x9a8c78, seg: 5 });
+  }
+  at(5.9, FL, 0.2, 0, () => {
+    art(ART.rug(), 2.0, 1.4, 0, 0.012, 0.4, { rx: -Math.PI / 2, name: 'rug', rough: 1 });
+    box(M.rubber, 0.55, 0.5, 0.28, -0.6, 0.25, -0.2, { c: 0x2a2a2a });
+    box(M.plastic, 0.5, 0.36, 0.01, -0.6, 0.27, -0.055, { c: 0xb8a070 });
+    box(M.metal, 0.5, 0.05, 0.02, -0.6, 0.47, -0.05, { c: 0xcccccc });
+    cyl(M.metal, 0.14, 0.16, 0.02, 0.35, 0.01, 0.75, { c: 0x222222 });
+    tube(M.metal, [0.35, 0, 0.75], [0.35, 1.45, 0.75], 0.011, 0x888888);
+    tube(M.metal, [0.35, 1.45, 0.75], [0.3, 1.52, 0.9], 0.016, 0x222222);
+    sph(M.metal, 0.028, 0.29, 1.535, 0.93, { c: 0x999999 });
+    cyl(M.varnish, 0.16, 0.16, 0.04, 0.2, 0.7, 0.1, { c: 0x8d5f35 });
+    for (let k = 0; k < 3; k++) {
+      const a = k * 2.094;
+      tube(
+        M.varnish,
+        [0.2 + Math.cos(a) * 0.1, 0.68, 0.1 + Math.sin(a) * 0.1],
+        [0.2 + Math.cos(a) * 0.2, 0, 0.1 + Math.sin(a) * 0.2],
+        0.016,
+        0x8d5f35,
+      );
+    }
+    box(M.rubber, 0.4, 0.26, 0.32, 0.85, 0.13, 0.2, { rx: -0.5, c: 0x1f1f1f });
+    anchors.staff.push({
+      id: 'musician',
+      pos: world(0.2, 0.72, 0.1),
+      heading: 0,
+      pose: 'sit_stool_guitar',
+      role: 'musician',
+      seat: true,
+    });
+  });
+  at(-4.0, FL, 1.5, 0.2, () => {
+    box(M.plastic, 0.7, 0.36, 0.4, 0, 0.18, 0, { c: 0xf4f4f0 });
+    box(M.plastic, 0.72, 0.07, 0.42, 0, 0.395, 0, { c: 0x1d5873 });
+    tube(M.plastic, [-0.36, 0.3, 0], [-0.36, 0.3, 0.001], 0.02, 0xffffff);
+  });
+  [
+    [-3.0, 1.95, 0],
+    [-1.0, 1.95, 0],
+    [4.0, 1.95, 0.1],
+    [7.15, -1.4, 1.5708],
+    [7.15, -3.8, 1.5708],
+  ].forEach(([x, z, h], i) =>
+    anchors.patrons.push({
+      id: 'rail' + i,
+      pos: [x, FL, z],
+      heading: h,
+      pose: i % 2 ? 'lean_rail_drink' : 'lean_rail_elbows',
+    }),
+  );
+  anchors.staff.push({
+    id: 'server',
+    pos: [1.6, FL, 1.2],
+    heading: 0,
+    pose: 'carry_tray',
+    role: 'server',
+    route: [
+      [1.6, 1.2],
+      [1.5, 4.5],
+      [-3, 7],
+      [1.5, 4.5],
+    ],
+  });
 
   // ================= roof name board with gooseneck lamps =================
-  at(-1.0, 0, 2.5, 0, () => { const by = 3.72; box(M.paint, 6.6, 1.5, 0.06, 0, by, 0, { c: 0x143a52 }); art(ART.nameBoard(), 6.4, 1.4, 0, by, 0.034, { name: 'name_board', rough: 0.8, cast: false });
-    for (const y of [by + 0.76, by - 0.76]) box(M.paint, 6.74, 0.09, 0.11, 0, y, 0.01, { c: CORAL }); for (const s of [-1, 1]) box(M.paint, 0.09, 1.6, 0.11, s * 3.33, by, 0.01, { c: CORAL }); for (const u of [-2.6, -0.9, 0.9, 2.6]) { box(M.wood, 0.09, 1.5, 0.05, u, by, -0.055, { c: 0x9a8c78 }); tube(M.wood, [u, by - 0.75, -0.04], [u, 2.92, -0.04], 0.05, 0x9a8c78, 4); tube(M.rust, [u, by + 0.6, -0.08], [u, porchY(1.6) + 0.02, -1.65], 0.022, 0x9a9a9a); }
-    for (const u of [-2.2, 0, 2.2]) { tube(M.metal, [u, by + 0.7, -0.06], [u, by + 1.05, -0.06], 0.016, 0x2a2a2a); tube(M.metal, [u, by + 1.05, -0.06], [u, by + 1.2, 0.2], 0.016, 0x2a2a2a); tube(M.metal, [u, by + 1.2, 0.2], [u, by + 1.12, 0.5], 0.016, 0x2a2a2a); cyl(M.metal, 0.035, 0.15, 0.15, u, by + 1.06, 0.52, { rx: -0.5, c: 0x1d5873, open: true, seg: 14 }); sph(M.bulb, 0.045, u, by + 1.03, 0.5); lights.push({ pos: world(u, by + 0.9, 0.7), color: 0xffe2b0, range: 7, intensity: 60, kind: 'sign_flood', target: world(u, by, 0) }); }
-    anchors.perches.push({ pos: world(2.7, by + 0.82, 0), kind: 'gull' }, { pos: world(-3.0, by + 0.82, 0), kind: 'gull' }); });
+  at(-1.0, 0, 2.5, 0, () => {
+    const by = 3.72;
+    box(M.paint, 6.6, 1.5, 0.06, 0, by, 0, { c: 0x143a52 });
+    art(ART.nameBoard(), 6.4, 1.4, 0, by, 0.034, { name: 'name_board', rough: 0.8, cast: false });
+    for (const y of [by + 0.76, by - 0.76])
+      box(M.paint, 6.74, 0.09, 0.11, 0, y, 0.01, { c: CORAL });
+    for (const s of [-1, 1]) box(M.paint, 0.09, 1.6, 0.11, s * 3.33, by, 0.01, { c: CORAL });
+    for (const u of [-2.6, -0.9, 0.9, 2.6]) {
+      box(M.wood, 0.09, 1.5, 0.05, u, by, -0.055, { c: 0x9a8c78 });
+      tube(M.wood, [u, by - 0.75, -0.04], [u, 2.92, -0.04], 0.05, 0x9a8c78, 4);
+      tube(M.rust, [u, by + 0.6, -0.08], [u, porchY(1.6) + 0.02, -1.65], 0.022, 0x9a9a9a);
+    }
+    for (const u of [-2.2, 0, 2.2]) {
+      tube(M.metal, [u, by + 0.7, -0.06], [u, by + 1.05, -0.06], 0.016, 0x2a2a2a);
+      tube(M.metal, [u, by + 1.05, -0.06], [u, by + 1.2, 0.2], 0.016, 0x2a2a2a);
+      tube(M.metal, [u, by + 1.2, 0.2], [u, by + 1.12, 0.5], 0.016, 0x2a2a2a);
+      cyl(M.metal, 0.035, 0.15, 0.15, u, by + 1.06, 0.52, {
+        rx: -0.5,
+        c: 0x1d5873,
+        open: true,
+        seg: 14,
+      });
+      sph(M.bulb, 0.045, u, by + 1.03, 0.5);
+      lights.push({
+        pos: world(u, by + 0.9, 0.7),
+        color: 0xffe2b0,
+        range: 7,
+        intensity: 60,
+        kind: 'sign_flood',
+        target: world(u, by, 0),
+      });
+    }
+    anchors.perches.push(
+      { pos: world(2.7, by + 0.82, 0), kind: 'gull' },
+      { pos: world(-3.0, by + 0.82, 0), kind: 'gull' },
+    );
+  });
 
   // ================= yard props =================
-  const TABLE_COL = [[CORAL, 0xf4ead2, SEA], [0xf2b441, 0xf4ead2, CORAL], [SEA, MINT, 0xf4ead2], [0xf4ead2, CORAL, 0xf2b441], [MINT, SEA, CORAL]];
-  function basket(x, y, z, ry) { at(x, y, z, ry, () => { box(M.plastic, 0.24, 0.012, 0.17, 0, 0.006, 0, { c: 0xc8281e }); for (const s of [-1, 1]) { box(M.plastic, 0.24, 0.055, 0.01, 0, 0.03, s * 0.085, { rx: s * 0.25, c: 0xc8281e }); box(M.plastic, 0.01, 0.055, 0.17, s * 0.12, 0.03, 0, { rz: -s * 0.25, c: 0xc8281e }); } box(M.paint, 0.21, 0.004, 0.2, 0, 0.02, 0, { ry: 0.3, c: 0xfbf7ee }); for (let i = 0; i < 5; i++) sph(M.rubber, 0.026, -0.06 + i * 0.03 + R() * 0.02, 0.045, (R() - 0.5) * 0.08, { c: 0xc88a3a, s: [1, 0.8, 1], ws: 6, hs: 5 }); sph(M.plastic, 0.02, 0.08, 0.04, 0.03, { c: 0x8fd04a, s: [1.3, 0.6, 0.8], ws: 6, hs: 4 }); cyl(M.plastic, 0.022, 0.018, 0.03, 0.07, 0.035, -0.04, { c: 0xfff6d8, seg: 8 }); }); }
-  function picnic(x, z, ry, k) { const C = TABLE_COL[k % TABLE_COL.length], WEAR = [0.3, 0.75, 0.5, 0.95, 0.62][k % 5], GREY = new THREE.Color(0xb7b0a2), LEG = jit(0xb4a68e, 0.12);
+  const TABLE_COL = [
+    [CORAL, 0xf4ead2, SEA],
+    [0xf2b441, 0xf4ead2, CORAL],
+    [SEA, MINT, 0xf4ead2],
+    [0xf4ead2, CORAL, 0xf2b441],
+    [MINT, SEA, CORAL],
+  ];
+  function basket(x, y, z, ry) {
+    at(x, y, z, ry, () => {
+      box(M.plastic, 0.24, 0.012, 0.17, 0, 0.006, 0, { c: 0xc8281e });
+      for (const s of [-1, 1]) {
+        box(M.plastic, 0.24, 0.055, 0.01, 0, 0.03, s * 0.085, { rx: s * 0.25, c: 0xc8281e });
+        box(M.plastic, 0.01, 0.055, 0.17, s * 0.12, 0.03, 0, { rz: -s * 0.25, c: 0xc8281e });
+      }
+      box(M.paint, 0.21, 0.004, 0.2, 0, 0.02, 0, { ry: 0.3, c: 0xfbf7ee });
+      for (let i = 0; i < 5; i++)
+        sph(M.rubber, 0.026, -0.06 + i * 0.03 + R() * 0.02, 0.045, (R() - 0.5) * 0.08, {
+          c: 0xc88a3a,
+          s: [1, 0.8, 1],
+          ws: 6,
+          hs: 5,
+        });
+      sph(M.plastic, 0.02, 0.08, 0.04, 0.03, { c: 0x8fd04a, s: [1.3, 0.6, 0.8], ws: 6, hs: 4 });
+      cyl(M.plastic, 0.022, 0.018, 0.03, 0.07, 0.035, -0.04, { c: 0xfff6d8, seg: 8 });
+    });
+  }
+  function picnic(x, z, ry, k) {
+    const C = TABLE_COL[k % TABLE_COL.length],
+      WEAR = [0.3, 0.75, 0.5, 0.95, 0.62][k % 5],
+      GREY = new THREE.Color(0xb7b0a2),
+      LEG = jit(0xb4a68e, 0.12);
     // one board: its own fade toward sun-bleached gray, chipping, slight warp, cup and twist
-    const board = (len, px, py, pz, hex, o = {}) => { const c = jit(hex, 0.07).lerp(GREY, R() * WEAR * 0.75); box(o.mat || (R() < WEAR * 0.8 ? M.paintWorn : M.paint), len, 0.04, 0.142, px, py + (R() - 0.5) * 0.006 * (1 + WEAR), pz, { c, ry: (R() - 0.5) * 0.022 * WEAR + (o.ry || 0), rz: (R() - 0.5) * 0.016 * WEAR + (o.rz || 0), rx: (R() - 0.5) * 0.06 * WEAR }); };
+    const board = (len, px, py, pz, hex, o = {}) => {
+      const c = jit(hex, 0.07).lerp(GREY, R() * WEAR * 0.75);
+      box(
+        o.mat || (R() < WEAR * 0.8 ? M.paintWorn : M.paint),
+        len,
+        0.04,
+        0.142,
+        px,
+        py + (R() - 0.5) * 0.006 * (1 + WEAR),
+        pz,
+        {
+          c,
+          ry: (R() - 0.5) * 0.022 * WEAR + (o.ry || 0),
+          rz: (R() - 0.5) * 0.016 * WEAR + (o.rz || 0),
+          rx: (R() - 0.5) * 0.06 * WEAR,
+        },
+      );
+    };
     at(x, 0.04, z, ry, () => {
-      for (let i = 0; i < 5; i++) { const pz = -0.3 + i * 0.15;
-        if (k % 5 === 1 && i === 3) { for (const sx of [-0.64, 0.72]) cyl(M.metal, 0.004, 0.004, 0.03, sx, 0.745, pz, { rz: 0.3, c: 0x7a4a2a, seg: 5 }); continue; }                 // a board is gone; bent nails remain
-        if (k % 5 === 3 && i === 1) { board(1.04, -0.405, 0.75, pz, C[i % 2]); board(0.79, 0.53, 0.742, pz + 0.006, C[i % 2], { ry: 0.035, rz: -0.02 }); continue; }   // cracked right through, the short end sagging
-        board(1.85 - (R() < 0.35 ? R() * 0.05 : 0), (R() - 0.5) * 0.02, 0.75, pz, C[i % 2]); }
-      for (const s of [-1, 1]) for (const d of [0.62, 0.77]) {
-        if (k % 5 === 2 && s === 1 && d === 0.77) { board(1.18, -0.335, 0.44, s * d, C[2]); box(M.paintWorn, 0.6, 0.04, 0.142, 0.75, 0.03, 1.12, { ry: 0.5, rz: 0.04, c: jit(C[2], 0.1).lerp(GREY, 0.5) }); continue; }   // bench end snapped off, lying in the sand
-        if (k % 5 === 0 && s === -1 && d === 0.62) { board(1.85, 0, 0.44, s * d, 0xcdb88e, { mat: M.wood }); continue; }                                              // replaced with a raw, unpainted plank
-        board(1.85, 0, 0.44, s * d, C[2]); }
-      for (const sx of [-0.68, 0.68]) { for (const s of [-1, 1]) { const prop = k % 5 === 4 && sx > 0 && s > 0; tube(M.wood, [sx, 0.73, s * 0.2], [sx, prop ? 0.1 : 0, s * (prop ? 0.65 : 0.72)], 0.05, LEG, 4); if (prop) { box(M.block, 0.2, 0.06, 0.1, sx, 0.03, s * 0.66, { ry: 0.3, c: 0xb86a4a }); box(M.wood, 0.14, 0.025, 0.09, sx + 0.01, 0.073, s * 0.66, { ry: -0.2, c: 0xc9b089 }); } }
-        box(M.wood, 0.04, 0.09, 0.72, sx + 0.04, 0.685, 0, { c: LEG }); box(M.wood, 0.04, 0.09, 1.72, sx + 0.04, 0.375, 0, { c: LEG }); tube(M.wood, [sx * 0.2, 0.71, 0], [sx + 0.02, 0.38, 0], 0.03, LEG, 4); for (const s of [-1, 1]) for (const [y, zz] of [[0.685, 0.24], [0.375, 0.5], [0.375, 0.7]]) { cyl(M.metal, 0.014, 0.014, 0.012, sx + 0.066, y, s * zz, { rz: 1.5708, c: R() < 0.5 ? 0x8a8a84 : 0x7a4a2a, seg: 6 }); } }
-      if (k % 5 === 0) { box(M.wood, 0.03, 0.42, 0.1, -0.725, 0.37, -0.455, { rx: 0.619, c: 0xcdb88e }); for (const t of [0.25, 0.75]) tor(M.rubber, 0.062, 0.008, -0.7, 0.2 + t * 0.34, -0.577 + t * 0.245, { rx: 1.5708 - 0.619, c: 0xcbbf9f, ts: 8, rs: 4 }); }   // a split leg splinted with a scrap and lashed
-      const marks = art(ART.tableMarks(50 + k, k % 5 === 1 ? 3 : -1), 1.85, 0.75, 0, 0.7745, 0, { rx: -Math.PI / 2, transparent: true, name: 'table_marks', rough: 0.85 }); marks.material.depthWrite = false; marks.material.polygonOffset = true; marks.material.polygonOffsetFactor = -3; marks.castShadow = false;
-      const nb = 2 + Math.floor(R() * 4); for (let i = 0; i < nb; i++) { const bx = (R() - 0.5) * 1.5, bz = (k % 5 === 1 ? -0.2 : 0) + (R() - 0.5) * 0.4; if ((i === 0 && k % 2 === 0) || R() < 0.1) add(M.glass, new THREE.LatheGeometry(bottleProfile, 8), bx, 0.803, bz, { rz: 1.5708, ry: R() * 6, c: 0x7a4a1a }); else bottle(bx, 0.772, bz, 1, R() < 0.6 ? 0x7a4a1a : 0x2f6a3a, [0x1d5873, 0xf2b441, 0xe2664c][i % 3]); }
-      basket(-0.45 + R() * 0.2, 0.772, -0.14, R() * 3); if (k % 2) basket(0.4, 0.772, -0.15, R() * 3); box(M.metal, 0.11, 0.13, 0.08, 0.1, 0.837, -0.25, { c: 0xbdbdbd, ry: R() }); cyl(M.plastic, 0.025, 0.03, 0.15, 0.2, 0.847, -0.1, { c: 0xc8281e, seg: 8 }); cyl(M.plastic, 0.025, 0.03, 0.15, 0.27, 0.847, -0.28, { c: 0xe8c020, seg: 8 });
-      for (let i = 0; i < 2 + (k % 2); i++) { const cx = -0.7 + R() * 1.4, cz = -0.3 + R() * 0.25, lv = R() < 0.5 ? 0 : 0.01 + R() * 0.07; if (i === 1 && k % 3 === 0) { cyl(M.glass, 0.04, 0.03, 0.11, cx, 0.81, cz, { rz: 1.5708, ry: R() * 6, c: 0xffffff, seg: 10, open: true }); continue; } cyl(M.glass, 0.04, 0.03, 0.11, cx, 0.827, cz, { c: 0xffffff, seg: 10, open: true }); if (lv) cyl(M.liquid, 0.03 + lv * 0.08, 0.029, lv, cx, 0.776 + lv / 2, cz, { c: 0xd89a1c, seg: 8 }); }
-      for (const [i, sx] of [-0.5, 0.5].entries()) for (const s of [-1, 1]) anchors.patrons.push({ id: `table${k}_${i}${s > 0 ? 'a' : 'b'}`, pos: world(sx, 0.46, s * 0.7), heading: ry + (s > 0 ? Math.PI : 0), pose: ['sit_bench_drink', 'sit_bench_talk', 'sit_bench_eat', 'sit_bench_slump'][(k + i + (s > 0 ? 1 : 0)) % 4], seat: true, optional: (k + i) % 2 === 1 }); });
-    col({ type: 'box', x, y: 0.4, z, hx: 0.95, hy: 0.4, hz: 0.85, ry }); }
-  [[-7.2, 6.0, 0.15], [-2.6, 8.8, -0.1], [3.0, 9.8, 0.3], [9.2, 9.6, -0.25], [-10.0, 10.8, 0.5]].forEach(([x, z, ry], k) => picnic(x, z, ry, k));
+      for (let i = 0; i < 5; i++) {
+        const pz = -0.3 + i * 0.15;
+        if (k % 5 === 1 && i === 3) {
+          for (const sx of [-0.64, 0.72])
+            cyl(M.metal, 0.004, 0.004, 0.03, sx, 0.745, pz, { rz: 0.3, c: 0x7a4a2a, seg: 5 });
+          continue;
+        } // a board is gone; bent nails remain
+        if (k % 5 === 3 && i === 1) {
+          board(1.04, -0.405, 0.75, pz, C[i % 2]);
+          board(0.79, 0.53, 0.742, pz + 0.006, C[i % 2], { ry: 0.035, rz: -0.02 });
+          continue;
+        } // cracked right through, the short end sagging
+        board(1.85 - (R() < 0.35 ? R() * 0.05 : 0), (R() - 0.5) * 0.02, 0.75, pz, C[i % 2]);
+      }
+      for (const s of [-1, 1])
+        for (const d of [0.62, 0.77]) {
+          if (k % 5 === 2 && s === 1 && d === 0.77) {
+            board(1.18, -0.335, 0.44, s * d, C[2]);
+            box(M.paintWorn, 0.6, 0.04, 0.142, 0.75, 0.03, 1.12, {
+              ry: 0.5,
+              rz: 0.04,
+              c: jit(C[2], 0.1).lerp(GREY, 0.5),
+            });
+            continue;
+          } // bench end snapped off, lying in the sand
+          if (k % 5 === 0 && s === -1 && d === 0.62) {
+            board(1.85, 0, 0.44, s * d, 0xcdb88e, { mat: M.wood });
+            continue;
+          } // replaced with a raw, unpainted plank
+          board(1.85, 0, 0.44, s * d, C[2]);
+        }
+      for (const sx of [-0.68, 0.68]) {
+        for (const s of [-1, 1]) {
+          const prop = k % 5 === 4 && sx > 0 && s > 0;
+          tube(
+            M.wood,
+            [sx, 0.73, s * 0.2],
+            [sx, prop ? 0.1 : 0, s * (prop ? 0.65 : 0.72)],
+            0.05,
+            LEG,
+            4,
+          );
+          if (prop) {
+            box(M.block, 0.2, 0.06, 0.1, sx, 0.03, s * 0.66, { ry: 0.3, c: 0xb86a4a });
+            box(M.wood, 0.14, 0.025, 0.09, sx + 0.01, 0.073, s * 0.66, { ry: -0.2, c: 0xc9b089 });
+          }
+        }
+        box(M.wood, 0.04, 0.09, 0.72, sx + 0.04, 0.685, 0, { c: LEG });
+        box(M.wood, 0.04, 0.09, 1.72, sx + 0.04, 0.375, 0, { c: LEG });
+        tube(M.wood, [sx * 0.2, 0.71, 0], [sx + 0.02, 0.38, 0], 0.03, LEG, 4);
+        for (const s of [-1, 1])
+          for (const [y, zz] of [
+            [0.685, 0.24],
+            [0.375, 0.5],
+            [0.375, 0.7],
+          ]) {
+            cyl(M.metal, 0.014, 0.014, 0.012, sx + 0.066, y, s * zz, {
+              rz: 1.5708,
+              c: R() < 0.5 ? 0x8a8a84 : 0x7a4a2a,
+              seg: 6,
+            });
+          }
+      }
+      if (k % 5 === 0) {
+        box(M.wood, 0.03, 0.42, 0.1, -0.725, 0.37, -0.455, { rx: 0.619, c: 0xcdb88e });
+        for (const t of [0.25, 0.75])
+          tor(M.rubber, 0.062, 0.008, -0.7, 0.2 + t * 0.34, -0.577 + t * 0.245, {
+            rx: 1.5708 - 0.619,
+            c: 0xcbbf9f,
+            ts: 8,
+            rs: 4,
+          });
+      } // a split leg splinted with a scrap and lashed
+      const marks = art(ART.tableMarks(50 + k, k % 5 === 1 ? 3 : -1), 1.85, 0.75, 0, 0.7745, 0, {
+        rx: -Math.PI / 2,
+        transparent: true,
+        name: 'table_marks',
+        rough: 0.85,
+      });
+      marks.material.depthWrite = false;
+      marks.material.polygonOffset = true;
+      marks.material.polygonOffsetFactor = -3;
+      marks.castShadow = false;
+      const nb = 2 + Math.floor(R() * 4);
+      for (let i = 0; i < nb; i++) {
+        const bx = (R() - 0.5) * 1.5,
+          bz = (k % 5 === 1 ? -0.2 : 0) + (R() - 0.5) * 0.4;
+        if ((i === 0 && k % 2 === 0) || R() < 0.1)
+          add(M.glass, new THREE.LatheGeometry(bottleProfile, 8), bx, 0.803, bz, {
+            rz: 1.5708,
+            ry: R() * 6,
+            c: 0x7a4a1a,
+          });
+        else
+          bottle(
+            bx,
+            0.772,
+            bz,
+            1,
+            R() < 0.6 ? 0x7a4a1a : 0x2f6a3a,
+            [0x1d5873, 0xf2b441, 0xe2664c][i % 3],
+          );
+      }
+      basket(-0.45 + R() * 0.2, 0.772, -0.14, R() * 3);
+      if (k % 2) basket(0.4, 0.772, -0.15, R() * 3);
+      box(M.metal, 0.11, 0.13, 0.08, 0.1, 0.837, -0.25, { c: 0xbdbdbd, ry: R() });
+      cyl(M.plastic, 0.025, 0.03, 0.15, 0.2, 0.847, -0.1, { c: 0xc8281e, seg: 8 });
+      cyl(M.plastic, 0.025, 0.03, 0.15, 0.27, 0.847, -0.28, { c: 0xe8c020, seg: 8 });
+      for (let i = 0; i < 2 + (k % 2); i++) {
+        const cx = -0.7 + R() * 1.4,
+          cz = -0.3 + R() * 0.25,
+          lv = R() < 0.5 ? 0 : 0.01 + R() * 0.07;
+        if (i === 1 && k % 3 === 0) {
+          cyl(M.glass, 0.04, 0.03, 0.11, cx, 0.81, cz, {
+            rz: 1.5708,
+            ry: R() * 6,
+            c: 0xffffff,
+            seg: 10,
+            open: true,
+          });
+          continue;
+        }
+        cyl(M.glass, 0.04, 0.03, 0.11, cx, 0.827, cz, { c: 0xffffff, seg: 10, open: true });
+        if (lv)
+          cyl(M.liquid, 0.03 + lv * 0.08, 0.029, lv, cx, 0.776 + lv / 2, cz, {
+            c: 0xd89a1c,
+            seg: 8,
+          });
+      }
+      for (const [i, sx] of [-0.5, 0.5].entries())
+        for (const s of [-1, 1])
+          anchors.patrons.push({
+            id: `table${k}_${i}${s > 0 ? 'a' : 'b'}`,
+            pos: world(sx, 0.46, s * 0.7),
+            heading: ry + (s > 0 ? Math.PI : 0),
+            pose: ['sit_bench_drink', 'sit_bench_talk', 'sit_bench_eat', 'sit_bench_slump'][
+              (k + i + (s > 0 ? 1 : 0)) % 4
+            ],
+            seat: true,
+            optional: (k + i) % 2 === 1,
+          });
+    });
+    col({ type: 'box', x, y: 0.4, z, hx: 0.95, hy: 0.4, hz: 0.85, ry });
+  }
+  [
+    [-7.2, 6.0, 0.15],
+    [-2.6, 8.8, -0.1],
+    [3.0, 9.8, 0.3],
+    [9.2, 9.6, -0.25],
+    [-10.0, 10.8, 0.5],
+  ].forEach(([x, z, ry], k) => picnic(x, z, ry, k));
   // trash barrel (painted drum)
-  at(-5.7, 0.04, 3.9, 0, () => { cyl(M.rust, 0.29, 0.29, 0.88, 0, 0.44, 0, { c: 0x4aa0a8, seg: 18, open: true }); for (const y of [0.02, 0.3, 0.6, 0.87]) tor(M.rust, 0.29, 0.014, 0, y, 0, { rx: 1.5708, c: 0x3a8088, ts: 18 }); cyl(M.rubber, 0.275, 0.275, 0.02, 0, 0.8, 0, { c: 0x111111, seg: 18 }); for (let i = 0; i < 5; i++) cyl(M.metal, 0.033, 0.033, 0.12, (R() - 0.5) * 0.3, 0.83, (R() - 0.5) * 0.3, { rz: 1.2, ry: R() * 6, c: [0x1d5873, 0xe2664c, 0xdddddd][i % 3], seg: 8 }); }); col({ type: 'cyl', x: -5.7, y: 0.45, z: 3.9, hh: 0.45, r: 0.3 });
+  at(-5.7, 0.04, 3.9, 0, () => {
+    cyl(M.rust, 0.29, 0.29, 0.88, 0, 0.44, 0, { c: 0x4aa0a8, seg: 18, open: true });
+    for (const y of [0.02, 0.3, 0.6, 0.87])
+      tor(M.rust, 0.29, 0.014, 0, y, 0, { rx: 1.5708, c: 0x3a8088, ts: 18 });
+    cyl(M.rubber, 0.275, 0.275, 0.02, 0, 0.8, 0, { c: 0x111111, seg: 18 });
+    for (let i = 0; i < 5; i++)
+      cyl(M.metal, 0.033, 0.033, 0.12, (R() - 0.5) * 0.3, 0.83, (R() - 0.5) * 0.3, {
+        rz: 1.2,
+        ry: R() * 6,
+        c: [0x1d5873, 0xe2664c, 0xdddddd][i % 3],
+        seg: 8,
+      });
+  });
+  col({ type: 'cyl', x: -5.7, y: 0.45, z: 3.9, hh: 0.45, r: 0.3 });
   // sandwich board, mailbox, banner between posts
-  at(3.6, 0.04, 13.0, 0.25, () => { for (const s of [-1, 1]) { box(M.wood, 0.72, 1.1, 0.03, 0, 0.52, s * 0.19, { rx: -s * 0.35, c: 0x7a6a55 }); art(ART.sandwich(14 + s), 0.64, 0.96, 0, 0.55, s * 0.212, { rx: -0.35, ry: s > 0 ? 0 : Math.PI, name: 'sandwich' }); } tube(M.metal, [0.3, 0.5, -0.17], [0.3, 0.5, 0.17], 0.006, 0x555555); }); col({ type: 'box', x: 3.6, y: 0.5, z: 13.0, hx: 0.38, hy: 0.5, hz: 0.4, ry: 0.25 });
-  at(-13.5, 0.04, 14.6, 0.1, () => { tube(M.wood, [0, 0, 0], [0, 1.05, 0], 0.06, 0x9a8c78, 4); box(M.wood, 0.5, 0.04, 0.2, 0.1, 1.05, 0, { c: 0x9a8c78 }); add(M.metal, scaleUV(new THREE.CylinderGeometry(0.1, 0.1, 0.48, 12, 1, false, 0, Math.PI), 2, 2), 0.1, 1.17, 0, { rz: 1.5708, c: CORAL }); box(M.metal, 0.48, 0.1, 0.2, 0.1, 1.12, 0, { c: CORAL }); box(M.metal, 0.012, 0.1, 0.05, 0.2, 1.27, 0.105, { c: 0xc8281e }); for (const s of [1, -1]) art(ART.mailboxArt(), 0.4, 0.14, 0.1, 1.14, s * 0.102, { ry: s > 0 ? 0 : Math.PI, name: 'mailbox' }); }); col({ type: 'cyl', x: -13.5, y: 0.6, z: 14.6, hh: 0.6, r: 0.12 });
-  at(-11.4, 0.04, 5.2, 1.15, () => { for (const s of [-1, 1]) { tube(M.wood, [s * 2.3, 0, 0], [s * 2.3, 2.5, 0], 0.07, 0x9a8c78, 6); for (const y of [2.32, 1.08]) tube(M.rubber, [s * 2.3, y + 0.04, 0], [s * 2.02, y, 0], 0.006, 0xe8e0c8, 4); col({ type: 'cyl', x: world(s * 2.3, 0, 0)[0], y: 1.25, z: world(s * 2.3, 0, 0)[2], hh: 1.25, r: 0.08 }); } const g = new THREE.PlaneGeometry(4.04, 1.3, 16, 1), p = g.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) / 2.02; p.setZ(i, (1 - u * u) * 0.14); p.setY(i, p.getY(i) - (1 - u * u) * 0.05); } g.computeVertexNormals(); art(ART.banner(), 0, 0, 0, 1.7, 0, { geo: g, side: THREE.DoubleSide, name: 'banner', cast: true, rough: 0.6 }); });
+  at(3.6, 0.04, 13.0, 0.25, () => {
+    for (const s of [-1, 1]) {
+      box(M.wood, 0.72, 1.1, 0.03, 0, 0.52, s * 0.19, { rx: -s * 0.35, c: 0x7a6a55 });
+      art(ART.sandwich(14 + s), 0.64, 0.96, 0, 0.55, s * 0.212, {
+        rx: -0.35,
+        ry: s > 0 ? 0 : Math.PI,
+        name: 'sandwich',
+      });
+    }
+    tube(M.metal, [0.3, 0.5, -0.17], [0.3, 0.5, 0.17], 0.006, 0x555555);
+  });
+  col({ type: 'box', x: 3.6, y: 0.5, z: 13.0, hx: 0.38, hy: 0.5, hz: 0.4, ry: 0.25 });
+  at(-13.5, 0.04, 14.6, 0.1, () => {
+    tube(M.wood, [0, 0, 0], [0, 1.05, 0], 0.06, 0x9a8c78, 4);
+    box(M.wood, 0.5, 0.04, 0.2, 0.1, 1.05, 0, { c: 0x9a8c78 });
+    add(
+      M.metal,
+      scaleUV(new THREE.CylinderGeometry(0.1, 0.1, 0.48, 12, 1, false, 0, Math.PI), 2, 2),
+      0.1,
+      1.17,
+      0,
+      { rz: 1.5708, c: CORAL },
+    );
+    box(M.metal, 0.48, 0.1, 0.2, 0.1, 1.12, 0, { c: CORAL });
+    box(M.metal, 0.012, 0.1, 0.05, 0.2, 1.27, 0.105, { c: 0xc8281e });
+    for (const s of [1, -1])
+      art(ART.mailboxArt(), 0.4, 0.14, 0.1, 1.14, s * 0.102, {
+        ry: s > 0 ? 0 : Math.PI,
+        name: 'mailbox',
+      });
+  });
+  col({ type: 'cyl', x: -13.5, y: 0.6, z: 14.6, hh: 0.6, r: 0.12 });
+  at(-11.4, 0.04, 5.2, 1.15, () => {
+    for (const s of [-1, 1]) {
+      tube(M.wood, [s * 2.3, 0, 0], [s * 2.3, 2.5, 0], 0.07, 0x9a8c78, 6);
+      for (const y of [2.32, 1.08])
+        tube(M.rubber, [s * 2.3, y + 0.04, 0], [s * 2.02, y, 0], 0.006, 0xe8e0c8, 4);
+      col({
+        type: 'cyl',
+        x: world(s * 2.3, 0, 0)[0],
+        y: 1.25,
+        z: world(s * 2.3, 0, 0)[2],
+        hh: 1.25,
+        r: 0.08,
+      });
+    }
+    const g = new THREE.PlaneGeometry(4.04, 1.3, 16, 1),
+      p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const u = p.getX(i) / 2.02;
+      p.setZ(i, (1 - u * u) * 0.14);
+      p.setY(i, p.getY(i) - (1 - u * u) * 0.05);
+    }
+    g.computeVertexNormals();
+    art(ART.banner(), 0, 0, 0, 1.7, 0, {
+      geo: g,
+      side: THREE.DoubleSide,
+      name: 'banner',
+      cast: true,
+      rough: 0.6,
+    });
+  });
   // bike rack with two beach cruisers
-  function cruiser(x, z, ry, c1, c2) { at(x, 0.04, z, ry, () => { for (const wx of [-0.55, 0.55]) { tor(M.rubber, 0.33, 0.026, wx, 0.33, 0, { ts: 22, c: 0xe8e0c8 }); tor(M.metal, 0.3, 0.012, wx, 0.33, 0, { ts: 22, c: 0xcccccc }); for (let k = 0; k < 7; k++) { const a = k * 0.898; tube(M.metal, [wx, 0.33, 0], [wx + Math.cos(a) * 0.3, 0.33 + Math.sin(a) * 0.3, 0], 0.003, 0xcccccc, 4); } tor(M.metal, 0.37, 0.02, wx, 0.33, 0, { arc: 2.6, rz: wx < 0 ? 0.6 : 0.2, ts: 12, rs: 4, c: c1, s: [1, 1, 2.2] }); }
-      const T = (a, b, r = 0.019, c = c1) => tube(M.metal, [a[0], a[1], 0], [b[0], b[1], 0], r, c, 8); T([0, 0.3], [-0.2, 0.86]); T([0, 0.3], [0.42, 0.78]); T([-0.18, 0.74], [0.44, 0.86], 0.017); T([-0.1, 0.56], [0.43, 0.66], 0.015); T([0.4, 0.92], [0.47, 0.62], 0.022); T([0.47, 0.62], [0.55, 0.33], 0.014); T([0, 0.3], [-0.55, 0.33], 0.013); T([-0.19, 0.8], [-0.55, 0.33], 0.012); T([0.4, 0.92], [0.36, 1.04], 0.013, 0xcccccc);
-      tube(M.metal, [0.3, 1.06, -0.32], [0.36, 1.04, 0], 0.012, 0xcccccc); tube(M.metal, [0.3, 1.06, 0.32], [0.36, 1.04, 0], 0.012, 0xcccccc); for (const s of [-1, 1]) tube(M.rubber, [0.26, 1.065, s * 0.36], [0.3, 1.06, s * 0.27], 0.017, c2); sph(M.rubber, 0.12, -0.22, 0.9, 0, { s: [1.25, 0.4, 0.85], c: c2 }); cyl(M.metal, 0.09, 0.09, 0.012, 0, 0.3, 0.05, { rx: 1.5708, c: 0xcccccc }); tube(M.metal, [0, 0.3, 0.06], [0.12, 0.2, 0.09], 0.008, 0x888888); box(M.rubber, 0.09, 0.02, 0.06, 0.13, 0.2, 0.12, { c: 0x222222 }); box(M.metal, 0.5, 0.05, 0.012, -0.27, 0.38, 0.045, { rz: -0.06, c: c1 });
-      for (const [bx, bz] of [[0.6, 0.15], [0.6, -0.15], [0.82, 0.15], [0.82, -0.15]]) tube(M.metal, [bx, 0.82, bz], [bx, 1.02, bz * 1.15], 0.004, 0x8a6a3a, 4); box(M.wood, 0.24, 0.012, 0.3, 0.71, 0.82, 0, { c: 0x8a6a3a }); for (const y of [0.9, 1.0]) for (const s of [-1, 1]) { tube(M.wood, [0.59, y, s * 0.16], [0.83, y, s * 0.16], 0.006, 0xb89a5a, 4); tube(M.wood, [0.59 + (s + 1) * 0.12, y, -0.16], [0.59 + (s + 1) * 0.12, y, 0.16], 0.006, 0xb89a5a, 4); } }); }
-  at(11.0, 0.04, 4.6, 0.25, () => { tube(M.metal, [-1.0, 0.02, 0], [1.0, 0.02, 0], 0.025, 0x777777); for (let i = 0; i < 5; i++) { const x = -0.8 + i * 0.4; tube(M.metal, [x - 0.12, 0, 0], [x - 0.1, 0.7, 0], 0.022, 0x8a9094); tube(M.metal, [x - 0.1, 0.7, 0], [x, 0.82, 0], 0.022, 0x8a9094); tube(M.metal, [x, 0.82, 0], [x + 0.1, 0.7, 0], 0.022, 0x8a9094); tube(M.metal, [x + 0.1, 0.7, 0], [x + 0.12, 0, 0], 0.022, 0x8a9094); } cruiser(-0.6, 0.35, 1.5708 + 0.06, 0x7fc8b4, 0x6a4a2a); cruiser(0.2, 0.3, 1.5708 - 0.05, CORAL, 0xf1e6cc); }); col({ type: 'box', x: 11.0, y: 0.5, z: 4.8, hx: 1.1, hy: 0.5, hz: 0.95, ry: 0.25 });
+  function cruiser(x, z, ry, c1, c2) {
+    at(x, 0.04, z, ry, () => {
+      for (const wx of [-0.55, 0.55]) {
+        tor(M.rubber, 0.33, 0.026, wx, 0.33, 0, { ts: 22, c: 0xe8e0c8 });
+        tor(M.metal, 0.3, 0.012, wx, 0.33, 0, { ts: 22, c: 0xcccccc });
+        for (let k = 0; k < 7; k++) {
+          const a = k * 0.898;
+          tube(
+            M.metal,
+            [wx, 0.33, 0],
+            [wx + Math.cos(a) * 0.3, 0.33 + Math.sin(a) * 0.3, 0],
+            0.003,
+            0xcccccc,
+            4,
+          );
+        }
+        tor(M.metal, 0.37, 0.02, wx, 0.33, 0, {
+          arc: 2.6,
+          rz: wx < 0 ? 0.6 : 0.2,
+          ts: 12,
+          rs: 4,
+          c: c1,
+          s: [1, 1, 2.2],
+        });
+      }
+      const T = (a, b, r = 0.019, c = c1) =>
+        tube(M.metal, [a[0], a[1], 0], [b[0], b[1], 0], r, c, 8);
+      T([0, 0.3], [-0.2, 0.86]);
+      T([0, 0.3], [0.42, 0.78]);
+      T([-0.18, 0.74], [0.44, 0.86], 0.017);
+      T([-0.1, 0.56], [0.43, 0.66], 0.015);
+      T([0.4, 0.92], [0.47, 0.62], 0.022);
+      T([0.47, 0.62], [0.55, 0.33], 0.014);
+      T([0, 0.3], [-0.55, 0.33], 0.013);
+      T([-0.19, 0.8], [-0.55, 0.33], 0.012);
+      T([0.4, 0.92], [0.36, 1.04], 0.013, 0xcccccc);
+      tube(M.metal, [0.3, 1.06, -0.32], [0.36, 1.04, 0], 0.012, 0xcccccc);
+      tube(M.metal, [0.3, 1.06, 0.32], [0.36, 1.04, 0], 0.012, 0xcccccc);
+      for (const s of [-1, 1])
+        tube(M.rubber, [0.26, 1.065, s * 0.36], [0.3, 1.06, s * 0.27], 0.017, c2);
+      sph(M.rubber, 0.12, -0.22, 0.9, 0, { s: [1.25, 0.4, 0.85], c: c2 });
+      cyl(M.metal, 0.09, 0.09, 0.012, 0, 0.3, 0.05, { rx: 1.5708, c: 0xcccccc });
+      tube(M.metal, [0, 0.3, 0.06], [0.12, 0.2, 0.09], 0.008, 0x888888);
+      box(M.rubber, 0.09, 0.02, 0.06, 0.13, 0.2, 0.12, { c: 0x222222 });
+      box(M.metal, 0.5, 0.05, 0.012, -0.27, 0.38, 0.045, { rz: -0.06, c: c1 });
+      for (const [bx, bz] of [
+        [0.6, 0.15],
+        [0.6, -0.15],
+        [0.82, 0.15],
+        [0.82, -0.15],
+      ])
+        tube(M.metal, [bx, 0.82, bz], [bx, 1.02, bz * 1.15], 0.004, 0x8a6a3a, 4);
+      box(M.wood, 0.24, 0.012, 0.3, 0.71, 0.82, 0, { c: 0x8a6a3a });
+      for (const y of [0.9, 1.0])
+        for (const s of [-1, 1]) {
+          tube(M.wood, [0.59, y, s * 0.16], [0.83, y, s * 0.16], 0.006, 0xb89a5a, 4);
+          tube(
+            M.wood,
+            [0.59 + (s + 1) * 0.12, y, -0.16],
+            [0.59 + (s + 1) * 0.12, y, 0.16],
+            0.006,
+            0xb89a5a,
+            4,
+          );
+        }
+    });
+  }
+  at(11.0, 0.04, 4.6, 0.25, () => {
+    tube(M.metal, [-1.0, 0.02, 0], [1.0, 0.02, 0], 0.025, 0x777777);
+    for (let i = 0; i < 5; i++) {
+      const x = -0.8 + i * 0.4;
+      tube(M.metal, [x - 0.12, 0, 0], [x - 0.1, 0.7, 0], 0.022, 0x8a9094);
+      tube(M.metal, [x - 0.1, 0.7, 0], [x, 0.82, 0], 0.022, 0x8a9094);
+      tube(M.metal, [x, 0.82, 0], [x + 0.1, 0.7, 0], 0.022, 0x8a9094);
+      tube(M.metal, [x + 0.1, 0.7, 0], [x + 0.12, 0, 0], 0.022, 0x8a9094);
+    }
+    cruiser(-0.6, 0.35, 1.5708 + 0.06, 0x7fc8b4, 0x6a4a2a);
+    cruiser(0.2, 0.3, 1.5708 - 0.05, CORAL, 0xf1e6cc);
+  });
+  col({ type: 'box', x: 11.0, y: 0.5, z: 4.8, hx: 1.1, hy: 0.5, hz: 0.95, ry: 0.25 });
   // golf cart parked beside the side porch
-  at(12.6, 0.04, -2.6, 1.4, () => { for (const wx of [-0.8, 0.8]) for (const s of [-1, 1]) { tor(M.rubber, 0.16, 0.085, wx, 0.24, s * 0.52, { ts: 18, rs: 8, c: 0x222222 }); cyl(M.metal, 0.11, 0.11, 0.1, wx, 0.24, s * 0.52, { rx: 1.5708, c: 0xf1e6cc, seg: 12 }); }
-    box(M.rubber, 2.25, 0.12, 1.08, 0, 0.36, 0, { c: 0x1e1e1e }); box(M.plastic, 0.62, 0.42, 1.12, 0.82, 0.62, 0, { c: CORAL }); cyl(M.plastic, 0.21, 0.21, 1.12, 1.13, 0.6, 0, { rx: 1.5708, c: CORAL, seg: 14 }); box(M.rubber, 0.08, 0.3, 1.0, 0.5, 0.78, 0, { c: 0x222222 }); for (const s of [-1, 1]) { sph(M.glow, 0.07, 1.3, 0.62, s * 0.36, { s: [0.5, 1, 1] }); box(M.metal, 0.03, 0.06, 0.1, -1.13, 0.6, s * 0.4, { c: 0xc8281e }); }
-    tube(M.metal, [1.36, 0.36, -0.55], [1.36, 0.36, 0.55], 0.03, 0x222222); box(M.plastic, 0.58, 0.32, 1.1, -0.22, 0.58, 0, { c: CORAL }); box(M.plastic, 0.52, 0.11, 1.02, -0.2, 0.79, 0, { c: 0xf1e6cc }); box(M.plastic, 0.11, 0.42, 1.02, -0.5, 1.02, 0, { rz: -0.12, c: 0xf1e6cc }); box(M.plastic, 0.62, 0.3, 1.1, -0.84, 0.58, 0, { c: CORAL }); box(M.plastic, 0.5, 0.28, 0.34, -0.84, 0.87, -0.25, { c: 0xf4f4f0 }); box(M.plastic, 0.52, 0.05, 0.36, -0.84, 1.03, -0.25, { c: 0x1d5873 }); box(M.wood, 0.4, 0.22, 0.34, -0.84, 0.84, 0.28, { c: 0xb4a68e }); for (let i = 0; i < 9; i++) sph(M.plastic, 0.035, -0.96 + (i % 3) * 0.12, 0.97, 0.18 + Math.floor(i / 3) * 0.1, { c: 0x8fd04a, ws: 6, hs: 5 });
-    tube(M.metal, [0.55, 0.8, 0.27], [0.36, 1.06, 0.27], 0.016, 0x222222); tor(M.rubber, 0.15, 0.016, 0.34, 1.08, 0.27, { ry: 1.5708, rx: 0.6, c: 0x222222 }); for (const [px, pz] of [[1.0, 0.52], [1.0, -0.52], [-1.0, 0.52], [-1.0, -0.52]]) tube(M.metal, [px, 0.5, pz], [px * 0.92, 1.84, pz], 0.02, 0x222222); box(M.plastic, 2.05, 0.05, 1.22, 0, 1.86, 0, { c: 0xf1e6cc }); box(M.plastic, 2.0, 0.035, 1.17, 0, 1.895, 0, { c: 0xe2664c }); quad(M.pane, [1.0, 1.8, 0.5], [1.0, 1.8, -0.5], [1.06, 0.95, -0.5], [1.06, 0.95, 0.5], {});
-    for (const s of [1, -1]) art(ART.label(null, "LOLA'S", P.cream, P.coralDark), 0.5, 0.25, 0.82, 0.62, s * 0.565, { ry: s > 0 ? 0 : Math.PI, name: 'cart_decal' }); }); col({ type: 'box', x: 12.6, y: 0.95, z: -2.6, hx: 1.2, hy: 0.95, hz: 0.62, ry: 1.4 }); anchors.parking.push({ pos: [14.5, 0, 6], heading: Math.PI, kind: 'car' }, { pos: [17, 0, 6], heading: Math.PI, kind: 'car' });
+  at(12.6, 0.04, -2.6, 1.4, () => {
+    for (const wx of [-0.8, 0.8])
+      for (const s of [-1, 1]) {
+        tor(M.rubber, 0.16, 0.085, wx, 0.24, s * 0.52, { ts: 18, rs: 8, c: 0x222222 });
+        cyl(M.metal, 0.11, 0.11, 0.1, wx, 0.24, s * 0.52, { rx: 1.5708, c: 0xf1e6cc, seg: 12 });
+      }
+    box(M.rubber, 2.25, 0.12, 1.08, 0, 0.36, 0, { c: 0x1e1e1e });
+    box(M.plastic, 0.62, 0.42, 1.12, 0.82, 0.62, 0, { c: CORAL });
+    cyl(M.plastic, 0.21, 0.21, 1.12, 1.13, 0.6, 0, { rx: 1.5708, c: CORAL, seg: 14 });
+    box(M.rubber, 0.08, 0.3, 1.0, 0.5, 0.78, 0, { c: 0x222222 });
+    for (const s of [-1, 1]) {
+      sph(M.glow, 0.07, 1.3, 0.62, s * 0.36, { s: [0.5, 1, 1] });
+      box(M.metal, 0.03, 0.06, 0.1, -1.13, 0.6, s * 0.4, { c: 0xc8281e });
+    }
+    tube(M.metal, [1.36, 0.36, -0.55], [1.36, 0.36, 0.55], 0.03, 0x222222);
+    box(M.plastic, 0.58, 0.32, 1.1, -0.22, 0.58, 0, { c: CORAL });
+    box(M.plastic, 0.52, 0.11, 1.02, -0.2, 0.79, 0, { c: 0xf1e6cc });
+    box(M.plastic, 0.11, 0.42, 1.02, -0.5, 1.02, 0, { rz: -0.12, c: 0xf1e6cc });
+    box(M.plastic, 0.62, 0.3, 1.1, -0.84, 0.58, 0, { c: CORAL });
+    box(M.plastic, 0.5, 0.28, 0.34, -0.84, 0.87, -0.25, { c: 0xf4f4f0 });
+    box(M.plastic, 0.52, 0.05, 0.36, -0.84, 1.03, -0.25, { c: 0x1d5873 });
+    box(M.wood, 0.4, 0.22, 0.34, -0.84, 0.84, 0.28, { c: 0xb4a68e });
+    for (let i = 0; i < 9; i++)
+      sph(M.plastic, 0.035, -0.96 + (i % 3) * 0.12, 0.97, 0.18 + Math.floor(i / 3) * 0.1, {
+        c: 0x8fd04a,
+        ws: 6,
+        hs: 5,
+      });
+    tube(M.metal, [0.55, 0.8, 0.27], [0.36, 1.06, 0.27], 0.016, 0x222222);
+    tor(M.rubber, 0.15, 0.016, 0.34, 1.08, 0.27, { ry: 1.5708, rx: 0.6, c: 0x222222 });
+    for (const [px, pz] of [
+      [1.0, 0.52],
+      [1.0, -0.52],
+      [-1.0, 0.52],
+      [-1.0, -0.52],
+    ])
+      tube(M.metal, [px, 0.5, pz], [px * 0.92, 1.84, pz], 0.02, 0x222222);
+    box(M.plastic, 2.05, 0.05, 1.22, 0, 1.86, 0, { c: 0xf1e6cc });
+    box(M.plastic, 2.0, 0.035, 1.17, 0, 1.895, 0, { c: 0xe2664c });
+    quad(M.pane, [1.0, 1.8, 0.5], [1.0, 1.8, -0.5], [1.06, 0.95, -0.5], [1.06, 0.95, 0.5], {});
+    for (const s of [1, -1])
+      art(ART.label(null, "LOLA'S", P.cream, P.coralDark), 0.5, 0.25, 0.82, 0.62, s * 0.565, {
+        ry: s > 0 ? 0 : Math.PI,
+        name: 'cart_decal',
+      });
+  });
+  col({ type: 'box', x: 12.6, y: 0.95, z: -2.6, hx: 1.2, hy: 0.95, hz: 0.62, ry: 1.4 });
+  anchors.parking.push(
+    { pos: [14.5, 0, 6], heading: Math.PI, kind: 'car' },
+    { pos: [17, 0, 6], heading: Math.PI, kind: 'car' },
+  );
   // string lights: along the porch eave and out to two yard poles
-  function strand(a, b, sag, n) { sag *= 0.8 + R() * 0.7; let prev = a; for (let i = 1; i <= n; i++) { const t = i / n, p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - Math.sin(t * Math.PI) * sag, a[2] + (b[2] - a[2]) * t]; tube(M.rubber, prev, p, 0.006, 0x1a1a1a, 4); if (i < n) { cyl(M.rubber, 0.012, 0.012, 0.035, p[0], p[1] - 0.02, p[2], { c: 0x1a1a1a, seg: 6 }); const dead = R() < 0.09; if (R() > 0.03) sph(dead ? M.plastic : M.bulb, 0.032, p[0], p[1] - 0.065, p[2], { c: dead ? 0x6e6a60 : [0xffffff, 0xffd9a0, 0xffb0a0, 0xa8e8d8][i % 4], ws: 8, hs: 6 }); } prev = p; } }
-  const poleA = [-12.5, 3.6, 10.5], poleB = [13.0, 3.6, 11.5]; for (const p of [poleA, poleB]) { tube(M.wood, [p[0], 0, p[2]], p, 0.065, 0x9a8c78, 6); col({ type: 'cyl', x: p[0], y: 1.8, z: p[2], hh: 1.8, r: 0.08 }); }
-  strand([-4.9, PL - 0.02, 2.68], [1.5, PL - 0.02, 2.68], 0.12, 16); strand([1.5, PL - 0.02, 2.68], [7.9, PL - 0.02, 2.68], 0.12, 16); strand([7.93, PL - 0.02, 2.65], [7.93, PL - 0.02, -7.6], 0.15, 24); strand([-4.9, PL, 2.7], poleA, 0.7, 22); strand([7.9, PL, 2.7], poleB, 0.7, 20); strand(poleA, poleB, 1.3, 46);
-  lights.push({ pos: [-6, 3.0, 7.5], color: 0xffc98a, range: 12, intensity: 40, kind: 'string' }, { pos: [5, 3.0, 9], color: 0xffc98a, range: 12, intensity: 40, kind: 'string' }, { pos: [1.5, 2.6, 3.4], color: 0xffc98a, range: 9, intensity: 30, kind: 'string' });
+  function strand(a, b, sag, n) {
+    sag *= 0.8 + R() * 0.7;
+    let prev = a;
+    for (let i = 1; i <= n; i++) {
+      const t = i / n,
+        p = [
+          a[0] + (b[0] - a[0]) * t,
+          a[1] + (b[1] - a[1]) * t - Math.sin(t * Math.PI) * sag,
+          a[2] + (b[2] - a[2]) * t,
+        ];
+      tube(M.rubber, prev, p, 0.006, 0x1a1a1a, 4);
+      if (i < n) {
+        cyl(M.rubber, 0.012, 0.012, 0.035, p[0], p[1] - 0.02, p[2], { c: 0x1a1a1a, seg: 6 });
+        const dead = R() < 0.09;
+        if (R() > 0.03)
+          sph(dead ? M.plastic : M.bulb, 0.032, p[0], p[1] - 0.065, p[2], {
+            c: dead ? 0x6e6a60 : [0xffffff, 0xffd9a0, 0xffb0a0, 0xa8e8d8][i % 4],
+            ws: 8,
+            hs: 6,
+          });
+      }
+      prev = p;
+    }
+  }
+  const poleA = [-12.5, 3.6, 10.5],
+    poleB = [13.0, 3.6, 11.5];
+  for (const p of [poleA, poleB]) {
+    tube(M.wood, [p[0], 0, p[2]], p, 0.065, 0x9a8c78, 6);
+    col({ type: 'cyl', x: p[0], y: 1.8, z: p[2], hh: 1.8, r: 0.08 });
+  }
+  strand([-4.9, PL - 0.02, 2.68], [1.5, PL - 0.02, 2.68], 0.12, 16);
+  strand([1.5, PL - 0.02, 2.68], [7.9, PL - 0.02, 2.68], 0.12, 16);
+  strand([7.93, PL - 0.02, 2.65], [7.93, PL - 0.02, -7.6], 0.15, 24);
+  strand([-4.9, PL, 2.7], poleA, 0.7, 22);
+  strand([7.9, PL, 2.7], poleB, 0.7, 20);
+  strand(poleA, poleB, 1.3, 46);
+  lights.push(
+    { pos: [-6, 3.0, 7.5], color: 0xffc98a, range: 12, intensity: 40, kind: 'string' },
+    { pos: [5, 3.0, 9], color: 0xffc98a, range: 12, intensity: 40, kind: 'string' },
+    { pos: [1.5, 2.6, 3.4], color: 0xffc98a, range: 9, intensity: 30, kind: 'string' },
+  );
 
   // ================= planting: coral-rock borders, palms, crotons, hibiscus, sea grape =================
-  function rock(x, z, s) { const g = new THREE.IcosahedronGeometry(1, 1), p = g.attributes.position; for (let i = 0; i < p.count; i++) { const X = p.getX(i), Y = p.getY(i), Z = p.getZ(i), h = Math.sin(X * 12.9898 + Y * 78.233 + Z * 37.719 + s * 9) * 43758.5453, k = 0.78 + (h - Math.floor(h)) * 0.42; p.setXYZ(i, X * k, Y * k, Z * k); } g.computeVertexNormals(); scaleUV(g, 2 * s / 0.7, s / 0.7); add(M.rock, g, x, 0.04 + s * 0.25, z, { s: [s * (0.8 + R() * 0.5), s * (0.5 + R() * 0.3), s * (0.8 + R() * 0.5)], ry: R() * 6, c: jit(0xeee8da, 0.1) }); }
-  function border(x0, z0, x1, z1, step = 0.42) { const l = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.round(l / step)); for (let i = 0; i <= n; i++) rock(x0 + (x1 - x0) * i / n + (R() - 0.5) * 0.12, z0 + (z1 - z0) * i / n + (R() - 0.5) * 0.12, 0.17 + R() * 0.14); }
+  function rock(x, z, s) {
+    const g = new THREE.IcosahedronGeometry(1, 1),
+      p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const X = p.getX(i),
+        Y = p.getY(i),
+        Z = p.getZ(i),
+        h = Math.sin(X * 12.9898 + Y * 78.233 + Z * 37.719 + s * 9) * 43758.5453,
+        k = 0.78 + (h - Math.floor(h)) * 0.42;
+      p.setXYZ(i, X * k, Y * k, Z * k);
+    }
+    g.computeVertexNormals();
+    scaleUV(g, (2 * s) / 0.7, s / 0.7);
+    add(M.rock, g, x, 0.04 + s * 0.25, z, {
+      s: [s * (0.8 + R() * 0.5), s * (0.5 + R() * 0.3), s * (0.8 + R() * 0.5)],
+      ry: R() * 6,
+      c: jit(0xeee8da, 0.1),
+    });
+  }
+  function border(x0, z0, x1, z1, step = 0.42) {
+    const l = Math.hypot(x1 - x0, z1 - z0),
+      n = Math.max(1, Math.round(l / step));
+    for (let i = 0; i <= n; i++)
+      rock(
+        x0 + ((x1 - x0) * i) / n + (R() - 0.5) * 0.12,
+        z0 + ((z1 - z0) * i) / n + (R() - 0.5) * 0.12,
+        0.17 + R() * 0.14,
+      );
+  }
   // the VEGETATION track's plants are used when its builder is passed in (opts.vegetation.build(kind, opts) -> Object3D or { group })
-  const vegBuild = (kind, o) => { const V = opts.vegetation; if (!V?.build) return false; try { const res = V.build(kind, o), obj = res?.group || res?.object || res; if (!obj?.isObject3D) return false; obj.position.set(o.x, 0.04, o.z); group.add(obj); return true; } catch (e) { return false; } };
-  function bush(kind, x, z, r, h, n = 9) { if (kind !== 'grass' && vegBuild(kind === 'grape' ? 'sea_grape' : kind, { x, z, radius: r, height: h, seed: Math.floor(R() * 1e6) })) return; for (let i = 0; i < n; i++) { const g = new THREE.PlaneGeometry(r * 1.5, h, 1, 2); g.translate(0, h / 2, 0); const p = g.attributes.position, nr = g.attributes.normal; for (let k = 0; k < p.count; k++) { p.setZ(k, p.getZ(k) + p.getY(k) / h * (R() * 0.2 + 0.1) * h); nr.setXYZ(k, 0, 1, 0.2); } add(M['f_' + kind], g, x + (R() - 0.5) * r * 0.7, 0.04, z + (R() - 0.5) * r * 0.7, { ry: i / n * 6.283 + R(), s: [0.8 + R() * 0.4, 0.8 + R() * 0.4, 1], c: jit(0xffffff, 0.12) }); } }
-  function palm(x, z, h, lx, lz, seed) { if (vegBuild('coconut_palm', { x, z, height: h, lean: [lx, lz], seed })) { col({ type: 'cyl', x, y: 1.5, z, hh: 1.5, r: 0.2 }); return; } const pts = [new V3(x, 0, z), new V3(x + lx * 0.15, h * 0.35, z + lz * 0.15), new V3(x + lx * 0.55, h * 0.7, z + lz * 0.55), new V3(x + lx, h, z + lz)], g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 12, 0.16, 9, false); scaleUV(g, h / 1.0, 1, 0, 0); add(M.bark, g, 0, 0, 0, { c: 0xd8cfc0 }); cyl(M.bark, 0.17, 0.27, 0.5, x, 0.25, z, { c: 0xcfc6b6 }); const cx = x + lx, cz = z + lz;
-    for (let i = 0; i < 17; i++) { const L = 2.9 + R() * 0.9, f = new THREE.PlaneGeometry(L, 1.25, 8, 2), p = f.attributes.position, nr = f.attributes.normal, el = 0.75 - (i / 17) * 1.2 + R() * 0.2; for (let k = 0; k < p.count; k++) { const t = (p.getX(k) + L / 2) / L, zz = p.getZ(k); p.setXYZ(k, t * L, -t * t * L * 0.34 - Math.abs(p.getY(k)) * 0.35, p.getY(k)); nr.setXYZ(k, 0, 1, 0); } add(M.f_frond, f, cx, h - 0.05, cz, { ry: i * 2.4 + R() * 0.5, rz: el, c: jit(i > 13 ? 0xd8c890 : 0xffffff, 0.12) }); }
-    for (let i = 0; i < 5; i++) sph(M.rubber, 0.11, cx + Math.cos(i * 1.3) * 0.2, h - 0.28, cz + Math.sin(i * 1.3) * 0.2, { c: i % 2 ? 0x5a7a2a : 0x7a5a2a }); col({ type: 'cyl', x, y: 1.5, z, hh: 1.5, r: 0.2 }); }
+  const vegBuild = (kind, o) => {
+    const V = opts.vegetation;
+    if (!V?.build) return false;
+    try {
+      const res = V.build(kind, o),
+        obj = res?.group || res?.object || res;
+      if (!obj?.isObject3D) return false;
+      obj.position.set(o.x, 0.04, o.z);
+      group.add(obj);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+  function bush(kind, x, z, r, h, n = 9) {
+    if (
+      kind !== 'grass' &&
+      vegBuild(kind === 'grape' ? 'sea_grape' : kind, {
+        x,
+        z,
+        radius: r,
+        height: h,
+        seed: Math.floor(R() * 1e6),
+      })
+    )
+      return;
+    for (let i = 0; i < n; i++) {
+      const g = new THREE.PlaneGeometry(r * 1.5, h, 1, 2);
+      g.translate(0, h / 2, 0);
+      const p = g.attributes.position,
+        nr = g.attributes.normal;
+      for (let k = 0; k < p.count; k++) {
+        p.setZ(k, p.getZ(k) + (p.getY(k) / h) * (R() * 0.2 + 0.1) * h);
+        nr.setXYZ(k, 0, 1, 0.2);
+      }
+      add(M['f_' + kind], g, x + (R() - 0.5) * r * 0.7, 0.04, z + (R() - 0.5) * r * 0.7, {
+        ry: (i / n) * 6.283 + R(),
+        s: [0.8 + R() * 0.4, 0.8 + R() * 0.4, 1],
+        c: jit(0xffffff, 0.12),
+      });
+    }
+  }
+  function palm(x, z, h, lx, lz, seed) {
+    if (vegBuild('coconut_palm', { x, z, height: h, lean: [lx, lz], seed })) {
+      col({ type: 'cyl', x, y: 1.5, z, hh: 1.5, r: 0.2 });
+      return;
+    }
+    const pts = [
+        new V3(x, 0, z),
+        new V3(x + lx * 0.15, h * 0.35, z + lz * 0.15),
+        new V3(x + lx * 0.55, h * 0.7, z + lz * 0.55),
+        new V3(x + lx, h, z + lz),
+      ],
+      g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 12, 0.16, 9, false);
+    scaleUV(g, h / 1.0, 1, 0, 0);
+    add(M.bark, g, 0, 0, 0, { c: 0xd8cfc0 });
+    cyl(M.bark, 0.17, 0.27, 0.5, x, 0.25, z, { c: 0xcfc6b6 });
+    const cx = x + lx,
+      cz = z + lz;
+    for (let i = 0; i < 17; i++) {
+      const L = 2.9 + R() * 0.9,
+        f = new THREE.PlaneGeometry(L, 1.25, 8, 2),
+        p = f.attributes.position,
+        nr = f.attributes.normal,
+        el = 0.75 - (i / 17) * 1.2 + R() * 0.2;
+      for (let k = 0; k < p.count; k++) {
+        const t = (p.getX(k) + L / 2) / L,
+          zz = p.getZ(k);
+        p.setXYZ(k, t * L, -t * t * L * 0.34 - Math.abs(p.getY(k)) * 0.35, p.getY(k));
+        nr.setXYZ(k, 0, 1, 0);
+      }
+      add(M.f_frond, f, cx, h - 0.05, cz, {
+        ry: i * 2.4 + R() * 0.5,
+        rz: el,
+        c: jit(i > 13 ? 0xd8c890 : 0xffffff, 0.12),
+      });
+    }
+    for (let i = 0; i < 5; i++)
+      sph(M.rubber, 0.11, cx + Math.cos(i * 1.3) * 0.2, h - 0.28, cz + Math.sin(i * 1.3) * 0.2, {
+        c: i % 2 ? 0x5a7a2a : 0x7a5a2a,
+      });
+    col({ type: 'cyl', x, y: 1.5, z, hh: 1.5, r: 0.2 });
+  }
   // beds along the porch front
-  border(-4.7, 3.75, -0.1, 3.75); border(-4.7, 3.75, -4.9, 2.5, 0.5); border(-0.05, 3.7, 0.1, 2.5, 0.5); border(2.95, 3.75, 7.7, 3.75); border(2.9, 3.7, 2.85, 2.5, 0.5); border(7.75, 3.7, 8.2, 2.3, 0.5);
-  for (const [k, x, z, r, h] of [['croton', -4.1, 3.05, 0.6, 1.0], ['hibiscus', -3.0, 3.0, 0.75, 1.35], ['croton', -1.9, 3.1, 0.55, 0.9], ['croton', -0.8, 3.0, 0.6, 1.05], ['hibiscus', 3.6, 3.0, 0.7, 1.3], ['croton', 4.7, 3.1, 0.6, 1.0], ['hibiscus', 5.8, 3.0, 0.75, 1.4], ['croton', 6.9, 3.05, 0.6, 0.95], ['grape', 8.6, 0.6, 1.2, 1.9], ['croton', -5.3, 0.8, 0.6, 1.1], ['hibiscus', -5.6, -1.2, 0.8, 1.5]]) bush(k, x, z, r, h, 10);
+  border(-4.7, 3.75, -0.1, 3.75);
+  border(-4.7, 3.75, -4.9, 2.5, 0.5);
+  border(-0.05, 3.7, 0.1, 2.5, 0.5);
+  border(2.95, 3.75, 7.7, 3.75);
+  border(2.9, 3.7, 2.85, 2.5, 0.5);
+  border(7.75, 3.7, 8.2, 2.3, 0.5);
+  for (const [k, x, z, r, h] of [
+    ['croton', -4.1, 3.05, 0.6, 1.0],
+    ['hibiscus', -3.0, 3.0, 0.75, 1.35],
+    ['croton', -1.9, 3.1, 0.55, 0.9],
+    ['croton', -0.8, 3.0, 0.6, 1.05],
+    ['hibiscus', 3.6, 3.0, 0.7, 1.3],
+    ['croton', 4.7, 3.1, 0.6, 1.0],
+    ['hibiscus', 5.8, 3.0, 0.75, 1.4],
+    ['croton', 6.9, 3.05, 0.6, 0.95],
+    ['grape', 8.6, 0.6, 1.2, 1.9],
+    ['croton', -5.3, 0.8, 0.6, 1.1],
+    ['hibiscus', -5.6, -1.2, 0.8, 1.5],
+  ])
+    bush(k, x, z, r, h, 10);
   // island bed with a palm on the left of the yard, palms and sea grape around the edges
-  for (let a = 0; a < 6.283; a += 0.3) rock(-13.2 + Math.cos(a) * 1.9 + (R() - 0.5) * 0.1, 1.6 + Math.sin(a) * 1.5, 0.2 + R() * 0.15); palm(-13.2, 1.6, 7.6, 1.1, 0.5, 1); bush('croton', -12.3, 2.2, 0.6, 1.0); bush('hibiscus', -14.0, 2.0, 0.7, 1.2); bush('croton', -13.3, 0.6, 0.6, 0.9);
-  palm(-7.0, -4.2, 8.6, -0.6, 0.8, 2); palm(10.6, 13.6, 6.8, 1.2, -0.3, 3); palm(15.2, 1.0, 8.2, 0.5, 1.0, 4); palm(-15.4, 9.5, 7.2, -0.5, -0.6, 5);
-  for (const [x, z] of [[-9.5, -5.5], [-15.5, -2.5], [14.5, -7.0], [10.0, -9.0], [-3.0, -10.0], [4.0, -10.5]]) { bush('grape', x, z, 1.6, 2.6, 12); bush('grape', x + 1.2, z + 0.6, 1.2, 1.9, 9); rock(x + 1.5, z + 1.8, 0.3); }
-  for (let i = 0; i < 70; i++) { const a = R() * 6.283, d = 0.9 + R() * 0.12, x = Math.cos(a) * 19 * d, z = 3.2 + Math.sin(a) * 15.5 * d; if (z > 14.5 && Math.abs(x - 5) < 6) continue; bush('grass', x, z, 0.5, 0.35 + R() * 0.3, 4); if (i % 4 === 0) rock(x + 0.5, z + 0.3, 0.14 + R() * 0.2); }
-  for (let i = 0; i < 26; i++) rock(-16 + R() * 32, -5 + R() * 18, 0.05 + R() * 0.05);   // loose shells and stones in the gravel
+  for (let a = 0; a < 6.283; a += 0.3)
+    rock(-13.2 + Math.cos(a) * 1.9 + (R() - 0.5) * 0.1, 1.6 + Math.sin(a) * 1.5, 0.2 + R() * 0.15);
+  palm(-13.2, 1.6, 7.6, 1.1, 0.5, 1);
+  bush('croton', -12.3, 2.2, 0.6, 1.0);
+  bush('hibiscus', -14.0, 2.0, 0.7, 1.2);
+  bush('croton', -13.3, 0.6, 0.6, 0.9);
+  palm(-7.0, -4.2, 8.6, -0.6, 0.8, 2);
+  palm(10.6, 13.6, 6.8, 1.2, -0.3, 3);
+  palm(15.2, 1.0, 8.2, 0.5, 1.0, 4);
+  palm(-15.4, 9.5, 7.2, -0.5, -0.6, 5);
+  for (const [x, z] of [
+    [-9.5, -5.5],
+    [-15.5, -2.5],
+    [14.5, -7.0],
+    [10.0, -9.0],
+    [-3.0, -10.0],
+    [4.0, -10.5],
+  ]) {
+    bush('grape', x, z, 1.6, 2.6, 12);
+    bush('grape', x + 1.2, z + 0.6, 1.2, 1.9, 9);
+    rock(x + 1.5, z + 1.8, 0.3);
+  }
+  for (let i = 0; i < 70; i++) {
+    const a = R() * 6.283,
+      d = 0.9 + R() * 0.12,
+      x = Math.cos(a) * 19 * d,
+      z = 3.2 + Math.sin(a) * 15.5 * d;
+    if (z > 14.5 && Math.abs(x - 5) < 6) continue;
+    bush('grass', x, z, 0.5, 0.35 + R() * 0.3, 4);
+    if (i % 4 === 0) rock(x + 0.5, z + 0.3, 0.14 + R() * 0.2);
+  }
+  for (let i = 0; i < 26; i++) rock(-16 + R() * 32, -5 + R() * 18, 0.05 + R() * 0.05); // loose shells and stones in the gravel
 
   // overflowing trash: the bag bulges over the rim, cups and cans heaped on top, a tied bag and a greasy box beside the drum
-  at(-5.7, 0.04, 3.9, 0, () => { sph(M.rubber, 0.27, 0, 0.86, 0, { s: [1, 0.55, 1], c: 0x1a1a1c }); for (let i = 0; i < 10; i++) { const a = R() * 6.283, d = R() * 0.2, y = 0.98 + R() * 0.12, lx = Math.cos(a) * d, lz = Math.sin(a) * d; if (i % 3 === 0) cyl(M.plastic, 0.04, 0.03, 0.1, lx, y, lz, { rz: 1.2 + R(), ry: a, c: i % 2 ? 0xe2664c : 0xf4f4f0, seg: 8, open: true }); else if (i % 3 === 1) cyl(M.metal, 0.033, 0.033, 0.12, lx, y, lz, { rz: 1.4, ry: a, s: [0.5, 1, 1], c: [0x1d5873, 0xe2664c, 0xdddddd][i % 3], seg: 8 }); else box(M.paint, 0.16, 0.01, 0.14, lx, y, lz, { rz: R() - 0.5, rx: R() - 0.5, ry: a, c: 0xfbf7ee }); } bottle(0.12, 0.93, -0.08, 1, 0x7a4a1a, 0x1d5873, 1, 0);
-    sph(M.rubber, 0.26, 0.5, 0.2, 0.25, { s: [1, 0.8, 0.9], c: 0x18181a }); cyl(M.rubber, 0.02, 0.07, 0.1, 0.5, 0.43, 0.25, { c: 0x18181a, seg: 6 }); box(M.wood, 0.42, 0.04, 0.42, -0.45, 0.03, 0.4, { ry: 0.5, rz: 0.03, c: 0xc9b089 }); });
+  at(-5.7, 0.04, 3.9, 0, () => {
+    sph(M.rubber, 0.27, 0, 0.86, 0, { s: [1, 0.55, 1], c: 0x1a1a1c });
+    for (let i = 0; i < 10; i++) {
+      const a = R() * 6.283,
+        d = R() * 0.2,
+        y = 0.98 + R() * 0.12,
+        lx = Math.cos(a) * d,
+        lz = Math.sin(a) * d;
+      if (i % 3 === 0)
+        cyl(M.plastic, 0.04, 0.03, 0.1, lx, y, lz, {
+          rz: 1.2 + R(),
+          ry: a,
+          c: i % 2 ? 0xe2664c : 0xf4f4f0,
+          seg: 8,
+          open: true,
+        });
+      else if (i % 3 === 1)
+        cyl(M.metal, 0.033, 0.033, 0.12, lx, y, lz, {
+          rz: 1.4,
+          ry: a,
+          s: [0.5, 1, 1],
+          c: [0x1d5873, 0xe2664c, 0xdddddd][i % 3],
+          seg: 8,
+        });
+      else
+        box(M.paint, 0.16, 0.01, 0.14, lx, y, lz, {
+          rz: R() - 0.5,
+          rx: R() - 0.5,
+          ry: a,
+          c: 0xfbf7ee,
+        });
+    }
+    bottle(0.12, 0.93, -0.08, 1, 0x7a4a1a, 0x1d5873, 1, 0);
+    sph(M.rubber, 0.26, 0.5, 0.2, 0.25, { s: [1, 0.8, 0.9], c: 0x18181a });
+    cyl(M.rubber, 0.02, 0.07, 0.1, 0.5, 0.43, 0.25, { c: 0x18181a, seg: 6 });
+    box(M.wood, 0.42, 0.04, 0.42, -0.45, 0.03, 0.4, { ry: 0.5, rz: 0.03, c: 0xc9b089 });
+  });
   // litter that collects where people sit: bottle caps, butts, crushed cans, napkins, a dropped cup
-  for (const [tx, tz] of [[-7.2, 6.0], [-2.6, 8.8], [3.0, 9.8], [9.2, 9.6], [-10.0, 10.8], [-5.7, 3.9], [1.5, 4.2], [-2.0, 4.4]]) for (let i = 0; i < 9; i++) { const a = R() * 6.283, d = 0.4 + R() * 1.6, lx = tx + Math.cos(a) * d, lz = tz + Math.sin(a) * d, t = R(); if (lz < 3.9 && lx > -5 && lx < 8) continue;
-    if (t < 0.45) cyl(M.metal, 0.0135, 0.0135, 0.006, lx, 0.047, lz, { rx: (R() - 0.5) * 0.5, c: [0xb9442f, 0xc9c2b0, 0x1d5873, 0xd8a94a, 0x8f8a7e][i % 5], seg: 10 });
-    else if (t < 0.75) { cyl(M.paint, 0.004, 0.004, 0.022, lx, 0.046, lz, { rz: 1.5708, ry: a, c: 0xf2efe6, seg: 5 }); cyl(M.paint, 0.0041, 0.0041, 0.011, lx - Math.cos(a) * 0.0165, 0.046, lz + Math.sin(a) * 0.0165, { rz: 1.5708, ry: a, c: 0xd99a4a, seg: 5 }); }
-    else if (t < 0.86) cyl(M.metal, 0.033, 0.033, 0.11, lx, 0.056, lz, { rz: 1.5708, ry: a, s: [0.45, 1, 1], c: [0x1d5873, 0xe2664c, 0xdddddd][i % 3], seg: 8 });
-    else if (t < 0.95) add(M.paint, new THREE.IcosahedronGeometry(0.035, 0), lx, 0.058, lz, { s: [1.2, 0.6, 1], ry: a, c: 0xf6f2e8 });
-    else cyl(M.glass, 0.04, 0.03, 0.11, lx, 0.076, lz, { rz: 1.5708, ry: a, c: 0xffffff, seg: 10, open: true }); }
-  { const w = art(ART.porchWear(), 12.0, 3.0, 1.5, FL + 0.004, 0.75, { rx: -Math.PI / 2, transparent: true, name: 'porch_wear', rough: 0.9 }); w.material.depthWrite = false; w.material.polygonOffset = true; w.material.polygonOffsetFactor = -2; }
+  for (const [tx, tz] of [
+    [-7.2, 6.0],
+    [-2.6, 8.8],
+    [3.0, 9.8],
+    [9.2, 9.6],
+    [-10.0, 10.8],
+    [-5.7, 3.9],
+    [1.5, 4.2],
+    [-2.0, 4.4],
+  ])
+    for (let i = 0; i < 9; i++) {
+      const a = R() * 6.283,
+        d = 0.4 + R() * 1.6,
+        lx = tx + Math.cos(a) * d,
+        lz = tz + Math.sin(a) * d,
+        t = R();
+      if (lz < 3.9 && lx > -5 && lx < 8) continue;
+      if (t < 0.45)
+        cyl(M.metal, 0.0135, 0.0135, 0.006, lx, 0.047, lz, {
+          rx: (R() - 0.5) * 0.5,
+          c: [0xb9442f, 0xc9c2b0, 0x1d5873, 0xd8a94a, 0x8f8a7e][i % 5],
+          seg: 10,
+        });
+      else if (t < 0.75) {
+        cyl(M.paint, 0.004, 0.004, 0.022, lx, 0.046, lz, {
+          rz: 1.5708,
+          ry: a,
+          c: 0xf2efe6,
+          seg: 5,
+        });
+        cyl(
+          M.paint,
+          0.0041,
+          0.0041,
+          0.011,
+          lx - Math.cos(a) * 0.0165,
+          0.046,
+          lz + Math.sin(a) * 0.0165,
+          { rz: 1.5708, ry: a, c: 0xd99a4a, seg: 5 },
+        );
+      } else if (t < 0.86)
+        cyl(M.metal, 0.033, 0.033, 0.11, lx, 0.056, lz, {
+          rz: 1.5708,
+          ry: a,
+          s: [0.45, 1, 1],
+          c: [0x1d5873, 0xe2664c, 0xdddddd][i % 3],
+          seg: 8,
+        });
+      else if (t < 0.95)
+        add(M.paint, new THREE.IcosahedronGeometry(0.035, 0), lx, 0.058, lz, {
+          s: [1.2, 0.6, 1],
+          ry: a,
+          c: 0xf6f2e8,
+        });
+      else
+        cyl(M.glass, 0.04, 0.03, 0.11, lx, 0.076, lz, {
+          rz: 1.5708,
+          ry: a,
+          c: 0xffffff,
+          seg: 10,
+          open: true,
+        });
+    }
+  {
+    const w = art(ART.porchWear(), 12.0, 3.0, 1.5, FL + 0.004, 0.75, {
+      rx: -Math.PI / 2,
+      transparent: true,
+      name: 'porch_wear',
+      rough: 0.9,
+    });
+    w.material.depthWrite = false;
+    w.material.polygonOffset = true;
+    w.material.polygonOffsetFactor = -2;
+  }
   // weeds and grass tufts creeping into the yard at posts, rocks and table legs; two gulls loafing
-  for (const [x, z] of [[-12.5, 10.5], [13.0, 11.5], [-13.5, 14.6], [-5.7, 3.9], [-7.9, 6.2], [-6.5, 5.6], [-3.3, 9.0], [2.3, 9.6], [9.9, 9.4], [-10.7, 10.4], [3.6, 13.4], [11.9, 4.9], [10.2, 4.3], [-9.4, 4.4], [-12.4, 6.3], [13.2, -1.6], [8.4, 2.4], [-5.2, 2.6], [0.2, 3.4], [2.9, 3.6]]) { bush('grass', x + (R() - 0.5) * 0.5, z + (R() - 0.5) * 0.5, 0.4, 0.28 + R() * 0.25, 4); if (R() < 0.5) bush('grass', x + (R() - 0.5) * 1.4, z + (R() - 0.5) * 1.4, 0.3, 0.2 + R() * 0.15, 3); }
-  function gull(x, y, z, ry) { at(x, y, z, ry, () => { sph(M.plastic, 0.1, 0, 0.17, 0, { s: [0.8, 0.75, 1.7], c: 0xf6f6f2 }); sph(M.plastic, 0.1, 0, 0.2, -0.03, { s: [0.84, 0.55, 1.5], c: 0x9aa2a8 }); sph(M.plastic, 0.052, 0, 0.29, 0.15, { c: 0xf6f6f2 }); cyl(M.plastic, 0.004, 0.016, 0.07, 0, 0.28, 0.22, { rx: 1.5708, c: 0xe8b020, seg: 6 }); box(M.plastic, 0.07, 0.012, 0.1, 0, 0.2, -0.2, { c: 0x2a2a2a }); for (const s of [-0.03, 0.03]) tube(M.plastic, [s, 0.1, 0], [s, 0, 0.01], 0.006, 0xe89a30, 4); for (const s of [-1, 1]) sph(M.rubber, 0.008, s * 0.035, 0.305, 0.18, { c: 0x111111, ws: 5, hs: 4 }); }); }
-  if (opts.gulls !== false) { gull(-4.4, RIDGE + 0.17, ZC, 0.9); gull(13.0, 3.6, 11.5, -2.2); }
+  for (const [x, z] of [
+    [-12.5, 10.5],
+    [13.0, 11.5],
+    [-13.5, 14.6],
+    [-5.7, 3.9],
+    [-7.9, 6.2],
+    [-6.5, 5.6],
+    [-3.3, 9.0],
+    [2.3, 9.6],
+    [9.9, 9.4],
+    [-10.7, 10.4],
+    [3.6, 13.4],
+    [11.9, 4.9],
+    [10.2, 4.3],
+    [-9.4, 4.4],
+    [-12.4, 6.3],
+    [13.2, -1.6],
+    [8.4, 2.4],
+    [-5.2, 2.6],
+    [0.2, 3.4],
+    [2.9, 3.6],
+  ]) {
+    bush('grass', x + (R() - 0.5) * 0.5, z + (R() - 0.5) * 0.5, 0.4, 0.28 + R() * 0.25, 4);
+    if (R() < 0.5)
+      bush('grass', x + (R() - 0.5) * 1.4, z + (R() - 0.5) * 1.4, 0.3, 0.2 + R() * 0.15, 3);
+  }
+  function gull(x, y, z, ry) {
+    at(x, y, z, ry, () => {
+      sph(M.plastic, 0.1, 0, 0.17, 0, { s: [0.8, 0.75, 1.7], c: 0xf6f6f2 });
+      sph(M.plastic, 0.1, 0, 0.2, -0.03, { s: [0.84, 0.55, 1.5], c: 0x9aa2a8 });
+      sph(M.plastic, 0.052, 0, 0.29, 0.15, { c: 0xf6f6f2 });
+      cyl(M.plastic, 0.004, 0.016, 0.07, 0, 0.28, 0.22, { rx: 1.5708, c: 0xe8b020, seg: 6 });
+      box(M.plastic, 0.07, 0.012, 0.1, 0, 0.2, -0.2, { c: 0x2a2a2a });
+      for (const s of [-0.03, 0.03]) tube(M.plastic, [s, 0.1, 0], [s, 0, 0.01], 0.006, 0xe89a30, 4);
+      for (const s of [-1, 1])
+        sph(M.rubber, 0.008, s * 0.035, 0.305, 0.18, { c: 0x111111, ws: 5, hs: 4 });
+    });
+  }
+  if (opts.gulls !== false) {
+    gull(-4.4, RIDGE + 0.17, ZC, 0.9);
+    gull(13.0, 3.6, 11.5, -2.2);
+  }
 
   // ================= flag (animated) =================
-  tube(M.metal, [-4.62, FL, 2.32], [-4.62, 5.6, 2.32], 0.022, 0xd8d8d8, 8); sph(M.metal, 0.045, -4.62, 5.62, 2.32, { c: 0xd8a94a });
-  const flagGeo = new THREE.PlaneGeometry(1.35, 0.84, 14, 6); flagGeo.translate(-0.675, 0, 0); const flag = art(ART.flag(), 0, 0, -4.64, 5.1, 2.32, { geo: flagGeo, side: THREE.DoubleSide, name: 'flag', cast: true, rough: 0.9, alphaTest: 0.5 }); const flagBase = flagGeo.attributes.position.array.slice();
+  tube(M.metal, [-4.62, FL, 2.32], [-4.62, 5.6, 2.32], 0.022, 0xd8d8d8, 8);
+  sph(M.metal, 0.045, -4.62, 5.62, 2.32, { c: 0xd8a94a });
+  const flagGeo = new THREE.PlaneGeometry(1.35, 0.84, 14, 6);
+  flagGeo.translate(-0.675, 0, 0);
+  const flag = art(ART.flag(), 0, 0, -4.64, 5.1, 2.32, {
+    geo: flagGeo,
+    side: THREE.DoubleSide,
+    name: 'flag',
+    cast: true,
+    rough: 0.9,
+    alphaTest: 0.5,
+  });
+  const flagBase = flagGeo.attributes.position.array.slice();
 
   // dancing and standing spots in the yard
-  [[5.2, 5.4, 3.3], [6.6, 6.2, 3.6], [4.4, 6.8, 2.6]].forEach(([x, z, h], i) => anchors.patrons.push({ id: 'dance' + i, pos: [x, 0.04, z], heading: h, pose: ['dance_sway', 'dance_twirl', 'dance_two_step'][i] }));
-  anchors.patrons.push({ id: 'chat0', pos: [0.6, 0.04, 4.6], heading: 1.4, pose: 'stand_talk' }, { id: 'chat1', pos: [1.7, 0.04, 4.9], heading: -1.6, pose: 'stand_laugh_drink' }, { id: 'steps_sit', pos: [2.3, 0.3, 2.9], heading: 0, pose: 'sit_step', seat: true });
+  [
+    [5.2, 5.4, 3.3],
+    [6.6, 6.2, 3.6],
+    [4.4, 6.8, 2.6],
+  ].forEach(([x, z, h], i) =>
+    anchors.patrons.push({
+      id: 'dance' + i,
+      pos: [x, 0.04, z],
+      heading: h,
+      pose: ['dance_sway', 'dance_twirl', 'dance_two_step'][i],
+    }),
+  );
+  anchors.patrons.push(
+    { id: 'chat0', pos: [0.6, 0.04, 4.6], heading: 1.4, pose: 'stand_talk' },
+    { id: 'chat1', pos: [1.7, 0.04, 4.9], heading: -1.6, pose: 'stand_laugh_drink' },
+    { id: 'steps_sit', pos: [2.3, 0.3, 2.9], heading: 0, pose: 'sit_step', seat: true },
+  );
 
   flush(group);
-  function beerNames() { return [brandBeer?.name?.replace(/ Co\.?$/, '') || 'Tern Key Lager', (brandRum?.name || 'Ron Marinero') + ' & ' + (brandCola?.name || 'Zafra')]; }
+  function beerNames() {
+    return [
+      brandBeer?.name?.replace(/ Co\.?$/, '') || 'Tern Key Lager',
+      (brandRum?.name || 'Ron Marinero') + ' & ' + (brandCola?.name || 'Zafra'),
+    ];
+  }
 
   // ---- runtime ----
   let time = 0;
   function update(dt, ctx = {}) {
-    time += dt; const tod = ctx.timeOfDay, night = ctx.night ?? (tod == null ? 0 : (tod < 6 || tod > 19.2 ? 1 : tod > 18.2 ? (tod - 18.2) : tod < 7 ? 7 - tod : 0));
-    for (const [m, d, n] of nightMats) m.emissiveIntensity = d + (n - d) * night * (m.name ? 1 : 0.92 + 0.08 * Math.sin(time * 37 + d * 9));
+    time += dt;
+    const tod = ctx.timeOfDay,
+      night =
+        ctx.night ??
+        (tod == null
+          ? 0
+          : tod < 6 || tod > 19.2
+            ? 1
+            : tod > 18.2
+              ? tod - 18.2
+              : tod < 7
+                ? 7 - tod
+                : 0);
+    for (const [m, d, n] of nightMats)
+      m.emissiveIntensity =
+        d + (n - d) * night * (m.name ? 1 : 0.92 + 0.08 * Math.sin(time * 37 + d * 9));
     for (const [r, sp] of spinners) r.rotation.y += sp * dt;
-    const p = flagGeo.attributes.position, w = ctx.wind ?? 1, gust = Math.max(0.12, Math.min(1.3, w * (0.62 + 0.38 * Math.sin(time * 0.61) * Math.sin(time * 0.23 + 1.3) + 0.2 * Math.sin(time * 1.7))));
-    for (let i = 0; i < p.count; i++) { const x = flagBase[i * 3], y = flagBase[i * 3 + 1], k = -x / 1.35; p.setZ(i, (Math.sin(x * 5.5 + time * 5.2 * w) * 0.1 + Math.sin(x * 11 + y * 4 + time * 7.3) * 0.03 + Math.sin(x * 2.1 + y * 3 + time * 3.1) * 0.06) * k * (0.4 + gust)); p.setY(i, y - k * k * (0.08 + (1.3 - gust) * 0.2) + Math.sin(time * 2.2 + x * 3) * 0.02 * k); p.setX(i, x + k * k * (1.3 - gust) * 0.12); } p.needsUpdate = true; flagGeo.computeVertexNormals();
+    const p = flagGeo.attributes.position,
+      w = ctx.wind ?? 1,
+      gust = Math.max(
+        0.12,
+        Math.min(
+          1.3,
+          w *
+            (0.62 +
+              0.38 * Math.sin(time * 0.61) * Math.sin(time * 0.23 + 1.3) +
+              0.2 * Math.sin(time * 1.7)),
+        ),
+      );
+    for (let i = 0; i < p.count; i++) {
+      const x = flagBase[i * 3],
+        y = flagBase[i * 3 + 1],
+        k = -x / 1.35;
+      p.setZ(
+        i,
+        (Math.sin(x * 5.5 + time * 5.2 * w) * 0.1 +
+          Math.sin(x * 11 + y * 4 + time * 7.3) * 0.03 +
+          Math.sin(x * 2.1 + y * 3 + time * 3.1) * 0.06) *
+          k *
+          (0.4 + gust),
+      );
+      p.setY(i, y - k * k * (0.08 + (1.3 - gust) * 0.2) + Math.sin(time * 2.2 + x * 3) * 0.02 * k);
+      p.setX(i, x + k * k * (1.3 - gust) * 0.12);
+    }
+    p.needsUpdate = true;
+    flagGeo.computeVertexNormals();
     out.night = night;
   }
-  function stats() { let tris = 0, meshes = 0; group.traverse((o) => { if (o.isMesh) { meshes++; tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } }); return { triangles: Math.round(tris), drawCalls: meshes, colliders: colliders.length, patrons: anchors.patrons.length, staff: anchors.staff.length, lights: lights.length }; }
-  function dispose() { group.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); for (const k of ['map', 'normalMap', 'roughnessMap', 'emissiveMap']) o.material[k]?.dispose?.(); o.material.dispose(); } }); }
+  function stats() {
+    let tris = 0,
+      meshes = 0;
+    group.traverse((o) => {
+      if (o.isMesh) {
+        meshes++;
+        tris +=
+          (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
+      }
+    });
+    return {
+      triangles: Math.round(tris),
+      drawCalls: meshes,
+      colliders: colliders.length,
+      patrons: anchors.patrons.length,
+      staff: anchors.staff.length,
+      lights: lights.length,
+    };
+  }
+  function dispose() {
+    group.traverse((o) => {
+      if (o.isMesh) {
+        o.geometry.dispose();
+        for (const k of ['map', 'normalMap', 'roughnessMap', 'emissiveMap'])
+          o.material[k]?.dispose?.();
+        o.material.dispose();
+      }
+    });
+  }
   // camera hull (perf pass, track: houses): the game's camera ray tests this group every frame (playtest P2 roofs). A
   // low-poly hull (both roofs + the collider boxes) answers it; it is never drawn (material.visible = false, no draw call)
   // and every other mesh skips raycasts, including meshes added later (vegetation, GLTF) on the next hull sweep.
   {
-    const EZh = 3.72, EYh = RIDGE - PITCH * EZh + 0.07, RXh = 4.98, quads = [
-      [[-RXh, RIDGE + 0.07, ZC], [RXh, RIDGE + 0.07, ZC], [RXh, EYh, ZC + EZh], [-RXh, EYh, ZC + EZh]], [[RXh, RIDGE + 0.07, ZC], [-RXh, RIDGE + 0.07, ZC], [-RXh, EYh, ZC - EZh], [RXh, EYh, ZC - EZh]],
-      [[-4.95, PH, -0.75], [4.5, PH, -0.75], [7.9, PL, 2.65], [-4.95, PL, 2.65]], [[4.5, PH, -0.75], [4.5, PH, -7.7], [7.9, PL, -7.7], [7.9, PL, 2.65]]];
-    const pos = []; for (const [a, b2, c, d] of quads) pos.push(...a, ...b2, ...c, ...a, ...c, ...d);
-    const parts = [new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))];
-    for (const c of colliders) { const g = c.type === 'cyl' ? new THREE.BoxGeometry(c.r * 2, c.hh * 2, c.r * 2) : new THREE.BoxGeometry(c.hx * 2, c.hy * 2, c.hz * 2); g.deleteAttribute('normal'); g.deleteAttribute('uv'); g.rotateY(c.ry || 0); g.translate(c.x, c.y, c.z); parts.push(g.toNonIndexed()); }
-    const hullGeo = mergeGeometries(parts, false); for (const g of parts) g.dispose();
-    const hull = new THREE.Mesh(hullGeo, new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })); hull.name = 'keysBar_cameraHull'; hull.frustumCulled = false; group.add(hull);
-    const noRay = () => {}; const sweep = () => group.traverse((o) => { if ((o.isMesh || o.isInstancedMesh || o.isPoints || o.isLine) && o !== hull && o.raycast !== noRay) o.raycast = noRay; });
-    sweep(); const u0 = update; update = (dt, c) => { if ((update.t = (update.t || 0) + dt) > 2) { update.t = 0; sweep(); } return u0(dt, c); };
+    const EZh = 3.72,
+      EYh = RIDGE - PITCH * EZh + 0.07,
+      RXh = 4.98,
+      quads = [
+        [
+          [-RXh, RIDGE + 0.07, ZC],
+          [RXh, RIDGE + 0.07, ZC],
+          [RXh, EYh, ZC + EZh],
+          [-RXh, EYh, ZC + EZh],
+        ],
+        [
+          [RXh, RIDGE + 0.07, ZC],
+          [-RXh, RIDGE + 0.07, ZC],
+          [-RXh, EYh, ZC - EZh],
+          [RXh, EYh, ZC - EZh],
+        ],
+        [
+          [-4.95, PH, -0.75],
+          [4.5, PH, -0.75],
+          [7.9, PL, 2.65],
+          [-4.95, PL, 2.65],
+        ],
+        [
+          [4.5, PH, -0.75],
+          [4.5, PH, -7.7],
+          [7.9, PL, -7.7],
+          [7.9, PL, 2.65],
+        ],
+      ];
+    const pos = [];
+    for (const [a, b2, c, d] of quads) pos.push(...a, ...b2, ...c, ...a, ...c, ...d);
+    const parts = [
+      new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)),
+    ];
+    for (const c of colliders) {
+      const g =
+        c.type === 'cyl'
+          ? new THREE.BoxGeometry(c.r * 2, c.hh * 2, c.r * 2)
+          : new THREE.BoxGeometry(c.hx * 2, c.hy * 2, c.hz * 2);
+      g.deleteAttribute('normal');
+      g.deleteAttribute('uv');
+      g.rotateY(c.ry || 0);
+      g.translate(c.x, c.y, c.z);
+      parts.push(g.toNonIndexed());
+    }
+    const hullGeo = mergeGeometries(parts, false);
+    for (const g of parts) g.dispose();
+    const hull = new THREE.Mesh(
+      hullGeo,
+      new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide }),
+    );
+    hull.name = 'keysBar_cameraHull';
+    hull.frustumCulled = false;
+    group.add(hull);
+    const noRay = () => {};
+    const sweep = () =>
+      group.traverse((o) => {
+        if (
+          (o.isMesh || o.isInstancedMesh || o.isPoints || o.isLine) &&
+          o !== hull &&
+          o.raycast !== noRay
+        )
+          o.raycast = noRay;
+      });
+    sweep();
+    const u0 = update;
+    update = (dt, c) => {
+      if ((update.t = (update.t || 0) + dt) > 2) {
+        update.t = 0;
+        sweep();
+      }
+      return u0(dt, c);
+    };
   }
-  const out = { group, colliders, interact, lights, anchors, update, ready, stats, dispose, night: 0, name: ART.BAR.name, brandsUsed: [brandBeer?.id, brandRum?.id, brandCola?.id].filter(Boolean) };
+  const out = {
+    group,
+    colliders,
+    interact,
+    lights,
+    anchors,
+    update,
+    ready,
+    stats,
+    dispose,
+    night: 0,
+    name: ART.BAR.name,
+    brandsUsed: [brandBeer?.id, brandRum?.id, brandCola?.id].filter(Boolean),
+  };
   update(0, { timeOfDay: opts.timeOfDay ?? 12 });
   return out;
 }

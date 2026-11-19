@@ -33,7 +33,9 @@ export function quickTitleEnabled() {
     if (p.get('quick') === '0' || (!QUICK_DEFAULT && p.get('quick') !== '1')) return false;
     const forced = p.get('menu');
     return forced === '1' || (forced !== '0' && !p.has('nomenu') && !navigator.webdriver);
-  } catch (e) { return false; }
+  } catch (e) {
+    return false;
+  }
 }
 
 // Continue is offered when a save exists (same keys the save system writes: save.<slot>.manual|auto)
@@ -43,23 +45,50 @@ async function hasSave() {
     if (typeof indexedDB !== 'undefined') {
       const keys = await new Promise((res) => {
         const rq = indexedDB.open('port-solana-v2', 1);
-        rq.onupgradeneeded = () => { try { rq.result.createObjectStore('kv'); } catch (e) { /* */ } };
+        rq.onupgradeneeded = () => {
+          try {
+            rq.result.createObjectStore('kv');
+          } catch (e) {
+            /* */
+          }
+        };
         rq.onerror = () => res([]);
         rq.onsuccess = () => {
           const db = rq.result;
-          try { const t = db.transaction('kv', 'readonly').objectStore('kv').getAllKeys(); t.onsuccess = () => { res(t.result || []); db.close(); }; t.onerror = () => { res([]); db.close(); }; } catch (e) { res([]); db.close(); }
+          try {
+            const t = db.transaction('kv', 'readonly').objectStore('kv').getAllKeys();
+            t.onsuccess = () => {
+              res(t.result || []);
+              db.close();
+            };
+            t.onerror = () => {
+              res([]);
+              db.close();
+            };
+          } catch (e) {
+            res([]);
+            db.close();
+          }
         };
       });
       if (keys.some((k) => /^save\.[^.]+\.(manual|auto)(\.bak)?$/.test(k))) return true;
     }
-    for (let i = 0; i < localStorage.length; i++) if (/^ps2:save\.[^.]+\.(manual|auto)/.test(localStorage.key(i) || '')) return true;
-  } catch (e) { /* */ }
+    for (let i = 0; i < localStorage.length; i++)
+      if (/^ps2:save\.[^.]+\.(manual|auto)/.test(localStorage.key(i) || '')) return true;
+  } catch (e) {
+    /* */
+  }
   return false;
 }
 
 export function installQuickTitle() {
   if (document.querySelector('.wl-early')) return null;
-  if (!document.getElementById('wl-css')) { const st = document.createElement('style'); st.id = 'wl-css'; st.textContent = CSS; document.head.appendChild(st); }
+  if (!document.getElementById('wl-css')) {
+    const st = document.createElement('style');
+    st.id = 'wl-css';
+    st.textContent = CSS;
+    document.head.appendChild(st);
+  }
   const art = new URL('assets/ui/keyart_loading.webp', document.baseURI).href;
   const wrap = document.createElement('div');
   wrap.className = 'ps-ui wl-early';
@@ -74,12 +103,22 @@ export function installQuickTitle() {
       <div class="pm-foot"><span class="pm-ver">v${VERSION} · ${BRAND.coords}</span><div class="pm-hints ps-hints"><span>Enter Start</span></div></div>
     </div>`;
   document.body.appendChild(wrap);
-  const root = wrap.querySelector('.pm'), $ = (s) => root.querySelector(s);
-  const menu = $('.pm-menu'), press = $('.pm-press'), wait = $('.wl-wait'), hints = $('.pm-hints');
+  const root = wrap.querySelector('.pm'),
+    $ = (s) => root.querySelector(s);
+  const menu = $('.pm-menu'),
+    press = $('.pm-press'),
+    wait = $('.wl-wait'),
+    hints = $('.pm-hints');
   const L = document.getElementById('loading');
   // the key art is painted before anything else: preloaded by index.html, so this is usually instant
   const img = new Image();
-  img.onload = img.onerror = () => { $('.pm-titleart').style.backgroundImage = `url('${art}')`; requestAnimationFrame(() => { root.classList.add('in', 'ready'); if (L) L.style.visibility = 'hidden'; }); };
+  img.onload = img.onerror = () => {
+    $('.pm-titleart').style.backgroundImage = `url('${art}')`;
+    requestAnimationFrame(() => {
+      root.classList.add('in', 'ready');
+      if (L) L.style.visibility = 'hidden';
+    });
+  };
   img.src = art;
 
   const st = { screen: 'attract', items: [], focus: 0, chosen: null, load: null, done: false };
@@ -88,10 +127,22 @@ export function installQuickTitle() {
   const msg = () => document.getElementById('loadmsg')?.textContent || '';
 
   function render() {
-    menu.innerHTML = st.items.map((it, i) => `<button class="pm-item${i === st.focus ? ' is-focus' : ''}" data-i="${i}" style="--i:${i}">
-      <span class="pm-idx">${String(i + 1).padStart(2, '0')}</span><span class="pm-lab">${it.label}</span><span class="pm-desc">${it.sub}</span></button>`).join('');
+    menu.innerHTML = st.items
+      .map(
+        (
+          it,
+          i,
+        ) => `<button class="pm-item${i === st.focus ? ' is-focus' : ''}" data-i="${i}" style="--i:${i}">
+      <span class="pm-idx">${String(i + 1).padStart(2, '0')}</span><span class="pm-lab">${it.label}</span><span class="pm-desc">${it.sub}</span></button>`,
+      )
+      .join('');
   }
-  function setFocus(i) { st.focus = (i + st.items.length) % st.items.length; menu.querySelectorAll('.pm-item').forEach((b, k) => b.classList.toggle('is-focus', k === st.focus)); }
+  function setFocus(i) {
+    st.focus = (i + st.items.length) % st.items.length;
+    menu
+      .querySelectorAll('.pm-item')
+      .forEach((b, k) => b.classList.toggle('is-focus', k === st.focus));
+  }
   async function openMenu() {
     if (st.screen !== 'attract') return;
     st.screen = 'menu';
@@ -99,25 +150,35 @@ export function installQuickTitle() {
     const save = await hasSave();
     st.items = [
       save && { id: 'continue', label: 'Continue', sub: 'Pick up where you left off' },
-      { id: 'new', label: 'New Game', sub: save ? 'Start over in a fresh slot. Your other saves stay.' : 'Wake up in the Keys' },
+      {
+        id: 'new',
+        label: 'New Game',
+        sub: save ? 'Start over in a fresh slot. Your other saves stay.' : 'Wake up in the Keys',
+      },
       { id: 'online', label: 'Online', sub: 'Join a friend’s session' },
       { id: 'wardrobe', label: 'Wardrobe', sub: 'Dress Nico' },
       { id: 'settings', label: 'Settings', sub: 'Graphics, audio, controls, display' },
       { id: 'credits', label: 'Credits', sub: 'Who made this, and what with' },
     ].filter(Boolean);
-    st.focus = 0; render();
-    menu.hidden = false; root.classList.add('menu-on');
+    st.focus = 0;
+    render();
+    menu.hidden = false;
+    root.classList.add('menu-on');
     hints.innerHTML = '';
   }
   function choose(i) {
-    const it = st.items[i]; if (!it || st.chosen) return;
+    const it = st.items[i];
+    if (!it || st.chosen) return;
     st.chosen = it.id;
     if (it.id === 'new' || it.id === 'continue') {
       // into the game: the loading screen right away, fed with the real boot progress
       root.classList.add('leaving');
       st.load = createLoadScreen({ mount: wrap });
       st.load.el.style.position = 'absolute';
-      st.load.set(Math.min(60, pct() * 0.6), it.id === 'continue' ? 'Loading your save' : 'Starting a new game');
+      st.load.set(
+        Math.min(60, pct() * 0.6),
+        it.id === 'continue' ? 'Loading your save' : 'Starting a new game',
+      );
     } else {
       // the other screens need the engine: mark the item, it opens the moment the game is ready
       menu.querySelectorAll('.pm-item')[i]?.classList.add('wl-busy');
@@ -130,47 +191,102 @@ export function installQuickTitle() {
     if (e.type !== 'keydown' || e.repeat) return;
     if (/^F\d+$/.test(e.code)) return;
     e.preventDefault();
-    if (st.screen === 'attract') { openMenu(); return; }
+    if (st.screen === 'attract') {
+      openMenu();
+      return;
+    }
     if (st.chosen) return;
     if (e.code === 'ArrowDown' || e.code === 'KeyS') setFocus(st.focus + 1);
     else if (e.code === 'ArrowUp' || e.code === 'KeyW') setFocus(st.focus - 1);
     else if (e.code === 'Enter' || e.code === 'Space' || e.code === 'NumpadEnter') choose(st.focus);
   };
-  addEventListener('keydown', onKey, true); addEventListener('keyup', onKey, true);
-  wrap.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (st.screen === 'attract') openMenu(); });
-  menu.addEventListener('pointermove', (e) => { const b = e.target.closest('.pm-item'); if (b && !st.chosen) setFocus(+b.dataset.i); });
-  menu.addEventListener('click', (e) => { const b = e.target.closest('.pm-item'); if (b) choose(+b.dataset.i); });
+  addEventListener('keydown', onKey, true);
+  addEventListener('keyup', onKey, true);
+  wrap.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    if (st.screen === 'attract') openMenu();
+  });
+  menu.addEventListener('pointermove', (e) => {
+    const b = e.target.closest('.pm-item');
+    if (b && !st.chosen) setFocus(+b.dataset.i);
+  });
+  menu.addEventListener('click', (e) => {
+    const b = e.target.closest('.pm-item');
+    if (b) choose(+b.dataset.i);
+  });
 
   // progress + hand-over
   const tick = setInterval(() => {
     const m = msg();
-    if (/^ERROR/.test(m)) { finish(true); return; } // the boot failed: show its error screen
+    if (/^ERROR/.test(m)) {
+      finish(true);
+      return;
+    } // the boot failed: show its error screen
     const p = pct();
-    if (st.load) st.load.set(Math.min(60, p * 0.6), p < 100 ? (m ? (m === m.toUpperCase() ? m.charAt(0) + m.slice(1).toLowerCase() : m) : 'Loading') : 'Starting');
-    else { wait.textContent = p < 100 ? `Loading the world  ${Math.floor(p)}%` : ''; wait.classList.toggle('show', st.screen !== 'attract' || p > 3); }
-    const g = window.game, q = g?.frontEnd?.quick;
+    if (st.load)
+      st.load.set(
+        Math.min(60, p * 0.6),
+        p < 100
+          ? m
+            ? m === m.toUpperCase()
+              ? m.charAt(0) + m.slice(1).toLowerCase()
+              : m
+            : 'Loading'
+          : 'Starting',
+      );
+    else {
+      wait.textContent = p < 100 ? `Loading the world  ${Math.floor(p)}%` : '';
+      wait.classList.toggle('show', st.screen !== 'attract' || p > 3);
+    }
+    const g = window.game,
+      q = g?.frontEnd?.quick;
     if (g?.ready && (q || !g.frontEnd?.active)) handOver(g, q);
   }, 120);
 
   let handing = false;
   async function handOver(g, q) {
-    if (handing) return; handing = true;
+    if (handing) return;
+    handing = true;
     try {
       if (q) {
-        if (st.chosen && (st.chosen === 'new' || st.chosen === 'continue')) { q.choose(st.chosen, { from: 60 }); await new Promise((r) => setTimeout(r, 900)); }
-        else if (st.screen === 'menu') { await q.openMenu(); q.focus(st.items[st.focus]?.id); if (st.chosen) q.choose(st.chosen); }
+        if (st.chosen && (st.chosen === 'new' || st.chosen === 'continue')) {
+          q.choose(st.chosen, { from: 60 });
+          await new Promise((r) => setTimeout(r, 900));
+        } else if (st.screen === 'menu') {
+          await q.openMenu();
+          q.focus(st.items[st.focus]?.id);
+          if (st.chosen) q.choose(st.chosen);
+        }
       }
-    } catch (e) { console.warn('[quickTitle] hand-over', e); }
+    } catch (e) {
+      console.warn('[quickTitle] hand-over', e);
+    }
     finish(false);
   }
   function finish(error) {
     if (st.done) return;
-    st.done = true; clearInterval(tick);
-    removeEventListener('keydown', onKey, true); removeEventListener('keyup', onKey, true);
+    st.done = true;
+    clearInterval(tick);
+    removeEventListener('keydown', onKey, true);
+    removeEventListener('keyup', onKey, true);
     if (L) L.style.visibility = '';
-    if (error) { wrap.remove(); return; }
-    wrap.classList.add('out'); wrap.style.transition = 'opacity .4s ease'; wrap.style.opacity = '0'; wrap.style.pointerEvents = 'none';
-    setTimeout(() => { try { st.load?.close(); } catch (e) { /* */ } wrap.style.display = 'none'; wrap.remove(); }, 450);
+    if (error) {
+      wrap.remove();
+      return;
+    }
+    wrap.classList.add('out');
+    wrap.style.transition = 'opacity .4s ease';
+    wrap.style.opacity = '0';
+    wrap.style.pointerEvents = 'none';
+    setTimeout(() => {
+      try {
+        st.load?.close();
+      } catch (e) {
+        /* */
+      }
+      wrap.style.display = 'none';
+      wrap.remove();
+    }, 450);
   }
   return st;
 }

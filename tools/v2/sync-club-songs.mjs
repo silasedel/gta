@@ -16,11 +16,12 @@ const fromIdx = args.indexOf('--from');
 const FROM = fromIdx >= 0 ? args[fromIdx + 1] : path.join(DEST, 'originals');
 const MATCH = /^(Club Song \d+.*|ES_.+)\.mp3(\.mp3)?$/i;
 
-const slug = (name) => name
-  .replace(/(\.mp3)+$/i, '')
-  .toLowerCase()
-  .replace(/[^a-z0-9]+/g, '_')
-  .replace(/^_+|_+$/g, '') + '.mp3';
+const slug = (name) =>
+  name
+    .replace(/(\.mp3)+$/i, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') + '.mp3';
 
 fs.mkdirSync(DEST, { recursive: true });
 const srcMapPath = path.join(DEST, 'sources.json');
@@ -44,7 +45,15 @@ fs.writeFileSync(srcMapPath, JSON.stringify(srcMap, null, 1));
 console.log(`${copied} new file(s); ${Object.keys(srcMap).length} in the club library`);
 
 const py = process.env.PYTHON || 'python3';
-const r = spawnSync(py, [path.join(ROOT, 'tools/v2/club_analyze.py'), DEST, ...(args.includes('--force') ? ['--force'] : [])], { stdio: 'inherit' });
+const r = spawnSync(
+  py,
+  [
+    path.join(ROOT, 'tools/v2/club_analyze.py'),
+    DEST,
+    ...(args.includes('--force') ? ['--force'] : []),
+  ],
+  { stdio: 'inherit' },
+);
 if (r.status !== 0) {
   console.error('analysis failed (needs python3 with numpy + scipy, and ffmpeg)');
   process.exit(1);

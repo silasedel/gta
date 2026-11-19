@@ -16,13 +16,35 @@ export function installMatrixSkip() {
   P._psMatrixSkip = true;
   P.updateMatrixWorld = function updateMatrixWorld(force) {
     if (this.matrixAutoUpdate) {
-      const p = this.position, q = this.quaternion, s = this.scale;
+      const p = this.position,
+        q = this.quaternion,
+        s = this.scale;
       let c = this._psMC;
-      if (c === undefined || this._psMP !== this.parent ||
-          c[0] !== p.x || c[1] !== p.y || c[2] !== p.z || c[3] !== q._x || c[4] !== q._y || c[5] !== q._z || c[6] !== q._w ||
-          c[7] !== s.x || c[8] !== s.y || c[9] !== s.z) {
+      if (
+        c === undefined ||
+        this._psMP !== this.parent ||
+        c[0] !== p.x ||
+        c[1] !== p.y ||
+        c[2] !== p.z ||
+        c[3] !== q._x ||
+        c[4] !== q._y ||
+        c[5] !== q._z ||
+        c[6] !== q._w ||
+        c[7] !== s.x ||
+        c[8] !== s.y ||
+        c[9] !== s.z
+      ) {
         if (c === undefined) c = this._psMC = new Float64Array(10);
-        c[0] = p.x; c[1] = p.y; c[2] = p.z; c[3] = q._x; c[4] = q._y; c[5] = q._z; c[6] = q._w; c[7] = s.x; c[8] = s.y; c[9] = s.z;
+        c[0] = p.x;
+        c[1] = p.y;
+        c[2] = p.z;
+        c[3] = q._x;
+        c[4] = q._y;
+        c[5] = q._z;
+        c[6] = q._w;
+        c[7] = s.x;
+        c[8] = s.y;
+        c[9] = s.z;
         this._psMP = this.parent;
         this.updateMatrix();
       }

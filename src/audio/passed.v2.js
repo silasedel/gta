@@ -11,12 +11,22 @@ const URL_ = BASE + 'assets/audio/stingers/mission_passed.ogg';
 const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
 
 export async function initV2(game) {
-  let buf = null, loading = null, busyUntil = 0;
-  const load = () => loading ||= (async () => {
-    const ctx = game.audio?.ctx; if (!ctx) return null;
-    try { const ab = await (await fetch(URL_)).arrayBuffer(); buf = await ctx.decodeAudioData(ab); } catch (e) { console.warn('[passed] stinger load failed', e); loading = null; }
-    return buf;
-  })();
+  let buf = null,
+    loading = null,
+    busyUntil = 0;
+  const load = () =>
+    (loading ||= (async () => {
+      const ctx = game.audio?.ctx;
+      if (!ctx) return null;
+      try {
+        const ab = await (await fetch(URL_)).arrayBuffer();
+        buf = await ctx.decodeAudioData(ab);
+      } catch (e) {
+        console.warn('[passed] stinger load failed', e);
+        loading = null;
+      }
+      return buf;
+    })());
 
   // ---- title card (own overlay so it never fights the HUD notification queue)
   const css = document.createElement('style');
@@ -32,7 +42,8 @@ export async function initV2(game) {
   .ps-passed.on .s{opacity:1;transform:none}
   .ps-passed .s b{color:#7dffb0}`;
   document.head.appendChild(css);
-  const el = document.createElement('div'); el.className = 'ps-passed';
+  const el = document.createElement('div');
+  el.className = 'ps-passed';
   el.innerHTML = '<div class="band"></div><div class="t"></div><div class="s"></div>';
   document.body.appendChild(el);
   let hideT = 0;
@@ -40,29 +51,44 @@ export async function initV2(game) {
   function card(title, sub) {
     el.querySelector('.t').textContent = title;
     el.querySelector('.s').innerHTML = sub || '';
-    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
-    clearTimeout(hideT); hideT = setTimeout(() => el.classList.remove('on'), 6200);
+    el.classList.remove('on');
+    void el.offsetWidth;
+    el.classList.add('on');
+    clearTimeout(hideT);
+    hideT = setTimeout(() => el.classList.remove('on'), 6200);
   }
 
   async function sting() {
     const now = performance.now();
     if (now < busyUntil) return false; // one sting at a time
     busyUntil = now + 7500;
-    const A = game.audio, ctx = A?.ctx;
+    const A = game.audio,
+      ctx = A?.ctx;
     if (ctx && !A.muted) {
-      if (ctx.state === 'suspended') { try { await ctx.resume(); } catch (e) { /* needs a user gesture */ } }
-      const b = buf || await load();
+      if (ctx.state === 'suspended') {
+        try {
+          await ctx.resume();
+        } catch (e) {
+          /* needs a user gesture */
+        }
+      }
+      const b = buf || (await load());
       if (b) {
         const vols = A.busVolumes || {};
-        const g = ctx.createGain(); g.gain.value = 0.9 * (vols.master ?? 1) * (vols.music ?? 1);
-        const s = ctx.createBufferSource(); s.buffer = b; s.connect(g).connect(ctx.destination);
+        const g = ctx.createGain();
+        g.gain.value = 0.9 * (vols.master ?? 1) * (vols.music ?? 1);
+        const s = ctx.createBufferSource();
+        s.buffer = b;
+        s.connect(g).connect(ctx.destination);
         // duck radio and venue music under the stinger, then restore (unless the player moved a slider meanwhile)
         const keep = { radio: vols.radio ?? 1, music: vols.music ?? 1 };
         const ducked = { radio: keep.radio * 0.12, music: keep.music * 0.12 };
-        A.setBusVolume?.('radio', ducked.radio); A.setBusVolume?.('music', ducked.music);
+        A.setBusVolume?.('radio', ducked.radio);
+        A.setBusVolume?.('music', ducked.music);
         s.onended = () => {
           const v = A.busVolumes || {};
-          for (const k of ['radio', 'music']) if (Math.abs((v[k] ?? 0) - ducked[k]) < 1e-3) A.setBusVolume?.(k, keep[k]);
+          for (const k of ['radio', 'music'])
+            if (Math.abs((v[k] ?? 0) - ducked[k]) < 1e-3) A.setBusVolume?.(k, keep[k]);
         };
         s.start();
         game.emit?.('passedStinger', {});
@@ -79,14 +105,28 @@ export async function initV2(game) {
   const missionPassed = (o) => (o && o.title ? play(o) : sting());
 
   game.passed = { play, sting, preload: load };
-  const attach = () => { if (game.audio) game.audio.missionPassed = missionPassed; else setTimeout(attach, 500); };
+  const attach = () => {
+    if (game.audio) game.audio.missionPassed = missionPassed;
+    else setTimeout(attach, 500);
+  };
   attach();
   // decode early once audio exists (first user gesture), so the hit is instant
-  const warm = () => { if (game.audio?.ctx) load(); else setTimeout(warm, 2000); };
+  const warm = () => {
+    if (game.audio?.ctx) load();
+    else setTimeout(warm, 2000);
+  };
   warm();
 
-  game.on?.('jobEnd', (d) => { if (d?.ok) play({ title: 'Job Passed', sub: d.pay ? `<b>+${fmt(d.pay)}</b>` : '' }); });
-  game.on?.('activityEnd', (d) => { if (d?.success) play({ title: 'Passed' }); });
-  game.on?.('turfFightEnd', (d) => { if (d?.won) play({ title: 'Turf Taken', sub: 'The corner is yours' }); });
-  game.on?.('businessBought', (d) => play({ title: 'Business Acquired', sub: d?.price ? `<b>-${fmt(d.price)}</b>` : '' }));
+  game.on?.('jobEnd', (d) => {
+    if (d?.ok) play({ title: 'Job Passed', sub: d.pay ? `<b>+${fmt(d.pay)}</b>` : '' });
+  });
+  game.on?.('activityEnd', (d) => {
+    if (d?.success) play({ title: 'Passed' });
+  });
+  game.on?.('turfFightEnd', (d) => {
+    if (d?.won) play({ title: 'Turf Taken', sub: 'The corner is yours' });
+  });
+  game.on?.('businessBought', (d) =>
+    play({ title: 'Business Acquired', sub: d?.price ? `<b>-${fmt(d.price)}</b>` : '' }),
+  );
 }

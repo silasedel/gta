@@ -4,8 +4,16 @@ export const order = 120;
 export async function initV2(game) {
   try {
     const m = await import('./index.js');
-    game.heroCars = { catalog: m.heroCatalog, keys: m.models.map((x) => x.entry.key), build: m.buildHeroCar };
+    game.heroCars = {
+      catalog: m.heroCatalog,
+      keys: m.models.map((x) => x.entry.key),
+      build: m.buildHeroCar,
+    };
     const v = game.vehicles;
-    if (v?.registerModel) for (const it of m.models) if (!v.models?.[it.entry.key]?.hero) v.registerModel(it.entry, it.builder);
-  } catch (e) { console.error('[hero-cars] init failed', e); }
+    if (v?.registerModel)
+      for (const it of m.models)
+        if (!v.models?.[it.entry.key]?.hero) v.registerModel(it.entry, it.builder);
+  } catch (e) {
+    console.error('[hero-cars] init failed', e);
+  }
 }

@@ -3,9 +3,33 @@
 
 // ---- jet ski rentals: x, z = a point on the beach / shore; the stand is placed 8 m inland of the nearest open water
 export const JETSKI_SITES = [
-  { id: 'sobe', name: 'South Beach', brand: 'Riptide', sub: 'Jet ski rentals · South Beach', x: 2720, z: 600, num0: 1 },
-  { id: 'mbeach', name: 'Miami Beach', brand: 'Riptide', sub: 'Jet ski rentals · Miami Beach', x: 2700, z: -900, num0: 4 },
-  { id: 'keylargo', name: 'Key Largo', brand: 'Coral Cove', sub: 'Watersports · Key Largo', x: -1415, z: 5650, num0: 7 },
+  {
+    id: 'sobe',
+    name: 'South Beach',
+    brand: 'Riptide',
+    sub: 'Jet ski rentals · South Beach',
+    x: 2720,
+    z: 600,
+    num0: 1,
+  },
+  {
+    id: 'mbeach',
+    name: 'Miami Beach',
+    brand: 'Riptide',
+    sub: 'Jet ski rentals · Miami Beach',
+    x: 2700,
+    z: -900,
+    num0: 4,
+  },
+  {
+    id: 'keylargo',
+    name: 'Key Largo',
+    brand: 'Coral Cove',
+    sub: 'Watersports · Key Largo',
+    x: -1415,
+    z: 5650,
+    num0: 7,
+  },
 ];
 export const JETSKI_PLANS = [
   { id: 'spin', label: 'Quick spin', blurb: '3 minutes', seconds: 180, price: 45 },
@@ -26,19 +50,81 @@ export const SUBWAY_CAST = {
 // ---- yacht party: x, z = a point on the bay shore; the private pier runs from the nearest open water out to depth and
 // the yacht moors stern-to at its end. tracks: CC BY music in public/assets/audio/music (see its index.json / CREDITS)
 export const YACHT_PARTY = {
-  id: 'midnight_tide', name: 'Yacht party · Midnight Tide', x: 2090, z: 360, bribe: 250,
-  tracks: ['neon/disco_medusae.ogg', 'neon/stringed_disco.ogg', 'neon/hyperfun.ogg', 'lowtide/funkorama.ogg', 'neon/electro_sketch.ogg', 'lowtide/groove_grove.ogg'],
+  id: 'midnight_tide',
+  name: 'Yacht party · Midnight Tide',
+  x: 2090,
+  z: 360,
+  bribe: 250,
+  tracks: [
+    'neon/disco_medusae.ogg',
+    'neon/stringed_disco.ogg',
+    'neon/hyperfun.ogg',
+    'lowtide/funkorama.ogg',
+    'neon/electro_sketch.ogg',
+    'lowtide/groove_grove.ogg',
+  ],
 };
 
 // ---- dock shift at the Dodge Island port: x, z = where to look for a port road; pay per crate / seal, bonus under par s
-export const DOCK_JOB = { x: 1570, z: 770, exact: true, foremen: ['p61', 'p115', 'p18', 'p42'], perCrate: 22, perSeal: 18, bonus: 45, par: 240, cooldown: 90 };
+export const DOCK_JOB = {
+  x: 1570,
+  z: 770,
+  exact: true,
+  foremen: ['p61', 'p115', 'p18', 'p42'],
+  perCrate: 22,
+  perSeal: 18,
+  bonus: 45,
+  par: 240,
+  cooldown: 90,
+};
 
 // ---- ambient life. Performers: x, z = a spot snapped to the nearest sidewalk; place = cast place of the person
 export const AMBIENT_PERFORMERS = [
-  { id: 'sobe_statue', kind: 'statue', label: 'living statue', x: 2375, z: 600, heading: 1.6, place: 'street', pose: 'idle', seed: 11 },
-  { id: 'downtown_dancer', kind: 'dancer', label: 'street dancer', x: 600, z: -40, heading: 0, place: 'nightlife', pose: 'dance_arms', seed: 23 },
-  { id: 'havana_drummer', kind: 'drummer', label: 'bucket drummer', x: -640, z: -35, heading: 0, place: 'street', pose: 'sit', seed: 37, person: 'p168' },
-  { id: 'sobe_dancer', kind: 'dancer', label: 'street dancer', x: 2600, z: 200, heading: -1.6, place: 'beach', pose: 'dance', seed: 41 },
+  {
+    id: 'sobe_statue',
+    kind: 'statue',
+    label: 'living statue',
+    x: 2375,
+    z: 600,
+    heading: 1.6,
+    place: 'street',
+    pose: 'idle',
+    seed: 11,
+  },
+  {
+    id: 'downtown_dancer',
+    kind: 'dancer',
+    label: 'street dancer',
+    x: 600,
+    z: -40,
+    heading: 0,
+    place: 'nightlife',
+    pose: 'dance_arms',
+    seed: 23,
+  },
+  {
+    id: 'havana_drummer',
+    kind: 'drummer',
+    label: 'bucket drummer',
+    x: -640,
+    z: -35,
+    heading: 0,
+    place: 'street',
+    pose: 'sit',
+    seed: 37,
+    person: 'p168',
+  },
+  {
+    id: 'sobe_dancer',
+    kind: 'dancer',
+    label: 'street dancer',
+    x: 2600,
+    z: 200,
+    heading: -1.6,
+    place: 'beach',
+    pose: 'dance',
+    seed: 41,
+  },
 ];
 // fishermen: x, z = a point near a seawall / shore; n men side by side
 export const AMBIENT_FISHING = [
@@ -47,5 +133,11 @@ export const AMBIENT_FISHING = [
   { id: 'downtown_bayfront', x: 740, z: 60, n: 2, seed: 7 },
   { id: 'brickell_bay', x: 260, z: 1700, n: 2, seed: 9 },
 ];
-export const HOBO_DISTRICTS = ['Downtown', 'Overtown', 'Liberty City', 'Little Havana', 'Edgewater'];
+export const HOBO_DISTRICTS = [
+  'Downtown',
+  'Overtown',
+  'Liberty City',
+  'Little Havana',
+  'Edgewater',
+];
 export const GANG_DISTRICTS = ['Overtown', 'Liberty City'];

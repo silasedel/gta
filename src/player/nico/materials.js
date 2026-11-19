@@ -10,28 +10,52 @@ export function tex(file, { srgb = false, repeat = false, aniso = 16, base = TEX
   const key = base + file + (srgb ? '|s' : '');
   if (cache.has(key)) return cache.get(key);
   const t = loader.load(base + file);
-  t.flipY = false; t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = aniso;
+  t.flipY = false;
+  t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  t.anisotropy = aniso;
   if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  cache.set(key, t); return t;
+  cache.set(key, t);
+  return t;
 }
 // resolves once every texture requested so far has finished loading (the viewer / loading screen waits on it)
 export function texturesReady() {
-  return Promise.all([...cache.values()].map((t) => new Promise((res) => {
-    const t0 = performance.now();
-    const chk = () => { if ((t.image && (t.image.complete !== false) && (t.image.width || t.image.videoWidth)) || performance.now() - t0 > 12000) res(); else setTimeout(chk, 40); };
-    chk();
-  })));
+  return Promise.all(
+    [...cache.values()].map(
+      (t) =>
+        new Promise((res) => {
+          const t0 = performance.now();
+          const chk = () => {
+            if (
+              (t.image && t.image.complete !== false && (t.image.width || t.image.videoWidth)) ||
+              performance.now() - t0 > 12000
+            )
+              res();
+            else setTimeout(chk, 40);
+          };
+          chk();
+        }),
+    ),
+  );
 }
 
 // shared per-character skin state (one uniform set drives head + body + far materials)
 export function makeSkinState() {
   return {
-    uSSS: { value: 1.0 }, uWet: { value: 0 }, uWetLine: { value: 3.0 }, uSweat: { value: 0 }, uBurn: { value: 0 }, uTan: { value: 0 }, uFlush: { value: 0 },
-    uCover: { value: null }, uCoverOn: { value: 0 }, uTattoo: { value: null }, uTattooOn: { value: 0 },
+    uSSS: { value: 1.0 },
+    uWet: { value: 0 },
+    uWetLine: { value: 3.0 },
+    uSweat: { value: 0 },
+    uBurn: { value: 0 },
+    uTan: { value: 0 },
+    uFlush: { value: 0 },
+    uCover: { value: null },
+    uCoverOn: { value: 0 },
+    uTattoo: { value: null },
+    uTattooOn: { value: 0 },
   };
 }
 
-const SKIN_PARS = /* glsl */`
+const SKIN_PARS = /* glsl */ `
 uniform float uSSS, uWetU, uWetLine, uSweat, uBurn, uTan, uFlush, uCoverOn, uTattooOn, uMicroTile;
 varying float vWetH;
 // wet only up to the highest water line reached (bind-pose height in meters), soaking a few cm above it
@@ -46,28 +70,51 @@ export function makeSkinMaterial(kind, state) {
   const m = new THREE.MeshPhysicalMaterial({
     name: 'skin_' + kind,
     map: tex(far ? 'skin_far.webp' : kind + '_albedo.webp', { srgb: true }),
-    roughness: far ? 0.6 : 1.0, metalness: 0, ior: 1.4, clearcoat: 0, specularIntensity: 0.5,
-    sheen: far ? 0 : 0.28, sheenRoughness: 0.6, sheenColor: new THREE.Color(0xc89078),     // soft second lobe: faint warm sheen at grazing angles
+    roughness: far ? 0.6 : 1.0,
+    metalness: 0,
+    ior: 1.4,
+    clearcoat: 0,
+    specularIntensity: 0.5,
+    sheen: far ? 0 : 0.28,
+    sheenRoughness: 0.6,
+    sheenColor: new THREE.Color(0xc89078), // soft second lobe: faint warm sheen at grazing angles
   });
   if (!far) {
-    m.normalMap = tex(kind + '_normal.webp'); m.normalScale = kind === 'head' ? new THREE.Vector2(1.0, -1.0) : new THREE.Vector2(1.0, -1.0);   // pores read as craters at full strength
-    const m1 = tex(kind + '_m1.webp'); m.aoMap = m1; m.roughnessMap = m1; m.aoMapIntensity = 0.85;
+    m.normalMap = tex(kind + '_normal.webp');
+    m.normalScale = kind === 'head' ? new THREE.Vector2(1.0, -1.0) : new THREE.Vector2(1.0, -1.0); // pores read as craters at full strength
+    const m1 = tex(kind + '_m1.webp');
+    m.aoMap = m1;
+    m.roughnessMap = m1;
+    m.aoMapIntensity = 0.85;
   }
-  const u = { uM2: { value: far ? null : tex(kind + '_m2.webp') }, uMicro: { value: far ? null : tex('skin_micro_n.webp', { repeat: true }) },
-    uDrops: { value: far ? null : tex('droplets.webp', { repeat: true }) }, uMicroTile: { value: kind === 'head' ? 34 : 60 },
-    uHairMaskS: { value: kind === 'head' ? tex('head_hair.webp') : null } };
-  m.userData.u = u; m.userData.state = state;
-  m.defines = { NICO_SKIN: 1 }; if (far) m.defines.NICO_FAR = 1; if (kind === 'body') m.defines.NICO_BODY = 1;
+  const u = {
+    uM2: { value: far ? null : tex(kind + '_m2.webp') },
+    uMicro: { value: far ? null : tex('skin_micro_n.webp', { repeat: true }) },
+    uDrops: { value: far ? null : tex('droplets.webp', { repeat: true }) },
+    uMicroTile: { value: kind === 'head' ? 34 : 60 },
+    uHairMaskS: { value: kind === 'head' ? tex('head_hair.webp') : null },
+  };
+  m.userData.u = u;
+  m.userData.state = state;
+  m.defines = { NICO_SKIN: 1 };
+  if (far) m.defines.NICO_FAR = 1;
+  if (kind === 'body') m.defines.NICO_BODY = 1;
   if (kind === 'head') m.defines.NICO_HEAD = 1;
   m.onBeforeCompile = (sh) => {
-    Object.assign(sh.uniforms, u, state, { uWetU: state.uWet, uWetLine: state.uWetLine || { value: 3.0 } });
+    Object.assign(sh.uniforms, u, state, {
+      uWetU: state.uWet,
+      uWetLine: state.uWetLine || { value: 3.0 },
+    });
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nvarying float vWetH;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWetH = position.y;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\n' + SKIN_PARS)
-      .replace('#include <lights_physical_pars_fragment>', THREE.ShaderChunk.lights_physical_pars_fragment.replace(
-        'reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );', /* glsl */`
+      .replace(
+        '#include <lights_physical_pars_fragment>',
+        THREE.ShaderChunk.lights_physical_pars_fragment.replace(
+          'reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );',
+          /* glsl */ `
         {
           float ndl = dot( geometryNormal, directLight.direction );
           vec3 wr = uSSS * vec3( 0.24, 0.11, 0.07 );
@@ -77,8 +124,12 @@ export function makeSkinMaterial(kind, state) {
           vec3 h2 = normalize( directLight.direction + geometryNormal * 0.4 );
           float back = pow( saturate( dot( geometryViewDir, - h2 ) ), 6.0 ) * min( nicoThick, 0.6 ) * 0.35;     // ears glow only faintly when backlit
           reflectedLight.directDiffuse += directLight.color * ( dif + back * vec3( 0.55, 0.30, 0.20 ) * uSSS ) * BRDF_Lambert( material.diffuseColor );
-        }`))
-      .replace('#include <map_fragment>', /* glsl */`#include <map_fragment>
+        }`,
+        ),
+      )
+      .replace(
+        '#include <map_fragment>',
+        /* glsl */ `#include <map_fragment>
       #ifdef NICO_BODY
         if ( uCoverOn > 0.5 && texture2D( uCover, vMapUv ).r > 0.5 ) discard;
         if ( uTattooOn > 0.5 ) { vec4 tt = texture2D( uTattoo, vMapUv ); diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * tt.rgb, tt.a ); }
@@ -123,19 +174,26 @@ export function makeSkinMaterial(kind, state) {
         float stub = fadeK * ( 0.55 + 0.45 * step( 0.35, dots ) );
         diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.075, 0.058, 0.048 ), clamp( stub * 0.85, 0.0, 0.9 ) );
       }
-      #endif`)
-      .replace('#include <roughnessmap_fragment>', /* glsl */`#include <roughnessmap_fragment>
+      #endif`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        /* glsl */ `#include <roughnessmap_fragment>
       #ifndef NICO_FAR
         roughnessFactor = clamp( roughnessFactor * 1.15 + 0.12, 0.55, 0.9 );          // matte skin, no plastic shine (ref_54 / ref_51 noon sun)
         roughnessFactor = mix( roughnessFactor, 0.22, clamp( max( uWet, uSweat * m2.r * 0.7 ), 0.0, 1.0 ) * 0.75 );
         roughnessFactor = mix( roughnessFactor, 0.05, nicoBead );
-      #endif`)
-      .replace('mapN.xy *= normalScale;', /* glsl */`
+      #endif`,
+      )
+      .replace(
+        'mapN.xy *= normalScale;',
+        /* glsl */ `
         vec3 mic = texture2D( uMicro, vNormalMapUv * uMicroTile ).xyz * 2.0 - 1.0;
         float micK = 0.30 * ( 1.0 - smoothstep( 0.0015, 0.006, max( fwidth( vNormalMapUv.x ), fwidth( vNormalMapUv.y ) ) * uMicroTile ) );   // fades out with distance: no shimmer
         mapN.xy += mic.xy * micK;
         mapN.xy = mix( mapN.xy, nicoBeadN * 1.6, nicoBead * 0.85 );
-        mapN.xy *= normalScale;`);
+        mapN.xy *= normalScale;`,
+      );
   };
   m.customProgramCacheKey = () => 'nicoSkin_' + kind;
   return m;
@@ -144,30 +202,57 @@ export function makeSkinMaterial(kind, state) {
 // ---------------------------------------------------------------- eyes
 export function makeEyeMaterial(radius) {
   const u = {
-    uIris: { value: tex('eye_iris.webp', { srgb: true }) }, uSclera: { value: tex('eye_sclera.webp', { srgb: true }) },
-    uR: { value: radius }, uIR: { value: 0.47 }, uPupil: { value: 0.30 }, uBlink: { value: 0 },
-    uEyeQ: { value: new THREE.Vector4(0, 0, 0, 1) }, uSide: { value: 1 }, uLid: { value: new THREE.Vector4(0.80, 0.36, 0.30, 0.0) },   // half-angles: horizontal, up, down; w unused
+    uIris: { value: tex('eye_iris.webp', { srgb: true }) },
+    uSclera: { value: tex('eye_sclera.webp', { srgb: true }) },
+    uR: { value: radius },
+    uIR: { value: 0.47 },
+    uPupil: { value: 0.3 },
+    uBlink: { value: 0 },
+    uEyeQ: { value: new THREE.Vector4(0, 0, 0, 1) },
+    uSide: { value: 1 },
+    uLid: { value: new THREE.Vector4(0.8, 0.36, 0.3, 0.0) }, // half-angles: horizontal, up, down; w unused
   };
   // the sky probe is unoccluded: a real eye sits in a socket under the brow, so most of the sky never reaches it.
   // Keep one small wet highlight (clearcoat) and cut the environment reflection that made the eyes look glassy.
-  const m = new THREE.MeshPhysicalMaterial({ name: 'eye', color: 0xffffff, roughness: 0.2, metalness: 0, ior: 1.376, clearcoat: 0.55, clearcoatRoughness: 0.06, envMapIntensity: 0.18, specularIntensity: 0.6 });
+  const m = new THREE.MeshPhysicalMaterial({
+    name: 'eye',
+    color: 0xffffff,
+    roughness: 0.2,
+    metalness: 0,
+    ior: 1.376,
+    clearcoat: 0.55,
+    clearcoatRoughness: 0.06,
+    envMapIntensity: 0.18,
+    specularIntensity: 0.6,
+  });
   m.userData.u = u;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vEyeN; varying vec3 vEyeV; uniform float uR, uIR, uBlink;')
-      .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
+      .replace(
+        '#include <common>',
+        '#include <common>\nvarying vec3 vEyeN; varying vec3 vEyeV; uniform float uR, uIR, uBlink;',
+      )
+      .replace(
+        '#include <begin_vertex>',
+        /* glsl */ `#include <begin_vertex>
         vec3 en = normalize( position ); float eth = acos( clamp( en.z, -1.0, 1.0 ) );
         float ek = 1.0 - smoothstep( 0.0, uIR * 1.3, eth ); ek = ek * ek * ( 3.0 - 2.0 * ek );
         transformed += en * ( 0.075 * uR * ek * ( 1.0 - uBlink ) );
-        vEyeN = en; vEyeV = ( inverse( modelMatrix ) * vec4( cameraPosition, 1.0 ) ).xyz - transformed;`);
+        vEyeN = en; vEyeV = ( inverse( modelMatrix ) * vec4( cameraPosition, 1.0 ) ).xyz - transformed;`,
+      );
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', /* glsl */`#include <common>
+      .replace(
+        '#include <common>',
+        /* glsl */ `#include <common>
         varying vec3 vEyeN; varying vec3 vEyeV; uniform mat3 normalMatrix;
         uniform sampler2D uIris, uSclera; uniform float uR, uIR, uPupil, uBlink, uSide; uniform vec4 uEyeQ, uLid;
         vec3 qrot( vec4 q, vec3 v ) { return v + 2.0 * cross( q.xyz, cross( q.xyz, v ) + q.w * v ); }
-        float eyeCornea = 0.0; vec3 eyeNrmL = vec3( 0.0, 0.0, 1.0 );`)
-      .replace('#include <map_fragment>', /* glsl */`
+        float eyeCornea = 0.0; vec3 eyeNrmL = vec3( 0.0, 0.0, 1.0 );`,
+      )
+      .replace(
+        '#include <map_fragment>',
+        /* glsl */ `
         vec3 en = normalize( vEyeN ); float eth = acos( clamp( en.z, -1.0, 1.0 ) );
         eyeCornea = 1.0 - smoothstep( uIR * 0.98, uIR * 1.16, eth );
         // cornea: a smaller sphere riding on the globe; its normal bends the highlight and refracts the view of the iris
@@ -195,25 +280,54 @@ export function makeEyeMaterial(radius) {
         float lidAO = 1.0 - 0.86 * smoothstep( 0.30, 1.0, dEl );
         lidAO *= 1.0 - 0.35 * smoothstep( up * 0.25, up * 0.95, sy );                                  // upper lid + lash shadow
         // where the lids and socket shade the globe it reads as warm lid shadow, not a sky-lit grey ring
-        diffuseColor.rgb = mix( vec3( 0.14, 0.085, 0.065 ), ecol, lidAO );`)
-      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( 0.30, 0.10, eyeCornea );')
-      .replace('#include <normal_fragment_begin>', /* glsl */`#include <normal_fragment_begin>
-        normal = normalize( normalMatrix * eyeNrmL ); nonPerturbedNormal = normal;`);
+        diffuseColor.rgb = mix( vec3( 0.14, 0.085, 0.065 ), ecol, lidAO );`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        'float roughnessFactor = mix( 0.30, 0.10, eyeCornea );',
+      )
+      .replace(
+        '#include <normal_fragment_begin>',
+        /* glsl */ `#include <normal_fragment_begin>
+        normal = normalize( normalMatrix * eyeNrmL ); nonPerturbedNormal = normal;`,
+      );
   };
   m.customProgramCacheKey = () => 'nicoEye';
   return m;
 }
 
 export function makeLashMaterial() {
-  return new THREE.MeshStandardMaterial({ name: 'lashes', map: tex('lashes.webp', { srgb: true }), color: 0x0c0907, transparent: true, depthWrite: false, side: THREE.DoubleSide, roughness: 0.6, alphaTest: 0.02 });
+  return new THREE.MeshStandardMaterial({
+    name: 'lashes',
+    map: tex('lashes.webp', { srgb: true }),
+    color: 0x0c0907,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    roughness: 0.6,
+    alphaTest: 0.02,
+  });
 }
 export function makeMouthMaterial(kind, mouth) {
-  const m = new THREE.MeshPhysicalMaterial({ name: kind, map: tex(kind + '.webp', { srgb: true }), roughness: kind === 'teeth' ? 0.22 : 0.35, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.15, transparent: kind === 'teeth', alphaTest: kind === 'teeth' ? 0.5 : 0 });
+  const m = new THREE.MeshPhysicalMaterial({
+    name: kind,
+    map: tex(kind + '.webp', { srgb: true }),
+    roughness: kind === 'teeth' ? 0.22 : 0.35,
+    metalness: 0,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.15,
+    transparent: kind === 'teeth',
+    alphaTest: kind === 'teeth' ? 0.5 : 0,
+  });
   m.transparent = false;
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uMouth = mouth;
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uMouth;')
-      .replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb *= mix( 0.10, 0.82, smoothstep( 0.0, 0.7, uMouth ) );');     // the mouth is a dark cavity until it opens
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uMouth;')
+      .replace(
+        '#include <map_fragment>',
+        '#include <map_fragment>\n diffuseColor.rgb *= mix( 0.10, 0.82, smoothstep( 0.0, 0.7, uMouth ) );',
+      ); // the mouth is a dark cavity until it opens
   };
   m.customProgramCacheKey = () => 'nicoMouth_' + kind;
   return m;
@@ -224,25 +338,53 @@ export function makeMouthMaterial(kind, mouth) {
 // keeps a strand only while the layer is below that strand's length (strand id from a hashed cell pattern in head UV space).
 export function makeHairShellMaterial(layer, layers, state) {
   const k = layer / (layers - 1);
-  const u = { uFrameN: FRAME_NOISE, uRenderR2: RENDER_R2, uK: { value: k }, uLen: state.uHairLen, uHairC: state.uHairC, uHairMask: { value: tex('head_hair.webp') }, uComb: state.uComb, uWetH: state.uWet };
-  const m = new THREE.MeshStandardMaterial({ name: 'hairShell', color: 0xffffff, roughness: 0.42, metalness: 0, side: THREE.DoubleSide, envMapIntensity: 0.35 });
-  m.userData.u = u; m.userData.layer = layer;
+  const u = {
+    uFrameN: FRAME_NOISE,
+    uRenderR2: RENDER_R2,
+    uK: { value: k },
+    uLen: state.uHairLen,
+    uHairC: state.uHairC,
+    uHairMask: { value: tex('head_hair.webp') },
+    uComb: state.uComb,
+    uWetH: state.uWet,
+  };
+  const m = new THREE.MeshStandardMaterial({
+    name: 'hairShell',
+    color: 0xffffff,
+    roughness: 0.42,
+    metalness: 0,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.35,
+  });
+  m.userData.u = u;
+  m.userData.layer = layer;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float uK, uLen; uniform vec3 uComb; uniform sampler2D uHairMask; varying vec2 vHUv; varying float vHLen;')
-      .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
+      .replace(
+        '#include <common>',
+        '#include <common>\nuniform float uK, uLen; uniform vec3 uComb; uniform sampler2D uHairMask; varying vec2 vHUv; varying float vHLen;',
+      )
+      .replace(
+        '#include <begin_vertex>',
+        /* glsl */ `#include <begin_vertex>
         vec4 hm = texture2D( uHairMask, uv ); vHUv = uv; vHLen = hm.g;
         float hl = uLen * hm.g * hm.r;
         // strands lift off the scalp, then bend toward the comb direction and sag a little as they get longer
         vec3 comb = uComb - normal * dot( uComb, normal );
-        transformed += normal * ( hl * uK * ( 1.0 - 0.35 * uK ) ) + comb * ( hl * uK * uK * 0.85 ) + vec3( 0.0, - hl * uK * uK * 0.22, 0.0 );`);
+        transformed += normal * ( hl * uK * ( 1.0 - 0.35 * uK ) ) + comb * ( hl * uK * uK * 0.85 ) + vec3( 0.0, - hl * uK * uK * 0.22, 0.0 );`,
+      );
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', /* glsl */`#include <common>
+      .replace(
+        '#include <common>',
+        /* glsl */ `#include <common>
         uniform float uK, uWetH, uFrameN, uRenderR2; uniform vec3 uHairC; uniform sampler2D uHairMask; varying vec2 vHUv; varying float vHLen;
         float ignT( vec2 p ) { return uRenderR2 > 0.5 ? fract( fract( 52.9829189 * fract( dot( p, vec2( 0.06711056, 0.00583715 ) ) ) ) + 0.61803399 * uFrameN ) : fract( 52.9829189 * fract( dot( p + 5.588238 * uFrameN, vec2( 0.06711056, 0.00583715 ) ) ) ); }
-        float hh( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }`)
-      .replace('#include <map_fragment>', /* glsl */`
+        float hh( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }`,
+      )
+      .replace(
+        '#include <map_fragment>',
+        /* glsl */ `
         vec4 hm = texture2D( uHairMask, vHUv );
         if ( hm.r < 0.5 ) discard;
         // soft natural hairline: the painted mask is hard-edged, so thin the strands out over the last ~2 cm inside it
@@ -280,8 +422,12 @@ export function makeHairShellMaterial(layer, layers, state) {
         vec3 hc = uHairC * ( 0.55 + 0.85 * id ) * mix( 0.42, 1.25, tip ) * mix( 1.0, 0.7, uWetH );     // dark at the roots (self-shadow), lighter tips
         hc = mix( hc, uHairC * 0.95 * mix( 0.5, 1.15, uK ) * mix( 1.0, 0.7, uWetH ), sLod ); // LOD: average strand color, no per-cell noise
         if ( uK <= 0.001 ) hc = uHairC * 0.35;
-        diffuseColor.rgb = hc;`)
-      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( 0.62, 0.3, uWetH );');
+        diffuseColor.rgb = hc;`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        'float roughnessFactor = mix( 0.62, 0.3, uWetH );',
+      );
   };
   m.customProgramCacheKey = () => 'nicoHairShell';
   return m;
@@ -292,8 +438,16 @@ export function makeHairShellMaterial(layer, layers, state) {
 // Vertex color: r = panel shade / AO, g = hem or seam band, b = flutter weight (free cloth far from the body), a = decal panel id.
 const fabricCache = new Map();
 export function makeClothMaterial(o = {}) {
-  const m = new THREE.MeshPhysicalMaterial({ name: 'cloth', color: new THREE.Color(o.color ?? 0xffffff), roughness: o.roughness ?? 0.82, metalness: o.metalness ?? 0, side: THREE.DoubleSide,
-    sheen: o.sheen ?? 0.35, sheenRoughness: o.sheenRoughness ?? 0.6, sheenColor: new THREE.Color(o.sheenColor ?? 0xffffff) });
+  const m = new THREE.MeshPhysicalMaterial({
+    name: 'cloth',
+    color: new THREE.Color(o.color ?? 0xffffff),
+    roughness: o.roughness ?? 0.82,
+    metalness: o.metalness ?? 0,
+    side: THREE.DoubleSide,
+    sheen: o.sheen ?? 0.35,
+    sheenRoughness: o.sheenRoughness ?? 0.6,
+    sheenColor: new THREE.Color(o.sheenColor ?? 0xffffff),
+  });
   if (o.specular !== undefined) m.specularIntensity = o.specular;
   // `construct`: the camp shirt cut gets real construction drawn on it (placket, buttonholes, yoke, side and armhole seams,
   // stitching, hem and pocket topstitch), targeted drape folds and creases, linen slub weave, sun fade and wash variation.
@@ -304,17 +458,38 @@ export function makeClothMaterial(o = {}) {
   if (o.leather) m.defines = { ...(m.defines || {}), LEATHER: '' };
   if (o.openShirt) m.defines = { ...(m.defines || {}), OPENSHIRT: '' };
   if (o.clothSim) m.defines = { ...(m.defines || {}), CLOTHSIM: '' };
-  if (o.print) { m.map = tex(o.print, { srgb: true, repeat: true, base: '' }); }
-  const u = { uRepeat: { value: 1 / (o.repeatM || 0.6) }, uWeave: { value: o.weave ?? 1 }, uWeaveScale: { value: o.weaveScale ?? 2400 }, uFold: { value: o.fold ?? 1 },
-    uTime: o.time || { value: 0 }, uWind: o.wind || { value: new THREE.Vector3(0.4, 0, 0.2) }, uFlutter: { value: o.flutter ?? 1 }, uWetC: o.wet || { value: 0 }, uWetLine: o.wetLine || { value: 3.0 },
-    uSwing: o.swing || { value: new THREE.Vector3() }, uCP: { value: Array.from({ length: 40 }, () => new THREE.Vector3()) }, uColor2: { value: new THREE.Color(o.color2 ?? 0xffffff) }, uPattern: { value: o.pattern ?? 0 }, uDecal: { value: o.decal ? tex(o.decal, { srgb: true, base: '' }) : null },
-    uDecalRect: { value: new THREE.Vector4(...(o.decalRect || [0, 0, 0, 0])) }, uDecalPanel: { value: o.decalPanel ?? -1 } };
+  if (o.print) {
+    m.map = tex(o.print, { srgb: true, repeat: true, base: '' });
+  }
+  const u = {
+    uRepeat: { value: 1 / (o.repeatM || 0.6) },
+    uWeave: { value: o.weave ?? 1 },
+    uWeaveScale: { value: o.weaveScale ?? 2400 },
+    uFold: { value: o.fold ?? 1 },
+    uTime: o.time || { value: 0 },
+    uWind: o.wind || { value: new THREE.Vector3(0.4, 0, 0.2) },
+    uFlutter: { value: o.flutter ?? 1 },
+    uWetC: o.wet || { value: 0 },
+    uWetLine: o.wetLine || { value: 3.0 },
+    uSwing: o.swing || { value: new THREE.Vector3() },
+    uCP: { value: Array.from({ length: 40 }, () => new THREE.Vector3()) },
+    uColor2: { value: new THREE.Color(o.color2 ?? 0xffffff) },
+    uPattern: { value: o.pattern ?? 0 },
+    uDecal: { value: o.decal ? tex(o.decal, { srgb: true, base: '' }) : null },
+    uDecalRect: { value: new THREE.Vector4(...(o.decalRect || [0, 0, 0, 0])) },
+    uDecalPanel: { value: o.decalPanel ?? -1 },
+  };
   m.userData.u = u;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec2 uv1;\nattribute vec4 color;\nvarying vec2 vFab; varying vec4 vGc; varying float vWetH; uniform float uTime, uFlutter; uniform vec3 uWind, uSwing;\n#ifdef CLOTHSIM\nattribute vec4 clothW; uniform vec3 uCP[ 40 ];\n#endif\n#if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )\nvarying vec3 vRest; varying vec3 vRestN;\n#endif\n#ifdef SHOE\nvarying vec2 vShoeUv;\n#endif')
-      .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
+      .replace(
+        '#include <common>',
+        '#include <common>\nattribute vec2 uv1;\nattribute vec4 color;\nvarying vec2 vFab; varying vec4 vGc; varying float vWetH; uniform float uTime, uFlutter; uniform vec3 uWind, uSwing;\n#ifdef CLOTHSIM\nattribute vec4 clothW; uniform vec3 uCP[ 40 ];\n#endif\n#if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )\nvarying vec3 vRest; varying vec3 vRestN;\n#endif\n#ifdef SHOE\nvarying vec2 vShoeUv;\n#endif',
+      )
+      .replace(
+        '#include <begin_vertex>',
+        /* glsl */ `#include <begin_vertex>
         vFab = uv1; vGc = color; vWetH = position.y;
         #if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )
           vRest = position;
@@ -345,9 +520,12 @@ export function makeClothMaterial(o = {}) {
           vec3 cd = uCP[ int( clothW.x + 0.5 ) ] * clothW.y + uCP[ int( clothW.z + 0.5 ) ] * clothW.w;
           transformed += cd;
         }
-        #endif`);
+        #endif`,
+      );
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', /* glsl */`#include <common>
+      .replace(
+        '#include <common>',
+        /* glsl */ `#include <common>
         varying vec2 vFab; varying vec4 vGc; varying float vWetH; uniform float uWetLine; uniform float uRepeat, uWeave, uWeaveScale, uFold, uWetC, uPattern, uDecalPanel; uniform vec3 uColor2; uniform sampler2D uDecal; uniform vec4 uDecalRect;
         float ch( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }
         float cn( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3.0 - 2.0 * f ); return mix( mix( ch( i ), ch( i + vec2( 1, 0 ) ), f.x ), mix( ch( i + vec2( 0, 1 ) ), ch( i + vec2( 1, 1 ) ), f.x ), f.y ); }
@@ -462,8 +640,11 @@ export function makeClothMaterial(o = {}) {
           slub = min( slub, 1.0 );
           return w;
         }
-        #endif`)
-      .replace('#include <map_fragment>', /* glsl */`
+        #endif`,
+      )
+      .replace(
+        '#include <map_fragment>',
+        /* glsl */ `
         #ifdef USE_MAP
           diffuseColor.rgb *= texture2D( map, vFab * uRepeat ).rgb;
         #endif
@@ -636,9 +817,15 @@ export function makeClothMaterial(o = {}) {
         #endif
         float wetK = uWetC * ( 1.0 - smoothstep( uWetLine - 0.02, uWetLine + 0.10, vWetH ) );       // wicks a little above the water line
         diffuseColor.rgb *= mix( 1.0, 0.58, wetK );
-        if ( ! gl_FrontFacing ) diffuseColor.rgb *= 0.55;`)
-      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( roughness, 0.32, uWetC * ( 1.0 - smoothstep( uWetLine - 0.02, uWetLine + 0.10, vWetH ) ) * 0.85 );')
-      .replace('#include <normal_fragment_maps>', /* glsl */`#include <normal_fragment_maps>
+        if ( ! gl_FrontFacing ) diffuseColor.rgb *= 0.55;`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        'float roughnessFactor = mix( roughness, 0.32, uWetC * ( 1.0 - smoothstep( uWetLine - 0.02, uWetLine + 0.10, vWetH ) ) * 0.85 );',
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        /* glsl */ `#include <normal_fragment_maps>
         {
           float fw = max( fwidth( vFab.x ), fwidth( vFab.y ) );
           #ifdef SHIRT
@@ -666,9 +853,19 @@ export function makeClothMaterial(o = {}) {
           vec3 r1 = cross( dpy, normal ), r2 = cross( normal, dpx );
           float det = dot( dpx, r1 );
           normal = normalize( abs( det ) * normal - sign( det ) * ( dhx * r1 + dhy * r2 ) );
-        }`);
+        }`,
+      );
   };
-  m.customProgramCacheKey = () => 'nicoCloth' + (m.map ? 'M' : '') + (o.construct ? 'S' : '') + (o.shoe ? 'H' : '') + (o.clothSim ? 'C' : '') + (o.shorts ? 'P' : '') + (o.cargo ? 'G' : '') + (o.leather ? 'L' : '') + (o.openShirt ? 'O' : '');
+  m.customProgramCacheKey = () =>
+    'nicoCloth' +
+    (m.map ? 'M' : '') +
+    (o.construct ? 'S' : '') +
+    (o.shoe ? 'H' : '') +
+    (o.clothSim ? 'C' : '') +
+    (o.shorts ? 'P' : '') +
+    (o.cargo ? 'G' : '') +
+    (o.leather ? 'L' : '') +
+    (o.openShirt ? 'O' : '');
   return m;
 }
 
@@ -695,11 +892,22 @@ export function makeButtonMaterial(o = {}) {
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vBtn; varying vec3 vBtnN; varying vec2 vBtnUv;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBtn = position; vBtnN = normal; vBtnUv = uv;');
+      .replace(
+        '#include <common>',
+        '#include <common>\nvarying vec3 vBtn; varying vec3 vBtnN; varying vec2 vBtnUv;',
+      )
+      .replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\nvBtn = position; vBtnN = normal; vBtnUv = uv;',
+      );
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vBtn; varying vec3 vBtnN; varying vec2 vBtnUv; uniform vec3 uThread; uniform float uTop, uStep, uCount;')
-      .replace('#include <map_fragment>', /* glsl */`#include <map_fragment>
+      .replace(
+        '#include <common>',
+        '#include <common>\nvarying vec3 vBtn; varying vec3 vBtnN; varying vec2 vBtnUv; uniform vec3 uThread; uniform float uTop, uStep, uCount;',
+      )
+      .replace(
+        '#include <map_fragment>',
+        /* glsl */ `#include <map_fragment>
         vec2 bp = ( vBtnUv - 0.5 ) * 0.0112;
         float br = length( bp );
         float face = smoothstep( 0.3, 0.7, vBtnN.z );
@@ -715,7 +923,8 @@ export function makeButtonMaterial(o = {}) {
         float dish = smoothstep( 0.0046, 0.0036, br );
         diffuseColor.rgb *= mix( 1.0, 0.93, dish * 0.5 );
         diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * 0.18, holes * face );
-        diffuseColor.rgb = mix( diffuseColor.rgb, uThread, th * face );`)
+        diffuseColor.rgb = mix( diffuseColor.rgb, uThread, th * face );`,
+      )
       .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = roughness;');
   };
   m.customProgramCacheKey = () => 'shirtButton';

@@ -7,20 +7,31 @@
 //   node tools/v2/perf/r2-drive.mjs [--secs 120] [--to 407,-110] [--hitch 100] [--q "&flag=1"] [--set name] [--init "js"]
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'drive';
-const SECS = +(o.secs || 120), HITCH = +(o.hitch || 100);
+const SECS = +(o.secs || 120),
+  HITCH = +(o.hitch || 100);
 const TO = (o.to || '407,-110').split(',').map(Number);
 const PROF = fs.readFileSync(new URL('./r2-prof.page.js', import.meta.url), 'utf8');
 const rep = { set: SET, q: o.q || '', when: new Date().toISOString() };
 await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, async (b) => {
   // --heap: sampling heap profiler from the first byte (live allocations by call site at the end of the drive)
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
-  if (o.heap) { await b.send('HeapProfiler.enable'); await b.send('HeapProfiler.startSampling', { samplingInterval: 262144 }); }
+  if (o.heap) {
+    await b.send('HeapProfiler.enable');
+    await b.send('HeapProfiler.startSampling', { samplingInterval: 262144 });
+  }
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 11; game.quality.set('${o.preset || 'high'}', { manual: true }); return 1; })()`);
+  await b.eval(
+    `(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 11; game.quality.set('${o.preset || 'high'}', { manual: true }); return 1; })()`,
+  );
   console.log(await b.eval(PROF));
   if (o.init) console.log('init', await b.eval(o.init));
   // program stall attribution: time every GL call that waits for a program link, per GL program handle
@@ -30,7 +41,8 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
       gl[fn] = function (p, ...rest) { if (!st.on) return f0(p, ...rest); const t = performance.now(); try { return f0(p, ...rest); } finally { const d = performance.now() - t; if (d > 0.5) { st.ms.set(p, (st.ms.get(p) || 0) + d); if (!st.first.has(p)) st.first.set(p, performance.now()); } } };
     } return 1; })()`);
   // shortest road path spawn -> target
-  const plan = JSON.parse(await b.eval(`(() => {
+  const plan = JSON.parse(
+    await b.eval(`(() => {
     const G = game.city.roadGraph, P = game.player.position;
     const n0 = G.nearestEdge(P.x, P.z, {}, 3000).edge.a, n1 = G.nearestEdge(${TO[0]}, ${TO[1]}, {}, 3000).edge.a;
     const len = (e) => { let s = 0; for (let i = 1; i < e.pts.length; i++) s += Math.hypot(e.pts[i][0] - e.pts[i - 1][0], e.pts[i][1] - e.pts[i - 1][1]); return s; };
@@ -48,17 +60,28 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
     const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][2] - pts[i - 1][2]));
     const at = (s) => { let lo = 1, hi = cum.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (cum[m] < s) lo = m + 1; else hi = m; } const i = Math.max(1, lo); const u = Math.min(1, Math.max(0, (s - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1))); const p = pts[i - 1], q = pts[i]; return [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u, p[2] + (q[2] - p[2]) * u]; };
     window.__drv = { at, len: cum[cum.length - 1] };
-    return JSON.stringify({ from: [Math.round(P.x), Math.round(P.z)], len: Math.round(cum[cum.length - 1]), edges: edges.length }); })()`));
+    return JSON.stringify({ from: [Math.round(P.x), Math.round(P.z)], len: Math.round(cum[cum.length - 1]), edges: edges.length }); })()`),
+  );
   console.log('route', JSON.stringify(plan));
   rep.route = plan;
   if (plan.error) return;
   const speed = plan.len / SECS;
   await b.sleep(4000);
   // sampling profile of the whole drive
-  if (o.alloc) { await b.send('HeapProfiler.enable'); await b.send('HeapProfiler.startSampling', { samplingInterval: 65536, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true }); }
-  await b.send('Profiler.enable'); await b.send('Profiler.setSamplingInterval', { interval: 500 }); await b.send('Profiler.start');
+  if (o.alloc) {
+    await b.send('HeapProfiler.enable');
+    await b.send('HeapProfiler.startSampling', {
+      samplingInterval: 65536,
+      includeObjectsCollectedByMajorGC: true,
+      includeObjectsCollectedByMinorGC: true,
+    });
+  }
+  await b.send('Profiler.enable');
+  await b.send('Profiler.setSamplingInterval', { interval: 500 });
+  await b.send('Profiler.start');
   const pageT0 = await b.eval('performance.now()');
-  const res = await b.eval(`new Promise((res) => { const D = window.__drv; const t0 = performance.now();
+  const res = await b.eval(
+    `new Promise((res) => { const D = window.__drv; const t0 = performance.now();
     const ri = game.renderer.info; const progs0 = ri.programs.length; const progSet0 = new Set(ri.programs); window.__r2pc.on = true;
     game.cameraOverride = (dt, cam) => { const s = Math.min(D.len, (performance.now() - t0) / 1000 * ${speed}); const p = D.at(s), q = D.at(Math.min(D.len, s + 30)); cam.position.set(p[0], p[1] + 1.5, p[2]); cam.lookAt(q[0], q[1] + 1.2, q[2]); return true; };
     // the player follows the camera (streaming focus, colliders, traffic and peds around it), as if driving
@@ -86,57 +109,166 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
             rows.sort((x, y) => y.ms - x.ms); const byName = {}; for (const r2 of rows) { const k = r2.name; (byName[k] ||= [0, 0]); byName[k][0]++; byName[k][1] += r2.ms; }
             return { total: Math.round(rows.reduce((a, c) => a + c.ms, 0)), n: rows.length, byName: Object.entries(byName).sort((x, y) => y[1][1] - x[1][1]).slice(0, 30), top: rows.slice(0, 40) }; })(), longTasks: (game.perf.longTasks || []).slice(lt0).sort((x, y) => y.ms - x.ms).slice(0, 15),
           sys: Object.fromEntries(Object.entries(game.perf.sysAvg || {}).filter(([, v]) => v > 0.3).sort((x, y) => y[1] - x[1]).slice(0, 16).map(([k, v]) => [k, +v.toFixed(2)])), stream: game.city.streamer.stats })); } };
-    requestAnimationFrame(f); })`, (SECS + 120) * 1000);
+    requestAnimationFrame(f); })`,
+    (SECS + 120) * 1000,
+  );
   const pr = (await b.send('Profiler.stop')).result.profile;
   rep.drive = JSON.parse(res);
   // profile: self / inclusive shares + GC
-  const nodes = new Map(pr.nodes.map((n) => [n.id, n])), parent = new Map();
+  const nodes = new Map(pr.nodes.map((n) => [n.id, n])),
+    parent = new Map();
   for (const n of pr.nodes) for (const c of n.children || []) parent.set(c, n.id);
-  const cnt = new Map(); for (const sId of pr.samples) cnt.set(sId, (cnt.get(sId) || 0) + 1);
-  const total = pr.samples.length, self = {}, incl = {};
-  const nm = (n) => `${n.callFrame.functionName || '(anon)'} ${n.callFrame.url.split('/').slice(-1)[0].split('?')[0]}:${n.callFrame.lineNumber + 1}`;
-  for (const [sid, c] of cnt) { const n = nodes.get(sid); self[nm(n)] = (self[nm(n)] || 0) + c; const seen = new Set(); for (let x = sid; x !== undefined; x = parent.get(x)) { const k = nm(nodes.get(x)); if (!seen.has(k)) { seen.add(k); incl[k] = (incl[k] || 0) + c; } } }
+  const cnt = new Map();
+  for (const sId of pr.samples) cnt.set(sId, (cnt.get(sId) || 0) + 1);
+  const total = pr.samples.length,
+    self = {},
+    incl = {};
+  const nm = (n) =>
+    `${n.callFrame.functionName || '(anon)'} ${n.callFrame.url.split('/').slice(-1)[0].split('?')[0]}:${n.callFrame.lineNumber + 1}`;
+  for (const [sid, c] of cnt) {
+    const n = nodes.get(sid);
+    self[nm(n)] = (self[nm(n)] || 0) + c;
+    const seen = new Set();
+    for (let x = sid; x !== undefined; x = parent.get(x)) {
+      const k = nm(nodes.get(x));
+      if (!seen.has(k)) {
+        seen.add(k);
+        incl[k] = (incl[k] || 0) + c;
+      }
+    }
+  }
   // long tile-build steps (stream.js stats.longList: kind, t0, t1 in page ms): what ran inside each, from the samples
   try {
     const offs = pr.startTime / 1000 - pageT0; // profiler clock (ms) minus page clock at start (both monotonic)
-    const LL = rep.drive.stream.longList || []; const per = []; let ts = pr.startTime / 1000;
-    const sampT = pr.samples.map((sid, i) => { ts += (pr.timeDeltas[i] || 0) / 1000; return [sid, ts - offs]; });
+    const LL = rep.drive.stream.longList || [];
+    const per = [];
+    let ts = pr.startTime / 1000;
+    const sampT = pr.samples.map((sid, i) => {
+      ts += (pr.timeDeltas[i] || 0) / 1000;
+      return [sid, ts - offs];
+    });
     for (const [kind, a0, a1, x, z] of LL) {
-      const m = {}; let nS = 0;
-      for (const [sid, t] of sampT) { if (t < a0 || t > a1) continue; nS++; const seen = new Set(); for (let q = sid; q !== undefined; q = parent.get(q)) { const k = nm(nodes.get(q)); if (/tilebuild|terrain|facade|geo\.js|flora|elevated|roadgeo|chunk-|data\.js|houses|bldmodels|streetkit/.test(k) && !seen.has(k)) { seen.add(k); m[k] = (m[k] || 0) + 1; } } }
-      per.push({ kind, ms: a1 - a0, tile: [x, z], samples: nS, top: Object.entries(m).sort((p1, p2) => p2[1] - p1[1]).slice(0, 8).map(([k, c]) => `${Math.round(100 * c / Math.max(1, nS))}% ${k}`) });
+      const m = {};
+      let nS = 0;
+      for (const [sid, t] of sampT) {
+        if (t < a0 || t > a1) continue;
+        nS++;
+        const seen = new Set();
+        for (let q = sid; q !== undefined; q = parent.get(q)) {
+          const k = nm(nodes.get(q));
+          if (
+            /tilebuild|terrain|facade|geo\.js|flora|elevated|roadgeo|chunk-|data\.js|houses|bldmodels|streetkit/.test(
+              k,
+            ) &&
+            !seen.has(k)
+          ) {
+            seen.add(k);
+            m[k] = (m[k] || 0) + 1;
+          }
+        }
+      }
+      per.push({
+        kind,
+        ms: a1 - a0,
+        tile: [x, z],
+        samples: nS,
+        top: Object.entries(m)
+          .sort((p1, p2) => p2[1] - p1[1])
+          .slice(0, 8)
+          .map(([k, c]) => `${Math.round((100 * c) / Math.max(1, nS))}% ${k}`),
+      });
     }
     rep.longSteps = per.sort((p1, p2) => p2.ms - p1.ms).slice(0, 25);
-    console.log('LONG STEPS:'); for (const l of rep.longSteps.slice(0, 15)) console.log('   ', JSON.stringify(l));
-  } catch (e) { console.log('longSteps analysis failed', e.message); }
-  const topN = (m, k) => Object.entries(m).sort((x, y) => y[1] - x[1]).slice(0, k).map(([f, c]) => `${(100 * c / total).toFixed(1).padStart(5)}%  ${f}`);
+    console.log('LONG STEPS:');
+    for (const l of rep.longSteps.slice(0, 15)) console.log('   ', JSON.stringify(l));
+  } catch (e) {
+    console.log('longSteps analysis failed', e.message);
+  }
+  const topN = (m, k) =>
+    Object.entries(m)
+      .sort((x, y) => y[1] - x[1])
+      .slice(0, k)
+      .map(([f, c]) => `${((100 * c) / total).toFixed(1).padStart(5)}%  ${f}`);
   // inclusive shares restricted to samples under a given frame (e.g. the tile streamer's job runner)
-  const under = (re) => { const m = {}; let tot = 0; for (const [sid, c] of cnt) { const stack = []; for (let x = sid; x !== undefined; x = parent.get(x)) stack.push(nm(nodes.get(x))); if (!stack.some((f) => re.test(f))) continue; tot += c; const seen = new Set(); for (const f of stack) if (!seen.has(f)) { seen.add(f); m[f] = (m[f] || 0) + c; } } return { totalPct: +(100 * tot / total).toFixed(1), top: Object.entries(m).sort((x, y) => y[1] - x[1]).slice(0, 60).map(([f, c2]) => `${(100 * c2 / Math.max(1, tot)).toFixed(1).padStart(5)}%  ${f}`) }; };
-  rep.cpuprof = { self: topN(self, 40), incl: topN(incl, 70), inclAll: topN(incl, 400), underRunJobs: under(/^runJobs stream\.js/), underVeg: under(/^update countryside\.js/) };
-  console.log('UNDER runJobs (' + rep.cpuprof.underRunJobs.totalPct + '% of CPU):'); for (const l of rep.cpuprof.underRunJobs.top.slice(0, 45)) console.log('   ', l);
+  const under = (re) => {
+    const m = {};
+    let tot = 0;
+    for (const [sid, c] of cnt) {
+      const stack = [];
+      for (let x = sid; x !== undefined; x = parent.get(x)) stack.push(nm(nodes.get(x)));
+      if (!stack.some((f) => re.test(f))) continue;
+      tot += c;
+      const seen = new Set();
+      for (const f of stack)
+        if (!seen.has(f)) {
+          seen.add(f);
+          m[f] = (m[f] || 0) + c;
+        }
+    }
+    return {
+      totalPct: +((100 * tot) / total).toFixed(1),
+      top: Object.entries(m)
+        .sort((x, y) => y[1] - x[1])
+        .slice(0, 60)
+        .map(([f, c2]) => `${((100 * c2) / Math.max(1, tot)).toFixed(1).padStart(5)}%  ${f}`),
+    };
+  };
+  rep.cpuprof = {
+    self: topN(self, 40),
+    incl: topN(incl, 70),
+    inclAll: topN(incl, 400),
+    underRunJobs: under(/^runJobs stream\.js/),
+    underVeg: under(/^update countryside\.js/),
+  };
+  console.log('UNDER runJobs (' + rep.cpuprof.underRunJobs.totalPct + '% of CPU):');
+  for (const l of rep.cpuprof.underRunJobs.top.slice(0, 45)) console.log('   ', l);
   const D = rep.drive;
   console.log('drive', JSON.stringify({ ...D, hitches: undefined, longTasks: undefined }));
   console.log('hitches >', HITCH, 'ms:', D.hitches.length);
   console.log('program link stalls', D.progStalls.total, 'ms over', D.progStalls.n, 'programs');
   for (const r of D.progStalls.byName) console.log('   by name', JSON.stringify(r));
   for (const r of D.progStalls.top.slice(0, 25)) console.log('   ', JSON.stringify(r));
-  for (const h of D.hitches.slice().sort((x, y) => y.ms - x.ms).slice(0, 40)) console.log('  ', JSON.stringify(h));
+  for (const h of D.hitches
+    .slice()
+    .sort((x, y) => y.ms - x.ms)
+    .slice(0, 40))
+    console.log('  ', JSON.stringify(h));
   for (const l of D.longTasks) console.log('  longTask', JSON.stringify(l));
-  console.log('CPU self:'); for (const l of rep.cpuprof.self.slice(0, 30)) console.log('   ', l);
-  console.log('CPU incl:'); for (const l of rep.cpuprof.incl.slice(0, 50)) console.log('   ', l);
-  rep.heapNow = JSON.parse(await b.eval('JSON.stringify(performance.memory ? { usedMB: Math.round(performance.memory.usedJSHeapSize / 1048576), totalMB: Math.round(performance.memory.totalJSHeapSize / 1048576), limitMB: Math.round(performance.memory.jsHeapSizeLimit / 1048576) } : null)'));
+  console.log('CPU self:');
+  for (const l of rep.cpuprof.self.slice(0, 30)) console.log('   ', l);
+  console.log('CPU incl:');
+  for (const l of rep.cpuprof.incl.slice(0, 50)) console.log('   ', l);
+  rep.heapNow = JSON.parse(
+    await b.eval(
+      'JSON.stringify(performance.memory ? { usedMB: Math.round(performance.memory.usedJSHeapSize / 1048576), totalMB: Math.round(performance.memory.totalJSHeapSize / 1048576), limitMB: Math.round(performance.memory.jsHeapSizeLimit / 1048576) } : null)',
+    ),
+  );
   console.log('heap', JSON.stringify(rep.heapNow));
   if (o.heap || o.alloc) {
     const hp = (await b.send('HeapProfiler.getSamplingProfile')).result.profile;
-    const bySite = {}, byFn = {};
-    const walk = (n, stack) => { const cf = n.callFrame, f = `${cf.functionName || '(anon)'} ${cf.url.split('/').slice(-1)[0].split('?')[0]}:${cf.lineNumber + 1}`; const st2 = [...stack, f];
-      if (n.selfSize) { bySite[st2.slice(-3).join(' < ')] = (bySite[st2.slice(-3).join(' < ')] || 0) + n.selfSize; byFn[f] = (byFn[f] || 0) + n.selfSize; }
-      for (const c of n.children || []) walk(c, st2); };
+    const bySite = {},
+      byFn = {};
+    const walk = (n, stack) => {
+      const cf = n.callFrame,
+        f = `${cf.functionName || '(anon)'} ${cf.url.split('/').slice(-1)[0].split('?')[0]}:${cf.lineNumber + 1}`;
+      const st2 = [...stack, f];
+      if (n.selfSize) {
+        bySite[st2.slice(-3).join(' < ')] = (bySite[st2.slice(-3).join(' < ')] || 0) + n.selfSize;
+        byFn[f] = (byFn[f] || 0) + n.selfSize;
+      }
+      for (const c of n.children || []) walk(c, st2);
+    };
     walk(hp.head, []);
-    const top = (m) => Object.entries(m).sort((x, y) => y[1] - x[1]).slice(0, 30).map(([k, v]) => `${(v / 1048576).toFixed(1).padStart(8)} MB  ${k}`);
+    const top = (m) =>
+      Object.entries(m)
+        .sort((x, y) => y[1] - x[1])
+        .slice(0, 30)
+        .map(([k, v]) => `${(v / 1048576).toFixed(1).padStart(8)} MB  ${k}`);
     rep.heap = { byFn: top(byFn), bySite: top(bySite) };
-    console.log('HEAP live by function:'); for (const l of rep.heap.byFn) console.log('   ', l);
-    console.log('HEAP live by site:'); for (const l of rep.heap.bySite.slice(0, 20)) console.log('   ', l);
+    console.log('HEAP live by function:');
+    for (const l of rep.heap.byFn) console.log('   ', l);
+    console.log('HEAP live by site:');
+    for (const l of rep.heap.bySite.slice(0, 20)) console.log('   ', l);
   }
   rep.errors = [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 15);
   if (rep.errors.length) console.log('ERRORS', rep.errors.map((e) => e.slice(0, 200)).join('\n'));

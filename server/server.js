@@ -7,7 +7,11 @@ import { WebSocketServer } from 'ws';
 import { Room } from './room.js';
 import { TICK_HZ, PROTOCOL_VERSION, ROOM_ALPHABET, cleanRoom } from '../src/net/protocol.js';
 
-export function startServer({ port = Number(process.env.PORT) || 5310, host = process.env.HOST || '0.0.0.0', log = console.log } = {}) {
+export function startServer({
+  port = Number(process.env.PORT) || 5310,
+  host = process.env.HOST || '0.0.0.0',
+  log = console.log,
+} = {}) {
   const rooms = new Map();
   const tickStats = { n: 0, sumMs: 0, maxMs: 0, last: [] };
   const server = http.createServer((req, res) => {
@@ -15,13 +19,30 @@ export function startServer({ port = Number(process.env.PORT) || 5310, host = pr
       const out = {
         rooms: [...rooms.values()].map((r) => ({
           code: r.code,
-          players: r.players.filter(Boolean).map((p) => ({ id: p.id, name: p.name, bytesOut: p.bytesOut, bytesIn: p.bytesIn, states: p.statesIn, strikes: p.strikes })),
+          players: r.players
+            .filter(Boolean)
+            .map((p) => ({
+              id: p.id,
+              name: p.name,
+              bytesOut: p.bytesOut,
+              bytesIn: p.bytesIn,
+              states: p.statesIn,
+              strikes: p.strikes,
+            })),
           stats: r.stats,
           world: r.worldInfo(),
         })),
-        tick: { hz: TICK_HZ, n: tickStats.n, avgMs: tickStats.n ? tickStats.sumMs / tickStats.n : 0, maxMs: tickStats.maxMs },
+        tick: {
+          hz: TICK_HZ,
+          n: tickStats.n,
+          avgMs: tickStats.n ? tickStats.sumMs / tickStats.n : 0,
+          maxMs: tickStats.maxMs,
+        },
       };
-      res.writeHead(200, { 'content-type': 'application/json', 'access-control-allow-origin': '*' });
+      res.writeHead(200, {
+        'content-type': 'application/json',
+        'access-control-allow-origin': '*',
+      });
       res.end(JSON.stringify(out));
       return;
     }

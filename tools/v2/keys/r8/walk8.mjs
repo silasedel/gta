@@ -5,22 +5,60 @@
 // hold W for `secs`, report where the player ended (H) and whether that meets the expectation.
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from '../../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const F = 3.6;
 const TESTS = [
   { id: 'main_stair_up', from: [1.4, 0.3, -2.8], dir: [-1, 0], secs: 28, expect: 'y > 3.4' },
   { id: 'main_stair_down', from: [-7.1, F + 0.1, -2.8], dir: [1, 0], secs: 16, expect: 'y < 1.6' },
   { id: 'lower_deck_stair_up', from: [6.9, 0.3, -2.0], dir: [1, 0], secs: 12, expect: 'y > 2.6' },
-  { id: 'front_door_in', from: [-7.2, F + 0.1, -7.0], dir: [1, 0], secs: 3, open: 'door_front', expect: 'x > -5.5' },
-  { id: 'hall_to_living', from: [-6.0, F + 0.1, -7.0], dir: [1, 0], secs: 7, open: 'door_front', expect: 'x > -1.5' },
+  {
+    id: 'front_door_in',
+    from: [-7.2, F + 0.1, -7.0],
+    dir: [1, 0],
+    secs: 3,
+    open: 'door_front',
+    expect: 'x > -5.5',
+  },
+  {
+    id: 'hall_to_living',
+    from: [-6.0, F + 0.1, -7.0],
+    dir: [1, 0],
+    secs: 7,
+    open: 'door_front',
+    expect: 'x > -1.5',
+  },
   { id: 'bath_door', from: [-4.6, F + 0.1, -7.0], dir: [0, -1], secs: 2.5, expect: 'z < -8.3' },
   { id: 'bed_door', from: [-4.05, F + 0.1, -7.0], dir: [0, 1], secs: 2.5, expect: 'z > -5.6' },
   { id: 'wall_nw_living', from: [3.0, F + 0.1, -8.0], dir: [0, -1], secs: 3, expect: 'z > -10.45' },
   { id: 'wall_se_bed', from: [-5.0, F + 0.1, -4.8], dir: [0, 1], secs: 3, expect: 'z < -3.5' },
-  { id: 'wall_sw_front_window', from: [-5.8, F + 0.1, -5.0], dir: [-1, 0], secs: 3, expect: 'x > -6.6' },
-  { id: 'slider_out', from: [5.5, F + 0.1, -8.6], dir: [1, 0], secs: 3, open: 'door_slider', expect: 'x > 6.9' },
-  { id: 'upper_to_lower_steps', from: [8.2, F + 0.1, -9.72], dir: [1, 0], secs: 3, expect: 'y < 4.1' },
+  {
+    id: 'wall_sw_front_window',
+    from: [-5.8, F + 0.1, -5.0],
+    dir: [-1, 0],
+    secs: 3,
+    expect: 'x > -6.6',
+  },
+  {
+    id: 'slider_out',
+    from: [5.5, F + 0.1, -8.6],
+    dir: [1, 0],
+    secs: 3,
+    open: 'door_slider',
+    expect: 'x > 6.9',
+  },
+  {
+    id: 'upper_to_lower_steps',
+    from: [8.2, F + 0.1, -9.72],
+    dir: [1, 0],
+    secs: 3,
+    expect: 'y < 4.1',
+  },
 ];
 await withBrowser({ width: 960, height: 540, maxSeconds: +(o.max || 600) }, async (b) => {
   await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
@@ -44,14 +82,33 @@ await withBrowser({ width: 960, height: 540, maxSeconds: +(o.max || 600) }, asyn
     }
     await b.key('KeyW', true);
     const trace = [];
-    for (let k = 0; k < t.secs * 2; k++) { await b.sleep(500); if (o.trace) trace.push(await b.eval(`(() => { const p = game.player.position, [x, z] = __WtoH(p.x, p.z); return [+x.toFixed(2), +(p.y - game.nicoHouse.group.position.y).toFixed(2), +z.toFixed(2)]; })()`)); }
+    for (let k = 0; k < t.secs * 2; k++) {
+      await b.sleep(500);
+      if (o.trace)
+        trace.push(
+          await b.eval(
+            `(() => { const p = game.player.position, [x, z] = __WtoH(p.x, p.z); return [+x.toFixed(2), +(p.y - game.nicoHouse.group.position.y).toFixed(2), +z.toFixed(2)]; })()`,
+          ),
+        );
+    }
     if (o.trace) console.log('trace', t.id, JSON.stringify(trace));
     await b.key('KeyW', false);
     await b.sleep(400);
-    const r = await b.eval(`(() => { const p = game.player.position, [x, z] = __WtoH(p.x, p.z), y = p.y - game.nicoHouse.group.position.y; return { x: +x.toFixed(2), y: +y.toFixed(2), z: +z.toFixed(2) }; })()`);
+    const r = await b.eval(
+      `(() => { const p = game.player.position, [x, z] = __WtoH(p.x, p.z), y = p.y - game.nicoHouse.group.position.y; return { x: +x.toFixed(2), y: +y.toFixed(2), z: +z.toFixed(2) }; })()`,
+    );
     const ok = Function('x', 'y', 'z', 'return ' + t.expect)(r.x, r.y, r.z);
-    res.push({ id: t.id, end: r, expect: t.expect, ok }); console.log(ok ? 'PASS' : 'FAIL', t.id, JSON.stringify(r), t.expect);
+    res.push({ id: t.id, end: r, expect: t.expect, ok });
+    console.log(ok ? 'PASS' : 'FAIL', t.id, JSON.stringify(r), t.expect);
   }
-  if (!o.only) fs.writeFileSync('docs/v2/shots/nico_r8/walk8.json', JSON.stringify({ when: new Date().toISOString(), res, errors: [...new Set(b.errors)].slice(0, 20) }, null, 1));
+  if (!o.only)
+    fs.writeFileSync(
+      'docs/v2/shots/nico_r8/walk8.json',
+      JSON.stringify(
+        { when: new Date().toISOString(), res, errors: [...new Set(b.errors)].slice(0, 20) },
+        null,
+        1,
+      ),
+    );
   if (b.errors.length) console.log('ERRORS\n' + [...new Set(b.errors)].slice(0, 20).join('\n'));
 });

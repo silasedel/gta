@@ -7,14 +7,18 @@ import fs from 'node:fs';
 import { withBrowser, GAME_READY } from './browser.mjs';
 const dir = 'docs/v2/shots/ragdoll';
 const out = {};
-await withBrowser({ width: 1100, height: 700, maxSeconds: 420 }, async (b) => { for (let attempt = 0; attempt < 2; attempt++) { try {
-  await b.goto('http://127.0.0.1:5200/');
-  await b.waitFor(GAME_READY, 240);
-  await b.sleep(2000);
-  await b.click(550, 567); await b.key('Enter'); await b.key('Enter', false); // dismiss the title screen
-  await b.sleep(4000);
-  // helpers in the page: ragdoll cost probe, camera, a wait that lets the real loop run
-  await b.eval(`(() => {
+await withBrowser({ width: 1100, height: 700, maxSeconds: 420 }, async (b) => {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await b.goto('http://127.0.0.1:5200/');
+      await b.waitFor(GAME_READY, 240);
+      await b.sleep(2000);
+      await b.click(550, 567);
+      await b.key('Enter');
+      await b.key('Enter', false); // dismiss the title screen
+      await b.sleep(4000);
+      // helpers in the page: ragdoll cost probe, camera, a wait that lets the real loop run
+      await b.eval(`(() => {
     const g = window.game; const T = window.__rt = { cost: [], frames: [] };
     const i = g.fixedHooks.findIndex((f) => f.name === 'ragdollFixed');
     if (i >= 0) { const f = g.fixedHooks[i]; g.fixedHooks[i] = function ragdollFixed(h) { const t = performance.now(); f(h); T.cost.push(performance.now() - t); }; }
@@ -23,8 +27,10 @@ await withBrowser({ width: 1100, height: 700, maxSeconds: 420 }, async (b) => { 
     T.follow = (ped, side) => { const V = g.THREE ? null : null; g.cameraOverride = (dt, c) => { const p = ped.pos; c.position.set(p.x + side.x, p.y + 1.8, p.z + side.z); c.lookAt(p.x, p.y + 0.6, p.z); return true; }; };
     return i;
   })()`);
-  // ---------- 1. car hit on a street
-  out.carSetup = JSON.parse(await b.eval(`(async () => {
+      // ---------- 1. car hit on a street
+      out.carSetup = JSON.parse(
+        await b.eval(
+          `(async () => {
     const g = window.game, THREE = g.THREE, P = g.player.position;
     const v = g.vehicles.spawn('sedan', P.clone().add(new THREE.Vector3(10, 0, 0)), 0, { color: 0x2a6fdb });
     if (!v) return JSON.stringify({ err: 'no car' });
@@ -42,15 +48,32 @@ await withBrowser({ width: 1100, height: 700, maxSeconds: 420 }, async (b) => { 
       if (T.trace.length < 400) { const c = v.body.translation(); T.trace.push([+el.toFixed(2), +Math.hypot(c.x - ped.pos.x, c.z - ped.pos.z).toFixed(2), +(v.speed || 0).toFixed(1), ped.state, !!ped.rag]); } };
     g.fixedHooks.push(hook); T.carHook = hook;
     return JSON.stringify({ car: [t.x, t.y, t.z].map((x) => +x.toFixed(1)), ped: ped.pos.toArray().map((x) => +x.toFixed(1)), pedState: ped.state });
-  })()`, 60000));
-  // wait for contact, then grab frames while the body is in the air / landing
-  for (let i = 0; i < 40; i++) { await b.sleep(150); if (await b.eval('!!(window.__rt.carPed.rag)')) break; }
-  for (const [i, ms] of [[1, 250], [2, 600], [3, 2500]]) { await b.sleep(ms); await b.screenshot(`${dir}/city_car_${i}.png`); }
-  out.car = JSON.parse(await b.eval(`(() => { const T = window.__rt, g = window.game; g.fixedHooks.splice(g.fixedHooks.indexOf(T.carHook), 1); const tr = T.trace; const hitI = tr.findIndex((x) => x[4]);
-    return JSON.stringify({ hit: hitI >= 0, hitAt: hitI >= 0 ? tr[hitI] : null, closest: Math.min(...tr.map((x) => x[1])), state: T.carPed.state, rag: !!T.carPed.rag, frozen: T.carPed.rag ? !!T.carPed.rag.frozen : null, trace: tr.filter((_, i) => i % 15 === 0) }); })()`));
-  console.log('car', JSON.stringify(out.carSetup), JSON.stringify(out.car));
-  // ---------- 2. heavy punch on a slope
-  out.slope = JSON.parse(await b.eval(`(async () => {
+  })()`,
+          60000,
+        ),
+      );
+      // wait for contact, then grab frames while the body is in the air / landing
+      for (let i = 0; i < 40; i++) {
+        await b.sleep(150);
+        if (await b.eval('!!(window.__rt.carPed.rag)')) break;
+      }
+      for (const [i, ms] of [
+        [1, 250],
+        [2, 600],
+        [3, 2500],
+      ]) {
+        await b.sleep(ms);
+        await b.screenshot(`${dir}/city_car_${i}.png`);
+      }
+      out.car = JSON.parse(
+        await b.eval(`(() => { const T = window.__rt, g = window.game; g.fixedHooks.splice(g.fixedHooks.indexOf(T.carHook), 1); const tr = T.trace; const hitI = tr.findIndex((x) => x[4]);
+    return JSON.stringify({ hit: hitI >= 0, hitAt: hitI >= 0 ? tr[hitI] : null, closest: Math.min(...tr.map((x) => x[1])), state: T.carPed.state, rag: !!T.carPed.rag, frozen: T.carPed.rag ? !!T.carPed.rag.frozen : null, trace: tr.filter((_, i) => i % 15 === 0) }); })()`),
+      );
+      console.log('car', JSON.stringify(out.carSetup), JSON.stringify(out.car));
+      // ---------- 2. heavy punch on a slope
+      out.slope = JSON.parse(
+        await b.eval(
+          `(async () => {
     const g = window.game, THREE = g.THREE || (await import('three')), P = g.player.position, gA = g.peds._nav.groundAt;
     let best = null;
     for (let r = 4; r < 120 && !best; r += 4) for (let a = 0; a < 6.28; a += 0.3) {
@@ -67,15 +90,29 @@ await withBrowser({ width: 1100, height: 700, maxSeconds: 420 }, async (b) => { 
     const T = window.__rt; T.slopePed = ped; T.slopeTrack = []; const t0 = performance.now();
     T.slopeTimer = setInterval(() => T.slopeTrack.push([+((performance.now() - t0) / 1000).toFixed(1), ped.state]), 100);
     return JSON.stringify({ slopeDeg: +(Math.atan(best.sl) * 57.3).toFixed(1) });
-  })()`, 60000));
-  if (!out.slope.err) {
-    await b.sleep(500); await b.screenshot(`${dir}/city_slope_1.png`);
-    await b.sleep(5500); await b.screenshot(`${dir}/city_slope_2.png`);
-    Object.assign(out.slope, JSON.parse(await b.eval(`(() => { const T = window.__rt; clearInterval(T.slopeTimer); const tr = T.slopeTrack; return JSON.stringify({ states: [...new Set(tr.map((x) => x[1]))], track: tr.filter((_, i) => i % 6 === 0) }); })()`)));
-  }
-  console.log('slope', JSON.stringify(out.slope));
-  // ---------- 3. six active ragdolls at once
-  out.six = JSON.parse(await b.eval(`(async () => {
+  })()`,
+          60000,
+        ),
+      );
+      if (!out.slope.err) {
+        await b.sleep(500);
+        await b.screenshot(`${dir}/city_slope_1.png`);
+        await b.sleep(5500);
+        await b.screenshot(`${dir}/city_slope_2.png`);
+        Object.assign(
+          out.slope,
+          JSON.parse(
+            await b.eval(
+              `(() => { const T = window.__rt; clearInterval(T.slopeTimer); const tr = T.slopeTrack; return JSON.stringify({ states: [...new Set(tr.map((x) => x[1]))], track: tr.filter((_, i) => i % 6 === 0) }); })()`,
+            ),
+          ),
+        );
+      }
+      console.log('slope', JSON.stringify(out.slope));
+      // ---------- 3. six active ragdolls at once
+      out.six = JSON.parse(
+        await b.eval(
+          `(async () => {
     const g = window.game, THREE = g.THREE || (await import('three')), P = g.player.position, T = window.__rt;
     const peds = [];
     for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283; const p = g.peds.spawnAt(new THREE.Vector3(P.x + Math.cos(a) * 4, undefined, P.z + Math.sin(a) * 4), {}); p.state = 'idle'; peds.push(p); }
@@ -95,10 +132,20 @@ await withBrowser({ width: 1100, height: 700, maxSeconds: 420 }, async (b) => { 
     const frozen = peds.filter((p) => p.rag && p.rag.frozen).length;
     await new Promise((r) => setTimeout(r, 2500));
     return JSON.stringify({ ragdollsStarted: active0, frozenAfter2_5s: frozen, frozenAfter5s: peds.filter((p) => p.rag && p.rag.frozen).length, frameMs: { before: base, during }, ragdollPhysicsCost: cost });
-  })()`, 90000));
-  await b.screenshot(`${dir}/city_six.png`);
-  console.log('six', JSON.stringify(out.six));
-  fs.writeFileSync(`${dir}/city.json`, JSON.stringify(out, null, 1));
-  break; } catch (e) { console.log('attempt failed (page reload by another agent?)', String(e).slice(0, 160)); await b.goto('http://127.0.0.1:5200/'); await b.waitFor(GAME_READY, 240); } }
-  const errs = b.errors.filter((e) => !/favicon/.test(e)); if (errs.length) console.log('CONSOLE ERRORS', errs.slice(0, 12));
+  })()`,
+          90000,
+        ),
+      );
+      await b.screenshot(`${dir}/city_six.png`);
+      console.log('six', JSON.stringify(out.six));
+      fs.writeFileSync(`${dir}/city.json`, JSON.stringify(out, null, 1));
+      break;
+    } catch (e) {
+      console.log('attempt failed (page reload by another agent?)', String(e).slice(0, 160));
+      await b.goto('http://127.0.0.1:5200/');
+      await b.waitFor(GAME_READY, 240);
+    }
+  }
+  const errs = b.errors.filter((e) => !/favicon/.test(e));
+  if (errs.length) console.log('CONSOLE ERRORS', errs.slice(0, 12));
 });

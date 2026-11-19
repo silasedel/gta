@@ -5,7 +5,9 @@
 //   uR4        1 = r4 shoreline look on (smooth soft banks, murky inland water, damp bank band); ?r4water=0 = 0
 import * as THREE from 'three';
 
-export const R4WATER = !(typeof location !== 'undefined' && /[?&]r4water=0\b/.test(location.search));
+export const R4WATER = !(
+  typeof location !== 'undefined' && /[?&]r4water=0\b/.test(location.search)
+);
 export const FRESH_U = {
   tFresh: { value: null },
   uFreshRect: { value: new THREE.Vector4(0, 0, 1, 0) },

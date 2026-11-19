@@ -16,42 +16,197 @@ import { FRESH_U } from '../env/freshMask.js';
 // rows: farm furrows; shore: how strongly the shore wet band applies; nrm: normal strength
 const T = (r, g, b) => [r, g, b];
 export const RECIPES = {
-  lawn: { A: ['grass', 1.6, T(1, 1, 1)], B: ['soil', 2.4, T(1.12, 1.01, 0.87)], cov: 0.06, mf: 6, M: ['lawn', 23, 0.8, 1.4], grade: 0.9, lush: 0.78, shore: 0.3 },
-  scrub: { A: ['grass', 1.8, T(1, 1, 1)], B: ['soil', 2.6, T(1.13, 1.01, 0.86)], cov: 0.3, mf: 4.5, M: ['lawn', 17, 0.8, 1.8], grade: 0.8, lush: 0.58, shore: 0.3 },
-  forest: { A: ['leaves', 3.6, T(0.9, 0.88, 0.82)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.32, mf: 5, M: ['lawn', 21, 0.25, 0.6], shore: 0.4 },
-  pine: { A: ['grass', 1.9, T(1, 1, 1)], B: ['stony', 3.6, T(1.05, 1.02, 0.95)], cov: 0.45, mf: 5, grade: 0.75, lush: 0.32, shore: 0.4 },
-  sawgrass: { A: ['grass', 2.0, T(1.05, 1, 0.85)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.32, mf: 4, grade: 0.65, lush: 0.3, wet: 0.7, shore: 0.6 }, // ground pass: more standing water in the glades
-  marsh: { A: ['mud', 3.4, T(1, 1, 1)], B: ['grass', 2.0, T(1, 1, 0.9)], cov: 0.35, mf: 3.5, grade: 0.6, lush: 0.35, wet: 1, shore: 0.8 },
-  sand: { A: ['sand', 3.0, T(0.95, 0.92, 0.85)], // r2-ground: near-neutral shell / quartz sand (ART_STYLE: hue 35-45, sat <= 0.18)
-    B: ['gravel', 2.2, T(1.18, 1.14, 1.06)], cov: 0.04, mf: 2.5, shore: 1, nrm: 0.8 },
-  shell: { A: ['gravel', 2.0, T(1.22, 1.18, 1.1)], B: ['sand', 3.0, T(1, 1, 1)], cov: 0.3, mf: 4, shore: 0.8 },
-  dirt: { A: ['soil', 2.8, T(1.14, 1.02, 0.88)], B: ['gravel', 2.6, T(0.78, 0.74, 0.68)], cov: 0.35, mf: 5, M: ['sandgrass', 26, 0.3, 0], shore: 0.6 },
-  farm: { A: ['soil', 2.4, T(1.0, 0.9, 0.77)], B: ['grass', 1.8, T(1, 1, 1)], cov: 0.08, mf: 3, grade: 0.7, lush: 0.6, rows: 1, shore: 0.6 },
-  grove: { A: ['grass', 1.8, T(1, 1, 1)], B: ['soil', 2.4, T(1.12, 1.01, 0.87)], cov: 0.22, mf: 4, M: ['lawn', 22, 0.4, 1], grade: 0.85, lush: 0.62, shore: 0.4 },
-  rock: { A: ['stony', 3.6, T(1.05, 1.03, 1)], B: ['gravel', 2.6, T(1, 1, 1)], cov: 0.4, mf: 5, shore: 0.5 },
-  gravel: { A: ['gravel', 2.4, T(1, 1, 1)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.2, mf: 4, shore: 0.5 },
-  damp: { A: ['sand', 3.0, T(0.8, 0.78, 0.74)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.3, mf: 5, wet: 0.35, shore: 1 },
-  base: { A: ['gravel', 2.4, T(0.98, 0.96, 0.92)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.3, mf: 5, shore: 0.5 },
-  meadow: { A: ['grass', 2.0, T(1, 1, 1)], B: ['soil', 2.6, T(1.12, 1.01, 0.87)], cov: 0.15, mf: 6, M: ['lawn', 29, 0.8, 1.4], grade: 0.85, lush: 0.68, shore: 0.4 },
+  lawn: {
+    A: ['grass', 1.6, T(1, 1, 1)],
+    B: ['soil', 2.4, T(1.12, 1.01, 0.87)],
+    cov: 0.06,
+    mf: 6,
+    M: ['lawn', 23, 0.8, 1.4],
+    grade: 0.9,
+    lush: 0.78,
+    shore: 0.3,
+  },
+  scrub: {
+    A: ['grass', 1.8, T(1, 1, 1)],
+    B: ['soil', 2.6, T(1.13, 1.01, 0.86)],
+    cov: 0.3,
+    mf: 4.5,
+    M: ['lawn', 17, 0.8, 1.8],
+    grade: 0.8,
+    lush: 0.58,
+    shore: 0.3,
+  },
+  forest: {
+    A: ['leaves', 3.6, T(0.9, 0.88, 0.82)],
+    B: ['soil', 2.8, T(1.1, 1.01, 0.89)],
+    cov: 0.32,
+    mf: 5,
+    M: ['lawn', 21, 0.25, 0.6],
+    shore: 0.4,
+  },
+  pine: {
+    A: ['grass', 1.9, T(1, 1, 1)],
+    B: ['stony', 3.6, T(1.05, 1.02, 0.95)],
+    cov: 0.45,
+    mf: 5,
+    grade: 0.75,
+    lush: 0.32,
+    shore: 0.4,
+  },
+  sawgrass: {
+    A: ['grass', 2.0, T(1.05, 1, 0.85)],
+    B: ['mud', 3.2, T(1, 1, 1)],
+    cov: 0.32,
+    mf: 4,
+    grade: 0.65,
+    lush: 0.3,
+    wet: 0.7,
+    shore: 0.6,
+  }, // ground pass: more standing water in the glades
+  marsh: {
+    A: ['mud', 3.4, T(1, 1, 1)],
+    B: ['grass', 2.0, T(1, 1, 0.9)],
+    cov: 0.35,
+    mf: 3.5,
+    grade: 0.6,
+    lush: 0.35,
+    wet: 1,
+    shore: 0.8,
+  },
+  sand: {
+    A: ['sand', 3.0, T(0.95, 0.92, 0.85)], // r2-ground: near-neutral shell / quartz sand (ART_STYLE: hue 35-45, sat <= 0.18)
+    B: ['gravel', 2.2, T(1.18, 1.14, 1.06)],
+    cov: 0.04,
+    mf: 2.5,
+    shore: 1,
+    nrm: 0.8,
+  },
+  shell: {
+    A: ['gravel', 2.0, T(1.22, 1.18, 1.1)],
+    B: ['sand', 3.0, T(1, 1, 1)],
+    cov: 0.3,
+    mf: 4,
+    shore: 0.8,
+  },
+  dirt: {
+    A: ['soil', 2.8, T(1.14, 1.02, 0.88)],
+    B: ['gravel', 2.6, T(0.78, 0.74, 0.68)],
+    cov: 0.35,
+    mf: 5,
+    M: ['sandgrass', 26, 0.3, 0],
+    shore: 0.6,
+  },
+  farm: {
+    A: ['soil', 2.4, T(1.0, 0.9, 0.77)],
+    B: ['grass', 1.8, T(1, 1, 1)],
+    cov: 0.08,
+    mf: 3,
+    grade: 0.7,
+    lush: 0.6,
+    rows: 1,
+    shore: 0.6,
+  },
+  grove: {
+    A: ['grass', 1.8, T(1, 1, 1)],
+    B: ['soil', 2.4, T(1.12, 1.01, 0.87)],
+    cov: 0.22,
+    mf: 4,
+    M: ['lawn', 22, 0.4, 1],
+    grade: 0.85,
+    lush: 0.62,
+    shore: 0.4,
+  },
+  rock: {
+    A: ['stony', 3.6, T(1.05, 1.03, 1)],
+    B: ['gravel', 2.6, T(1, 1, 1)],
+    cov: 0.4,
+    mf: 5,
+    shore: 0.5,
+  },
+  gravel: {
+    A: ['gravel', 2.4, T(1, 1, 1)],
+    B: ['soil', 2.8, T(1.1, 1.01, 0.89)],
+    cov: 0.2,
+    mf: 4,
+    shore: 0.5,
+  },
+  damp: {
+    A: ['sand', 3.0, T(0.8, 0.78, 0.74)],
+    B: ['mud', 3.2, T(1, 1, 1)],
+    cov: 0.3,
+    mf: 5,
+    wet: 0.35,
+    shore: 1,
+  },
+  base: {
+    A: ['gravel', 2.4, T(0.98, 0.96, 0.92)],
+    B: ['soil', 2.8, T(1.1, 1.01, 0.89)],
+    cov: 0.3,
+    mf: 5,
+    shore: 0.5,
+  },
+  meadow: {
+    A: ['grass', 2.0, T(1, 1, 1)],
+    B: ['soil', 2.6, T(1.12, 1.01, 0.87)],
+    cov: 0.15,
+    mf: 6,
+    M: ['lawn', 29, 0.8, 1.4],
+    grade: 0.85,
+    lush: 0.68,
+    shore: 0.4,
+  },
   // Keys yards and inland sand lots (user mock-up): matted dry grass and sand, the user's grassy-sand scan as macro
-  yard: { A: ['sandgrass', 4.6, T(1, 1, 1)], B: ['sand', 3.0, T(0.88, 0.86, 0.8)], cov: 0.42, mf: 7, M: ['sandgrass', 31, 0.4, -1.2], grade: 0.0, lush: 0.3, shore: 0.5 },
+  yard: {
+    A: ['sandgrass', 4.6, T(1, 1, 1)],
+    B: ['sand', 3.0, T(0.88, 0.86, 0.8)],
+    cov: 0.42,
+    mf: 7,
+    M: ['sandgrass', 31, 0.4, -1.2],
+    grade: 0.0,
+    lush: 0.3,
+    shore: 0.5,
+  },
 };
 
 export function recipeUniforms(keys) {
-  const NC = keys.length, RA = [], RB = [], RC = [], RD = [], TA = [], TB = [];
+  const NC = keys.length,
+    RA = [],
+    RB = [],
+    RC = [],
+    RD = [],
+    TA = [],
+    TB = [];
   for (const k of keys) {
-    const r = RECIPES[k] || RECIPES.base, a = r.A, b = r.B || r.A, m = r.M;
-    const ga = a[0] === 'grass' ? (r.grade || 0) : 0, gb = b[0] === 'grass' ? (r.grade || 0) : 0;
+    const r = RECIPES[k] || RECIPES.base,
+      a = r.A,
+      b = r.B || r.A,
+      m = r.M;
+    const ga = a[0] === 'grass' ? r.grade || 0 : 0,
+      gb = b[0] === 'grass' ? r.grade || 0 : 0;
     RA.push(new THREE.Vector4(GT[a[0]], 1 / a[1], GT[b[0]], 1 / b[1]));
-    RB.push(new THREE.Vector4(r.B ? r.cov : 0, 1 / (r.mf || 5), m ? GT[m[0]] : -1, m ? 1 / m[1] : 0));
+    RB.push(
+      new THREE.Vector4(r.B ? r.cov : 0, 1 / (r.mf || 5), m ? GT[m[0]] : -1, m ? 1 / m[1] : 0),
+    );
     RC.push(new THREE.Vector4(ga, gb, r.lush ?? 0.5, r.wet || 0));
     RD.push(new THREE.Vector4(m ? m[2] : 0, m ? m[3] : 0, r.rows || 0, r.shore ?? 0.4));
-    TA.push(new THREE.Vector3(...a[2])); TB.push(new THREE.Vector3(...(b[2] || [1, 1, 1])));
+    TA.push(new THREE.Vector3(...a[2]));
+    TB.push(new THREE.Vector3(...(b[2] || [1, 1, 1])));
   }
-  return { NC, uRA: { value: RA }, uRB: { value: RB }, uRC: { value: RC }, uRD: { value: RD }, uTA: { value: TA }, uTB: { value: TB }, uRN: { value: keys.map((k) => (RECIPES[k]?.nrm ?? 1)) } };
+  return {
+    NC,
+    uRA: { value: RA },
+    uRB: { value: RB },
+    uRC: { value: RC },
+    uRD: { value: RD },
+    uTA: { value: TA },
+    uTB: { value: TB },
+    uRN: { value: keys.map((k) => RECIPES[k]?.nrm ?? 1) },
+  };
 }
 
-export const GROUND_GLSL_HEAD = CAUSTIC_GLSL + /* glsl */`
+export const GROUND_GLSL_HEAD =
+  CAUSTIC_GLSL +
+  /* glsl */ `
 precision highp sampler2DArray;
 uniform sampler2DArray tGC; uniform sampler2DArray tGN;
 uniform vec4 uRA[NC]; uniform vec4 uRB[NC]; uniform vec4 uRC[NC]; uniform vec4 uRD[NC]; uniform vec3 uTA[NC]; uniform vec3 uTB[NC]; uniform float uRN[NC];
@@ -153,12 +308,37 @@ export function patchGround(mat, lod, opts, tex, U) {
   mat.customProgramCacheKey = () => 'ps-ground2-' + (lod ? 'lod' : 'near');
   mat.onBeforeCompile = (sh) => {
     if (lod && opts.nearCut) opts.nearCut(sh);
-    Object.assign(sh.uniforms, { tGC: { value: tex.col }, tGN: { value: tex.aux }, uRA: U.uRA, uRB: U.uRB, uRC: U.uRC, uRD: U.uRD, uTA: U.uTA, uTB: U.uTB, uRN: U.uRN, uVegTime: vegUniforms.uVegTime, uGSea: { value: opts.seaLevel ?? -0.12 }, tR4Fresh: FRESH_U.tFresh, uR4Rect: FRESH_U.uFreshRect, uR4g: FRESH_U.uR4 });
-    sh.vertexShader = 'attribute vec3 aL;\nattribute float aS;\nattribute float aLow;\nvarying vec3 vL;\nvarying vec3 vBary;\nvarying vec3 vWP;\nvarying vec3 vWN;\nvarying float vShore;\nvarying float vLow;\n' + sh.vertexShader.replace('#include <fog_vertex>', `#include <fog_vertex>
+    Object.assign(sh.uniforms, {
+      tGC: { value: tex.col },
+      tGN: { value: tex.aux },
+      uRA: U.uRA,
+      uRB: U.uRB,
+      uRC: U.uRC,
+      uRD: U.uRD,
+      uTA: U.uTA,
+      uTB: U.uTB,
+      uRN: U.uRN,
+      uVegTime: vegUniforms.uVegTime,
+      uGSea: { value: opts.seaLevel ?? -0.12 },
+      tR4Fresh: FRESH_U.tFresh,
+      uR4Rect: FRESH_U.uFreshRect,
+      uR4g: FRESH_U.uR4,
+    });
+    sh.vertexShader =
+      'attribute vec3 aL;\nattribute float aS;\nattribute float aLow;\nvarying vec3 vL;\nvarying vec3 vBary;\nvarying vec3 vWP;\nvarying vec3 vWN;\nvarying float vShore;\nvarying float vLow;\n' +
+      sh.vertexShader.replace(
+        '#include <fog_vertex>',
+        `#include <fog_vertex>
       vL = aL; vShore = aS; vLow = aLow; int tid = gl_VertexID % 3; vBary = vec3(tid == 0 ? 1.0 : 0.0, tid == 1 ? 1.0 : 0.0, tid == 2 ? 1.0 : 0.0);
-      vWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vWN = normalize(mat3(modelMatrix) * normal);`);
-    sh.fragmentShader = 'uniform sampler2D tR4Fresh; uniform vec4 uR4Rect; uniform float uR4g;\n' + GROUND_GLSL_HEAD.replace(/\bNC\b/g, String(U.NC)) + sh.fragmentShader
-      .replace('#include <map_fragment>', /* glsl */`
+      vWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vWN = normalize(mat3(modelMatrix) * normal);`,
+      );
+    sh.fragmentShader =
+      'uniform sampler2D tR4Fresh; uniform vec4 uR4Rect; uniform float uR4g;\n' +
+      GROUND_GLSL_HEAD.replace(/\bNC\b/g, String(U.NC)) +
+      sh.fragmentShader
+        .replace(
+          '#include <map_fragment>',
+          /* glsl */ `
       vec2 wp = vWP.xz, gdx = dFdx(wp), gdy = dFdy(wp);
       float gdC = distance(cameraPosition, vWP);
       bool gWantN = gdC < 260.0;
@@ -245,12 +425,19 @@ export function patchGround(mat, lod, opts, tex, U) {
       }
       alb = mix(alb, alb * 0.2 + vec3(0.008, 0.012, 0.01), pud); tRough = mix(tRough, 0.05, pud); tRough = mix(tRough, tRough * 0.78, gs.wet * 0.5);
       vec2 gTilt = gs.tilt * (1.0 - pud) * (1.0 - wetB * 0.6);
-      diffuseColor.rgb *= alb * mix(1.0, gs.ao, 0.65);`)
-      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = clamp(tRough, 0.04, 1.0);')
-      .replace('#include <normal_fragment_maps>', /* glsl */`{
+      diffuseColor.rgb *= alb * mix(1.0, gs.ao, 0.65);`,
+        )
+        .replace(
+          '#include <roughnessmap_fragment>',
+          'float roughnessFactor = clamp(tRough, 0.04, 1.0);',
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          /* glsl */ `{
         vec3 Nw = normalize(vWN), Tw = normalize(vec3(1.0, 0.0, 0.0) - Nw * Nw.x), Bw = normalize(vec3(0.0, 0.0, 1.0) - Nw * Nw.z);
         normal = normalize((viewMatrix * vec4(normalize(Tw * gTilt.x + Bw * gTilt.y + Nw), 0.0)).xyz);
-      }`);
+      }`,
+        );
   };
   return mat;
 }

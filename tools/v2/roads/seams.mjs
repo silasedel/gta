@@ -15,10 +15,16 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'after';
-const DIR = path.resolve('docs/v2/shots/roads'); fs.mkdirSync(DIR, { recursive: true });
+const DIR = path.resolve('docs/v2/shots/roads');
+fs.mkdirSync(DIR, { recursive: true });
 const PICKS = path.resolve('docs/v2/reports/r2roads-seam-picks.json');
 
 const PICK_JS = `(() => {
@@ -80,31 +86,72 @@ const camJS = (s, id) => `(() => {
   game.teleport(eye[0], undefined, eye[2], 0); window.__scam = [eye, look]; game.cameraOverride = (dt, c) => { c.position.fromArray(eye); c.lookAt(look[0], look[1], look[2]); return true; };
   return 1; })()`;
 
-const RAY_JS = (id) => `(async () => { const M = await import('/src/world/surfaces/seamProbe.js'); return JSON.stringify(M.seamProbe(game, ${id})); })()`;
+const RAY_JS = (id) =>
+  `(async () => { const M = await import('/src/world/surfaces/seamProbe.js'); return JSON.stringify(M.seamProbe(game, ${id})); })()`;
 
 let picks = null;
 if (!o.repick && fs.existsSync(PICKS)) picks = JSON.parse(fs.readFileSync(PICKS, 'utf8'));
 const REPF = `docs/v2/reports/r2roads-seams-${SET}.json`;
-const rep = o.merge && fs.existsSync(REPF) ? JSON.parse(fs.readFileSync(REPF, 'utf8')) : { set: SET, when: new Date().toISOString(), q: o.q || '', picks: {} }; // --merge: add to an earlier run of the set
+const rep =
+  o.merge && fs.existsSync(REPF)
+    ? JSON.parse(fs.readFileSync(REPF, 'utf8'))
+    : { set: SET, when: new Date().toISOString(), q: o.q || '', picks: {} }; // --merge: add to an earlier run of the set
 await withBrowser({ width: 1600, height: 900, maxSeconds: +(o.max || 2400) }, async (b) => {
   await b.goto('http://127.0.0.1:' + (o.port || 5200) + '/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 11; try { game.weather?.set?.('clear', { instant: true }); } catch (e) {} return 1; })()`);
-  if (!picks) { picks = JSON.parse(await b.eval(PICK_JS)); fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); console.log('picked', Object.keys(picks).length, Object.keys(picks).join(',')); }
+  await b.eval(
+    `(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 11; try { game.weather?.set?.('clear', { instant: true }); } catch (e) {} return 1; })()`,
+  );
+  if (!picks) {
+    picks = JSON.parse(await b.eval(PICK_JS));
+    fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1));
+    console.log('picked', Object.keys(picks).length, Object.keys(picks).join(','));
+  }
   const ids = o.only ? String(o.only).split(',') : Object.keys(picks);
   for (const k of ids) {
-    const p = picks[k]; if (!p) continue;
-    await b.eval(`(() => { game.cameraOverride = null; game.timeOfDay = 11; game.teleport(${p.x}, undefined, ${p.z}, 0); return 1; })()`);
-    await b.sleep(2500); for (let i = 0; i < 40; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 2) break; await b.sleep(1000); }
+    const p = picks[k];
+    if (!p) continue;
+    await b.eval(
+      `(() => { game.cameraOverride = null; game.timeOfDay = 11; game.teleport(${p.x}, undefined, ${p.z}, 0); return 1; })()`,
+    );
+    await b.sleep(2500);
+    for (let i = 0; i < 40; i++) {
+      const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)');
+      if (q < 2) break;
+      await b.sleep(1000);
+    }
     // the near tile under the node must be built (its group is named tile-near-tx,tz) before probing / shooting
-    for (let i = 0; i < 40; i++) { const ok = await b.eval(`(() => { const T = 200, k = 'tile-near-' + Math.floor(${p.x} / T) + ',' + Math.floor(${p.z} / T); let f = false; game.scene.traverse((o) => { if (o.name === k && o.children.length) f = true; }); return f; })()`); if (ok) break; await b.sleep(1000); }
+    for (let i = 0; i < 40; i++) {
+      const ok = await b.eval(
+        `(() => { const T = 200, k = 'tile-near-' + Math.floor(${p.x} / T) + ',' + Math.floor(${p.z} / T); let f = false; game.scene.traverse((o) => { if (o.name === k && o.children.length) f = true; }); return f; })()`,
+      );
+      if (ok) break;
+      await b.sleep(1000);
+    }
     await b.sleep(1500);
-    let pr = null; try { pr = JSON.parse(await b.eval(RAY_JS(p.id), 180000)); } catch (e) { pr = { error: String(e.message || e).slice(0, 200) }; }
-    rep.picks[k] = { ...p, probe: pr }; fs.writeFileSync(REPF, JSON.stringify(rep, null, 1)); // saved per pick (a killed run keeps what it measured) console.log(k, p.id, pr && !pr.error ? `raised ${pr.raised} notch ${pr.notch} zfight ${pr.zfight} step ${pr.step} (${pr.samples} rays, ${pr.ms} ms)` : JSON.stringify(pr));
-    if (!o.noshots) for (const v of ['top', 'corner', 'approach']) { await b.eval(camJS({ v }, p.id)); await b.sleep(1500); await b.screenshot(path.join(DIR, `${SET}_seam_${k}_${v}.jpg`)); }
+    let pr = null;
+    try {
+      pr = JSON.parse(await b.eval(RAY_JS(p.id), 180000));
+    } catch (e) {
+      pr = { error: String(e.message || e).slice(0, 200) };
+    }
+    rep.picks[k] = { ...p, probe: pr };
+    fs.writeFileSync(REPF, JSON.stringify(rep, null, 1)); // saved per pick (a killed run keeps what it measured) console.log(k, p.id, pr && !pr.error ? `raised ${pr.raised} notch ${pr.notch} zfight ${pr.zfight} step ${pr.step} (${pr.samples} rays, ${pr.ms} ms)` : JSON.stringify(pr));
+    if (!o.noshots)
+      for (const v of ['top', 'corner', 'approach']) {
+        await b.eval(camJS({ v }, p.id));
+        await b.sleep(1500);
+        await b.screenshot(path.join(DIR, `${SET}_seam_${k}_${v}.jpg`));
+      }
   }
-  rep.errors = [...new Set(b.errors)].slice(0, 20); if (rep.errors.length) console.log('ERRORS\n' + rep.errors.join('\n'));
+  rep.errors = [...new Set(b.errors)].slice(0, 20);
+  if (rep.errors.length) console.log('ERRORS\n' + rep.errors.join('\n'));
 });
 fs.writeFileSync(`docs/v2/reports/r2roads-seams-${SET}.json`, JSON.stringify(rep, null, 1));
-if (!o.noshots) try { execFileSync('python3', ['tools/v2/roads/sheet.py', SET], { stdio: 'inherit' }); } catch (e) { console.log('sheet failed', e.message); }
+if (!o.noshots)
+  try {
+    execFileSync('python3', ['tools/v2/roads/sheet.py', SET], { stdio: 'inherit' });
+  } catch (e) {
+    console.log('sheet failed', e.message);
+  }

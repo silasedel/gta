@@ -21,32 +21,52 @@ html[data-subs="small"] .pl-subs{font-size:clamp(13px,1.15vw,19px)} html[data-su
 
 export function createComms(game, G, law) {
   const S = law.S;
-  let root = null, subs = null, radio = null;
+  let root = null,
+    subs = null,
+    radio = null;
   try {
-    const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-    subs = document.createElement('div'); subs.className = 'pl-subs';
-    radio = document.createElement('div'); radio.className = 'pl-radio';
-    document.body.append(subs, radio); root = true;
-  } catch (e) { root = null; }
+    const st = document.createElement('style');
+    st.textContent = css;
+    document.head.appendChild(st);
+    subs = document.createElement('div');
+    subs.className = 'pl-subs';
+    radio = document.createElement('div');
+    radio.className = 'pl-radio';
+    document.body.append(subs, radio);
+    root = true;
+  } catch (e) {
+    root = null;
+  }
   const subsOn = () => game.settings?.subtitles !== false;
 
   // ---- shouts: one line at a time, newest wins when more urgent
-  let line = null, lineT = 0, linePri = 0;
+  let line = null,
+    lineT = 0,
+    linePri = 0;
   const lastBy = new WeakMap();
   function shout(unit, text, o = {}) {
     if (!text) return false;
-    const t = game.clock.elapsed, pri = o.priority ?? 1;
+    const t = game.clock.elapsed,
+      pri = o.priority ?? 1;
     if (unit && t - (lastBy.get(unit) ?? -99) < (o.gap ?? 3.5)) return false;
     if (line && lineT > 0.6 && pri < linePri) return false;
     if (unit) lastBy.set(unit, t);
     const who = o.who || (unit?.name ? `${unit.rank || 'Ofc.'} ${unit.name}` : 'Officer');
     game.emit?.('police:shout', { text, who, unit, priority: pri });
     if (!root || !subsOn()) return true;
-    if (line) { const old = line; old.classList.remove('on'); setTimeout(() => old.remove(), 260); }
-    line = document.createElement('span'); line.className = 'pl-line';
+    if (line) {
+      const old = line;
+      old.classList.remove('on');
+      setTimeout(() => old.remove(), 260);
+    }
+    line = document.createElement('span');
+    line.className = 'pl-line';
     line.innerHTML = `<b>${who}:</b>${text.replace(/</g, '&lt;')}`;
-    subs.appendChild(line); void line.offsetWidth; line.classList.add('on');
-    lineT = o.dur ?? Math.min(4.2, 1.6 + text.length * 0.045); linePri = pri;
+    subs.appendChild(line);
+    void line.offsetWidth;
+    line.classList.add('on');
+    lineT = o.dur ?? Math.min(4.2, 1.6 + text.length * 0.045);
+    linePri = pri;
     return true;
   }
   // ---- radio ticker: the last three messages while wanted, each fades after its time
@@ -54,36 +74,103 @@ export function createComms(game, G, law) {
   game.on?.('police:radio', (m) => {
     if (!root || !m?.text) return;
     if (S.level === 0 && m.kind !== 'lost' && m.kind !== 'dispatch') return;
-    const el = document.createElement('div'); el.className = 'pl-r' + ((m.priority ?? 1) >= 3 ? ' hi' : '');
+    const el = document.createElement('div');
+    el.className = 'pl-r' + ((m.priority ?? 1) >= 3 ? ' hi' : '');
     el.innerHTML = `<i>${(m.speaker || 'Dispatch').replace(/</g, '&lt;')}${m.code ? ' &middot; ' + m.code : ''}</i>${m.text.replace(/</g, '&lt;')}`;
-    radio.appendChild(el); void el.offsetWidth; el.classList.add('on');
+    radio.appendChild(el);
+    void el.offsetWidth;
+    el.classList.add('on');
     rows.push({ el, t: Math.max(4, m.dur || 5) });
-    while (rows.length > 3) { const r = rows.shift(); r.el.remove(); }
+    while (rows.length > 3) {
+      const r = rows.shift();
+      r.el.remove();
+    }
   });
 
   // ---- sirens: the two closest pursuing cars sound (wail far, yelp close), parked / deployed cars stay silent
-  const sirenIds = ['cop0', 'cop1'], sirenOn = [false, false], best = [null, null], bestD = [1e9, 1e9];
+  const sirenIds = ['cop0', 'cop1'],
+    sirenOn = [false, false],
+    best = [null, null],
+    bestD = [1e9, 1e9];
   function sirens(cars) {
-    const A = game.audio; if (!A?.siren) return;
+    const A = game.audio;
+    if (!A?.siren) return;
     const pp = game.player.position;
-    best[0] = best[1] = null; bestD[0] = bestD[1] = 1e9;
+    best[0] = best[1] = null;
+    bestD[0] = bestD[1] = 1e9;
     for (const c of cars) {
-      const v = c.v; if (c.deployed || !v.sirenActive || v.disabled) continue;
-      let t; try { t = v.body.translation(); } catch (e) { continue; }
-      const d = Math.hypot(t.x - pp.x, t.z - pp.z); if (d > 260) continue;
-      if (d < bestD[0]) { best[1] = best[0]; bestD[1] = bestD[0]; best[0] = v; bestD[0] = d; } else if (d < bestD[1]) { best[1] = v; bestD[1] = d; }
+      const v = c.v;
+      if (c.deployed || !v.sirenActive || v.disabled) continue;
+      let t;
+      try {
+        t = v.body.translation();
+      } catch (e) {
+        continue;
+      }
+      const d = Math.hypot(t.x - pp.x, t.z - pp.z);
+      if (d > 260) continue;
+      if (d < bestD[0]) {
+        best[1] = best[0];
+        bestD[1] = bestD[0];
+        best[0] = v;
+        bestD[0] = d;
+      } else if (d < bestD[1]) {
+        best[1] = v;
+        bestD[1] = d;
+      }
     }
     for (let i = 0; i < 2; i++) {
       const v = best[i];
-      if (v) { const t = v.body.translation(); tryCall('siren', () => A.siren(true, { x: t.x, y: t.y + 1.2, z: t.z }, sirenIds[i], bestD[i] < 38 ? 'yelp' : 'wail')); sirenOn[i] = true; }
-      else if (sirenOn[i]) { tryCall('siren off', () => A.siren(false, null, sirenIds[i])); sirenOn[i] = false; }
+      if (v) {
+        const t = v.body.translation();
+        tryCall('siren', () =>
+          A.siren(
+            true,
+            { x: t.x, y: t.y + 1.2, z: t.z },
+            sirenIds[i],
+            bestD[i] < 38 ? 'yelp' : 'wail',
+          ),
+        );
+        sirenOn[i] = true;
+      } else if (sirenOn[i]) {
+        tryCall('siren off', () => A.siren(false, null, sirenIds[i]));
+        sirenOn[i] = false;
+      }
     }
   }
-  function silence() { for (let i = 0; i < 2; i++) if (sirenOn[i]) { tryCall('siren off', () => game.audio?.siren?.(false, null, sirenIds[i])); sirenOn[i] = false; } }
+  function silence() {
+    for (let i = 0; i < 2; i++)
+      if (sirenOn[i]) {
+        tryCall('siren off', () => game.audio?.siren?.(false, null, sirenIds[i]));
+        sirenOn[i] = false;
+      }
+  }
 
   function tick(dt) {
-    if (line && (lineT -= dt) <= 0) { const old = line; line = null; old.classList.remove('on'); setTimeout(() => old.remove(), 260); }
-    for (let i = rows.length - 1; i >= 0; i--) { const r = rows[i]; r.t -= dt; if (r.t <= 0) { r.el.classList.remove('on'); const el = r.el; setTimeout(() => el.remove(), 320); rows.splice(i, 1); } }
+    if (line && (lineT -= dt) <= 0) {
+      const old = line;
+      line = null;
+      old.classList.remove('on');
+      setTimeout(() => old.remove(), 260);
+    }
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const r = rows[i];
+      r.t -= dt;
+      if (r.t <= 0) {
+        r.el.classList.remove('on');
+        const el = r.el;
+        setTimeout(() => el.remove(), 320);
+        rows.splice(i, 1);
+      }
+    }
   }
-  return { shout, sirens, silence, tick, get line() { return line?.textContent || null; } };
+  return {
+    shout,
+    sirens,
+    silence,
+    tick,
+    get line() {
+      return line?.textContent || null;
+    },
+  };
 }

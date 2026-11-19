@@ -14,48 +14,81 @@ const key = (i, j) => i * 100003 + j;
 let count = 0;
 
 function cellsOf(it) {
-  const R = Math.max(it.r, it.crown ? it.crown.r : 0) + 0.5, out = [];
-  for (let i = Math.floor((it.x - R) / CELL); i <= Math.floor((it.x + R) / CELL); i++) for (let j = Math.floor((it.z - R) / CELL); j <= Math.floor((it.z + R) / CELL); j++) out.push(key(i, j));
+  const R = Math.max(it.r, it.crown ? it.crown.r : 0) + 0.5,
+    out = [];
+  for (let i = Math.floor((it.x - R) / CELL); i <= Math.floor((it.x + R) / CELL); i++)
+    for (let j = Math.floor((it.z - R) / CELL); j <= Math.floor((it.z + R) / CELL); j++)
+      out.push(key(i, j));
   return out;
 }
 
 export const occupancy = {
   add(it) {
     if (!it || !Number.isFinite(it.x) || !Number.isFinite(it.z)) return null;
-    it.y = it.y ?? 0; it.h = it.h ?? 2; it.r = it.r ?? 0.3;
+    it.y = it.y ?? 0;
+    it.h = it.h ?? 2;
+    it.r = it.r ?? 0.3;
     it._cells = cellsOf(it);
-    for (const k of it._cells) { let a = grid.get(k); if (!a) grid.set(k, (a = [])); a.push(it); }
-    if (it.owner !== undefined) { let s = byOwner.get(it.owner); if (!s) byOwner.set(it.owner, (s = [])); s.push(it); }
+    for (const k of it._cells) {
+      let a = grid.get(k);
+      if (!a) grid.set(k, (a = []));
+      a.push(it);
+    }
+    if (it.owner !== undefined) {
+      let s = byOwner.get(it.owner);
+      if (!s) byOwner.set(it.owner, (s = []));
+      s.push(it);
+    }
     count++;
     return it;
   },
   remove(it) {
     if (!it || !it._cells) return;
-    for (const k of it._cells) { const a = grid.get(k); if (!a) continue; const i = a.indexOf(it); if (i >= 0) { a[i] = a[a.length - 1]; a.pop(); } if (!a.length) grid.delete(k); }
-    it._cells = null; count--;
+    for (const k of it._cells) {
+      const a = grid.get(k);
+      if (!a) continue;
+      const i = a.indexOf(it);
+      if (i >= 0) {
+        a[i] = a[a.length - 1];
+        a.pop();
+      }
+      if (!a.length) grid.delete(k);
+    }
+    it._cells = null;
+    count--;
   },
   removeOwner(owner) {
-    const s = byOwner.get(owner); if (!s) return;
+    const s = byOwner.get(owner);
+    if (!s) return;
     for (const it of s) occupancy.remove(it);
     byOwner.delete(owner);
   },
   // first item whose footprint (plus gap) overlaps the circle (x, z, r) at overlapping heights; tall props (pole: true) also
   // conflict with crowns, and a crowned item conflicts with registered poles under its canopy
   blocked(x, z, r, o = {}) {
-    const y = o.y ?? 0, h = o.h ?? 2, gap = o.gap ?? 0.1;
-    const R = r + 6, i0 = Math.floor((x - R) / CELL), i1 = Math.floor((x + R) / CELL), j0 = Math.floor((z - R) / CELL), j1 = Math.floor((z + R) / CELL);
-    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
-      const a = grid.get(key(i, j)); if (!a) continue;
-      for (const it of a) {
-        if (it === o.ignore || (o.owner !== undefined && it.owner === o.owner && o.sameOwnerOk)) continue;
-        if (o.soft && it.soft) continue;
-        const d = Math.hypot(it.x - x, it.z - z);
-        if (d < it.r + r + gap && !(it.y + it.h < y || y + h < it.y)) return it;
-        if (o.spacing && o.spacing.kinds.has(it.kind) && d < o.spacing.d) return it; // no two lamp / utility poles side by side
-        if (o.pole && it.crown && y + h > it.crown.y0 && d < it.crown.r) return it;
-        if (o.crown && it.pole && it.y + it.h > o.crown.y0 && d < o.crown.r) return it;
+    const y = o.y ?? 0,
+      h = o.h ?? 2,
+      gap = o.gap ?? 0.1;
+    const R = r + 6,
+      i0 = Math.floor((x - R) / CELL),
+      i1 = Math.floor((x + R) / CELL),
+      j0 = Math.floor((z - R) / CELL),
+      j1 = Math.floor((z + R) / CELL);
+    for (let i = i0; i <= i1; i++)
+      for (let j = j0; j <= j1; j++) {
+        const a = grid.get(key(i, j));
+        if (!a) continue;
+        for (const it of a) {
+          if (it === o.ignore || (o.owner !== undefined && it.owner === o.owner && o.sameOwnerOk))
+            continue;
+          if (o.soft && it.soft) continue;
+          const d = Math.hypot(it.x - x, it.z - z);
+          if (d < it.r + r + gap && !(it.y + it.h < y || y + h < it.y)) return it;
+          if (o.spacing && o.spacing.kinds.has(it.kind) && d < o.spacing.d) return it; // no two lamp / utility poles side by side
+          if (o.pole && it.crown && y + h > it.crown.y0 && d < it.crown.r) return it;
+          if (o.crown && it.pole && it.y + it.h > o.crown.y0 && d < o.crown.r) return it;
+        }
       }
-    }
     return null;
   },
   // nearest free spot on a small spiral (0.5 m steps up to maxShift), optional accept(x, z) filter (road / building / water)
@@ -63,27 +96,69 @@ export const occupancy = {
     if ((!accept || accept(x, z)) && !occupancy.blocked(x, z, r, o)) return [x, z];
     const dir = o.dir; // preferred axis [dx, dz] (along the curb): try along it first
     for (let s = 0.5; s <= maxShift + 1e-6; s += 0.5) {
-      const tries = dir ? [[dir[0], dir[1]], [-dir[0], -dir[1]]] : [[1, 0], [-1, 0], [0, 1], [0, -1], [0.707, 0.707], [-0.707, 0.707], [0.707, -0.707], [-0.707, -0.707]];
-      for (const [dx, dz] of tries) { const nx = x + dx * s, nz = z + dz * s; if (accept && !accept(nx, nz)) continue; if (!occupancy.blocked(nx, nz, r, o)) return [nx, nz]; }
+      const tries = dir
+        ? [
+            [dir[0], dir[1]],
+            [-dir[0], -dir[1]],
+          ]
+        : [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+            [0.707, 0.707],
+            [-0.707, 0.707],
+            [0.707, -0.707],
+            [-0.707, -0.707],
+          ];
+      for (const [dx, dz] of tries) {
+        const nx = x + dx * s,
+          nz = z + dz * s;
+        if (accept && !accept(nx, nz)) continue;
+        if (!occupancy.blocked(nx, nz, r, o)) return [nx, nz];
+      }
     }
     return null;
   },
-  items() { const out = new Set(); for (const a of grid.values()) for (const it of a) out.add(it); return [...out]; },
-  stats() { return { items: count, cells: grid.size, owners: byOwner.size }; },
+  items() {
+    const out = new Set();
+    for (const a of grid.values()) for (const it of a) out.add(it);
+    return [...out];
+  },
+  stats() {
+    return { items: count, cells: grid.size, owners: byOwner.size };
+  },
 };
 if (typeof globalThis !== 'undefined') globalThis.__southlineOccupancy = occupancy;
 // true when (x, z) or a point pad m around it lies inside a map building footprint (data tiles, CITY renderer format)
 export function inMapBuilding(game, x, z, pad = 0) {
-  const D = game && game.miamiData, TS = (game && game.city && game.city.streamer && game.city.streamer.tileSize) || 200;
+  const D = game && game.miamiData,
+    TS = (game && game.city && game.city.streamer && game.city.streamer.tileSize) || 200;
   if (!D || !D.getTile) return false;
-  const pts = pad > 0 ? [[x, z], [x + pad, z], [x - pad, z], [x, z + pad], [x, z - pad]] : [[x, z]];
+  const pts =
+    pad > 0
+      ? [
+          [x, z],
+          [x + pad, z],
+          [x - pad, z],
+          [x, z + pad],
+          [x, z - pad],
+        ]
+      : [[x, z]];
   for (const [px, pz] of pts) {
     const tile = D.getTile(Math.floor(px / TS), Math.floor(pz / TS));
     if (!tile || !tile.buildings) continue;
     for (const b of tile.buildings) {
-      const ring = b.rings && b.rings[0]; if (!ring) continue;
+      const ring = b.rings && b.rings[0];
+      if (!ring) continue;
       let c = false;
-      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const xi = ring[i][0], zi = ring[i][1], xj = ring[j][0], zj = ring[j][1]; if ((zi > pz) !== (zj > pz) && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) c = !c; }
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0],
+          zi = ring[i][1],
+          xj = ring[j][0],
+          zj = ring[j][1];
+        if (zi > pz !== zj > pz && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) c = !c;
+      }
       if (c) return true;
     }
   }

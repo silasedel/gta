@@ -7,7 +7,7 @@
 // on the body and near edges; grime: dark salt-dust band rising from the bottom, streaks under the windows.
 import * as THREE from 'three';
 
-const GLSL = /* glsl */`
+const GLSL = /* glsl */ `
 uniform vec4 uWx; // fade, rust, grime, seed
 uniform vec2 uWy; // object min y, height
 varying vec3 vWxP; varying vec3 vWxN;
@@ -20,31 +20,61 @@ float wxF(vec3 p) { return wxN(p) * 0.55 + wxN(p * 2.3 + 7.1) * 0.3 + wxN(p * 5.
 
 export function weatherObject(root, o = {}) {
   if (!root) return 0;
-  const fade = o.fade ?? 0.6, rust = o.rust ?? 0.45, grime = o.grime ?? 0.5, seed = o.seed ?? 1, skip = o.skip || /glass|lamp|light|lens|plate|mirror/i;
+  const fade = o.fade ?? 0.6,
+    rust = o.rust ?? 0.45,
+    grime = o.grime ?? 0.5,
+    seed = o.seed ?? 1,
+    skip = o.skip || /glass|lamp|light|lens|plate|mirror/i;
   root.updateMatrixWorld(true);
-  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), box = new THREE.Box3();
-  root.traverse((m) => { if (m.isMesh && m.geometry) { m.geometry.computeBoundingBox?.(); const b = m.geometry.boundingBox.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld)); box.union(b); } });
-  const uWx = { value: new THREE.Vector4(fade, rust, grime, seed) }, uWy = { value: new THREE.Vector2(box.min.y, Math.max(0.5, box.max.y - box.min.y)) };
-  const done = new Map(); let n = 0;
+  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(),
+    box = new THREE.Box3();
+  root.traverse((m) => {
+    if (m.isMesh && m.geometry) {
+      m.geometry.computeBoundingBox?.();
+      const b = m.geometry.boundingBox
+        .clone()
+        .applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld));
+      box.union(b);
+    }
+  });
+  const uWx = { value: new THREE.Vector4(fade, rust, grime, seed) },
+    uWy = { value: new THREE.Vector2(box.min.y, Math.max(0.5, box.max.y - box.min.y)) };
+  const done = new Map();
+  let n = 0;
   root.traverse((m) => {
     if (!m.isMesh) return;
     const mats = Array.isArray(m.material) ? m.material : [m.material];
     const out = mats.map((mt) => {
-      if (!mt || !mt.isMeshStandardMaterial || skip.test(mt.name || '') || mt.transparent) return mt;
-      let c = done.get(mt); if (c) return c;
-      c = mt.clone(); c.name = (mt.name || 'mat') + ':weathered';
-      const prev = mt.onBeforeCompile, pk = mt.customProgramCacheKey?.bind(mt);
+      if (!mt || !mt.isMeshStandardMaterial || skip.test(mt.name || '') || mt.transparent)
+        return mt;
+      let c = done.get(mt);
+      if (c) return c;
+      c = mt.clone();
+      c.name = (mt.name || 'mat') + ':weathered';
+      const prev = mt.onBeforeCompile,
+        pk = mt.customProgramCacheKey?.bind(mt);
       c.onBeforeCompile = function (sh, r) {
         if (prev) prev.call(this, sh, r);
-        sh.uniforms.uWx = uWx; sh.uniforms.uWy = uWy;
-        sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWxP; varying vec3 vWxN;')
-          .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vWxP = position; vWxN = normal;');
-        sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + GLSL)
-          .replace('#include <lights_physical_fragment>', `
+        sh.uniforms.uWx = uWx;
+        sh.uniforms.uWy = uWy;
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', '#include <common>\nvarying vec3 vWxP; varying vec3 vWxN;')
+          .replace(
+            '#include <begin_vertex>',
+            '#include <begin_vertex>\n  vWxP = position; vWxN = normal;',
+          );
+        sh.fragmentShader = sh.fragmentShader
+          .replace('#include <common>', '#include <common>\n' + GLSL)
+          .replace(
+            '#include <lights_physical_fragment>',
+            `
   roughnessFactor = mix(roughnessFactor, 0.92, max(wxR, uWx.x * 0.55));
   metalnessFactor *= 1.0 - max(wxR, uWx.x * 0.6);
-#include <lights_physical_fragment>`)
-          .replace('#include <color_fragment>', `#include <color_fragment>
+#include <lights_physical_fragment>`,
+          )
+          .replace(
+            '#include <color_fragment>',
+            `#include <color_fragment>
   float wxR = smoothstep(0.5, 0.64, wxF(vWxP * 1.6 + uWx.w) + (1.0 - clamp((vWxP.y - uWy.x) / uWy.y, 0.0, 1.0)) * 0.3 - 0.12) * uWx.y;
   { float h01 = clamp((vWxP.y - uWy.x) / uWy.y, 0.0, 1.0), up = clamp(normalize(vWxN).y, 0.0, 1.0);
     // sun fade: top surfaces chalky and desaturated
@@ -59,10 +89,13 @@ export function weatherObject(root, o = {}) {
     float band = smoothstep(0.42, 0.0, h01 + (wxN(vWxP * vec3(3.0, 0.5, 3.0)) - 0.5) * 0.12);
     float streak = smoothstep(0.55, 0.85, wxN(vec3(vWxP.x * 6.0, vWxP.y * 0.4, vWxP.z * 6.0) + 11.0)) * smoothstep(0.85, 0.35, h01);
     diffuseColor.rgb *= 1.0 - uWx.z * (band * 0.6 + streak * 0.35);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.5, 0.45, 0.38), uWx.z * band * 0.35); }`);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.5, 0.45, 0.38), uWx.z * band * 0.35); }`,
+          );
       };
       c.customProgramCacheKey = () => (pk ? pk() : '') + '|weathered';
-      done.set(mt, c); n++; return c;
+      done.set(mt, c);
+      n++;
+      return c;
     });
     m.material = Array.isArray(m.material) ? out : out[0];
   });

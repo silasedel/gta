@@ -17,29 +17,51 @@ const R4B = !(typeof location !== 'undefined' && /[?&]r4barrier=0\b/.test(locati
 let _tex = null;
 function texSet(THREE) {
   if (_tex) return _tex;
-  const L = new THREE.TextureLoader(), B = (import.meta.env?.BASE_URL ?? '/') + 'assets/textures/roads/concrete_';
-  const t = (n, srgb) => { const x = L.load(B + n + '.jpg'); x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = 8; if (srgb) x.colorSpace = THREE.SRGBColorSpace; return x; };
+  const L = new THREE.TextureLoader(),
+    B = (import.meta.env?.BASE_URL ?? '/') + 'assets/textures/roads/concrete_';
+  const t = (n, srgb) => {
+    const x = L.load(B + n + '.jpg');
+    x.wrapS = x.wrapT = THREE.RepeatWrapping;
+    x.anisotropy = 8;
+    if (srgb) x.colorSpace = THREE.SRGBColorSpace;
+    return x;
+  };
   _tex = { col: t('col', true), nrm: t('nrm', false), arm: t('arm', false) };
   return _tex;
 }
 export function makeElevatedConcrete(THREE, base = null) {
   const T = texSet(THREE);
-  const m = base || new THREE.MeshStandardMaterial({ roughness: 0.92, metalness: 0, vertexColors: true });
-  m.vertexColors = true; m.name = 'elevated-concrete';
+  const m =
+    base || new THREE.MeshStandardMaterial({ roughness: 0.92, metalness: 0, vertexColors: true });
+  m.vertexColors = true;
+  m.name = 'elevated-concrete';
   const prev = m.onBeforeCompile;
   m.onBeforeCompile = (sh, r) => {
     if (prev) prev.call(m, sh, r);
-    Object.assign(sh.uniforms, { tCcC: { value: T.col }, tCcN: { value: T.nrm }, tCcA: { value: T.arm } });
-    sh.vertexShader = 'varying vec3 vCcP;\nvarying vec3 vCcN;\nvarying vec2 vCcUv;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-      { vec4 cp = modelMatrix * vec4(transformed, 1.0); vCcP = cp.xyz; vCcN = normalize(mat3(modelMatrix) * objectNormal); vCcUv = uv; }`);
-    sh.fragmentShader = /* glsl */`uniform sampler2D tCcC; uniform sampler2D tCcN; uniform sampler2D tCcA;
+    Object.assign(sh.uniforms, {
+      tCcC: { value: T.col },
+      tCcN: { value: T.nrm },
+      tCcA: { value: T.arm },
+    });
+    sh.vertexShader =
+      'varying vec3 vCcP;\nvarying vec3 vCcN;\nvarying vec2 vCcUv;\n' +
+      sh.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+      { vec4 cp = modelMatrix * vec4(transformed, 1.0); vCcP = cp.xyz; vCcN = normalize(mat3(modelMatrix) * objectNormal); vCcUv = uv; }`,
+      );
+    sh.fragmentShader =
+      /* glsl */ `uniform sampler2D tCcC; uniform sampler2D tCcN; uniform sampler2D tCcA;
 varying vec3 vCcP; varying vec3 vCcN; varying vec2 vCcUv;
 float ccH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ccN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(ccH(i), ccH(i + vec2(1.0, 0.0)), f.x), mix(ccH(i + vec2(0.0, 1.0)), ccH(i + vec2(1.0, 1.0)), f.x), f.y); }
 vec4 ccTri(sampler2D t, vec3 p, vec3 w, float s) { return texture2D(t, p.zy * s) * w.x + texture2D(t, p.xz * s) * w.y + texture2D(t, p.xy * s) * w.z; }
 vec3 ccNrmT = vec3(0.0);
-` + sh.fragmentShader
-      .replace('#include <color_fragment>', /* glsl */`#include <color_fragment>
+` +
+      sh.fragmentShader
+        .replace(
+          '#include <color_fragment>',
+          /* glsl */ `#include <color_fragment>
       {
         vec3 wn = normalize(vCcN), bw = pow(abs(wn), vec3(4.0)); bw /= (bw.x + bw.y + bw.z + 1e-4);
         vec3 c1 = ccTri(tCcC, vCcP, bw, 1.0 / 1.7).rgb, c2 = ccTri(tCcC, vCcP + 17.3, bw, 1.0 / 9.0).rgb;
@@ -70,7 +92,9 @@ vec3 ccNrmT = vec3(0.0);
           cc = mix(cc, vec3(0.025, 0.024, 0.023), scuff * 0.75);
           cc = mix(cc, vec3(0.01), scup * 0.9);
           ccNrmT.y = scuff;
-          ${R4B ? `{ // r4-shoreland: contraction joints every 6.1 m (V-groove + chipped lip + stain), drag marks, grime caked at the base
+          ${
+            R4B
+              ? `{ // r4-shoreland: contraction joints every 6.1 m (V-groove + chipped lip + stain), drag marks, grime caked at the base
             float jq = sAlong / 6.1, jd = abs(fract(jq + 0.5) - 0.5) * 6.1, jw = 0.006 + fwidth(sAlong) * 0.75;
             float jt = 1.0 - smoothstep(jw, jw * 2.2, jd), lip = (1.0 - smoothstep(jw * 2.2, jw * 4.5, jd)) * (1.0 - jt);
             float jn = ccN(vec2(floor(jq + 0.5) * 3.7, hf * 9.0));
@@ -83,7 +107,9 @@ vec3 ccNrmT = vec3(0.0);
             cc = mix(cc, cc * vec3(1.07, 1.0, 0.88), (1.0 - smoothstep(0.05, 0.42, hf)) * 0.45 * (0.5 + 0.5 * bn)); // dust / road film on the lower slope
             cc *= 1.0 + smoothstep(0.93, 1.0, hf) * 0.05; // top edge catches the sky
             ccNrmT.y = max(ccNrmT.y, base * 0.4);
-          }` : ''}
+          }`
+              : ''
+          }
         }
         if (wn.y < -0.6) { // soffits: smooth precast / plywood-formed panels (2.44 x 1.22 m) with faint seams and per-panel tone, efflorescence blooms
           vec2 fp = vCcP.xz / vec2(2.44, 1.22), ff = fract(fp), fw = fwidth(fp) * 1.5 + 0.004;
@@ -108,17 +134,24 @@ vec3 ccNrmT = vec3(0.0);
         }
         diffuseColor.rgb = cc;
         ccNrmT.x = joint;
-      }`)
-      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+      }`,
+        )
+        .replace(
+          '#include <roughnessmap_fragment>',
+          `#include <roughnessmap_fragment>
       { vec3 wn = normalize(vCcN), bw = pow(abs(wn), vec3(4.0)); bw /= (bw.x + bw.y + bw.z + 1e-4);
-        roughnessFactor = clamp(mix(0.88, ccTri(tCcA, vCcP, bw, 1.0 / 2.6).g, 0.7) - ccNrmT.y * 0.25, 0.3, 1.0); }`)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        roughnessFactor = clamp(mix(0.88, ccTri(tCcA, vCcP, bw, 1.0 / 2.6).g, 0.7) - ccNrmT.y * 0.25, 0.3, 1.0); }`,
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          `#include <normal_fragment_maps>
       { vec3 wn = normalize(vCcN), bw = pow(abs(wn), vec3(4.0)); bw /= (bw.x + bw.y + bw.z + 1e-4);
         vec3 tX = texture2D(tCcN, vCcP.zy / 1.7).xyz * 2.0 - 1.0, tY = texture2D(tCcN, vCcP.xz / 1.7).xyz * 2.0 - 1.0, tZ = texture2D(tCcN, vCcP.xy / 1.7).xyz * 2.0 - 1.0;
         float nK = ${R4B ? '(vCcUv.y > 99.5 && vCcUv.y < 299.5) ? 0.14 : 0.35' : '0.35'}; // r4: slip-formed barrier faces are smooth, only a faint pitting
         tX = vec3(tX.xy * nK + wn.zy, abs(tX.z) * wn.x); tY = vec3(tY.xy * nK + wn.xz, abs(tY.z) * wn.y); tZ = vec3(tZ.xy * nK + wn.xy, abs(tZ.z) * wn.z);
         vec3 nW = normalize(tX.zyx * bw.x + tY.xzy * bw.y + tZ.xyz * bw.z);
-        normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz) * (gl_FrontFacing ? 1.0 : 1.0); }`);
+        normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz) * (gl_FrontFacing ? 1.0 : 1.0); }`,
+        );
   };
   m.customProgramCacheKey = () => 'ground-elevated-concrete-v3' + (R4B ? '-r4b' : '');
   m.needsUpdate = true;

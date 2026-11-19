@@ -7,8 +7,10 @@ import '../ui/menu/splash.js';
 
 const fail = (e) => {
   console.error('[boot] engine failed to load', e);
-  const m = document.getElementById('loadmsg'); if (m) m.textContent = 'ERROR: the game could not load. Reload the page.';
-  const p = document.getElementById('loadpct'); if (p) p.textContent = '100%';
+  const m = document.getElementById('loadmsg');
+  if (m) m.textContent = 'ERROR: the game could not load. Reload the page.';
+  const p = document.getElementById('loadpct');
+  if (p) p.textContent = '100%';
 };
 import('./gltfDecoders.js').catch((e) => console.warn('[boot] model decoders', e));
 import('../main.js').catch(fail);

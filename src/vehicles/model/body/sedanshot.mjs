@@ -20,12 +20,25 @@ const STAGE = (brake) => `(() => {
 })()`;
 await withBrowser({ width: 1600, height: 900, maxSeconds: 360 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?v2=1');
-  await b.waitFor(`${GAME_READY} && game.city && game.city.playerSpawn && game.vehicles && game.vehicles.list`, 300);
+  await b.waitFor(
+    `${GAME_READY} && game.city && game.city.playerSpawn && game.vehicles && game.vehicles.list`,
+    300,
+  );
   await b.sleep(4000);
-  console.log('S', await b.eval(STAGE(false))); await b.sleep(12000);
-  console.log('S', await b.eval(STAGE(false))); await b.sleep(1500);
+  console.log('S', await b.eval(STAGE(false)));
+  await b.sleep(12000);
+  console.log('S', await b.eval(STAGE(false)));
+  await b.sleep(1500);
   console.log('SHOT', await b.screenshot(`${prefix}_brakes_off.jpg`, { quality: 88 }));
-  console.log('S', await b.eval(STAGE(true))); await b.sleep(1500);
+  console.log('S', await b.eval(STAGE(true)));
+  await b.sleep(1500);
   console.log('SHOT', await b.screenshot(`${prefix}_brakes_on.jpg`, { quality: 88 }));
-  if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 8).join('\n'));
+  if (b.errors.length)
+    console.log(
+      'ERRORS',
+      [...new Set(b.errors)]
+        .filter((e) => !/favicon/.test(e))
+        .slice(0, 8)
+        .join('\n'),
+    );
 });

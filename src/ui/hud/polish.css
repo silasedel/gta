@@ -5,42 +5,48 @@
 .ps-hud .ps-mm-frame {
   border-radius: 14px;
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, .88),
-    0 2px 4px rgba(0, 0, 0, .35),
-    0 10px 26px rgba(0, 0, 0, .35);
+    0 0 0 2px rgba(255, 255, 255, 0.88),
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    0 10px 26px rgba(0, 0, 0, 0.35);
 }
 .ps-hud .ps-mm-gloss {
   background:
-    radial-gradient(120% 95% at 50% 60%, transparent 66%, rgba(5, 8, 14, .28) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, .06), transparent 24%);
-  box-shadow: inset 0 1px 8px rgba(0, 0, 0, .3);
+    radial-gradient(120% 95% at 50% 60%, transparent 66%, rgba(5, 8, 14, 0.28) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 24%);
+  box-shadow: inset 0 1px 8px rgba(0, 0, 0, 0.3);
 }
 .ps-hud .ps-mm-info {
   font: 800 14px/1 var(--ps-cond);
-  letter-spacing: .12em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .7), 0 0 7px rgba(0, 0, 0, .3);
+  letter-spacing: 0.12em;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.7),
+    0 0 7px rgba(0, 0, 0, 0.3);
 }
 .ps-hud .ps-mm-dist {
   border-radius: 11px;
   padding: 4px 8px 3px;
   background: #dc2f2c;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 /* street and district label */
 .ps-hud .ps-area small {
   font: 700 12px/1 var(--ps-cond);
-  letter-spacing: .34em;
-  opacity: .85;
+  letter-spacing: 0.34em;
+  opacity: 0.85;
 }
 .ps-hud .ps-area span {
   font: 800 italic 44px/1 var(--ps-cond);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 0 10px rgba(0, 0, 0, .3);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 0 10px rgba(0, 0, 0, 0.3);
   border-bottom-width: 2px;
 }
 .ps-hud .ps-area-street {
   font: 600 16px/1.2 var(--ps-sans);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 0 8px rgba(0, 0, 0, .3);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 /* hint and notification cards: light glass, round accent dot, condensed caps title */
@@ -48,12 +54,14 @@
 .ps-hud .ps-notif {
   padding: 11px 15px 12px 34px;
   border-radius: 14px;
-  background: rgba(14, 16, 22, .58);
+  background: rgba(14, 16, 22, 0.58);
   backdrop-filter: blur(12px) saturate(1.2);
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .22);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    0 8px 22px rgba(0, 0, 0, 0.22);
   font: 500 14.5px/1.42 var(--ps-sans);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, .35);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
 }
 .ps-hud .ps-help::before,
 .ps-hud .ps-notif::before {
@@ -63,7 +71,7 @@
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, .9);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
   background: #6a4fd6;
 }
 .ps-hud .ps-notif::before {
@@ -79,7 +87,7 @@
   background: #e2763a;
 }
 .ps-hud .ps-notif.crime {
-  background: rgba(40, 10, 16, .66);
+  background: rgba(40, 10, 16, 0.66);
 }
 .ps-hud .ps-notif.crime::before {
   background: #dc2f2c;
@@ -87,9 +95,9 @@
 }
 .ps-hud .ps-notif-from {
   font: 800 13px/1.2 var(--ps-cond);
-  letter-spacing: .18em;
+  letter-spacing: 0.18em;
   color: #fff;
-  opacity: .92;
+  opacity: 0.92;
   margin-bottom: 2px;
 }
 
@@ -97,14 +105,18 @@
 .ps-hud .ps-mission {
   font: 700 23px/1.3 var(--ps-cond);
   background: none;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 0 10px rgba(0, 0, 0, .45);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.75),
+    0 0 10px rgba(0, 0, 0, 0.45);
 }
 
 /* speedometer: numerals in the same face as the money lines */
 .ps-hud .ps-spd {
   font-family: var(--ps-cond);
   font-weight: 800;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 0 8px rgba(0, 0, 0, .3);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 8px rgba(0, 0, 0, 0.3);
 }
 .ps-hud .ps-gear {
   border-radius: 50%;
@@ -115,90 +127,346 @@
   left: auto;
   right: 16px;
   transform: none;
-  background: rgba(9, 11, 18, .55);
+  background: rgba(9, 11, 18, 0.55);
 }
 .ps-bigmap {
   background: #074176;
 }
 .ps-map-frame {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), inset 0 0 60px 12px rgba(4, 8, 14, .35);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 0 60px 12px rgba(4, 8, 14, 0.35);
   background: none;
 }
 
 /* ---- Nov 18 (user references docs/v2/plan/hud_minimap_target.png, hud_health_target.png) ---- */
 /* minimap: a frosted, see-through card (the world shows through softly), soft light rim, nothing under it */
 .ps-hud .ps-mm-frame {
-  background: rgba(214, 220, 228, .16);
-  -webkit-backdrop-filter: blur(7px) saturate(.85); backdrop-filter: blur(7px) saturate(.85);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .42), 0 6px 22px rgba(0, 0, 0, .28);
+  background: rgba(214, 220, 228, 0.16);
+  -webkit-backdrop-filter: blur(7px) saturate(0.85);
+  backdrop-filter: blur(7px) saturate(0.85);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.42),
+    0 6px 22px rgba(0, 0, 0, 0.28);
 }
-.ps-hud .ps-mm-canvas { opacity: .74; filter: saturate(.6) brightness(1.12) contrast(.92); }
-.ps-hud .ps-mm-gloss { background: linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .03) 40%, transparent); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
-.ps-hud .ps-mm-info { display: none; }
+.ps-hud .ps-mm-canvas {
+  opacity: 0.74;
+  filter: saturate(0.6) brightness(1.12) contrast(0.92);
+}
+.ps-hud .ps-mm-gloss {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.03) 40%,
+    transparent
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.ps-hud .ps-mm-info {
+  display: none;
+}
 /* health: dark round heart badge + one flat pink bar with a white tick (the low-health mark), top-left */
-.ps-vitals { position: absolute; left: 28px; top: 22px; display: flex; align-items: center; gap: 9px; width: 300px; }
-.ps-hud:not(.live) .ps-vitals, .ps-hud.is-paused .ps-vitals, .ps-hud.photo .ps-vitals { opacity: 0; }
-.ps-vitals { transition: opacity .28s var(--ps-ease); }
-.ps-heart { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgba(28, 31, 38, .92); box-shadow: 0 1px 3px rgba(0, 0, 0, .45); }
-.ps-vitals .ps-bars { flex: 1; display: flex; flex-direction: column; gap: 3px; margin: 0; }
-.ps-vitals .ps-bar { -webkit-mask: none; mask: none; filter: none; height: 15px; border-radius: 2px; background: rgba(240, 166, 198, .22); box-shadow: 0 1px 3px rgba(0, 0, 0, .35); overflow: hidden; position: relative; flex: none; }
-.ps-vitals .ps-hp i { background: #e9a5c2; }
-.ps-vitals .ps-hp u { background: rgba(255, 255, 255, .55); }
-.ps-vitals .ps-bar b { display: none; }
-.ps-vitals .ps-hp::after { content: ''; position: absolute; top: 0; bottom: 0; left: 30%; width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 0 1px rgba(20, 22, 28, .55); z-index: 2; }
-.ps-vitals .ps-hp.low i { background: #e2384a; }
-.ps-vitals .ps-ar { height: 4px; border-radius: 2px; background: rgba(120, 170, 255, .2); }
-.ps-vitals .ps-ar i { background: #7fb2ff; }
-.ps-vitals .ps-ar.empty { display: none; }
+.ps-vitals {
+  position: absolute;
+  left: 28px;
+  top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 300px;
+}
+.ps-hud:not(.live) .ps-vitals,
+.ps-hud.is-paused .ps-vitals,
+.ps-hud.photo .ps-vitals {
+  opacity: 0;
+}
+.ps-vitals {
+  transition: opacity 0.28s var(--ps-ease);
+}
+.ps-heart {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(28, 31, 38, 0.92);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+.ps-vitals .ps-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+}
+.ps-vitals .ps-bar {
+  -webkit-mask: none;
+  mask: none;
+  filter: none;
+  height: 15px;
+  border-radius: 2px;
+  background: rgba(240, 166, 198, 0.22);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  position: relative;
+  flex: none;
+}
+.ps-vitals .ps-hp i {
+  background: #e9a5c2;
+}
+.ps-vitals .ps-hp u {
+  background: rgba(255, 255, 255, 0.55);
+}
+.ps-vitals .ps-bar b {
+  display: none;
+}
+.ps-vitals .ps-hp::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 30%;
+  width: 3px;
+  margin-left: -1.5px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(20, 22, 28, 0.55);
+  z-index: 2;
+}
+.ps-vitals .ps-hp.low i {
+  background: #e2384a;
+}
+.ps-vitals .ps-ar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(120, 170, 255, 0.2);
+}
+.ps-vitals .ps-ar i {
+  background: #7fb2ff;
+}
+.ps-vitals .ps-ar.empty {
+  display: none;
+}
 /* notifications and help start below the health row */
-.ps-hud .ps-leftcol { top: 66px; }
+.ps-hud .ps-leftcol {
+  top: 66px;
+}
 /* vehicle card above the minimap (docs/v2/plan/hud_vehicle_target.png) */
-.ps-vehcard { position: absolute; left: 28px; bottom: 202px; width: 260px; padding: 9px 0 8px; text-align: center; border-radius: 12px;
-  background: linear-gradient(180deg, rgba(18, 26, 32, .52), rgba(18, 26, 32, .34)); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  opacity: 0; transform: translateY(6px); transition: opacity .25s var(--ps-ease), transform .3s var(--ps-ease); pointer-events: none; }
-.ps-hud.live.driving .ps-vehcard { opacity: 1; transform: none; }
-.ps-hud.is-paused .ps-vehcard, .ps-hud.photo .ps-vehcard { opacity: 0; }
-.ps-vc-brand { font: 700 19px/1.05 var(--ps-cond); letter-spacing: .05em; color: #c9ced6; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); }
-.ps-vc-model { font: 800 21px/1.1 var(--ps-cond); letter-spacing: .04em; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
-.ps-vc-icons { display: flex; justify-content: center; gap: 10px; margin-top: 6px; }
-.ps-vc-eng, .ps-vc-fuel { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; position: relative; color: #7fe08c; }
-.ps-vc-eng { box-shadow: inset 0 0 0 2.4px currentColor; background: rgba(10, 14, 18, .35); }
-.ps-vc-eng.warn { color: #f2c14e; } .ps-vc-eng.bad { color: #ff5a4f; }
-.ps-vc-fuel svg:first-child { position: absolute; inset: 0; } .ps-vc-ring { stroke: currentColor; }
-.ps-hud.driving .ps-street { bottom: 300px; }
+.ps-vehcard {
+  position: absolute;
+  left: 28px;
+  bottom: 202px;
+  width: 260px;
+  padding: 9px 0 8px;
+  text-align: center;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(18, 26, 32, 0.52), rgba(18, 26, 32, 0.34));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.25s var(--ps-ease),
+    transform 0.3s var(--ps-ease);
+  pointer-events: none;
+}
+.ps-hud.live.driving .ps-vehcard {
+  opacity: 1;
+  transform: none;
+}
+.ps-hud.is-paused .ps-vehcard,
+.ps-hud.photo .ps-vehcard {
+  opacity: 0;
+}
+.ps-vc-brand {
+  font: 700 19px/1.05 var(--ps-cond);
+  letter-spacing: 0.05em;
+  color: #c9ced6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.ps-vc-model {
+  font: 800 21px/1.1 var(--ps-cond);
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+.ps-vc-icons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.ps-vc-eng,
+.ps-vc-fuel {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  color: #7fe08c;
+}
+.ps-vc-eng {
+  box-shadow: inset 0 0 0 2.4px currentColor;
+  background: rgba(10, 14, 18, 0.35);
+}
+.ps-vc-eng.warn {
+  color: #f2c14e;
+}
+.ps-vc-eng.bad {
+  color: #ff5a4f;
+}
+.ps-vc-fuel svg:first-child {
+  position: absolute;
+  inset: 0;
+}
+.ps-vc-ring {
+  stroke: currentColor;
+}
+.ps-hud.driving .ps-street {
+  bottom: 300px;
+}
 
 /* perf (user: unplayable fps): backdrop-filter blurs the live WebGL canvas behind every HUD panel every frame, which is very
    expensive on a Retina display. In-game HUD panels are already translucent, so they keep their look without the blur.
    Menus, the phone and the pause screen (game paused) keep theirs. */
-#ps-hud, #ps-hud *, .ps-hud, .ps-hud *, .ps-speedo, .ps-speedo *, .ps-minimap, .ps-minimap * {
-  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+#ps-hud,
+#ps-hud *,
+.ps-hud,
+.ps-hud *,
+.ps-speedo,
+.ps-speedo *,
+.ps-minimap,
+.ps-minimap * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* ---- Nov 19 playtest: police radio, officer lines and NPC prompts in the HUD's own language (groundwork for missions).
    The elements are built by src/gameplay/police/comms.js and src/npc/talk.js; only their look is set here (html body
    selectors win over the inline <style> those modules add at runtime). */
 /* dispatch radio ticker: one readable card per message, left column under the help / notifications */
-html body .pl-radio { left: 28px; top: auto; bottom: 228px; width: min(26vw, 360px); font: 500 13.5px/1.4 var(--ps-sans); color: #eef2f7; }
-html body .pl-radio .pl-r { position: relative; margin-bottom: 6px; padding: 8px 13px 9px 30px; border: 0; border-radius: 12px;
-  background: rgba(10, 14, 24, .74); box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .22); text-shadow: 0 1px 1px rgba(0, 0, 0, .35); }
-html body .pl-radio .pl-r::before { content: ''; position: absolute; left: 12px; top: 13px; width: 9px; height: 9px; border-radius: 50%; background: #3d7bff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .85); }
-html body .pl-radio .pl-r.hi::before { background: #ff3b4a; }
-html body .pl-radio .pl-r i { font: 800 11.5px/1.2 var(--ps-cond); letter-spacing: .18em; color: #9fc0ff; margin-bottom: 2px; }
-html body .pl-radio .pl-r.hi i { color: #ff9aa3; }
-html body .ps-hud.is-paused ~ .pl-radio, html body .ps-hud.is-dead ~ .pl-radio { opacity: 0; }
-html body .ps-hud.driving ~ .pl-radio { bottom: 330px; }
+html body .pl-radio {
+  left: 28px;
+  top: auto;
+  bottom: 228px;
+  width: min(26vw, 360px);
+  font: 500 13.5px/1.4 var(--ps-sans);
+  color: #eef2f7;
+}
+html body .pl-radio .pl-r {
+  position: relative;
+  margin-bottom: 6px;
+  padding: 8px 13px 9px 30px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(10, 14, 24, 0.74);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    0 8px 22px rgba(0, 0, 0, 0.22);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+html body .pl-radio .pl-r::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 13px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3d7bff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
+}
+html body .pl-radio .pl-r.hi::before {
+  background: #ff3b4a;
+}
+html body .pl-radio .pl-r i {
+  font: 800 11.5px/1.2 var(--ps-cond);
+  letter-spacing: 0.18em;
+  color: #9fc0ff;
+  margin-bottom: 2px;
+}
+html body .pl-radio .pl-r.hi i {
+  color: #ff9aa3;
+}
+html body .ps-hud.is-paused ~ .pl-radio,
+html body .ps-hud.is-dead ~ .pl-radio {
+  opacity: 0;
+}
+html body .ps-hud.driving ~ .pl-radio {
+  bottom: 330px;
+}
 /* officer shouts: subtitle line with the speaker in police blue */
-html body .pl-subs { font-family: var(--ps-sans); font-weight: 600; }
-html body .pl-subs .pl-line { display: inline-block; padding: 4px 12px 5px; border-radius: 8px; background: rgba(8, 10, 16, .42); }
-html body .pl-subs b { font: 800 .9em/1 var(--ps-cond); letter-spacing: .08em; text-transform: uppercase; color: #8fb8ff; }
+html body .pl-subs {
+  font-family: var(--ps-sans);
+  font-weight: 600;
+}
+html body .pl-subs .pl-line {
+  display: inline-block;
+  padding: 4px 12px 5px;
+  border-radius: 8px;
+  background: rgba(8, 10, 16, 0.42);
+}
+html body .pl-subs b {
+  font: 800 0.9em/1 var(--ps-cond);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fb8ff;
+}
 /* NPC talk prompt + choice wheel: the help card's glass and keycaps */
-html body .npcTalkPrompt { bottom: 128px; padding: 8px 15px 8px 9px; border-radius: 12px; background: rgba(14, 16, 22, .72);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .22); font: 600 14.5px/1.2 var(--ps-sans); color: #fff; letter-spacing: .01em; }
-html body .npcTalkPrompt b { min-width: 1.6em; margin-right: 9px; padding: .1em .45em; border-radius: 5px; background: rgba(255, 255, 255, .94); color: #10131b;
-  font: 700 .86em/1.45 var(--ps-sans); box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
-html body .npcWheel div { border: 0; border-radius: 12px; background: rgba(14, 16, 22, .8); box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .25); font: 600 14px/1.2 var(--ps-sans); color: #fff; }
-html body .npcWheel div i { display: inline-block; min-width: 1.5em; margin-right: 8px; padding: .08em .35em; border-radius: 5px; background: rgba(255, 255, 255, .94); color: #10131b; font: 700 .85em/1.45 var(--ps-sans); text-align: center; }
-html body .npcWheel .hub { background: rgba(250, 248, 242, .95); color: #15171c; font: 700 15px/1.25 var(--ps-sans); }
-html body .npcWheel .hub small { font: 500 12px/1.35 var(--ps-sans); }
+html body .npcTalkPrompt {
+  bottom: 128px;
+  padding: 8px 15px 8px 9px;
+  border-radius: 12px;
+  background: rgba(14, 16, 22, 0.72);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    0 8px 22px rgba(0, 0, 0, 0.22);
+  font: 600 14.5px/1.2 var(--ps-sans);
+  color: #fff;
+  letter-spacing: 0.01em;
+}
+html body .npcTalkPrompt b {
+  min-width: 1.6em;
+  margin-right: 9px;
+  padding: 0.1em 0.45em;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #10131b;
+  font: 700 0.86em/1.45 var(--ps-sans);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+html body .npcWheel div {
+  border: 0;
+  border-radius: 12px;
+  background: rgba(14, 16, 22, 0.8);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    0 8px 22px rgba(0, 0, 0, 0.25);
+  font: 600 14px/1.2 var(--ps-sans);
+  color: #fff;
+}
+html body .npcWheel div i {
+  display: inline-block;
+  min-width: 1.5em;
+  margin-right: 8px;
+  padding: 0.08em 0.35em;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #10131b;
+  font: 700 0.85em/1.45 var(--ps-sans);
+  text-align: center;
+}
+html body .npcWheel .hub {
+  background: rgba(250, 248, 242, 0.95);
+  color: #15171c;
+  font: 700 15px/1.25 var(--ps-sans);
+}
+html body .npcWheel .hub small {
+  font: 500 12px/1.35 var(--ps-sans);
+}
 /* help prompt keycaps read a touch larger than body text */
-.ps-hud .ps-help kbd { font-size: .86em; min-width: 1.7em; }
+.ps-hud .ps-help kbd {
+  font-size: 0.86em;
+  min-width: 1.7em;
+}

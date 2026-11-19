@@ -6,10 +6,17 @@
 // -> docs/v2/reports/road-marks-<set>.json (per spot: junctions checked, offending triangles, worst junctions)
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from './browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'after';
-const SPOTS = (o.spots || '200,-140;90,-420;300,-340;2400,0;-437,557;-1400,-3300;-900,5250;0,1760').split(';').map((s) => s.split(',').map(Number));
+const SPOTS = (o.spots || '200,-140;90,-420;300,-340;2400,0;-437,557;-1400,-3300;-900,5250;0,1760')
+  .split(';')
+  .map((s) => s.split(',').map(Number));
 const CHECK = `(() => { const C = game.city, G = C.roadGraph, out = { junctions: 0, tris: 0, bad: 0, worst: {} };
   const lines = []; game.scene.traverse((m) => { if (m.isMesh && m.material && m.material.name === 'roadLines' && /^tile-near-/.test(m.parent?.name || '')) lines.push(m); });
   // junction outlines near the loaded tiles
@@ -25,15 +32,33 @@ const CHECK = `(() => { const C = game.city, G = C.roadGraph, out = { junctions:
   out.worst = Object.entries(out.worst).sort((p, q) => q[1].n - p[1].n).slice(0, 12).map(([id, v]) => ({ id: +id, ...v })); return JSON.stringify(out); })()`;
 const rep = { set: SET, when: new Date().toISOString(), spots: [] };
 await withBrowser({ width: 1280, height: 720, maxSeconds: 1500 }, async (b) => {
-  await b.send('Page.addScriptToEvaluateOnNewDocument', { source: `(() => { const W = window.WebSocket; window.WebSocket = function (u, p) { if (String(p).includes('vite-hmr') || /[?&]token=/.test(String(u))) return { readyState: 0, addEventListener() {}, removeEventListener() {}, send() {}, close() {} }; return new W(u, p); }; window.WebSocket.prototype = W.prototype; })();` });
+  await b.send('Page.addScriptToEvaluateOnNewDocument', {
+    source: `(() => { const W = window.WebSocket; window.WebSocket = function (u, p) { if (String(p).includes('vite-hmr') || /[?&]token=/.test(String(u))) return { readyState: 0, addEventListener() {}, removeEventListener() {}, send() {}, close() {} }; return new W(u, p); }; window.WebSocket.prototype = W.prototype; })();`,
+  });
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
-  await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480); await startGame(b);
+  await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
+  await startGame(b);
   for (const [x, z] of SPOTS) {
-    await b.eval(`(() => { game.cameraOverride = (dt, cam) => { cam.position.set(${x}, 60, ${z + 1}); cam.lookAt(${x}, 0, ${z}); return true; }; game.teleport(${x}, undefined, ${z}, 0); return 1; })()`);
-    await b.sleep(3000); for (let i = 0; i < 60; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 2) break; await b.sleep(1000); } await b.sleep(1500);
-    const r = JSON.parse(await b.eval(CHECK)); r.spot = [x, z]; rep.spots.push(r); console.log(JSON.stringify(r).slice(0, 400));
+    await b.eval(
+      `(() => { game.cameraOverride = (dt, cam) => { cam.position.set(${x}, 60, ${z + 1}); cam.lookAt(${x}, 0, ${z}); return true; }; game.teleport(${x}, undefined, ${z}, 0); return 1; })()`,
+    );
+    await b.sleep(3000);
+    for (let i = 0; i < 60; i++) {
+      const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)');
+      if (q < 2) break;
+      await b.sleep(1000);
+    }
+    await b.sleep(1500);
+    const r = JSON.parse(await b.eval(CHECK));
+    r.spot = [x, z];
+    rep.spots.push(r);
+    console.log(JSON.stringify(r).slice(0, 400));
   }
 });
-rep.total = { junctions: rep.spots.reduce((s, r) => s + r.junctions, 0), bad: rep.spots.reduce((s, r) => s + r.bad, 0), tris: rep.spots.reduce((s, r) => s + r.tris, 0) };
+rep.total = {
+  junctions: rep.spots.reduce((s, r) => s + r.junctions, 0),
+  bad: rep.spots.reduce((s, r) => s + r.bad, 0),
+  tris: rep.spots.reduce((s, r) => s + r.tris, 0),
+};
 console.log('TOTAL', JSON.stringify(rep.total));
 fs.writeFileSync(`docs/v2/reports/road-marks-${SET}.json`, JSON.stringify(rep, null, 1));

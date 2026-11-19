@@ -8,28 +8,19 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const appArgs = process.argv.slice(2);
 
-const build = spawnSync('nice', [
-  '-n',
-  '10',
-  'npx',
-  'vite',
-  'build',
-  '--outDir',
-  'desktop/dist/web',
-  '--emptyOutDir',
-], {
-  cwd: ROOT,
-  stdio: 'inherit',
-});
+const build = spawnSync(
+  'nice',
+  ['-n', '10', 'npx', 'vite', 'build', '--outDir', 'desktop/dist/web', '--emptyOutDir'],
+  {
+    cwd: ROOT,
+    stdio: 'inherit',
+  },
+);
 if (build.status !== 0) {
   process.exit(build.status || 1);
 }
 
-const r = spawnSync('npx', [
-  'electron',
-  'desktop/app',
-  ...appArgs,
-], {
+const r = spawnSync('npx', ['electron', 'desktop/app', ...appArgs], {
   cwd: ROOT,
   stdio: 'inherit',
 });

@@ -42,7 +42,9 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: 900 }, async (b) => {
   })()`;
   await b.eval(prep);
   for (let n = 0; n <= 6; n++) {
-    await b.eval(`(() => { game.hud.setWantedFlash(false); if (${n} === 0) game.wanted.clear('hud test'); else game.wanted.set(${n}, game.player.position, { visual: true }); game.player.health = 100; game.player.ammo.pistol = 93; game.player.clip.pistol = 20; return game.wanted.level; })()`);
+    await b.eval(
+      `(() => { game.hud.setWantedFlash(false); if (${n} === 0) game.wanted.clear('hud test'); else game.wanted.set(${n}, game.player.position, { visual: true }); game.player.health = 100; game.player.ammo.pistol = 93; game.player.clip.pistol = 20; return game.wanted.level; })()`,
+    );
     await b.sleep(900);
     const lvl = await b.eval('game.wanted.level');
     await b.screenshot(`${OUT}/hud_${n}.png`, { clip: CLIP });
@@ -51,21 +53,33 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: 900 }, async (b) => {
     console.log(`wanted ${n}: game.wanted.level=${lvl} stars on=${stars}`);
   }
   // flashing (police lost sight): force it and catch both phases of the blink
-  await b.eval(`(() => { game.wanted.set(3, game.player.position, { visual: true }); game.hud.setWantedFlash(true); return 1; })()`);
+  await b.eval(
+    `(() => { game.wanted.set(3, game.player.position, { visual: true }); game.hud.setWantedFlash(true); return 1; })()`,
+  );
   await b.sleep(300);
   // prove the blink runs live (sample the first earned star's fill), then freeze each phase for a stable screenshot
   const fills = [];
-  for (let i = 0; i < 8; i++) { fills.push(await b.eval('getComputedStyle(document.querySelector(".ps-corner .hc-star.on")).fill')); await b.sleep(130); }
+  for (let i = 0; i < 8; i++) {
+    fills.push(
+      await b.eval('getComputedStyle(document.querySelector(".ps-corner .hc-star.on")).fill'),
+    );
+    await b.sleep(130);
+  }
   report.flashFills = [...new Set(fills)];
   console.log('flash fills seen:', report.flashFills.join(' / '));
-  for (const [name, delay] of [['a', '-0.1s'], ['b', '-0.6s']]) {
+  for (const [name, delay] of [
+    ['a', '-0.1s'],
+    ['b', '-0.6s'],
+  ]) {
     await b.eval(`(() => { let st = document.getElementById('hud-shot-freeze'); if (!st) { st = document.createElement('style'); st.id = 'hud-shot-freeze'; document.head.appendChild(st); }
       st.textContent = '.ps-corner.evading .hc-star.on { animation-delay: ${delay} !important; animation-play-state: paused !important; }'; return 1; })()`);
     await b.sleep(200);
     await b.screenshot(`${OUT}/hud_flash_${name}.png`, { clip: CLIP });
   }
   await b.eval(`document.getElementById('hud-shot-freeze')?.remove(), 1`);
-  await b.eval(`(() => { game.hud.setWantedFlash(null); game.hud.setKnown(null); game.wanted.clear('hud test'); return 1; })()`);
+  await b.eval(
+    `(() => { game.hud.setWantedFlash(null); game.hud.setKnown(null); game.wanted.clear('hud test'); return 1; })()`,
+  );
   report.errors = b.errors.filter((e) => !/favicon/.test(e)).slice(0, 20);
 });
 
@@ -75,5 +89,9 @@ execFileSync('python3', ['tools/v2/hud-compare.py', OUT], { stdio: 'inherit' });
 const bad = report.levels.filter((l) => l.starsOn !== l.n);
 console.log(bad.length ? `FAIL stars: ${JSON.stringify(bad)}` : 'stars 0..6: OK');
 console.log((report.flashFills || []).length >= 2 ? 'flash: OK (blinking)' : 'flash: FAIL');
-console.log(report.title && !report.title.oldTitle && !report.title.calora && !report.title.clickToPlay ? 'title: OK (frontend only)' : 'title: FAIL');
+console.log(
+  report.title && !report.title.oldTitle && !report.title.calora && !report.title.clickToPlay
+    ? 'title: OK (frontend only)'
+    : 'title: FAIL',
+);
 if (report.errors.length) console.log('console errors:', report.errors);

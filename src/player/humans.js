@@ -35,7 +35,16 @@ export async function loadHumanManifest() {
 }
 
 export function loadHumanGLB(entry) {
-  if (!glbCache.has(entry.id)) glbCache.set(entry.id, getLoader().loadAsync(ROOT + entry.file).catch((e) => { console.warn('[humans] failed', entry.id, e); return null; }));
+  if (!glbCache.has(entry.id))
+    glbCache.set(
+      entry.id,
+      getLoader()
+        .loadAsync(ROOT + entry.file)
+        .catch((e) => {
+          console.warn('[humans] failed', entry.id, e);
+          return null;
+        }),
+    );
   return glbCache.get(entry.id);
 }
 
@@ -59,21 +68,35 @@ float hhash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32)
 
 // Skin: textured, soft "subsurface-like" wrap + reddish rim, slight micro-roughness variation.
 export function makeSkinMat(entryMat, tint) {
-  const m = new THREE.MeshStandardMaterial({ map: tex(entryMat.d), roughness: 0.56, metalness: 0, name: 'skin' });
+  const m = new THREE.MeshStandardMaterial({
+    map: tex(entryMat.d),
+    roughness: 0.56,
+    metalness: 0,
+    name: 'skin',
+  });
   m.color.copy(tint || new THREE.Color(1, 1, 1));
   m.userData.sss = { value: 0.55 };
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uSSS = m.userData.sss;
-    sh.fragmentShader = 'uniform float uSSS;\n' + HASH + sh.fragmentShader
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = clamp(roughnessFactor + (hhash(vMapUv * 900.0) - 0.5) * 0.08, 0.35, 0.8);')
-      .replace('#include <opaque_fragment>', `
+    sh.fragmentShader =
+      'uniform float uSSS;\n' +
+      HASH +
+      sh.fragmentShader
+        .replace(
+          '#include <roughnessmap_fragment>',
+          '#include <roughnessmap_fragment>\n  roughnessFactor = clamp(roughnessFactor + (hhash(vMapUv * 900.0) - 0.5) * 0.08, 0.35, 0.8);',
+        )
+        .replace(
+          '#include <opaque_fragment>',
+          `
   {
     // cheap subsurface approximation: scattered red light where light grazes + soft rim
     float ndv = clamp(dot(normalize(normal), normalize(-vViewPosition)), 0.0, 1.0);
     vec3 scat = diffuseColor.rgb * vec3(1.0, 0.42, 0.3) * uSSS;
     outgoingLight += scat * (0.08 + 0.18 * pow(1.0 - ndv, 2.0)) * (reflectedLight.indirectDiffuse * 2.0 + reflectedLight.directDiffuse * 0.35);
   }
-  #include <opaque_fragment>`);
+  #include <opaque_fragment>`,
+        );
   };
   m.customProgramCacheKey = () => 'mpfbSkin';
   return m;
@@ -81,17 +104,30 @@ export function makeSkinMat(entryMat, tint) {
 
 // Hair cards: alpha-tested, tintable (natural colours incl. blond/grey), anisotropic-ish sheen via low roughness
 export function makeHairMat(entryMat, color) {
-  const m = new THREE.MeshStandardMaterial({ map: tex(entryMat.d), normalMap: tex(entryMat.n, false), alphaTest: 0.38, side: THREE.DoubleSide, roughness: 0.55, metalness: 0, name: 'hair' });
+  const m = new THREE.MeshStandardMaterial({
+    map: tex(entryMat.d),
+    normalMap: tex(entryMat.n, false),
+    alphaTest: 0.38,
+    side: THREE.DoubleSide,
+    roughness: 0.55,
+    metalness: 0,
+    name: 'hair',
+  });
   m.userData.hair = { value: new THREE.Color(color ?? 0x2a1d14) };
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uHairC = m.userData.hair;
-    sh.fragmentShader = 'uniform vec3 uHairC;\n' + sh.fragmentShader.replace('#include <map_fragment>', `
+    sh.fragmentShader =
+      'uniform vec3 uHairC;\n' +
+      sh.fragmentShader.replace(
+        '#include <map_fragment>',
+        `
 #ifdef USE_MAP
   vec4 hx = texture2D(map, vMapUv);
   float hl = dot(hx.rgb, vec3(0.3, 0.59, 0.11));
   diffuseColor.rgb *= uHairC * (0.55 + hl * 2.2);
   diffuseColor.a *= hx.a;
-#endif`);
+#endif`,
+      );
   };
   m.customProgramCacheKey = () => 'mpfbHair';
   return m;
@@ -100,12 +136,26 @@ export function makeHairMat(entryMat, color) {
 // Garment shells (generated from the body surface, body UVs): solid colour + knit/weave micro detail + optional print
 export function makeGarmentMat(kind, color, pattern = 0, color2 = 0xffffff) {
   const sport = /bikini|briefs|trunks/.test(kind);
-  const m = new THREE.MeshStandardMaterial({ color, roughness: sport ? 0.55 : 0.88, metalness: 0, name: 'garment_' + kind, side: THREE.FrontSide });
+  const m = new THREE.MeshStandardMaterial({
+    color,
+    roughness: sport ? 0.55 : 0.88,
+    metalness: 0,
+    name: 'garment_' + kind,
+    side: THREE.FrontSide,
+  });
   m.userData.g = { pat: { value: pattern }, c2: { value: new THREE.Color(color2) } };
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uPat = m.userData.g.pat; sh.uniforms.uC2 = m.userData.g.c2;
-    sh.vertexShader = sh.vertexShader.replace('#include <uv_pars_vertex>', '#include <uv_pars_vertex>\nvarying vec2 vGUv;').replace('#include <uv_vertex>', '#include <uv_vertex>\n vGUv = uv;');
-    sh.fragmentShader = 'uniform float uPat; uniform vec3 uC2; varying vec2 vGUv;\n' + HASH + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+    sh.uniforms.uPat = m.userData.g.pat;
+    sh.uniforms.uC2 = m.userData.g.c2;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <uv_pars_vertex>', '#include <uv_pars_vertex>\nvarying vec2 vGUv;')
+      .replace('#include <uv_vertex>', '#include <uv_vertex>\n vGUv = uv;');
+    sh.fragmentShader =
+      'uniform float uPat; uniform vec3 uC2; varying vec2 vGUv;\n' +
+      HASH +
+      sh.fragmentShader.replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
   {
     vec2 q = vGUv * vec2(1400.0, 1400.0);
     float knit = 0.92 + 0.08 * sin(q.x) * sin(q.y * 0.5) + 0.06 * (hhash(floor(q * 0.5)) - 0.5);
@@ -118,7 +168,8 @@ export function makeGarmentMat(kind, color, pattern = 0, color2 = 0xffffff) {
       float d = smoothstep(0.22, 0.16, length(g + (hhash(floor(vGUv * 70.0)) - 0.5) * 0.3));
       diffuseColor.rgb = mix(diffuseColor.rgb, uC2 * knit, d);
     }
-  }`);
+  }`,
+      );
   };
   m.customProgramCacheKey = () => 'mpfbGarment';
   return m;
@@ -127,14 +178,18 @@ export function makeGarmentMat(kind, color, pattern = 0, color2 = 0xffffff) {
 export function makeTexturedMat(entryMat, k) {
   const alpha = k === 'brow' || k === 'lash';
   const m = new THREE.MeshStandardMaterial({
-    map: tex(entryMat.d), normalMap: tex(entryMat.n, false), roughness: k === 'eye' ? 0.12 : (entryMat.r ?? 0.7), metalness: 0,
-    alphaTest: alpha ? 0.3 : 0, side: alpha ? THREE.DoubleSide : THREE.FrontSide, name: k,
+    map: tex(entryMat.d),
+    normalMap: tex(entryMat.n, false),
+    roughness: k === 'eye' ? 0.12 : (entryMat.r ?? 0.7),
+    metalness: 0,
+    alphaTest: alpha ? 0.3 : 0,
+    side: alpha ? THREE.DoubleSide : THREE.FrontSide,
+    name: k,
   });
   if (k === 'shoes') m.roughness = Math.max(0.35, m.roughness);
   if (k === 'cloth') m.roughness = 0.85;
   return m;
 }
-
 
 // ---------------- v2 library: one skinned mesh per LOD, shared atlases ----------------
 // atlasS = skins (LOD0 body), atlasC = clothes / hair / eyes / small skins / white garment texel.
@@ -143,21 +198,39 @@ export function makeAtlasSkinMat(tint) {
   return makeSkinMat({ d: 'atlasS.jpg' }, tint);
 }
 export function makeAtlasMat(palette) {
-  const m = new THREE.MeshStandardMaterial({ map: tex('atlasC.webp'), alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.82, metalness: 0, name: 'atlasC' });
-  const pal = []; for (let i = 0; i < 12; i++) pal.push(new THREE.Color(1, 1, 1));
-  (palette || []).forEach((c, i) => { if (c !== undefined && c !== null) pal[i].set(c); });
+  const m = new THREE.MeshStandardMaterial({
+    map: tex('atlasC.webp'),
+    alphaTest: 0.4,
+    side: THREE.DoubleSide,
+    roughness: 0.82,
+    metalness: 0,
+    name: 'atlasC',
+  });
+  const pal = [];
+  for (let i = 0; i < 12; i++) pal.push(new THREE.Color(1, 1, 1));
+  (palette || []).forEach((c, i) => {
+    if (c !== undefined && c !== null) pal[i].set(c);
+  });
   m.userData.pal = { value: pal };
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uPal = m.userData.pal;
-    sh.vertexShader = `#if !defined(USE_COLOR) && !defined(USE_COLOR_ALPHA)
+    sh.vertexShader =
+      `#if !defined(USE_COLOR) && !defined(USE_COLOR_ALPHA)
 attribute vec4 color;
 #endif
 #ifndef USE_UV1
 attribute vec2 uv1;
 #endif
 varying vec4 vG; varying vec2 vU1;
-` + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vG = vec4(color); vU1 = uv1;');
-    sh.fragmentShader = 'uniform vec3 uPal[12]; varying vec4 vG; varying vec2 vU1;\n' + HASH + `
+` +
+      sh.vertexShader.replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\n vG = vec4(color); vU1 = uv1;',
+      );
+    sh.fragmentShader =
+      'uniform vec3 uPal[12]; varying vec4 vG; varying vec2 vU1;\n' +
+      HASH +
+      `
 float foldH(vec2 u) { return 0.5 + 0.5 * sin(u.y * 24.0 + sin(u.x * 9.0) * 1.5); }
 float fabricH(vec2 u, float fab) {
   // fine weave fades out with screen-space frequency (no moire), folds stay
@@ -178,8 +251,11 @@ float fabricH(vec2 u, float fab) {
   h += 0.12 * sin(u.y * 24.0 + sin(u.x * 9.0) * 1.5) + 0.05 * sin(u.x * 31.0 + u.y * 5.0);
   return h;
 }
-` + sh.fragmentShader
-      .replace('#include <map_fragment>', `#include <map_fragment>
+` +
+      sh.fragmentShader
+        .replace(
+          '#include <map_fragment>',
+          `#include <map_fragment>
   float gSlot = floor(vG.r * 16.0 + 0.5);
   float gFab = floor(vG.b * 16.0 + 0.5);
   if (gSlot > 2.5) {
@@ -198,8 +274,11 @@ float fabricH(vec2 u, float fab) {
   } else if (gSlot > 1.5) {
     float hl = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
     diffuseColor.rgb = uPal[2] * (0.55 + hl * 2.2);
-  }`)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+  }`,
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          `#include <normal_fragment_maps>
   if (floor(vG.r * 16.0 + 0.5) > 2.5) {
     float hh = foldH(vU1);
     vec3 dpx = dFdx(-vViewPosition), dpy = dFdy(-vViewPosition);
@@ -208,14 +287,20 @@ float fabricH(vec2 u, float fab) {
     float det = dot(dpx, r1);
     vec3 grad = sign(det) * (dhx * r1 + dhy * r2);
     normal = normalize(abs(det) * normal - grad * 0.006);
-  }`)
-      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+  }`,
+        )
+        .replace(
+          '#include <roughnessmap_fragment>',
+          `#include <roughnessmap_fragment>
   { float fs = floor(vG.r * 16.0 + 0.5); float fb = floor(vG.b * 16.0 + 0.5);
     if (fs > 2.5) roughnessFactor = (fb > 9.5 && vG.a > 0.85) ? 0.25 : fb > 3.5 && fb < 4.5 ? 0.45 : fb > 7.5 && fb < 8.5 ? 0.6 : 0.9;
-    else if (fs > 1.5) roughnessFactor = 0.55; }`);
+    else if (fs > 1.5) roughnessFactor = 0.55; }`,
+        );
   };
   m.customProgramCacheKey = () => 'mpfbAtlasC';
   return m;
 }
 
-export function humanManifest() { return manifest; }
+export function humanManifest() {
+  return manifest;
+}

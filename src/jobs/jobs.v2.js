@@ -3,15 +3,47 @@
 //  - Debt collection: three people owe a lender; some pay, some run, some fight.
 //  - Protect a shop: a shopkeeper is being leaned on; stop two waves of thugs.
 // API: game.jobs = { list, active, start(id), cancel(), stats }. Stats persist in the 'jobs' save slice.
-import { fmt, dist2, help, notify, canAct, getPanel, makeMarker, removeMarker, spawnKitPed, pedOut, release, keepFighting, fireAtPlayer } from './kit.js';
+import {
+  fmt,
+  dist2,
+  help,
+  notify,
+  canAct,
+  getPanel,
+  makeMarker,
+  removeMarker,
+  spawnKitPed,
+  pedOut,
+  release,
+  keepFighting,
+  fireAtPlayer,
+} from './kit.js';
 
 export const order = 130;
 
-const THUG_KIT = { top: [0x3b3b3b, 0x5a4632, 0x22313f], bottom: [0x1f1f1f, 0x2e3440], shoes: [0x111111, 0xe9e7e2], hats: ['capBack', 'beanie'], chain: 0.4 };
-const DEBTOR_KIT = { top: [0x9a8f7a, 0x51698a, 0xb7a58a, 0x6f7b62], bottom: [0x3b3f46, 0x6b5e4a], shoes: [0x3a2618, 0x222222], hats: null, chain: 0 };
+const THUG_KIT = {
+  top: [0x3b3b3b, 0x5a4632, 0x22313f],
+  bottom: [0x1f1f1f, 0x2e3440],
+  shoes: [0x111111, 0xe9e7e2],
+  hats: ['capBack', 'beanie'],
+  chain: 0.4,
+};
+const DEBTOR_KIT = {
+  top: [0x9a8f7a, 0x51698a, 0xb7a58a, 0x6f7b62],
+  bottom: [0x3b3f46, 0x6b5e4a],
+  shoes: [0x3a2618, 0x222222],
+  hats: null,
+  chain: 0,
+};
 
 export async function initV2(game) {
-  const sf = (game.city?.storefronts || []).filter((s) => Number.isFinite(s.fx) && /^(South Beach|Downtown|Brickell|Overtown|Wynwood|Edgewater|Little Havana|South of Fifth|Arts & Entertainment District)$/.test(s.district || ''));
+  const sf = (game.city?.storefronts || []).filter(
+    (s) =>
+      Number.isFinite(s.fx) &&
+      /^(South Beach|Downtown|Brickell|Overtown|Wynwood|Edgewater|Little Havana|South of Fifth|Arts & Entertainment District)$/.test(
+        s.district || '',
+      ),
+  );
   if (!sf.length) return;
   const panel = getPanel(game);
   const S = { done: {}, earned: 0, cooldown: {} };
@@ -33,7 +65,9 @@ export async function initV2(game) {
     return { x: s.fx + (dx / l) * k, z: s.fz + (dz / l) * k, street: s.street, s };
   };
   const storeAt = (from, lo, hi, kinds = null) => {
-    const c = sf.filter((s) => (!kinds || kinds.includes(s.kind)) && dist2(s, from) > lo && dist2(s, from) < hi);
+    const c = sf.filter(
+      (s) => (!kinds || kinds.includes(s.kind)) && dist2(s, from) > lo && dist2(s, from) < hi,
+    );
     return c.length ? frontOf(c[Math.floor(Math.random() * c.length)]) : null;
   };
   let job = null;
@@ -106,13 +140,23 @@ export async function initV2(game) {
         if (j.stage === 1) {
           j.par = 150 + dist2(j.pick, j.drops[0]) / 9 + dist2(j.drops[0], j.drops[1]) / 9;
           j.timer = 0;
-          setStage(`Drop 1 of 2: ${j.drops[0].street || 'address'} (par ${Math.round(j.par)} s)`, j.drops[0]);
+          setStage(
+            `Drop 1 of 2: ${j.drops[0].street || 'address'} (par ${Math.round(j.par)} s)`,
+            j.drops[0],
+          );
           notify(game, 'Parcel picked up. Two drops, beat the par time for a bonus.', 3000);
         } else if (j.stage === 2) {
-          setStage(`Drop 2 of 2: ${j.drops[1].street || 'address'} (${Math.max(0, Math.round(j.par - j.timer))} s left on par)`, j.drops[1]);
+          setStage(
+            `Drop 2 of 2: ${j.drops[1].street || 'address'} (${Math.max(0, Math.round(j.par - j.timer))} s left on par)`,
+            j.drops[1],
+          );
         } else {
           const bonus = j.timer < j.par ? 1 - j.timer / j.par : 0;
-          finish(true, 220 + 200 * bonus, bonus > 0 ? `beat par by ${Math.round(j.par - j.timer)} s` : 'over par');
+          finish(
+            true,
+            220 + 200 * bonus,
+            bonus > 0 ? `beat par by ${Math.round(j.par - j.timer)} s` : 'over par',
+          );
         }
       },
     },
@@ -121,14 +165,21 @@ export async function initV2(game) {
       name: 'Debt collection',
       client: 'Ray Okonjo Lending',
       pay: '$300–600',
-      blurb: 'Three people owe Ray. Talk to them; if they run or swing, make them pay. You keep a cut.',
+      blurb:
+        'Three people owe Ray. Talk to them; if they run or swing, make them pay. You keep a cut.',
       start(j) {
         j.list = [];
         let from = P();
         for (let i = 0; i < 3; i++) {
           const a = storeAt(from, 80, 420);
           if (!a) return false;
-          j.list.push({ at: a, owe: 400 + Math.round(Math.random() * 6) * 100, ped: null, mood: ['pay', 'run', 'fight'][(i + Math.floor(Math.random() * 3)) % 3], state: 'wait' });
+          j.list.push({
+            at: a,
+            owe: 400 + Math.round(Math.random() * 6) * 100,
+            ped: null,
+            mood: ['pay', 'run', 'fight'][(i + Math.floor(Math.random() * 3)) % 3],
+            state: 'wait',
+          });
           from = a;
         }
         j.i = 0;
@@ -192,13 +243,15 @@ export async function initV2(game) {
             notify(game, 'He got away. Ray will not be happy.', 2500);
             release(p);
             j.i++;
-            if (j.i >= j.list.length) finish(j.got > 0, j.got * 0.2, j.got ? `20% of ${fmt(j.got)}` : 'nobody paid');
+            if (j.i >= j.list.length)
+              finish(j.got > 0, j.got * 0.2, j.got ? `20% of ${fmt(j.got)}` : 'nobody paid');
             else setStage(`Collect from debtor ${j.i + 1} of 3`, j.list[j.i].at);
             return;
           }
         }
         // a few hits (or a knockdown) make anyone pay
-        if ((p.health ?? 100) < 75 || p.state === 'down' || pedOut(p)) collect(d.state === 'run' ? 'Caught him.' : 'He gives up.');
+        if ((p.health ?? 100) < 75 || p.state === 'down' || pedOut(p))
+          collect(d.state === 'run' ? 'Caught him.' : 'He gives up.');
       },
     },
     {
@@ -206,9 +259,18 @@ export async function initV2(game) {
       name: 'Protect a shop',
       client: 'A worried shopkeeper',
       pay: '$450–650',
-      blurb: 'A crew is shaking down a corner shop. Be there when they show up and send them packing.',
+      blurb:
+        'A crew is shaking down a corner shop. Be there when they show up and send them packing.',
       start(j) {
-        j.shop = storeAt(P(), 150, 700, ['convenience', 'liquor', 'bakery', 'pharmacy', 'cafe', 'restaurant', 'fast_food']);
+        j.shop = storeAt(P(), 150, 700, [
+          'convenience',
+          'liquor',
+          'bakery',
+          'pharmacy',
+          'cafe',
+          'restaurant',
+          'fast_food',
+        ]);
         if (!j.shop) return false;
         j.stage = 0;
         j.wave = 0;
@@ -247,14 +309,24 @@ export async function initV2(game) {
           const s = j.shop;
           for (let i = 0; i < n; i++) {
             const a = Math.random() * Math.PI * 2;
-            const p = spawnKitPed(game, { x: s.x + Math.sin(a) * 24, z: s.z + Math.cos(a) * 24 }, THUG_KIT, 500 + j.wave * 10 + i, { tag: { thug: true } });
+            const p = spawnKitPed(
+              game,
+              { x: s.x + Math.sin(a) * 24, z: s.z + Math.cos(a) * 24 },
+              THUG_KIT,
+              500 + j.wave * 10 + i,
+              { tag: { thug: true } },
+            );
             if (!p) continue;
             p.armed = j.wave === 2 && i === 0;
             j.enemies.push(p);
             j.people.push(p);
           }
           game.hud?.setMission?.(`Protect the shop: wave ${j.wave} of 2`);
-          notify(game, j.wave === 1 ? 'Here they come.' : 'They brought friends. One is armed.', 2500);
+          notify(
+            game,
+            j.wave === 1 ? 'Here they come.' : 'They brought friends. One is armed.',
+            2500,
+          );
           j.t = 4;
         }
         for (const p of alive) {
@@ -301,11 +373,33 @@ export async function initV2(game) {
     const html = `<h2>Side jobs</h2><div class="sub">Short work around town. Earned so far: ${fmt(S.earned)}</div>`;
     const acts = DEFS.map((d) => {
       const cd = (S.cooldown[d.id] || 0) - performance.now();
-      return { label: `${d.name} · ${d.client}${S.done[d.id] ? ` (done ${S.done[d.id]}x)` : ''}`, price: cd > 0 ? `${Math.ceil(cd / 1000)} s` : d.pay, disabled: !!job || cd > 0, fn: () => { panel.hide(); start(d.id); } };
+      return {
+        label: `${d.name} · ${d.client}${S.done[d.id] ? ` (done ${S.done[d.id]}x)` : ''}`,
+        price: cd > 0 ? `${Math.ceil(cd / 1000)} s` : d.pay,
+        disabled: !!job || cd > 0,
+        fn: () => {
+          panel.hide();
+          start(d.id);
+        },
+      };
     });
-    if (job) acts.push({ label: `Quit current job (${job.def.name})`, fn: () => { panel.hide(); cancel(false); } });
+    if (job)
+      acts.push({
+        label: `Quit current job (${job.def.name})`,
+        fn: () => {
+          panel.hide();
+          cancel(false);
+        },
+      });
     acts.push({ label: 'Close', fn: () => panel.hide() });
-    panel.show('jobs', html + DEFS.map((d) => `<div class="row"><span><b>${d.name}</b>: ${d.blurb}</span></div>`).join(''), acts);
+    panel.show(
+      'jobs',
+      html +
+        DEFS.map((d) => `<div class="row"><span><b>${d.name}</b>: ${d.blurb}</span></div>`).join(
+          '',
+        ),
+      acts,
+    );
   }
 
   game.updaters.push(function jobsTick(dt) {

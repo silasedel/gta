@@ -7,7 +7,8 @@ fs.mkdirSync(OUT, { recursive: true });
 await withBrowser({ width: 1280, height: 720, maxSeconds: 600 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute');
   await startGame(b);
-  const r = await b.eval(`(() => {
+  const r = await b.eval(
+    `(() => {
     const c = game.city, T = c.terrain, L = T.LAYERS.map((l) => l.key); const G = c.roadGraph; const out = [];
     for (let x = -7000; x <= 0; x += 120) for (let z = -7000; z <= 4000; z += 120) {
       const d = c.districtAt(x, z); if (!d || !/Everglades|Big Cypress/.test(d)) continue;
@@ -19,9 +20,12 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 600 }, async (b) => {
     out.sort((a, b) => (b.saw - a.saw) || (a.rd - b.rd));
     const good = out.filter((p) => p.saw >= 7 && p.rd > 40 && p.rd < 250);
     return JSON.stringify({ n: out.length, good: good.slice(0, 12), sample: out.slice(0, 6), hs: out.slice(0, 400).map((p) => p.h) });
-  })()`, 300000);
+  })()`,
+    300000,
+  );
   console.log(r.slice(0, 4000));
-  const j = JSON.parse(r); fs.writeFileSync(OUT + '/glades_spots.json', JSON.stringify(j, null, 1));
+  const j = JSON.parse(r);
+  fs.writeFileSync(OUT + '/glades_spots.json', JSON.stringify(j, null, 1));
   const spots = j.good.slice(0, 2);
   let i = 0;
   for (const p of spots) {

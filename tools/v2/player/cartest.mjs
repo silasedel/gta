@@ -6,20 +6,36 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'c';
 const DIR = path.resolve('docs/v2/shots/player');
-const lim = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+const lim = (p, ms) =>
+  Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 const rep = { set: SET, phases: {} };
 await withBrowser({ width: 1280, height: 720, maxSeconds: 700 }, async (b) => {
   const ev = (e) => lim(b.eval(e), 60000);
-  const shoot = async (n) => { try { await lim(b.screenshot(path.join(DIR, `${SET}_${n}.jpg`), { format: 'jpeg', quality: 86 }), 45000); } catch (e) { console.log('shot failed', n); } };
+  const shoot = async (n) => {
+    try {
+      await lim(
+        b.screenshot(path.join(DIR, `${SET}_${n}.jpg`), { format: 'jpeg', quality: 86 }),
+        45000,
+      );
+    } catch (e) {
+      console.log('shot failed', n);
+    }
+  };
   await b.goto('http://127.0.0.1:5200/?mute');
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 400);
   await startGame(b);
   // a parked car near the house that nobody drives, with open ground around it
-  const setup = await ev(`(() => { game.timeExternal = true; game.timeOfDay = 11; const P = game.player, T = game.THREE, H = game.nicoHouse;
+  const setup =
+    await ev(`(() => { game.timeExternal = true; game.timeOfDay = 11; const P = game.player, T = game.THREE, H = game.nicoHouse;
     const cars = (game.vehicles?.list || []).filter((v) => v.body && !v.ai && !v.playerDriven && !v.disposed && !v.boat && v.spec && (v.spec.roofY ?? 2) < 1.7 && (v.spec.roofY ?? 0) > 1.3 && !/conv|cabrio|roadster|bayline/i.test((v.name || '') + (v.typeKey || '')));
     cars.sort((x, y) => { const a = x.body.translation(), b = y.body.translation(); return Math.hypot(a.x - H.spot.x, a.z - H.spot.z) - Math.hypot(b.x - H.spot.x, b.z - H.spot.z); });
     const v = cars[0]; if (!v) return JSON.stringify({ err: 'no parked car' }); window.__car = v;
@@ -34,7 +50,9 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 700 }, async (b) => {
       const sp = prev && dt > 0 && prev.k === window.__rec ? Math.hypot(p.x - prev.x, p.z - prev.z) / dt : 0; prev = p.clone(); prev.k = window.__rec;
       L.frames.push([+game.clock.elapsed.toFixed(2), window.__rec, +sp.toFixed(2), +p.y.toFixed(2), +Math.hypot(lv.x, lv.y, lv.z).toFixed(2), +(t.y).toFixed(2), P.state.grounded ? 1 : 0]); });
     const t = v.body.translation(); return JSON.stringify({ car: v.name || v.typeKey, at: [+t.x.toFixed(1), +t.y.toFixed(2), +t.z.toFixed(1)], type: v.body.isDynamic() ? 'dynamic' : v.body.isKinematic() ? 'kinematic' : 'fixed', sleeping: v.body.isSleeping(), frozen: !!v.frozen, enabled: v.body.isEnabled?.(), roofY: v.spec.roofY }); })()`);
-  console.log('setup', setup); rep.setup = JSON.parse(setup); if (rep.setup.err) return;
+  console.log('setup', setup);
+  rep.setup = JSON.parse(setup);
+  if (rep.setup.err) return;
   const camOn = `(() => { const v = window.__car, T = game.THREE; game.cameraOverride = (dt, cam) => { const t = v.body.translation(), r = v.body.rotation(), q = new T.Quaternion(r.x, r.y, r.z, r.w), left = new T.Vector3(1, 0, 0).applyQuaternion(q);
       cam.position.set(t.x + left.x * 6.5, t.y + 2.6, t.z + left.z * 6.5); cam.lookAt(t.x, t.y + 1.0, t.z); return true; }; return 1; })()`;
   await ev(camOn);
@@ -42,25 +60,61 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 700 }, async (b) => {
   await ev(`(() => { const P = game.player, v = window.__car, R = game.RAPIER, W = game.world, T = game.THREE; const t = v.body.translation(), r = v.body.rotation(), q = new T.Quaternion(r.x, r.y, r.z, r.w), fwd = new T.Vector3(0, 0, 1).applyQuaternion(q).setY(0).normalize();
     const hit = W.castRay(new R.Ray({ x: t.x, y: t.y + 4, z: t.z }, { x: 0, y: -1, z: 0 }), 6, true, R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, P.collider); const top = hit ? t.y + 4 - hit.timeOfImpact : t.y + 1.5;
     window.__top = top; P.body.setTranslation({ x: t.x, y: top + P.capsule.center + 0.05, z: t.z }, true); P.position.set(t.x, top, t.z); P.heading = Math.atan2(fwd.x, fwd.z); game.cameraYaw = P.heading + Math.PI; window.__rec = 'roof'; return 1; })()`);
-  await b.sleep(2200); await shoot('roof_stand');
-  await b.key('KeyW', true); await b.sleep(900); await shoot('roof_walk'); await b.sleep(1600); await b.key('KeyW', false); await b.sleep(1500); await shoot('roof_off');
+  await b.sleep(2200);
+  await shoot('roof_stand');
+  await b.key('KeyW', true);
+  await b.sleep(900);
+  await shoot('roof_walk');
+  await b.sleep(1600);
+  await b.key('KeyW', false);
+  await b.sleep(1500);
+  await shoot('roof_off');
   // ---- 2) run at the side of the car and jump onto the hood / roof, stand, jump off the other side
   await ev(`(() => { const P = game.player, v = window.__car, T = game.THREE; const t = v.body.translation(), r = v.body.rotation(), q = new T.Quaternion(r.x, r.y, r.z, r.w), left = new T.Vector3(1, 0, 0).applyQuaternion(q).setY(0).normalize(), fwd = new T.Vector3(0, 0, 1).applyQuaternion(q).setY(0).normalize();
     const s = new T.Vector3(t.x, 0, t.z).addScaledVector(fwd, (v.spec.zA ?? 1.4) + 2.6); game.teleport(s.x, undefined, s.z, Math.atan2(-fwd.x, -fwd.z)); game.cameraYaw = Math.atan2(-fwd.x, -fwd.z) + Math.PI; window.__rec = null; return 1; })()`);
-  await b.sleep(1800); await ev('(() => { window.__rec = "jump"; return 1; })()');
-  await b.key('KeyW', true); await b.sleep(330); await b.key('Space', true, ' '); await b.sleep(80); await b.key('Space', false, ' ');
-  await b.sleep(350); await shoot('jump_air'); await b.sleep(500); await b.key('KeyW', false); await shoot('jump_on');
-  await b.sleep(1500); await shoot('jump_stand');
-  await b.key('KeyW', true); await b.sleep(250); await b.key('Space', true, ' '); await b.sleep(80); await b.key('Space', false, ' '); await b.sleep(1200); await b.key('KeyW', false); await b.sleep(1200); await shoot('jump_off');
+  await b.sleep(1800);
+  await ev('(() => { window.__rec = "jump"; return 1; })()');
+  await b.key('KeyW', true);
+  await b.sleep(330);
+  await b.key('Space', true, ' ');
+  await b.sleep(80);
+  await b.key('Space', false, ' ');
+  await b.sleep(350);
+  await shoot('jump_air');
+  await b.sleep(500);
+  await b.key('KeyW', false);
+  await shoot('jump_on');
+  await b.sleep(1500);
+  await shoot('jump_stand');
+  await b.key('KeyW', true);
+  await b.sleep(250);
+  await b.key('Space', true, ' ');
+  await b.sleep(80);
+  await b.key('Space', false, ' ');
+  await b.sleep(1200);
+  await b.key('KeyW', false);
+  await b.sleep(1200);
+  await shoot('jump_off');
   // ---- 3) sprint straight into the car's side (bump), then stand pressed against it
   await ev(`(() => { const P = game.player, v = window.__car, T = game.THREE; const t = v.body.translation(), r = v.body.rotation(), q = new T.Quaternion(r.x, r.y, r.z, r.w), left = new T.Vector3(1, 0, 0).applyQuaternion(q).setY(0).normalize();
     const s = new T.Vector3(t.x, 0, t.z).addScaledVector(left, -9); game.teleport(s.x, undefined, s.z, Math.atan2(left.x, left.z)); game.cameraYaw = Math.atan2(left.x, left.z) + Math.PI; window.__rec = null; return 1; })()`);
-  await b.sleep(1500); await ev('(() => { window.__rec = "bump"; return 1; })()');
-  await b.key('ShiftLeft', true, 'Shift'); await b.key('KeyW', true); await b.sleep(2600); await shoot('bump'); await b.sleep(1200); await b.key('KeyW', false); await b.key('ShiftLeft', false, 'Shift'); await b.sleep(800);
-  const res = JSON.parse(await ev(`(() => { const L = window.__log; window.__rec = null; const by = {};
+  await b.sleep(1500);
+  await ev('(() => { window.__rec = "bump"; return 1; })()');
+  await b.key('ShiftLeft', true, 'Shift');
+  await b.key('KeyW', true);
+  await b.sleep(2600);
+  await shoot('bump');
+  await b.sleep(1200);
+  await b.key('KeyW', false);
+  await b.key('ShiftLeft', false, 'Shift');
+  await b.sleep(800);
+  const res = JSON.parse(
+    await ev(`(() => { const L = window.__log; window.__rec = null; const by = {};
     for (const f of L.frames) { const k = f[1]; const s = by[k] ||= { frames: 0, maxSpeed: 0, maxCarVel: 0, minY: 1e9, maxY: -1e9, carYRange: [1e9, -1e9] }; s.frames++; s.maxSpeed = Math.max(s.maxSpeed, f[2]); s.maxCarVel = Math.max(s.maxCarVel, f[4]); s.minY = Math.min(s.minY, f[3]); s.maxY = Math.max(s.maxY, f[3]); s.carYRange = [Math.min(s.carYRange[0], f[5]), Math.max(s.carYRange[1], f[5])]; }
-    return JSON.stringify({ vault: game.playerVault?.stats, by, hits: L.hits, events: L.events, warn: L.warn, top: window.__top, launches: L.frames.filter((f) => f[2] > 9).length, spikes: L.frames.filter((f) => f[2] > 7).slice(0, 12) }); })()`));
-  rep.result = res; console.log(JSON.stringify(res));
+    return JSON.stringify({ vault: game.playerVault?.stats, by, hits: L.hits, events: L.events, warn: L.warn, top: window.__top, launches: L.frames.filter((f) => f[2] > 9).length, spikes: L.frames.filter((f) => f[2] > 7).slice(0, 12) }); })()`),
+  );
+  rep.result = res;
+  console.log(JSON.stringify(res));
   if (b.errors.length) rep.errors = [...new Set(b.errors)].slice(0, 12);
 });
 fs.writeFileSync(`docs/v2/reports/player-cartest-${SET}.json`, JSON.stringify(rep, null, 2));

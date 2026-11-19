@@ -1,113 +1,863 @@
 // Signs and print generators (DESIGN-SYSTEM track). See ../README.md "Signs and print".
 // Everything is drawn from brand data, so a brand looks the same on its storefront, billboard, bag, cup and truck.
-import { makeCanvas, ctx2d, rng, hexNum, inkOn, darken, lighten, mix, money, barcode, wrapText, fitText, speckle, roundRect } from '../util.js';
+import {
+  makeCanvas,
+  ctx2d,
+  rng,
+  hexNum,
+  inkOn,
+  darken,
+  lighten,
+  mix,
+  money,
+  barcode,
+  wrapText,
+  fitText,
+  speckle,
+  roundRect,
+} from '../util.js';
 import { font } from '../fonts.js';
 import { materials } from '../materials/index.js';
 import { getProduct, productsFor, labelCanvas } from '../products/index.js';
 
-const T = (THREE, c) => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
-const CONSTRUCTION = { 'backlit-box': 'box', pylon: 'pylon', 'led-screen': 'box', 'vinyl-window': 'vinyl', awning: 'awning', 'channel-letters': 'letters', 'reverse-channel': 'letters', 'rooftop-letters': 'letters', stencil: 'painted',
-  'carved-stone': 'plaque', 'brass-plaque': 'plaque', neon: 'neon', marquee: 'neon', blade: 'blade', 'painted-wood': 'painted', 'hand-painted-wall': 'painted' };
+const T = (THREE, c) => {
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+};
+const CONSTRUCTION = {
+  'backlit-box': 'box',
+  pylon: 'pylon',
+  'led-screen': 'box',
+  'vinyl-window': 'vinyl',
+  awning: 'awning',
+  'channel-letters': 'letters',
+  'reverse-channel': 'letters',
+  'rooftop-letters': 'letters',
+  stencil: 'painted',
+  'carved-stone': 'plaque',
+  'brass-plaque': 'plaque',
+  neon: 'neon',
+  marquee: 'neon',
+  blade: 'blade',
+  'painted-wood': 'painted',
+  'hand-painted-wall': 'painted',
+};
 // logo on a transparent canvas (optionally one color), padded
-function logoArt(b, w, h, opts = {}) { const c = makeCanvas(w, h), g = ctx2d(c); if (opts.bg) { g.fillStyle = opts.bg; g.fillRect(0, 0, w, h); } const pad = opts.pad ?? 0.08; const box = [w * pad, h * pad, w * (1 - 2 * pad), h * (1 - 2 * pad)];
-  if (opts.mono) b.drawLogo(g, ...box, { mono: opts.mono, variant: opts.variant }); else if (opts.bg) b.drawLogoOn(g, opts.bg, ...box, { variant: opts.variant }); else b.drawLogo(g, ...box, { variant: opts.variant }); return c; }
-function glow(src, color, blur) { const c = makeCanvas(src.width, src.height), g = ctx2d(c); g.filter = `blur(${blur}px)`; g.drawImage(src, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = color; g.fillRect(0, 0, c.width, c.height); g.filter = 'none'; g.globalCompositeOperation = 'source-over'; return c; }
+function logoArt(b, w, h, opts = {}) {
+  const c = makeCanvas(w, h),
+    g = ctx2d(c);
+  if (opts.bg) {
+    g.fillStyle = opts.bg;
+    g.fillRect(0, 0, w, h);
+  }
+  const pad = opts.pad ?? 0.08;
+  const box = [w * pad, h * pad, w * (1 - 2 * pad), h * (1 - 2 * pad)];
+  if (opts.mono) b.drawLogo(g, ...box, { mono: opts.mono, variant: opts.variant });
+  else if (opts.bg) b.drawLogoOn(g, opts.bg, ...box, { variant: opts.variant });
+  else b.drawLogo(g, ...box, { variant: opts.variant });
+  return c;
+}
+function glow(src, color, blur) {
+  const c = makeCanvas(src.width, src.height),
+    g = ctx2d(c);
+  g.filter = `blur(${blur}px)`;
+  g.drawImage(src, 0, 0);
+  g.globalCompositeOperation = 'source-in';
+  g.fillStyle = color;
+  g.fillRect(0, 0, c.width, c.height);
+  g.filter = 'none';
+  g.globalCompositeOperation = 'source-over';
+  return c;
+}
 
 export const signs = {
   types: Object.keys(CONSTRUCTION),
   // A storefront sign. opts: { style, width (m), height (m), lit (default true), seed, wear }. Front faces +Z, centered on the origin.
   build(THREE, brand, opts = {}) {
-    const style = opts.style || brand.signStyle?.type || 'channel-letters', kind = CONSTRUCTION[style] || 'box', P = brand.palette, r = rng((opts.seed ?? 1) + brand.id);
-    const aspect = Math.max(1.2, Math.min(6, brand.logoAspect() * 1.15)); let W = opts.width || 3, H = opts.height || W / aspect; if (opts.height && !opts.width) W = H * aspect;
-    const group = new THREE.Group(), lights = [], lit = [], px = 512, cw = Math.round(px * Math.min(4, W / H)), ch = px; const wear = opts.wear ?? (brand.tier === 'budget' ? 0.4 : brand.presence === 'local' ? 0.5 : 0.1);
-    const plane = (c, w, h, z, mat = {}) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: T(THREE, c), transparent: true, roughness: 0.5, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, ...mat })); m.position.z = z; m.renderOrder = 2; group.add(m); return m; };
-    const emis = (m, c, k) => { m.material.emissive = new THREE.Color(0xffffff); m.material.emissiveMap = m.material.map; m.material.emissiveIntensity = 0; lit.push([m, k]); void c; };
+    const style = opts.style || brand.signStyle?.type || 'channel-letters',
+      kind = CONSTRUCTION[style] || 'box',
+      P = brand.palette,
+      r = rng((opts.seed ?? 1) + brand.id);
+    const aspect = Math.max(1.2, Math.min(6, brand.logoAspect() * 1.15));
+    let W = opts.width || 3,
+      H = opts.height || W / aspect;
+    if (opts.height && !opts.width) W = H * aspect;
+    const group = new THREE.Group(),
+      lights = [],
+      lit = [],
+      px = 512,
+      cw = Math.round(px * Math.min(4, W / H)),
+      ch = px;
+    const wear =
+      opts.wear ?? (brand.tier === 'budget' ? 0.4 : brand.presence === 'local' ? 0.5 : 0.1);
+    const plane = (c, w, h, z, mat = {}) => {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(w, h),
+        new THREE.MeshStandardMaterial({
+          map: T(THREE, c),
+          transparent: true,
+          roughness: 0.5,
+          polygonOffset: true,
+          polygonOffsetFactor: -4,
+          polygonOffsetUnits: -4,
+          ...mat,
+        }),
+      );
+      m.position.z = z;
+      m.renderOrder = 2;
+      group.add(m);
+      return m;
+    };
+    const emis = (m, c, k) => {
+      m.material.emissive = new THREE.Color(0xffffff);
+      m.material.emissiveMap = m.material.map;
+      m.material.emissiveIntensity = 0;
+      lit.push([m, k]);
+      void c;
+    };
     if (kind === 'box' || kind === 'pylon') {
-      const face = style === 'led-screen' ? '#07080a' : P[brand.signStyle?.fascia] || (brand.logo.container?.fill ? P.paper : P.primary); const d = 0.22;
-      const cab = new THREE.Mesh(new THREE.BoxGeometry(W, H, d), materials.get(THREE, brand.tier === 'budget' ? 'plastic_black' : 'metal_black_powder', { wear })); group.add(cab);
-      const art = logoArt(brand, cw, ch, { bg: face, pad: 0.1 }); if (style === 'led-screen') { const g = ctx2d(art); g.fillStyle = 'rgba(0,0,0,0.35)'; for (let y = 0; y < ch; y += 4) g.fillRect(0, y, cw, 1.5); for (let x = 0; x < cw; x += 4) g.fillRect(x, 0, 1.5, ch); }
-      emis(plane(art, W * 0.96, H * 0.92, d / 2 + 0.002, { roughness: 0.25 }), face, style === 'led-screen' ? 1.6 : 0.9); const back = plane(art, W * 0.96, H * 0.92, -d / 2 - 0.002, { roughness: 0.25 }); back.rotation.y = Math.PI; emis(back, face, 0.9);
-      if (kind === 'pylon') { const poleH = opts.poleHeight || 6; const pole = new THREE.Mesh(new THREE.BoxGeometry(0.35, poleH, 0.3), materials.get(THREE, 'metal_galvanized', { wear })); pole.position.y = -H / 2 - poleH / 2; group.add(pole);
-        if (brand.category === 'fuel') { const c = makeCanvas(256, 256), g = ctx2d(c); g.fillStyle = '#0a0a0a'; g.fillRect(0, 0, 256, 256); [['REGULAR', 3.39], ['PLUS', 3.79], ['PREMIUM', 4.19], ['DIESEL', 3.99]].forEach(([n, v], i) => { g.fillStyle = '#eee'; g.font = font('condHeavy', 26); g.textAlign = 'left'; g.fillText(n, 14, 50 + i * 60); g.fillStyle = i === 3 ? '#4dff88' : '#ff8a2a'; g.font = font('mono', 42); g.textAlign = 'right'; g.fillText((v + r() * 0.3).toFixed(2) + '⁹', 246, 54 + i * 60); }); const pm = new THREE.Mesh(new THREE.BoxGeometry(W * 0.8, W * 0.8, 0.2), materials.get(THREE, 'metal_black_powder')); pm.position.y = -H / 2 - W * 0.45; group.add(pm); const pf = plane(c, W * 0.76, W * 0.76, 0.102, {}); pf.position.y = pm.position.y; emis(pf, '#000', 1.4); } }
+      const face =
+        style === 'led-screen'
+          ? '#07080a'
+          : P[brand.signStyle?.fascia] || (brand.logo.container?.fill ? P.paper : P.primary);
+      const d = 0.22;
+      const cab = new THREE.Mesh(
+        new THREE.BoxGeometry(W, H, d),
+        materials.get(THREE, brand.tier === 'budget' ? 'plastic_black' : 'metal_black_powder', {
+          wear,
+        }),
+      );
+      group.add(cab);
+      const art = logoArt(brand, cw, ch, { bg: face, pad: 0.1 });
+      if (style === 'led-screen') {
+        const g = ctx2d(art);
+        g.fillStyle = 'rgba(0,0,0,0.35)';
+        for (let y = 0; y < ch; y += 4) g.fillRect(0, y, cw, 1.5);
+        for (let x = 0; x < cw; x += 4) g.fillRect(x, 0, 1.5, ch);
+      }
+      emis(
+        plane(art, W * 0.96, H * 0.92, d / 2 + 0.002, { roughness: 0.25 }),
+        face,
+        style === 'led-screen' ? 1.6 : 0.9,
+      );
+      const back = plane(art, W * 0.96, H * 0.92, -d / 2 - 0.002, { roughness: 0.25 });
+      back.rotation.y = Math.PI;
+      emis(back, face, 0.9);
+      if (kind === 'pylon') {
+        const poleH = opts.poleHeight || 6;
+        const pole = new THREE.Mesh(
+          new THREE.BoxGeometry(0.35, poleH, 0.3),
+          materials.get(THREE, 'metal_galvanized', { wear }),
+        );
+        pole.position.y = -H / 2 - poleH / 2;
+        group.add(pole);
+        if (brand.category === 'fuel') {
+          const c = makeCanvas(256, 256),
+            g = ctx2d(c);
+          g.fillStyle = '#0a0a0a';
+          g.fillRect(0, 0, 256, 256);
+          [
+            ['REGULAR', 3.39],
+            ['PLUS', 3.79],
+            ['PREMIUM', 4.19],
+            ['DIESEL', 3.99],
+          ].forEach(([n, v], i) => {
+            g.fillStyle = '#eee';
+            g.font = font('condHeavy', 26);
+            g.textAlign = 'left';
+            g.fillText(n, 14, 50 + i * 60);
+            g.fillStyle = i === 3 ? '#4dff88' : '#ff8a2a';
+            g.font = font('mono', 42);
+            g.textAlign = 'right';
+            g.fillText((v + r() * 0.3).toFixed(2) + '⁹', 246, 54 + i * 60);
+          });
+          const pm = new THREE.Mesh(
+            new THREE.BoxGeometry(W * 0.8, W * 0.8, 0.2),
+            materials.get(THREE, 'metal_black_powder'),
+          );
+          pm.position.y = -H / 2 - W * 0.45;
+          group.add(pm);
+          const pf = plane(c, W * 0.76, W * 0.76, 0.102, {});
+          pf.position.y = pm.position.y;
+          emis(pf, '#000', 1.4);
+        }
+      }
     } else if (kind === 'letters') {
-      const reverse = style === 'reverse-channel', backMat = style === 'rooftop-letters' ? null : materials.get(THREE, brand.signStyle?.mount === 'limestone' || brand.tier === 'luxury' ? 'stone_coral_keystone' : 'stucco_white', { repeat: [W / 1.5, H / 1.5], tint: brand.tier === 'luxury' ? '#ffffff' : lighten(P.paper, 0.2), wear });
-      if (backMat) { const bk = new THREE.Mesh(new THREE.BoxGeometry(W, H, 0.06), backMat); bk.position.z = -0.03; group.add(bk); }
-      const faceCol = reverse ? (brand.signStyle?.metal === 'brass' ? '#b08d57' : P.ink) : null; const art = logoArt(brand, cw, ch, reverse ? { mono: faceCol } : {}); const side = logoArt(brand, cw, ch, { mono: reverse ? darken(faceCol, 0.45) : darken(P.primary, 0.55) }); const depth = 0.09, n = 9;
-      if (reverse) emis(plane(glow(art, brand.signStyle?.halo || '#fff3d6', 14), W * 1.04, H * 1.04, 0.004, { depthWrite: false }), '#fff', 1.6);
-      for (let i = 0; i < n; i++) plane(side, W, H, 0.02 + (i / n) * depth, { alphaTest: 0.5, transparent: false, roughness: 0.6, metalness: reverse ? 0.8 : 0 });
-      const top = plane(art, W, H, 0.02 + depth + 0.001, { alphaTest: 0.4, transparent: false, roughness: reverse ? 0.3 : 0.4, metalness: reverse ? 0.9 : 0 }); if (!reverse) emis(top, '#fff', 0.85);
+      const reverse = style === 'reverse-channel',
+        backMat =
+          style === 'rooftop-letters'
+            ? null
+            : materials.get(
+                THREE,
+                brand.signStyle?.mount === 'limestone' || brand.tier === 'luxury'
+                  ? 'stone_coral_keystone'
+                  : 'stucco_white',
+                {
+                  repeat: [W / 1.5, H / 1.5],
+                  tint: brand.tier === 'luxury' ? '#ffffff' : lighten(P.paper, 0.2),
+                  wear,
+                },
+              );
+      if (backMat) {
+        const bk = new THREE.Mesh(new THREE.BoxGeometry(W, H, 0.06), backMat);
+        bk.position.z = -0.03;
+        group.add(bk);
+      }
+      const faceCol = reverse ? (brand.signStyle?.metal === 'brass' ? '#b08d57' : P.ink) : null;
+      const art = logoArt(brand, cw, ch, reverse ? { mono: faceCol } : {});
+      const side = logoArt(brand, cw, ch, {
+        mono: reverse ? darken(faceCol, 0.45) : darken(P.primary, 0.55),
+      });
+      const depth = 0.09,
+        n = 9;
+      if (reverse)
+        emis(
+          plane(glow(art, brand.signStyle?.halo || '#fff3d6', 14), W * 1.04, H * 1.04, 0.004, {
+            depthWrite: false,
+          }),
+          '#fff',
+          1.6,
+        );
+      for (let i = 0; i < n; i++)
+        plane(side, W, H, 0.02 + (i / n) * depth, {
+          alphaTest: 0.5,
+          transparent: false,
+          roughness: 0.6,
+          metalness: reverse ? 0.8 : 0,
+        });
+      const top = plane(art, W, H, 0.02 + depth + 0.001, {
+        alphaTest: 0.4,
+        transparent: false,
+        roughness: reverse ? 0.3 : 0.4,
+        metalness: reverse ? 0.9 : 0,
+      });
+      if (!reverse) emis(top, '#fff', 0.85);
     } else if (kind === 'neon') {
-      const bk = new THREE.Mesh(new THREE.BoxGeometry(W, H, 0.05), materials.get(THREE, style === 'marquee' ? 'metal_rusted' : 'metal_black_powder', { wear })); bk.position.z = -0.03; group.add(bk);
-      const art = logoArt(brand, cw, ch, { mono: lighten(P.neon, 0.55) }); emis(plane(glow(art, P.neon, 18), W * 1.06, H * 1.06, 0.004, { depthWrite: false }), P.neon, 2.2); emis(plane(glow(art, P.neon, 5), W, H, 0.012, { depthWrite: false }), P.neon, 2.2); emis(plane(art, W, H, 0.02, { alphaTest: 0.3, transparent: false }), '#fff', 2.6);
-      if (style === 'marquee') { const bm = new THREE.MeshStandardMaterial({ color: 0xfff1c9, emissive: 0xffd27a, emissiveIntensity: 0 }); const nb = Math.round((W + H) * 2 / 0.22); for (let i = 0; i < nb; i++) { const t = (i / nb) * 2 * (W + H); let x, y; if (t < W) { x = -W / 2 + t; y = H / 2; } else if (t < W + H) { x = W / 2; y = H / 2 - (t - W); } else if (t < 2 * W + H) { x = W / 2 - (t - W - H); y = -H / 2; } else { x = -W / 2; y = -H / 2 + (t - 2 * W - H); } const s = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), bm); s.position.set(x * 0.97, y * 0.94, 0.02); group.add(s); } lit.push([{ material: bm }, 2.5]); }
+      const bk = new THREE.Mesh(
+        new THREE.BoxGeometry(W, H, 0.05),
+        materials.get(THREE, style === 'marquee' ? 'metal_rusted' : 'metal_black_powder', { wear }),
+      );
+      bk.position.z = -0.03;
+      group.add(bk);
+      const art = logoArt(brand, cw, ch, { mono: lighten(P.neon, 0.55) });
+      emis(
+        plane(glow(art, P.neon, 18), W * 1.06, H * 1.06, 0.004, { depthWrite: false }),
+        P.neon,
+        2.2,
+      );
+      emis(plane(glow(art, P.neon, 5), W, H, 0.012, { depthWrite: false }), P.neon, 2.2);
+      emis(plane(art, W, H, 0.02, { alphaTest: 0.3, transparent: false }), '#fff', 2.6);
+      if (style === 'marquee') {
+        const bm = new THREE.MeshStandardMaterial({
+          color: 0xfff1c9,
+          emissive: 0xffd27a,
+          emissiveIntensity: 0,
+        });
+        const nb = Math.round(((W + H) * 2) / 0.22);
+        for (let i = 0; i < nb; i++) {
+          const t = (i / nb) * 2 * (W + H);
+          let x, y;
+          if (t < W) {
+            x = -W / 2 + t;
+            y = H / 2;
+          } else if (t < W + H) {
+            x = W / 2;
+            y = H / 2 - (t - W);
+          } else if (t < 2 * W + H) {
+            x = W / 2 - (t - W - H);
+            y = -H / 2;
+          } else {
+            x = -W / 2;
+            y = -H / 2 + (t - 2 * W - H);
+          }
+          const s = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), bm);
+          s.position.set(x * 0.97, y * 0.94, 0.02);
+          group.add(s);
+        }
+        lit.push([{ material: bm }, 2.5]);
+      }
     } else if (kind === 'blade') {
-      const d = 0.08, S = Math.min(W, H * 1.4); const body = new THREE.Mesh(new THREE.CylinderGeometry(S / 2, S / 2, d, 40), materials.get(THREE, brand.tier === 'luxury' ? 'metal_brass' : 'metal_black_powder', { wear })); body.rotation.x = Math.PI / 2; group.add(body);
-      const art = logoArt(brand, 512, 512, { bg: P.paper, pad: 0.16 }); for (const s of [1, -1]) { const f = new THREE.Mesh(new THREE.CircleGeometry(S / 2 * 0.94, 40), new THREE.MeshStandardMaterial({ map: T(THREE, art), roughness: 0.4 })); f.position.z = s * (d / 2 + 0.002); if (s < 0) f.rotation.y = Math.PI; group.add(f); emis(f, '#fff', 0.7); }
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, S * 0.7), materials.get(THREE, 'metal_black_powder')); arm.position.set(0, S / 2 + 0.03, 0); arm.rotation.y = Math.PI / 2; group.add(arm); group.rotation.y = Math.PI / 2; W = S; H = S;
+      const d = 0.08,
+        S = Math.min(W, H * 1.4);
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(S / 2, S / 2, d, 40),
+        materials.get(THREE, brand.tier === 'luxury' ? 'metal_brass' : 'metal_black_powder', {
+          wear,
+        }),
+      );
+      body.rotation.x = Math.PI / 2;
+      group.add(body);
+      const art = logoArt(brand, 512, 512, { bg: P.paper, pad: 0.16 });
+      for (const s of [1, -1]) {
+        const f = new THREE.Mesh(
+          new THREE.CircleGeometry((S / 2) * 0.94, 40),
+          new THREE.MeshStandardMaterial({ map: T(THREE, art), roughness: 0.4 }),
+        );
+        f.position.z = s * (d / 2 + 0.002);
+        if (s < 0) f.rotation.y = Math.PI;
+        group.add(f);
+        emis(f, '#fff', 0.7);
+      }
+      const arm = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 0.04, S * 0.7),
+        materials.get(THREE, 'metal_black_powder'),
+      );
+      arm.position.set(0, S / 2 + 0.03, 0);
+      arm.rotation.y = Math.PI / 2;
+      group.add(arm);
+      group.rotation.y = Math.PI / 2;
+      W = S;
+      H = S;
     } else if (kind === 'plaque') {
-      const brass = style === 'brass-plaque'; const bk = new THREE.Mesh(new THREE.BoxGeometry(W, H, 0.04), materials.get(THREE, brass ? 'metal_brass' : 'stone_coral_keystone', { repeat: [W, H], wear: brass ? 0.2 : 0.3 })); group.add(bk);
-      plane(logoArt(brand, cw, ch, { mono: brass ? '#1b1508' : darken(P.ink, 0.2), pad: 0.14 }), W, H, 0.0215, { roughness: 0.7 });
+      const brass = style === 'brass-plaque';
+      const bk = new THREE.Mesh(
+        new THREE.BoxGeometry(W, H, 0.04),
+        materials.get(THREE, brass ? 'metal_brass' : 'stone_coral_keystone', {
+          repeat: [W, H],
+          wear: brass ? 0.2 : 0.3,
+        }),
+      );
+      group.add(bk);
+      plane(
+        logoArt(brand, cw, ch, { mono: brass ? '#1b1508' : darken(P.ink, 0.2), pad: 0.14 }),
+        W,
+        H,
+        0.0215,
+        { roughness: 0.7 },
+      );
     } else if (kind === 'awning') {
-      const c = makeCanvas(cw, ch), g = ctx2d(c); g.fillStyle = P.primary; g.fillRect(0, 0, cw, ch); for (let x = 0; x < cw; x += 64) { g.fillStyle = P.paper; g.fillRect(x, 0, 32, ch * 0.62); } g.fillStyle = P.primary; g.fillRect(0, ch * 0.62, cw, ch * 0.38); brand.drawLogoOn(g, P.primary, cw * 0.1, ch * 0.66, cw * 0.8, ch * 0.3); speckle(g, 0, 0, cw, ch, 2000 * wear, brand.id, 0.2);
-      const geo = new THREE.PlaneGeometry(W, H * 1.3, 1, 2); const ps = geo.attributes.position; for (let i = 0; i < ps.count; i++) { const y = ps.getY(i); if (y > -H * 0.2) { ps.setZ(i, (H * 0.65 - y) * 0.9); ps.setY(i, y * 0.5 + H * 0.2); } else ps.setZ(i, H * 0.78); } geo.computeVertexNormals(); const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: T(THREE, c), roughness: 0.9, side: THREE.DoubleSide })); group.add(m);
-    } else if (kind === 'vinyl') { plane(logoArt(brand, cw, ch, { pad: 0.06 }), W, H, 0.004, { roughness: 0.3 });
-    } else { // painted wood board or painted wall panel
-      const wood = style !== 'hand-painted-wall' && style !== 'stencil'; const names = ['wood_painted_teal', 'wood_painted_white', 'wood_painted_yellow', 'wood_painted_coral', 'wood_dock_weathered'];
-      const bk = new THREE.Mesh(new THREE.BoxGeometry(W, H, wood ? 0.05 : 0.02), materials.get(THREE, wood ? names[Math.floor(r() * names.length)] : 'stucco_' + ['white', 'yellow', 'peach', 'mint', 'sky'][Math.floor(r() * 5)], { repeat: [W / 1.2, H / 1.2], wear })); group.add(bk);
-      const art = logoArt(brand, cw, ch, style === 'stencil' ? { mono: P.ink } : { pad: 0.1 }); const g = ctx2d(art); g.globalCompositeOperation = 'destination-out'; speckle(g, 0, 0, cw, ch, 2600 * wear, brand.id + 'w', 0.9); g.globalCompositeOperation = 'source-over'; plane(art, W * 0.96, H * 0.96, (wood ? 0.025 : 0.01) + 0.002, { roughness: 0.85 });
+      const c = makeCanvas(cw, ch),
+        g = ctx2d(c);
+      g.fillStyle = P.primary;
+      g.fillRect(0, 0, cw, ch);
+      for (let x = 0; x < cw; x += 64) {
+        g.fillStyle = P.paper;
+        g.fillRect(x, 0, 32, ch * 0.62);
+      }
+      g.fillStyle = P.primary;
+      g.fillRect(0, ch * 0.62, cw, ch * 0.38);
+      brand.drawLogoOn(g, P.primary, cw * 0.1, ch * 0.66, cw * 0.8, ch * 0.3);
+      speckle(g, 0, 0, cw, ch, 2000 * wear, brand.id, 0.2);
+      const geo = new THREE.PlaneGeometry(W, H * 1.3, 1, 2);
+      const ps = geo.attributes.position;
+      for (let i = 0; i < ps.count; i++) {
+        const y = ps.getY(i);
+        if (y > -H * 0.2) {
+          ps.setZ(i, (H * 0.65 - y) * 0.9);
+          ps.setY(i, y * 0.5 + H * 0.2);
+        } else ps.setZ(i, H * 0.78);
+      }
+      geo.computeVertexNormals();
+      const m = new THREE.Mesh(
+        geo,
+        new THREE.MeshStandardMaterial({
+          map: T(THREE, c),
+          roughness: 0.9,
+          side: THREE.DoubleSide,
+        }),
+      );
+      group.add(m);
+    } else if (kind === 'vinyl') {
+      plane(logoArt(brand, cw, ch, { pad: 0.06 }), W, H, 0.004, { roughness: 0.3 });
+    } else {
+      // painted wood board or painted wall panel
+      const wood = style !== 'hand-painted-wall' && style !== 'stencil';
+      const names = [
+        'wood_painted_teal',
+        'wood_painted_white',
+        'wood_painted_yellow',
+        'wood_painted_coral',
+        'wood_dock_weathered',
+      ];
+      const bk = new THREE.Mesh(
+        new THREE.BoxGeometry(W, H, wood ? 0.05 : 0.02),
+        materials.get(
+          THREE,
+          wood
+            ? names[Math.floor(r() * names.length)]
+            : 'stucco_' + ['white', 'yellow', 'peach', 'mint', 'sky'][Math.floor(r() * 5)],
+          { repeat: [W / 1.2, H / 1.2], wear },
+        ),
+      );
+      group.add(bk);
+      const art = logoArt(brand, cw, ch, style === 'stencil' ? { mono: P.ink } : { pad: 0.1 });
+      const g = ctx2d(art);
+      g.globalCompositeOperation = 'destination-out';
+      speckle(g, 0, 0, cw, ch, 2600 * wear, brand.id + 'w', 0.9);
+      g.globalCompositeOperation = 'source-over';
+      plane(art, W * 0.96, H * 0.96, (wood ? 0.025 : 0.01) + 0.002, { roughness: 0.85 });
     }
-    let on = -1; const update = (dt, night = 1) => { const want = opts.lit === false ? 0 : night > 0.25 ? 1 : (kind === 'neon' || style === 'led-screen' ? 0.6 : 0.15); if (want === on) return; on = want; for (const [m, k] of lit) m.material.emissiveIntensity = k * want; };
-    update(0, 1); group.userData = { brand: brand.id, signStyle: style, size: { w: W, h: H } }; group.name = 'sign:' + brand.id;
+    let on = -1;
+    const update = (dt, night = 1) => {
+      const want =
+        opts.lit === false
+          ? 0
+          : night > 0.25
+            ? 1
+            : kind === 'neon' || style === 'led-screen'
+              ? 0.6
+              : 0.15;
+      if (want === on) return;
+      on = want;
+      for (const [m, k] of lit) m.material.emissiveIntensity = k * want;
+    };
+    update(0, 1);
+    group.userData = { brand: brand.id, signStyle: style, size: { w: W, h: H } };
+    group.name = 'sign:' + brand.id;
     return { group, lights, update, size: { w: W, h: H }, style };
   },
   // A roadside billboard on a steel post. opts: { width, height, campaign: 'tagline' | 'product', product, seed }
-  billboard(THREE, brand, opts = {}) { const W = opts.width || 14.6, H = opts.height || 4.3; const c = print.poster(brand, { w: 1536, h: Math.round(1536 * H / W), product: opts.product, seed: opts.seed }); const group = new THREE.Group();
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(W + 0.3, H + 0.3, 0.3), materials.get(THREE, 'metal_black_powder', { wear: 0.4 })); group.add(frame); const face = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: T(THREE, c), roughness: 0.6 })); face.position.z = 0.152; group.add(face);
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, opts.postHeight || 9, 16), materials.get(THREE, 'metal_galvanized', { wear: 0.5 })); post.position.y = -H / 2 - (opts.postHeight || 9) / 2; group.add(post); for (let i = 0; i < 4; i++) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.12, 0.9), materials.get(THREE, 'metal_black_powder')); l.position.set(-W / 2 + (i + 0.5) * W / 4, -H / 2 - 0.2, 0.6); group.add(l); }
-    return { group, lights: [], update() {}, size: { w: W, h: H } }; },
+  billboard(THREE, brand, opts = {}) {
+    const W = opts.width || 14.6,
+      H = opts.height || 4.3;
+    const c = print.poster(brand, {
+      w: 1536,
+      h: Math.round((1536 * H) / W),
+      product: opts.product,
+      seed: opts.seed,
+    });
+    const group = new THREE.Group();
+    const frame = new THREE.Mesh(
+      new THREE.BoxGeometry(W + 0.3, H + 0.3, 0.3),
+      materials.get(THREE, 'metal_black_powder', { wear: 0.4 }),
+    );
+    group.add(frame);
+    const face = new THREE.Mesh(
+      new THREE.PlaneGeometry(W, H),
+      new THREE.MeshStandardMaterial({ map: T(THREE, c), roughness: 0.6 }),
+    );
+    face.position.z = 0.152;
+    group.add(face);
+    const post = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.45, 0.5, opts.postHeight || 9, 16),
+      materials.get(THREE, 'metal_galvanized', { wear: 0.5 }),
+    );
+    post.position.y = -H / 2 - (opts.postHeight || 9) / 2;
+    group.add(post);
+    for (let i = 0; i < 4; i++) {
+      const l = new THREE.Mesh(
+        new THREE.BoxGeometry(0.25, 0.12, 0.9),
+        materials.get(THREE, 'metal_black_powder'),
+      );
+      l.position.set(-W / 2 + ((i + 0.5) * W) / 4, -H / 2 - 0.2, 0.6);
+      group.add(l);
+    }
+    return { group, lights: [], update() {}, size: { w: W, h: H } };
+  },
   // A paper or plastic shopping bag with the brand's bag art.
-  shoppingBag(THREE, brand, opts = {}) { const w = opts.w || 0.32, h = opts.h || 0.4, d = opts.d || 0.12; const g = new THREE.Group(); const art = T(THREE, print.bag(brand, { w: 512, h: Math.round(512 * h / w) })); const side = new THREE.MeshStandardMaterial({ color: hexNum(brand.tier === 'luxury' ? brand.palette.primary : brand.packaging.style === 'craft-kraft' ? '#b98f5f' : brand.palette.paper), roughness: 0.8 }); const face = new THREE.MeshStandardMaterial({ map: art, roughness: 0.8 });
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [side, side, side, side, face, face]); m.position.y = h / 2; g.add(m); for (const s of [1, -1]) { const hd = new THREE.Mesh(new THREE.TorusGeometry(w * 0.2, 0.004, 6, 20, Math.PI), new THREE.MeshStandardMaterial({ color: hexNum(brand.palette.ink), roughness: 0.9 })); hd.position.set(0, h, s * d * 0.45); g.add(hd); } return g; },
+  shoppingBag(THREE, brand, opts = {}) {
+    const w = opts.w || 0.32,
+      h = opts.h || 0.4,
+      d = opts.d || 0.12;
+    const g = new THREE.Group();
+    const art = T(THREE, print.bag(brand, { w: 512, h: Math.round((512 * h) / w) }));
+    const side = new THREE.MeshStandardMaterial({
+      color: hexNum(
+        brand.tier === 'luxury'
+          ? brand.palette.primary
+          : brand.packaging.style === 'craft-kraft'
+            ? '#b98f5f'
+            : brand.palette.paper,
+      ),
+      roughness: 0.8,
+    });
+    const face = new THREE.MeshStandardMaterial({ map: art, roughness: 0.8 });
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [side, side, side, side, face, face]);
+    m.position.y = h / 2;
+    g.add(m);
+    for (const s of [1, -1]) {
+      const hd = new THREE.Mesh(
+        new THREE.TorusGeometry(w * 0.2, 0.004, 6, 20, Math.PI),
+        new THREE.MeshStandardMaterial({ color: hexNum(brand.palette.ink), roughness: 0.9 }),
+      );
+      hd.position.set(0, h, s * d * 0.45);
+      g.add(hd);
+    }
+    return g;
+  },
 };
 
-const page = (w, h, bg) => { const c = makeCanvas(w, h), g = ctx2d(c); g.fillStyle = bg; g.fillRect(0, 0, w, h); return [c, g]; };
-const menuOf = (b) => (b.menu && b.menu.length ? b.menu.map((m) => (Array.isArray(m) ? { name: m[0], price: m[1], kcal: m[2] } : m)) : productsFor({ brand: b.id }).map((p) => ({ name: p.name, price: p.price, kcal: p.nutrition?.kcal })));
+const page = (w, h, bg) => {
+  const c = makeCanvas(w, h),
+    g = ctx2d(c);
+  g.fillStyle = bg;
+  g.fillRect(0, 0, w, h);
+  return [c, g];
+};
+const menuOf = (b) =>
+  b.menu && b.menu.length
+    ? b.menu.map((m) => (Array.isArray(m) ? { name: m[0], price: m[1], kcal: m[2] } : m))
+    : productsFor({ brand: b.id }).map((p) => ({
+        name: p.name,
+        price: p.price,
+        kcal: p.nutrition?.kcal,
+      }));
 export const print = {
   texture: T,
-  label: (product, opts = {}) => labelCanvas(typeof product === 'string' ? product : product.id, opts.size || 512, opts.kind),
+  label: (product, opts = {}) =>
+    labelCanvas(typeof product === 'string' ? product : product.id, opts.size || 512, opts.kind),
   // Ad poster / billboard face: brand color field, logo, tagline, optional product label art.
-  poster(brand, opts = {}) { const w = opts.w || 768, h = opts.h || 1024, P = brand.palette; const [c, g] = page(w, h, P.primary); const wide = w > h * 1.5; const r = rng((opts.seed ?? 0) + brand.id);
-    const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, lighten(P.primary, 0.12)); gr.addColorStop(1, darken(P.primary, 0.25)); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = mix(P.primary, P.secondary, 0.5); g.globalAlpha = 0.35; g.beginPath(); g.arc(w * (0.2 + r() * 0.6), h * 1.1, h * 0.9, 0, 7); g.fill(); g.globalAlpha = 1;
-    const fg = inkOn(P.primary, P.paper, P.ink); const prod = opts.product ? getProduct(opts.product) : productsFor({ brand: brand.id })[0];
-    if (wide) { brand.drawLogoOn(g, P.primary, w * 0.04, h * 0.14, w * 0.36, h * 0.72); g.fillStyle = fg; g.textAlign = 'left'; g.textBaseline = 'middle'; const f = (px) => font(brand.fonts.display, px); const lines = wrapText(Object.assign(g, { font: f(h * 0.2) }), brand.tagline || brand.name, w * 0.5).slice(0, 3); lines.forEach((ln, i) => { fitText(g, ln, w * 0.5, h * 0.2, f); g.fillText(ln, w * 0.45, h * (0.5 + (i - (lines.length - 1) / 2) * 0.24)); }); if (prod) { const lc = labelCanvas(prod.id, 256, 'front'); if (lc) g.drawImage(lc, w * 0.87, h * 0.12, h * 0.76 * lc.width / lc.height, h * 0.76); } }
-    else { brand.drawLogoOn(g, P.primary, w * 0.1, h * 0.06, w * 0.8, h * 0.3); if (prod) { const lc = labelCanvas(prod.id, 384, 'front'); if (lc) { const ph = h * 0.36; g.save(); g.translate(w / 2, h * 0.58); g.rotate(-0.06); g.shadowColor = 'rgba(0,0,0,.4)'; g.shadowBlur = 30; g.drawImage(lc, -ph * lc.width / lc.height / 2, -ph / 2, ph * lc.width / lc.height, ph); g.restore(); } } g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; const f = (px) => font(brand.fonts.display, px); fitText(g, brand.tagline || '', w * 0.86, h * 0.07, f); g.fillText(brand.tagline || '', w / 2, h * 0.86); if (prod) { g.font = font('condHeavy', h * 0.035); g.fillText(`${prod.name} · ${money(prod.price)}`.toUpperCase(), w / 2, h * 0.93); } }
-    return c; },
+  poster(brand, opts = {}) {
+    const w = opts.w || 768,
+      h = opts.h || 1024,
+      P = brand.palette;
+    const [c, g] = page(w, h, P.primary);
+    const wide = w > h * 1.5;
+    const r = rng((opts.seed ?? 0) + brand.id);
+    const gr = g.createLinearGradient(0, 0, w, h);
+    gr.addColorStop(0, lighten(P.primary, 0.12));
+    gr.addColorStop(1, darken(P.primary, 0.25));
+    g.fillStyle = gr;
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = mix(P.primary, P.secondary, 0.5);
+    g.globalAlpha = 0.35;
+    g.beginPath();
+    g.arc(w * (0.2 + r() * 0.6), h * 1.1, h * 0.9, 0, 7);
+    g.fill();
+    g.globalAlpha = 1;
+    const fg = inkOn(P.primary, P.paper, P.ink);
+    const prod = opts.product ? getProduct(opts.product) : productsFor({ brand: brand.id })[0];
+    if (wide) {
+      brand.drawLogoOn(g, P.primary, w * 0.04, h * 0.14, w * 0.36, h * 0.72);
+      g.fillStyle = fg;
+      g.textAlign = 'left';
+      g.textBaseline = 'middle';
+      const f = (px) => font(brand.fonts.display, px);
+      const lines = wrapText(
+        Object.assign(g, { font: f(h * 0.2) }),
+        brand.tagline || brand.name,
+        w * 0.5,
+      ).slice(0, 3);
+      lines.forEach((ln, i) => {
+        fitText(g, ln, w * 0.5, h * 0.2, f);
+        g.fillText(ln, w * 0.45, h * (0.5 + (i - (lines.length - 1) / 2) * 0.24));
+      });
+      if (prod) {
+        const lc = labelCanvas(prod.id, 256, 'front');
+        if (lc) g.drawImage(lc, w * 0.87, h * 0.12, (h * 0.76 * lc.width) / lc.height, h * 0.76);
+      }
+    } else {
+      brand.drawLogoOn(g, P.primary, w * 0.1, h * 0.06, w * 0.8, h * 0.3);
+      if (prod) {
+        const lc = labelCanvas(prod.id, 384, 'front');
+        if (lc) {
+          const ph = h * 0.36;
+          g.save();
+          g.translate(w / 2, h * 0.58);
+          g.rotate(-0.06);
+          g.shadowColor = 'rgba(0,0,0,.4)';
+          g.shadowBlur = 30;
+          g.drawImage(
+            lc,
+            (-ph * lc.width) / lc.height / 2,
+            -ph / 2,
+            (ph * lc.width) / lc.height,
+            ph,
+          );
+          g.restore();
+        }
+      }
+      g.fillStyle = fg;
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      const f = (px) => font(brand.fonts.display, px);
+      fitText(g, brand.tagline || '', w * 0.86, h * 0.07, f);
+      g.fillText(brand.tagline || '', w / 2, h * 0.86);
+      if (prod) {
+        g.font = font('condHeavy', h * 0.035);
+        g.fillText(`${prod.name} · ${money(prod.price)}`.toUpperCase(), w / 2, h * 0.93);
+      }
+    }
+    return c;
+  },
   // Menu board with real items and prices. venue = a brand with `menu`, or any brand that has products.
-  menu(brand, opts = {}) { const w = opts.w || 768, h = opts.h || 1024, P = brand.palette, dark = opts.dark ?? brand.tier !== 'luxury'; const bg = dark ? darken(P.primary, 0.72) : P.paper, fg = dark ? P.paper : P.ink; const [c, g] = page(w, h, bg); brand.drawLogoOn(g, bg, w * 0.2, h * 0.03, w * 0.6, h * 0.16);
-    const items = menuOf(brand).slice(0, opts.max || 14); const rowH = Math.min(h * 0.07, (h * 0.72) / Math.max(1, items.length)); g.textBaseline = 'middle';
-    items.forEach((it, i) => { const y = h * 0.25 + i * rowH; g.fillStyle = fg; g.textAlign = 'left'; fitText(g, it.name, w * 0.6, rowH * 0.52, (px) => font(brand.fonts.text === 'text' ? 'cond' : brand.fonts.text, px)); g.fillText(it.name, w * 0.08, y); g.textAlign = 'right'; g.fillStyle = dark ? P.secondary : P.primary; g.font = font('condHeavy', rowH * 0.56); g.fillText(money(it.price).replace('$', ''), w * 0.92, y); if (it.kcal) { g.fillStyle = fg; g.globalAlpha = 0.55; g.font = font('textNarrow', rowH * 0.28); g.fillText(it.kcal + ' cal', w * 0.92, y + rowH * 0.4); g.globalAlpha = 1; } g.fillStyle = fg; g.globalAlpha = 0.2; g.fillRect(w * 0.08, y + rowH * 0.5, w * 0.84, 1.5); g.globalAlpha = 1; });
-    g.fillStyle = fg; g.globalAlpha = 0.7; g.textAlign = 'center'; g.font = font('textNarrow', h * 0.018); g.fillText((brand.tagline || '') + ' · Prices do not include tax', w / 2, h * 0.975); g.globalAlpha = 1; return c; },
+  menu(brand, opts = {}) {
+    const w = opts.w || 768,
+      h = opts.h || 1024,
+      P = brand.palette,
+      dark = opts.dark ?? brand.tier !== 'luxury';
+    const bg = dark ? darken(P.primary, 0.72) : P.paper,
+      fg = dark ? P.paper : P.ink;
+    const [c, g] = page(w, h, bg);
+    brand.drawLogoOn(g, bg, w * 0.2, h * 0.03, w * 0.6, h * 0.16);
+    const items = menuOf(brand).slice(0, opts.max || 14);
+    const rowH = Math.min(h * 0.07, (h * 0.72) / Math.max(1, items.length));
+    g.textBaseline = 'middle';
+    items.forEach((it, i) => {
+      const y = h * 0.25 + i * rowH;
+      g.fillStyle = fg;
+      g.textAlign = 'left';
+      fitText(g, it.name, w * 0.6, rowH * 0.52, (px) =>
+        font(brand.fonts.text === 'text' ? 'cond' : brand.fonts.text, px),
+      );
+      g.fillText(it.name, w * 0.08, y);
+      g.textAlign = 'right';
+      g.fillStyle = dark ? P.secondary : P.primary;
+      g.font = font('condHeavy', rowH * 0.56);
+      g.fillText(money(it.price).replace('$', ''), w * 0.92, y);
+      if (it.kcal) {
+        g.fillStyle = fg;
+        g.globalAlpha = 0.55;
+        g.font = font('textNarrow', rowH * 0.28);
+        g.fillText(it.kcal + ' cal', w * 0.92, y + rowH * 0.4);
+        g.globalAlpha = 1;
+      }
+      g.fillStyle = fg;
+      g.globalAlpha = 0.2;
+      g.fillRect(w * 0.08, y + rowH * 0.5, w * 0.84, 1.5);
+      g.globalAlpha = 1;
+    });
+    g.fillStyle = fg;
+    g.globalAlpha = 0.7;
+    g.textAlign = 'center';
+    g.font = font('textNarrow', h * 0.018);
+    g.fillText((brand.tagline || '') + ' · Prices do not include tax', w / 2, h * 0.975);
+    g.globalAlpha = 1;
+    return c;
+  },
   // Shelf price tag for a product.
-  priceTag(product, opts = {}) { const p = typeof product === 'string' ? getProduct(product) : product; const w = opts.w || 256, h = opts.h || 128; const [c, g] = page(w, h, opts.sale ? '#ffe14d' : '#ffffff'); g.fillStyle = '#111'; g.textAlign = 'left'; g.textBaseline = 'top'; fitText(g, p.name.toUpperCase(), w * 0.9, h * 0.15, (px) => font('textNarrowBold', px)); g.fillText(p.name.toUpperCase(), w * 0.05, h * 0.07);
-    const [d, cts] = p.price.toFixed(2).split('.'); g.font = font('groteskBlack', h * 0.56); g.textBaseline = 'alphabetic'; g.fillText(d, w * 0.1, h * 0.84); const dw = g.measureText(d).width; g.font = font('groteskBlack', h * 0.26); g.fillText(cts, w * 0.11 + dw, h * 0.58); g.font = font('groteskBlack', h * 0.2); g.fillText('$', w * 0.04, h * 0.56); barcode(g, w * 0.62, h * 0.52, w * 0.34, h * 0.4, p.id); if (opts.sale) { g.fillStyle = '#e4002b'; g.fillRect(0, h * 0.9, w, h * 0.1); } return c; },
+  priceTag(product, opts = {}) {
+    const p = typeof product === 'string' ? getProduct(product) : product;
+    const w = opts.w || 256,
+      h = opts.h || 128;
+    const [c, g] = page(w, h, opts.sale ? '#ffe14d' : '#ffffff');
+    g.fillStyle = '#111';
+    g.textAlign = 'left';
+    g.textBaseline = 'top';
+    fitText(g, p.name.toUpperCase(), w * 0.9, h * 0.15, (px) => font('textNarrowBold', px));
+    g.fillText(p.name.toUpperCase(), w * 0.05, h * 0.07);
+    const [d, cts] = p.price.toFixed(2).split('.');
+    g.font = font('groteskBlack', h * 0.56);
+    g.textBaseline = 'alphabetic';
+    g.fillText(d, w * 0.1, h * 0.84);
+    const dw = g.measureText(d).width;
+    g.font = font('groteskBlack', h * 0.26);
+    g.fillText(cts, w * 0.11 + dw, h * 0.58);
+    g.font = font('groteskBlack', h * 0.2);
+    g.fillText('$', w * 0.04, h * 0.56);
+    barcode(g, w * 0.62, h * 0.52, w * 0.34, h * 0.4, p.id);
+    if (opts.sale) {
+      g.fillStyle = '#e4002b';
+      g.fillRect(0, h * 0.9, w, h * 0.1);
+    }
+    return c;
+  },
   // Thermal receipt. items: [{ name, price, qty }] or product ids.
-  receipt(brand, items = [], opts = {}) { const list = items.map((it) => (typeof it === 'string' ? { name: getProduct(it)?.name || it, price: getProduct(it)?.price || 0, qty: 1 } : { qty: 1, ...it })); const w = opts.w || 320, h = 250 + list.length * 22; const [c, g] = page(w, h, '#f7f5ee'); brand.drawLogo(g, w * 0.2, 8, w * 0.6, 56, { mono: '#222' }); g.fillStyle = '#222'; g.textAlign = 'center'; g.font = font('receipt', 12); const r = rng((opts.seed ?? 7) + brand.id);
-    g.fillText(`${100 + r.int(0, 2800)} ${r.pick(['SW 8th St', 'Collins Ave', 'Biscayne Blvd', 'Flagler St', 'Brickell Ave', 'Overseas Hwy'])} · Southline`, w / 2, 82); g.fillText(`${opts.date || '11/13'}  ${opts.time || '09:41 AM'}   REG ${r.int(1, 6)}   #${r.int(1000, 9999)}`, w / 2, 98); let y = 124, sub = 0; g.textAlign = 'left';
-    for (const it of list) { g.fillText(`${it.qty} ${it.name}`.slice(0, 30), 14, y); g.textAlign = 'right'; g.fillText((it.price * it.qty).toFixed(2), w - 14, y); g.textAlign = 'left'; sub += it.price * it.qty; y += 22; } const tax = sub * 0.07; g.fillText('-'.repeat(46), 14, y); y += 18; for (const [k, v] of [['SUBTOTAL', sub], ['TAX 7%', tax], ['TOTAL', sub + tax]]) { g.font = font('receipt', k === 'TOTAL' ? 16 : 12, k === 'TOTAL' ? { weight: 700 } : {}); g.fillText(k, 14, y); g.textAlign = 'right'; g.fillText(money(v), w - 14, y); g.textAlign = 'left'; y += 20; }
-    g.textAlign = 'center'; g.font = font('receipt', 12); g.fillText(opts.paid || 'CASH', w / 2, y + 6); g.fillText((brand.tagline || 'THANK YOU').toUpperCase().slice(0, 40), w / 2, y + 28); barcode(g, w * 0.25, y + 38, w * 0.5, 40, brand.id + y, '#222', '#f7f5ee'); return c; },
+  receipt(brand, items = [], opts = {}) {
+    const list = items.map((it) =>
+      typeof it === 'string'
+        ? { name: getProduct(it)?.name || it, price: getProduct(it)?.price || 0, qty: 1 }
+        : { qty: 1, ...it },
+    );
+    const w = opts.w || 320,
+      h = 250 + list.length * 22;
+    const [c, g] = page(w, h, '#f7f5ee');
+    brand.drawLogo(g, w * 0.2, 8, w * 0.6, 56, { mono: '#222' });
+    g.fillStyle = '#222';
+    g.textAlign = 'center';
+    g.font = font('receipt', 12);
+    const r = rng((opts.seed ?? 7) + brand.id);
+    g.fillText(
+      `${100 + r.int(0, 2800)} ${r.pick(['SW 8th St', 'Collins Ave', 'Biscayne Blvd', 'Flagler St', 'Brickell Ave', 'Overseas Hwy'])} · Southline`,
+      w / 2,
+      82,
+    );
+    g.fillText(
+      `${opts.date || '11/13'}  ${opts.time || '09:41 AM'}   REG ${r.int(1, 6)}   #${r.int(1000, 9999)}`,
+      w / 2,
+      98,
+    );
+    let y = 124,
+      sub = 0;
+    g.textAlign = 'left';
+    for (const it of list) {
+      g.fillText(`${it.qty} ${it.name}`.slice(0, 30), 14, y);
+      g.textAlign = 'right';
+      g.fillText((it.price * it.qty).toFixed(2), w - 14, y);
+      g.textAlign = 'left';
+      sub += it.price * it.qty;
+      y += 22;
+    }
+    const tax = sub * 0.07;
+    g.fillText('-'.repeat(46), 14, y);
+    y += 18;
+    for (const [k, v] of [
+      ['SUBTOTAL', sub],
+      ['TAX 7%', tax],
+      ['TOTAL', sub + tax],
+    ]) {
+      g.font = font('receipt', k === 'TOTAL' ? 16 : 12, k === 'TOTAL' ? { weight: 700 } : {});
+      g.fillText(k, 14, y);
+      g.textAlign = 'right';
+      g.fillText(money(v), w - 14, y);
+      g.textAlign = 'left';
+      y += 20;
+    }
+    g.textAlign = 'center';
+    g.font = font('receipt', 12);
+    g.fillText(opts.paid || 'CASH', w / 2, y + 6);
+    g.fillText((brand.tagline || 'THANK YOU').toUpperCase().slice(0, 40), w / 2, y + 28);
+    barcode(g, w * 0.25, y + 38, w * 0.5, 40, brand.id + y, '#222', '#f7f5ee');
+    return c;
+  },
   // Street flyer (stapled to poles): photocopied look.
-  flyer(brand, opts = {}) { const w = opts.w || 384, h = opts.h || 512; const [c, g] = page(w, h, opts.paper || ['#f4f1e8', '#ffe66d', '#ffb3c6', '#b8f2e6'][rng(brand.id)() * 4 | 0]); brand.drawLogo(g, w * 0.1, h * 0.05, w * 0.8, h * 0.28, { mono: '#111' }); g.fillStyle = '#111'; g.textAlign = 'center'; g.textBaseline = 'middle'; const f = (px) => font('impact', px); const head = (opts.headline || brand.tagline || 'GRAND OPENING').toUpperCase(); wrapText(Object.assign(g, { font: f(h * 0.085) }), head, w * 0.86).slice(0, 3).forEach((ln, i) => g.fillText(ln, w / 2, h * (0.44 + i * 0.1)));
-    g.font = font('typewriter', h * 0.034); wrapText(g, opts.body || brand.story || '', w * 0.82).slice(0, 5).forEach((ln, i) => g.fillText(ln, w / 2, h * (0.74 + i * 0.045))); for (let i = 0; i < 8; i++) { g.strokeStyle = '#111'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(i * w / 8, h * 0.955); g.lineTo(i * w / 8, h); g.stroke(); } speckle(g, 0, 0, w, h, 1500, brand.id, 0.25); return c; },
+  flyer(brand, opts = {}) {
+    const w = opts.w || 384,
+      h = opts.h || 512;
+    const [c, g] = page(
+      w,
+      h,
+      opts.paper || ['#f4f1e8', '#ffe66d', '#ffb3c6', '#b8f2e6'][(rng(brand.id)() * 4) | 0],
+    );
+    brand.drawLogo(g, w * 0.1, h * 0.05, w * 0.8, h * 0.28, { mono: '#111' });
+    g.fillStyle = '#111';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    const f = (px) => font('impact', px);
+    const head = (opts.headline || brand.tagline || 'GRAND OPENING').toUpperCase();
+    wrapText(Object.assign(g, { font: f(h * 0.085) }), head, w * 0.86)
+      .slice(0, 3)
+      .forEach((ln, i) => g.fillText(ln, w / 2, h * (0.44 + i * 0.1)));
+    g.font = font('typewriter', h * 0.034);
+    wrapText(g, opts.body || brand.story || '', w * 0.82)
+      .slice(0, 5)
+      .forEach((ln, i) => g.fillText(ln, w / 2, h * (0.74 + i * 0.045)));
+    for (let i = 0; i < 8; i++) {
+      g.strokeStyle = '#111';
+      g.setLineDash([4, 4]);
+      g.beginPath();
+      g.moveTo((i * w) / 8, h * 0.955);
+      g.lineTo((i * w) / 8, h);
+      g.stroke();
+    }
+    speckle(g, 0, 0, w, h, 1500, brand.id, 0.25);
+    return c;
+  },
   // Die-cut sticker (bumpers, laptops, lamp posts).
-  sticker(brand, opts = {}) { const s = opts.size || 256; const c = makeCanvas(s, s), g = ctx2d(c); const a = brand.logoAspect(); const w = a >= 1 ? s * 0.92 : s * 0.92 * a, h = a >= 1 ? s * 0.92 / a : s * 0.92; g.fillStyle = '#ffffff'; roundRect(g, (s - w) / 2 - s * 0.03, (s - h) / 2 - s * 0.03, w + s * 0.06, h + s * 0.06, s * 0.06); g.fill(); brand.drawLogoOn(g, '#ffffff', (s - w) / 2, (s - h) / 2, w, h); return c; },
+  sticker(brand, opts = {}) {
+    const s = opts.size || 256;
+    const c = makeCanvas(s, s),
+      g = ctx2d(c);
+    const a = brand.logoAspect();
+    const w = a >= 1 ? s * 0.92 : s * 0.92 * a,
+      h = a >= 1 ? (s * 0.92) / a : s * 0.92;
+    g.fillStyle = '#ffffff';
+    roundRect(
+      g,
+      (s - w) / 2 - s * 0.03,
+      (s - h) / 2 - s * 0.03,
+      w + s * 0.06,
+      h + s * 0.06,
+      s * 0.06,
+    );
+    g.fill();
+    brand.drawLogoOn(g, '#ffffff', (s - w) / 2, (s - h) / 2, w, h);
+    return c;
+  },
   // License plate frame (dealer or brand). 12 x 6 in, transparent center.
-  plateFrame(brand, opts = {}) { const w = 512, h = 256; const c = makeCanvas(w, h), g = ctx2d(c); g.fillStyle = opts.color || '#141414'; g.fillRect(0, 0, w, h); g.clearRect(28, 44, w - 56, h - 104); g.fillStyle = '#e8e8e8'; g.textAlign = 'center'; g.textBaseline = 'middle'; fitText(g, brand.name.toUpperCase(), w * 0.8, 28, (px) => font('condHeavy', px)); g.fillText(brand.name.toUpperCase(), w / 2, 23); fitText(g, (opts.text || brand.tagline || 'SOUTHLINE').toUpperCase(), w * 0.86, 34, (px) => font('cond', px)); g.fillText((opts.text || brand.tagline || 'SOUTHLINE').toUpperCase(), w / 2, h - 30); return c; },
+  plateFrame(brand, opts = {}) {
+    const w = 512,
+      h = 256;
+    const c = makeCanvas(w, h),
+      g = ctx2d(c);
+    g.fillStyle = opts.color || '#141414';
+    g.fillRect(0, 0, w, h);
+    g.clearRect(28, 44, w - 56, h - 104);
+    g.fillStyle = '#e8e8e8';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    fitText(g, brand.name.toUpperCase(), w * 0.8, 28, (px) => font('condHeavy', px));
+    g.fillText(brand.name.toUpperCase(), w / 2, 23);
+    fitText(g, (opts.text || brand.tagline || 'SOUTHLINE').toUpperCase(), w * 0.86, 34, (px) =>
+      font('cond', px),
+    );
+    g.fillText((opts.text || brand.tagline || 'SOUTHLINE').toUpperCase(), w / 2, h - 30);
+    return c;
+  },
   // Truck or van side livery (4:1.5): body color, big logo, tagline, phone and DOT number.
-  livery(brand, opts = {}) { const w = opts.w || 1024, h = opts.h || 384, P = brand.palette; const body = opts.body || (brand.tier === 'luxury' ? P.primary : P.paper); const [c, g] = page(w, h, body); g.fillStyle = P.primary; g.beginPath(); g.moveTo(0, h * 0.78); g.lineTo(w, h * 0.62); g.lineTo(w, h); g.lineTo(0, h); g.fill(); g.fillStyle = P.secondary; g.beginPath(); g.moveTo(0, h * 0.74); g.lineTo(w, h * 0.58); g.lineTo(w, h * 0.62); g.lineTo(0, h * 0.78); g.fill();
-    brand.drawLogoOn(g, body, w * 0.05, h * 0.06, w * 0.55, h * 0.58); g.fillStyle = inkOn(body, P.paper, P.ink); g.textAlign = 'right'; g.textBaseline = 'middle'; fitText(g, brand.tagline || '', w * 0.34, h * 0.09, (px) => font(brand.fonts.display, px)); g.fillText(brand.tagline || '', w * 0.96, h * 0.2); const r = rng(brand.id); g.font = font('condHeavy', h * 0.07); g.fillText(`305-555-01${r.int(10, 99)}`, w * 0.96, h * 0.34); g.fillStyle = inkOn(P.primary, P.paper, P.ink); g.font = font('textNarrow', h * 0.04); g.fillText(`US DOT ${r.int(100000, 999999)} · ${brand.legal || brand.name} · SOUTHLINE`, w * 0.96, h * 0.93); return c; },
+  livery(brand, opts = {}) {
+    const w = opts.w || 1024,
+      h = opts.h || 384,
+      P = brand.palette;
+    const body = opts.body || (brand.tier === 'luxury' ? P.primary : P.paper);
+    const [c, g] = page(w, h, body);
+    g.fillStyle = P.primary;
+    g.beginPath();
+    g.moveTo(0, h * 0.78);
+    g.lineTo(w, h * 0.62);
+    g.lineTo(w, h);
+    g.lineTo(0, h);
+    g.fill();
+    g.fillStyle = P.secondary;
+    g.beginPath();
+    g.moveTo(0, h * 0.74);
+    g.lineTo(w, h * 0.58);
+    g.lineTo(w, h * 0.62);
+    g.lineTo(0, h * 0.78);
+    g.fill();
+    brand.drawLogoOn(g, body, w * 0.05, h * 0.06, w * 0.55, h * 0.58);
+    g.fillStyle = inkOn(body, P.paper, P.ink);
+    g.textAlign = 'right';
+    g.textBaseline = 'middle';
+    fitText(g, brand.tagline || '', w * 0.34, h * 0.09, (px) => font(brand.fonts.display, px));
+    g.fillText(brand.tagline || '', w * 0.96, h * 0.2);
+    const r = rng(brand.id);
+    g.font = font('condHeavy', h * 0.07);
+    g.fillText(`305-555-01${r.int(10, 99)}`, w * 0.96, h * 0.34);
+    g.fillStyle = inkOn(P.primary, P.paper, P.ink);
+    g.font = font('textNarrow', h * 0.04);
+    g.fillText(
+      `US DOT ${r.int(100000, 999999)} · ${brand.legal || brand.name} · SOUTHLINE`,
+      w * 0.96,
+      h * 0.93,
+    );
+    return c;
+  },
   // Shopping bag face.
-  bag(brand, opts = {}) { const w = opts.w || 512, h = opts.h || 640, P = brand.palette; const lux = brand.tier === 'luxury', kraft = brand.packaging.style === 'craft-kraft' || brand.presence === 'local'; const bg = lux ? P.primary : kraft ? '#b98f5f' : P.paper; const [c, g] = page(w, h, bg); if (brand.pattern) { g.globalAlpha = 0.5; const pc = brand.patternCanvas(256); g.fillStyle = g.createPattern(pc, 'repeat'); g.fillRect(0, 0, w, h); g.globalAlpha = 1; g.fillStyle = bg; g.fillRect(w * 0.12, h * 0.3, w * 0.76, h * 0.4); } if (kraft) speckle(g, 0, 0, w, h, 2500, brand.id, 0.12);
-    if (kraft) brand.drawLogo(g, w * 0.16, h * 0.32, w * 0.68, h * 0.36, { mono: lux ? P.secondary : darken(P.primary, 0.2) }); else brand.drawLogoOn(g, bg, w * 0.16, h * 0.32, w * 0.68, h * 0.36); if (!lux) { g.fillStyle = kraft ? darken(P.primary, 0.2) : P.primary; g.textAlign = 'center'; g.font = font('textNarrowBold', h * 0.026); g.fillText((brand.tagline || 'THANK YOU').toUpperCase(), w / 2, h * 0.9); } return c; },
+  bag(brand, opts = {}) {
+    const w = opts.w || 512,
+      h = opts.h || 640,
+      P = brand.palette;
+    const lux = brand.tier === 'luxury',
+      kraft = brand.packaging.style === 'craft-kraft' || brand.presence === 'local';
+    const bg = lux ? P.primary : kraft ? '#b98f5f' : P.paper;
+    const [c, g] = page(w, h, bg);
+    if (brand.pattern) {
+      g.globalAlpha = 0.5;
+      const pc = brand.patternCanvas(256);
+      g.fillStyle = g.createPattern(pc, 'repeat');
+      g.fillRect(0, 0, w, h);
+      g.globalAlpha = 1;
+      g.fillStyle = bg;
+      g.fillRect(w * 0.12, h * 0.3, w * 0.76, h * 0.4);
+    }
+    if (kraft) speckle(g, 0, 0, w, h, 2500, brand.id, 0.12);
+    if (kraft)
+      brand.drawLogo(g, w * 0.16, h * 0.32, w * 0.68, h * 0.36, {
+        mono: lux ? P.secondary : darken(P.primary, 0.2),
+      });
+    else brand.drawLogoOn(g, bg, w * 0.16, h * 0.32, w * 0.68, h * 0.36);
+    if (!lux) {
+      g.fillStyle = kraft ? darken(P.primary, 0.2) : P.primary;
+      g.textAlign = 'center';
+      g.font = font('textNarrowBold', h * 0.026);
+      g.fillText((brand.tagline || 'THANK YOU').toUpperCase(), w / 2, h * 0.9);
+    }
+    return c;
+  },
   // Wrap art for a paper cup (2:1).
-  cup(brand, opts = {}) { const w = opts.w || 1024, h = opts.h || 512, P = brand.palette; const bg = brand.tier === 'luxury' ? P.paper : P.primary; const [c, g] = page(w, h, bg); g.fillStyle = P.secondary; g.fillRect(0, h * 0.86, w, h * 0.05); for (const x of [0.25, 0.75]) brand.drawLogoOn(g, bg, w * (x - 0.17), h * 0.14, w * 0.34, h * 0.62); return c; },
+  cup(brand, opts = {}) {
+    const w = opts.w || 1024,
+      h = opts.h || 512,
+      P = brand.palette;
+    const bg = brand.tier === 'luxury' ? P.paper : P.primary;
+    const [c, g] = page(w, h, bg);
+    g.fillStyle = P.secondary;
+    g.fillRect(0, h * 0.86, w, h * 0.05);
+    for (const x of [0.25, 0.75])
+      brand.drawLogoOn(g, bg, w * (x - 0.17), h * 0.14, w * 0.34, h * 0.62);
+    return c;
+  },
 };

@@ -3,14 +3,18 @@
 // each frame. post.js advances this once per rendered frame (period 16, matched to the TAA history length).
 // Use in GLSL: float ign = fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715))));
 export const FRAME_NOISE = { value: 0 };
-export const IGN_T_GLSL = 'float ignT(vec2 p) { return fract(52.9829189 * fract(dot(p + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }';
-export function advanceFrameNoise() { FRAME_NOISE.value = (FRAME_NOISE.value + 1) % 16; }
+export const IGN_T_GLSL =
+  'float ignT(vec2 p) { return fract(52.9829189 * fract(dot(p + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }';
+export function advanceFrameNoise() {
+  FRAME_NOISE.value = (FRAME_NOISE.value + 1) % 16;
+}
 // r2-render (game.renderR2): the dithers step a fixed per-pixel IGN by the golden ratio each frame instead of offsetting
 // the pixel position. Every pixel then walks evenly through all thresholds over the TAA history, so the average converges
 // to the true fade with no per-pixel bias (the position offset left a fixed residual dot pattern at rest).
 // RENDER_R2.value is set by post.js every frame. GLSL: uniform float uRenderR2; float psIgnT(vec2 p) (needs uFrameN).
 export const RENDER_R2 = { value: 0 };
-export const IGN_R2_GLSL = 'float psIgnT(vec2 p) { return uRenderR2 > 0.5 ? fract(fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))) + 0.61803399 * uFrameN) : fract(52.9829189 * fract(dot(p + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }';
+export const IGN_R2_GLSL =
+  'float psIgnT(vec2 p) { return uRenderR2 > 0.5 ? fract(fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))) + 0.61803399 * uFrameN) : fract(52.9829189 * fract(dot(p + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }';
 // r2-render: alpha-to-coverage with a centered, width-capped edge. three's chunk spreads coverage over the alpha's
 // screen gradient; on far foliage (leaflets near a pixel wide) that gradient is huge, so whole frond tips got fractional
 // coverage, which the GPU dithers into a fixed 1-pixel checkerboard at 2x MSAA (it never moves, TAA cannot remove it).

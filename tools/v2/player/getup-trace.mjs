@@ -8,7 +8,8 @@ await withBrowser({ width: 640, height: 360, maxSeconds: 200 }, async (b) => {
   await b.eval(`(() => { const H = game.nicoHouse, P = game.player; const e = game.city.roadGraph.nearestEdge(H.spot.x, H.spot.z, {}, 120); const d = e.dir;
     game.teleport(e.point.x + d.x * 10, undefined, e.point.z + d.z * 10, Math.atan2(d.x, d.z)); return 1; })()`);
   await b.sleep(2000);
-  const r = await b.eval(`new Promise((res) => { const P = game.player, T = game.THREE, V = new T.Vector3(), prev = {}, out = []; let t0 = null;
+  const r =
+    await b.eval(`new Promise((res) => { const P = game.player, T = game.THREE, V = new T.Vector3(), prev = {}, out = []; let t0 = null;
     const c0 = game.playerCharacter; let snapRef = null, sv = null; Object.defineProperty(c0, '__snapPre', { get() { return sv; }, set(v) { sv = v; if (v) snapRef = v; }, configurable: true });
     const LA = c0.getBone('LeftArm'); const ou = c0.update; let qb = null; c0.update = (dt, a) => { qb = LA.quaternion.clone(); ou(dt, a); };
     game.playerRagdoll.trigger('test', { ragKind: 'car', vel: { x: Math.sin(P.heading) * 5, y: 1.6, z: Math.cos(P.heading) * 5 }, spin: 1.2, strength: 0.5, point: P.position.clone().setY(P.position.y + 0.9) });

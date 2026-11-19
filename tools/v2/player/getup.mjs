@@ -5,13 +5,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'g';
-const DIR = path.resolve('docs/v2/shots/player/getup'); fs.mkdirSync(DIR, { recursive: true });
+const DIR = path.resolve('docs/v2/shots/player/getup');
+fs.mkdirSync(DIR, { recursive: true });
 const CASES = String(o.cases || 'fall,shove').split(',');
 const N = +(o.frames || 16);
-const lim = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+const lim = (p, ms) =>
+  Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 const rep = { set: SET, cases: {} };
 await withBrowser({ width: 960, height: 540, maxSeconds: 280 }, async (b) => {
   const ev = (e) => lim(b.eval(e), 60000);
@@ -40,16 +47,33 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 280 }, async (b) => {
       else if ('${cs}' === 'back') game.playerRagdoll.trigger('test', { ragKind: 'car', vel: { x: -Math.sin(P.heading) * 4, y: 1.4, z: -Math.cos(P.heading) * 4 }, spin: 0, strength: 0.3, point: P.position.clone().setY(P.position.y + 1.45), impulse: new game.THREE.Vector3(-Math.sin(P.heading) * 45, 0, -Math.cos(P.heading) * 45) });
       else game.playerRagdoll.trigger('test', { ragKind: 'car', vel: { x: window.__n.dx * 5, y: 1.6, z: window.__n.dz * 5 }, spin: 1.2, strength: 0.5, point: P.position.clone().setY(P.position.y + 0.9) });
       return 1; })()`);
-    for (let i = 0; i < 40; i++) { if (await ev('!!game.playerRagdoll?.active')) break; await b.sleep(80); }
+    for (let i = 0; i < 40; i++) {
+      if (await ev('!!game.playerRagdoll?.active')) break;
+      await b.sleep(80);
+    }
     const frames = [];
     for (let i = 0; i < 60 && frames.length < N; i++) {
-      const st = JSON.parse(await ev(`JSON.stringify({ ph: game.playerRagdoll?.phase || 'none', t: +game.clock.elapsed.toFixed(2) })`));
+      const st = JSON.parse(
+        await ev(
+          `JSON.stringify({ ph: game.playerRagdoll?.phase || 'none', t: +game.clock.elapsed.toFixed(2) })`,
+        ),
+      );
       const f = path.join(DIR, `${SET}_${cs}_${String(frames.length).padStart(2, '0')}.jpg`);
-      try { await lim(b.screenshot(f, { format: 'jpeg', quality: 80 }), 30000); frames.push(st); } catch (e) { console.log('shot failed'); }
+      try {
+        await lim(b.screenshot(f, { format: 'jpeg', quality: 80 }), 30000);
+        frames.push(st);
+      } catch (e) {
+        console.log('shot failed');
+      }
       if (st.ph === 'none' && frames.length > 3) break;
       await b.sleep(+(o.gap || 220));
     }
-    rep.cases[cs] = { log: JSON.parse(await ev('JSON.stringify(window.__log)')), pop: JSON.parse(await ev('JSON.stringify(window.__pop)')), face: await ev('game.playerCharacter?.__face || null'), frames };
+    rep.cases[cs] = {
+      log: JSON.parse(await ev('JSON.stringify(window.__log)')),
+      pop: JSON.parse(await ev('JSON.stringify(window.__pop)')),
+      face: await ev('game.playerCharacter?.__face || null'),
+      frames,
+    };
     console.log(cs, JSON.stringify(rep.cases[cs]));
   }
   fs.writeFileSync(path.join(DIR, `${SET}.json`), JSON.stringify(rep, null, 1));

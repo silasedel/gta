@@ -30,7 +30,19 @@ export const P = {
 
 // road-class rank: higher ranks win when parallel decks are merged (they keep their full cross-section)
 export const RANK = {
-  motorway: 9, trunk: 8, primary: 7, secondary: 6, tertiary: 5, motorway_link: 4, trunk_link: 4,
-  primary_link: 3, secondary_link: 3, tertiary_link: 3, unclassified: 2, residential: 2, living_street: 1, service: 1,
+  motorway: 9,
+  trunk: 8,
+  primary: 7,
+  secondary: 6,
+  tertiary: 5,
+  motorway_link: 4,
+  trunk_link: 4,
+  primary_link: 3,
+  secondary_link: 3,
+  tertiary_link: 3,
+  unclassified: 2,
+  residential: 2,
+  living_street: 1,
+  service: 1,
 };
 export const rankOf = (kind) => RANK[kind] ?? 1;

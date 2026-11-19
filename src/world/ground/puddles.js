@@ -11,22 +11,37 @@ const MAX = 8;
 export function patchPuddles(mat, list = []) {
   if (!mat || !list.length || mat.userData.r2Puddles) return mat;
   mat.userData.r2Puddles = true;
-  const P = Array.from({ length: MAX }, (_, i) => { const p = list[i]; return p ? new THREE.Vector4(p.x, p.z, Math.max(0.2, p.r || 1.2), (i * 0.618) % 1) : new THREE.Vector4(1e6, 1e6, 0.1, 0); });
+  const P = Array.from({ length: MAX }, (_, i) => {
+    const p = list[i];
+    return p
+      ? new THREE.Vector4(p.x, p.z, Math.max(0.2, p.r || 1.2), (i * 0.618) % 1)
+      : new THREE.Vector4(1e6, 1e6, 0.1, 0);
+  });
   const U = { uPud: { value: P } };
   mat.userData.puddles = U;
-  const prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
+  const prev = mat.onBeforeCompile,
+    prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
   mat.onBeforeCompile = (sh, r) => {
     if (prev) prev.call(mat, sh, r);
     Object.assign(sh.uniforms, U);
     if (!/lights_physical_pars_fragment/.test(sh.fragmentShader)) return; // not a lit standard / physical shader: stays dry
     sh.uniforms.uWeather = { value: WEATHER_U }; // bind the shared weather (materials built outside ShaderLib's copy would read zeros)
-    sh.vertexShader = 'varying vec3 vPdW;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n  vPdW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = `uniform vec4 uPud[${MAX}]; varying vec3 vPdW;
+    sh.vertexShader =
+      'varying vec3 vPdW;\n' +
+      sh.vertexShader.replace(
+        '#include <worldpos_vertex>',
+        '#include <worldpos_vertex>\n  vPdW = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+      );
+    sh.fragmentShader =
+      `uniform vec4 uPud[${MAX}]; varying vec3 vPdW;
 float pdH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float pdN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(pdH(i), pdH(i + vec2(1.0, 0.0)), f.x), mix(pdH(i + vec2(0.0, 1.0)), pdH(i + vec2(1.0, 1.0)), f.x), f.y); }
 float pdWater = 0.0; vec2 pdRip = vec2(0.0);
-` + sh.fragmentShader
-      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+` +
+      sh.fragmentShader
+        .replace(
+          '#include <roughnessmap_fragment>',
+          `#include <roughnessmap_fragment>
   {
     vec2 wp = vPdW.xz; float lvl = uWeather.y, dampK = max(uWeather.x * 0.6, lvl);
     float best = 9.0;
@@ -48,9 +63,13 @@ float pdWater = 0.0; vec2 pdRip = vec2(0.0);
           pdRip = q / max(rr, 1e-3) * ring * 0.35 * uWeather.z * step(h, 0.35 + uWeather.z * 0.5); }
       }
     }
-  }`)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-  if (pdWater > 0.0) { vec3 nUp = normalize((viewMatrix * vec4(pdRip.x, 1.0, pdRip.y, 0.0)).xyz); normal = normalize(mix(normal, nUp, pdWater)); }`);
+  }`,
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          `#include <normal_fragment_maps>
+  if (pdWater > 0.0) { vec3 nUp = normalize((viewMatrix * vec4(pdRip.x, 1.0, pdRip.y, 0.0)).xyz); normal = normalize(mix(normal, nUp, pdWater)); }`,
+        );
   };
   mat.customProgramCacheKey = () => prevKey() + '|r2pud';
   mat.needsUpdate = true;

@@ -114,14 +114,17 @@ function cdpApi(ws) {
       return;
     }
     if (d.method === 'Runtime.exceptionThrown') {
-      errors.push('EXC ' + String(d.params.exceptionDetails?.exception?.description || '').slice(0, 300));
+      errors.push(
+        'EXC ' + String(d.params.exceptionDetails?.exception?.description || '').slice(0, 300),
+      );
     }
   };
-  const send = (method, params = {}) => new Promise((res) => {
-    const i = ++id;
-    pending.set(i, res);
-    ws.send(JSON.stringify({ id: i, method, params }));
-  });
+  const send = (method, params = {}) =>
+    new Promise((res) => {
+      const i = ++id;
+      pending.set(i, res);
+      ws.send(JSON.stringify({ id: i, method, params }));
+    });
   const api = {
     errors,
     send,
@@ -132,7 +135,9 @@ function cdpApi(ws) {
         returnByValue: true,
       });
       if (r.result?.exceptionDetails) {
-        throw new Error(String(r.result.exceptionDetails.exception?.description || 'eval failed').slice(0, 400));
+        throw new Error(
+          String(r.result.exceptionDetails.exception?.description || 'eval failed').slice(0, 400),
+        );
       }
       return r.result?.result?.value;
     },
@@ -366,22 +371,32 @@ function save(res) {
 }
 
 if (mode === 'app') {
-  const bin = opt('bin', path.join(ROOT, 'desktop/dist/mac-arm64/Southline.app/Contents/MacOS/Southline'));
+  const bin = opt(
+    'bin',
+    path.join(ROOT, 'desktop/dist/mac-arm64/Southline.app/Contents/MacOS/Southline'),
+  );
   const port = Number(opt('port', '9411'));
   if (port <= 9400 || port === 9222 || port === 9333) {
     throw new Error('use a debugging port above 9400');
   }
-  const child = spawn(bin, [
-    `--remote-debugging-port=${port}`,
-    '--remote-allow-origins=*',
-    '--ps-fullscreen',
-    '--ps-test-profile',
-    '--ps-query=mute',
-  ], { stdio: 'ignore' });
-  const watchdog = setTimeout(() => {
-    child.kill('SIGKILL');
-    process.exit(2);
-  }, (MINUTES * 60 + 420) * 1000);
+  const child = spawn(
+    bin,
+    [
+      `--remote-debugging-port=${port}`,
+      '--remote-allow-origins=*',
+      '--ps-fullscreen',
+      '--ps-test-profile',
+      '--ps-query=mute',
+    ],
+    { stdio: 'ignore' },
+  );
+  const watchdog = setTimeout(
+    () => {
+      child.kill('SIGKILL');
+      process.exit(2);
+    },
+    (MINUTES * 60 + 420) * 1000,
+  );
   try {
     const ws = await connectPage(port, 'app://game', 60);
     const b = cdpApi(ws);

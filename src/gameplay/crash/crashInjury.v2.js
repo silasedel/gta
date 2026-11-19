@@ -21,19 +21,40 @@ export function initV2(game) {
   const last = new WeakMap();
   const P = () => game.player;
   const hurt = (amount, why) => {
-    const p = P(); if (!p || !(amount > 0.5)) return;
-    if (game.gameplay?.damagePlayer) { game.gameplay.damagePlayer(amount, why); return; }
+    const p = P();
+    if (!p || !(amount > 0.5)) return;
+    if (game.gameplay?.damagePlayer) {
+      game.gameplay.damagePlayer(amount, why);
+      return;
+    }
     let a = amount;
-    if (p.armor > 0) { const ab = Math.min(p.armor, a * 0.8); p.armor -= ab; a -= ab; }
+    if (p.armor > 0) {
+      const ab = Math.min(p.armor, a * 0.8);
+      p.armor -= ab;
+      a -= ab;
+    }
     p.health = Math.max(0, (p.health ?? 100) - a);
     game.emit?.('playerHit', { damage: amount, from: why });
   };
-  const mine = (v) => { const p = P(); return !!v && !!p && (v.playerDriven || p.state?.vehicle === v); };
-  const kindOf = (v) => (v?.S && v?.T?.cls ? 'aircraft' : v?.isBoat ? 'boat' : (v?.isBike || v?.spec?.bike) ? 'bike' : 'car');
+  const mine = (v) => {
+    const p = P();
+    return !!v && !!p && (v.playerDriven || p.state?.vehicle === v);
+  };
+  const kindOf = (v) =>
+    v?.S && v?.T?.cls
+      ? 'aircraft'
+      : v?.isBoat
+        ? 'boat'
+        : v?.isBike || v?.spec?.bike
+          ? 'bike'
+          : 'car';
 
   game.on?.('crash', (e) => {
-    const v = e?.vehicle; if (!mine(v)) return;
-    const now = game.clock?.elapsed ?? 0, t0 = last.get(v) ?? -9; if (now - t0 < 0.45) return;
+    const v = e?.vehicle;
+    if (!mine(v)) return;
+    const now = game.clock?.elapsed ?? 0,
+      t0 = last.get(v) ?? -9;
+    if (now - t0 < 0.45) return;
     const mass = v.spec?.mass || v.T?.mass || 1400;
     const dv = Number.isFinite(e.dv) ? e.dv : (e.impulse || 0) / mass;
     const f = injuryFraction(dv, kindOf(v));
@@ -43,5 +64,7 @@ export function initV2(game) {
     if (f > 0.35) game.hud?.notify?.('Heavy impact', 1200);
   });
   // an aircraft that is destroyed with the player inside kills them
-  game.on?.('aircraft:destroyed', (e) => { if (mine(e?.vehicle)) hurt(1000, 'aircraft'); });
+  game.on?.('aircraft:destroyed', (e) => {
+    if (mine(e?.vehicle)) hurt(1000, 'aircraft');
+  });
 }

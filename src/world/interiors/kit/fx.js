@@ -24,20 +24,80 @@ void main() {
 }`;
 // ball at (x, y, z) in the current G frame (y = ball center). o: { r, k (spot strength), size (spot angular radius), surfaces: [{ x, y, z, w, h, rx, ry }] }
 export function discoBall(ctx, x, y, z, o = {}) {
-  const { G, M } = ctx, r = o.r || 0.24, p = G.local(x, y, z);
+  const { G, M } = ctx,
+    r = o.r || 0.24,
+    p = G.local(x, y, z);
   // mount: rod from the ceiling + motor
-  const chrome = M.flat('#c8ccd2', { rough: 0.2, metal: 1, probe: 1 }); G.cyl(M.flat('#111114', { rough: 0.4 }), x, (y + r + (o.ceil ?? y + 0.8)) / 2, z, 0.008, (o.ceil ?? y + 0.8) - y - r, { seg: 6 }); G.cyl(chrome, x, y + r + 0.04, z, 0.035, 0.06, { seg: 10 });
+  const chrome = M.flat('#c8ccd2', { rough: 0.2, metal: 1, probe: 1 });
+  G.cyl(
+    M.flat('#111114', { rough: 0.4 }),
+    x,
+    (y + r + (o.ceil ?? y + 0.8)) / 2,
+    z,
+    0.008,
+    (o.ceil ?? y + 0.8) - y - r,
+    { seg: 6 },
+  );
+  G.cyl(chrome, x, y + r + 0.04, z, 0.035, 0.06, { seg: 10 });
   // the ball: icosphere facets with a mirror-tile grid, rotates as a dynamic part
-  const mirror = M.baked('disco', () => { const m = new THREE.MeshStandardMaterial({ color: 0xd8dce4, metalness: 1, roughness: 0.12, flatShading: true }); return m; }, { probe: 1.6, direct: 0.6 });
-  const ball = ctx.dyn(p.x, p.y, p.z, 0, (LG) => { LG.add(mirror, new THREE.IcosahedronGeometry(r, 5)); });
-  const U = { uBall: { value: new THREE.Vector3(p.x, p.y, p.z) }, uRot: { value: 0 }, uK: { value: o.k ?? 1.6 }, uSize: { value: o.size ?? 0.012 }, uFloor: { value: o.floor ?? 0.3 } };
-  const spots = new THREE.ShaderMaterial({ uniforms: U, vertexShader: SPOT_VS, fragmentShader: SPOT_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
-  spots.userData.order = 6; spots.userData.noProbe = true; ctx.M.owned.push(spots);
-  for (const s of o.surfaces || []) G.plane(spots, s.x, s.y, s.z, s.w, s.h, { rx: s.rx || 0, ry: s.ry || 0 });
-  const speed = o.speed ?? 0.32, base = U.uK.value;
-  ctx.anim.push((dt, t, store) => { const a = t * speed; ball.rotation.y = a; ball.updateMatrix(); U.uRot.value = a; U.uK.value = base * Math.max(0.05, store.built?.levels?.[1] ?? 1); });
+  const mirror = M.baked(
+    'disco',
+    () => {
+      const m = new THREE.MeshStandardMaterial({
+        color: 0xd8dce4,
+        metalness: 1,
+        roughness: 0.12,
+        flatShading: true,
+      });
+      return m;
+    },
+    { probe: 1.6, direct: 0.6 },
+  );
+  const ball = ctx.dyn(p.x, p.y, p.z, 0, (LG) => {
+    LG.add(mirror, new THREE.IcosahedronGeometry(r, 5));
+  });
+  const U = {
+    uBall: { value: new THREE.Vector3(p.x, p.y, p.z) },
+    uRot: { value: 0 },
+    uK: { value: o.k ?? 1.6 },
+    uSize: { value: o.size ?? 0.012 },
+    uFloor: { value: o.floor ?? 0.3 },
+  };
+  const spots = new THREE.ShaderMaterial({
+    uniforms: U,
+    vertexShader: SPOT_VS,
+    fragmentShader: SPOT_FS,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    polygonOffset: true,
+    polygonOffsetFactor: -6,
+    polygonOffsetUnits: -6,
+  });
+  spots.userData.order = 6;
+  spots.userData.noProbe = true;
+  ctx.M.owned.push(spots);
+  for (const s of o.surfaces || [])
+    G.plane(spots, s.x, s.y, s.z, s.w, s.h, { rx: s.rx || 0, ry: s.ry || 0 });
+  const speed = o.speed ?? 0.32,
+    base = U.uK.value;
+  ctx.anim.push((dt, t, store) => {
+    const a = t * speed;
+    ball.rotation.y = a;
+    ball.updateMatrix();
+    U.uRot.value = a;
+    U.uK.value = base * Math.max(0.05, store.built?.levels?.[1] ?? 1);
+  });
   // pin spot on the ball (it is what lights it): small baked spot + the light the ball throws as a soft fill
-  addLight(ctx, { p: [x, y, z], c: [0.6, 0.55, 0.6], ch: 1, type: 'omni', soft: 0.5, amb: 0.4, noPool: true });
+  addLight(ctx, {
+    p: [x, y, z],
+    c: [0.6, 0.55, 0.6],
+    ch: 1,
+    type: 'omni',
+    soft: 0.5,
+    amb: 0.4,
+    noPool: true,
+  });
   return { ball, uniforms: U, material: spots };
 }
 
@@ -49,14 +109,47 @@ void main() { float f = pow( abs( dot( vN, vV ) ), 2.2 ); float v = pow( vT, 1.6
 const coneMats = new WeakMap();
 // light shaft from (x, yTop, z) down to the floor (or o.len), opening angle o.r2 radius at the bottom
 export function hazeCone(ctx, x, yTop, z, o = {}) {
-  const { G, M } = ctx, len = o.len ?? yTop - 0.02, r1 = o.r1 ?? 0.05, r2 = o.r2 ?? 0.7, col = o.color || '#ffd9b0', key = col + ':' + (o.k ?? 0.05);
-  let mats = coneMats.get(M); if (!mats) coneMats.set(M, mats = new Map());
-  let mat = mats.get(key); if (!mat) { const c = lin(col); mat = new THREE.ShaderMaterial({ uniforms: { uC: { value: new THREE.Color(c[0], c[1], c[2]) }, uK: { value: o.k ?? 0.05 }, uH: { value: 1 } }, vertexShader: CONE_VS, fragmentShader: CONE_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
-    mat.userData.order = 7; mats.set(key, mat); M.owned.push(mat); const k0 = o.k ?? 0.05, ch = o.ch ?? 1;
-    ctx.anim.push((dt, t, store) => { const lv = store.built?.levels; mat.uniforms.uK.value = k0 * (lv ? (ch === 0 ? lv[0] : lv[1]) : 1); }); }
+  const { G, M } = ctx,
+    len = o.len ?? yTop - 0.02,
+    r1 = o.r1 ?? 0.05,
+    r2 = o.r2 ?? 0.7,
+    col = o.color || '#ffd9b0',
+    key = col + ':' + (o.k ?? 0.05);
+  let mats = coneMats.get(M);
+  if (!mats) coneMats.set(M, (mats = new Map()));
+  let mat = mats.get(key);
+  if (!mat) {
+    const c = lin(col);
+    mat = new THREE.ShaderMaterial({
+      uniforms: {
+        uC: { value: new THREE.Color(c[0], c[1], c[2]) },
+        uK: { value: o.k ?? 0.05 },
+        uH: { value: 1 },
+      },
+      vertexShader: CONE_VS,
+      fragmentShader: CONE_FS,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+    mat.userData.order = 7;
+    mats.set(key, mat);
+    M.owned.push(mat);
+    const k0 = o.k ?? 0.05,
+      ch = o.ch ?? 1;
+    ctx.anim.push((dt, t, store) => {
+      const lv = store.built?.levels;
+      mat.uniforms.uK.value = k0 * (lv ? (ch === 0 ? lv[0] : lv[1]) : 1);
+    });
+  }
   const geo = new THREE.CylinderGeometry(r1, r2, len, 20, 1, true); // uv.y: 1 at the narrow (source) end
-  if (o.up) { geo.rotateX(Math.PI); G.add(mat, geo, new THREE.Matrix4().makeTranslation(x, yTop + len / 2, z)); } // o.up: source at yTop, opening upward
-  else G.add(mat, geo, new THREE.Matrix4().makeTranslation(x, yTop - len / 2, z)); geo.dispose();
+  if (o.up) {
+    geo.rotateX(Math.PI);
+    G.add(mat, geo, new THREE.Matrix4().makeTranslation(x, yTop + len / 2, z));
+  } // o.up: source at yTop, opening upward
+  else G.add(mat, geo, new THREE.Matrix4().makeTranslation(x, yTop - len / 2, z));
+  geo.dispose();
   return mat;
 }
 
@@ -68,13 +161,40 @@ void main() { float ph = vUv.x * 61.0; float fl = 0.78 + 0.14 * sin( uT * 9.0 + 
   gl_FragColor = vec4( c * fl * uK, 1.0 ); }`;
 const flameMats = new WeakMap();
 export function flameMaterial(ctx) {
-  let m = flameMats.get(ctx.M); if (m) return m;
-  const U = { uT: { value: 0 }, uK: { value: 3 } }; m = new THREE.ShaderMaterial({ uniforms: U, vertexShader: FLAME_VS, fragmentShader: FLAME_FS, toneMapped: false });
-  flameMats.set(ctx.M, m); ctx.M.owned.push(m); ctx.anim.push((dt, t, store) => { U.uT.value = t; U.uK.value = 3 * Math.max(0.15, store.built?.levels?.[1] ?? 1); }); return m;
+  let m = flameMats.get(ctx.M);
+  if (m) return m;
+  const U = { uT: { value: 0 }, uK: { value: 3 } };
+  m = new THREE.ShaderMaterial({
+    uniforms: U,
+    vertexShader: FLAME_VS,
+    fragmentShader: FLAME_FS,
+    toneMapped: false,
+  });
+  flameMats.set(ctx.M, m);
+  ctx.M.owned.push(m);
+  ctx.anim.push((dt, t, store) => {
+    U.uT.value = t;
+    U.uK.value = 3 * Math.max(0.15, store.built?.levels?.[1] ?? 1);
+  });
+  return m;
 }
 // flame at (x, y = base of the flame, z). phase: any number (each candle flickers on its own)
 export function flame(ctx, x, y, z, o = {}) {
-  const ph = ((o.phase ?? ctx.R()) % 1 + 1) % 1, s = o.s || 1;
-  ctx.G.sphere(flameMaterial(ctx), x, y + 0.012 * s, z, 0.0065 * s, { sy: 2.4, seg: 8, uvRect: [ph, 0, ph + 0.0001, 1] });
-  addLight(ctx, { p: [x, y + 0.03, z], c: lin('#ffb060').map((v) => v * (o.k ?? 0.22)), ch: o.ch ?? 1, type: 'omni', soft: 0.12, wrap: 0.2, amb: 0.5, noPool: !o.pool });
+  const ph = (((o.phase ?? ctx.R()) % 1) + 1) % 1,
+    s = o.s || 1;
+  ctx.G.sphere(flameMaterial(ctx), x, y + 0.012 * s, z, 0.0065 * s, {
+    sy: 2.4,
+    seg: 8,
+    uvRect: [ph, 0, ph + 0.0001, 1],
+  });
+  addLight(ctx, {
+    p: [x, y + 0.03, z],
+    c: lin('#ffb060').map((v) => v * (o.k ?? 0.22)),
+    ch: o.ch ?? 1,
+    type: 'omni',
+    soft: 0.12,
+    wrap: 0.2,
+    amb: 0.5,
+    noPool: !o.pool,
+  });
 }

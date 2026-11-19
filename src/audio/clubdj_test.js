@@ -15,7 +15,8 @@ function toB64(buf) {
   }
   const bytes = new Uint8Array(o.buffer);
   let s = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  for (let i = 0; i < bytes.length; i += 0x8000)
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
   return btoa(s);
 }
 
@@ -57,5 +58,5 @@ async function run() {
   window.ready = true;
 }
 run().catch((e) => {
-  window.failed = String(e && e.stack || e);
+  window.failed = String((e && e.stack) || e);
 });

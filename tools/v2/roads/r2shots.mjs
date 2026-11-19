@@ -11,12 +11,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'r2';
-const DIR = path.resolve(o.dir || 'docs/v2/shots/roads'); fs.mkdirSync(DIR, { recursive: true });
+const DIR = path.resolve(o.dir || 'docs/v2/shots/roads');
+fs.mkdirSync(DIR, { recursive: true });
 let SPOTS = o.spots ? JSON.parse(fs.readFileSync(o.spots, 'utf8')) : [];
-if (o.only) { const keep = new Set(String(o.only).split(',')); SPOTS = SPOTS.filter((s) => keep.has(s.id)); }
+if (o.only) {
+  const keep = new Set(String(o.only).split(','));
+  SPOTS = SPOTS.filter((s) => keep.has(s.id));
+}
 const camJS = (s) => `(() => {
   const C = game.city, G = C.roadGraph, gy = (X, Z) => (C.groundHeightAt(X, Z) || 0); const s = ${JSON.stringify(s)}; let eye, look;
   if (s.eye) { eye = [s.eye[0], gy(s.eye[0], s.eye[2]) + s.eye[1], s.eye[2]]; look = [s.look[0], gy(s.look[0], s.look[2]) + s.look[1], s.look[2]]; }
@@ -40,27 +49,44 @@ const camJS = (s) => `(() => {
 
 const rep = { set: SET, when: new Date().toISOString(), shots: {} };
 async function run(q, suffix) {
-  await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +(o.max || 1500) }, async (b) => {
-    await b.goto('http://127.0.0.1:' + (o.port || 5200) + '/?mute' + (q || ''));
-    await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
-    if (!(await startGame(b))) console.log('WARN: title did not close');
-    await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; try { game.weather?.set?.('clear', { instant: true }); } catch (e) {} return 1; })()`);
-    for (const s of SPOTS) {
-      await b.eval(`(() => { game.timeOfDay = ${s.tod ?? 11}; game.cameraOverride = null; return 1; })()`);
-      const cam = await b.eval(camJS(s));
-      await b.sleep(+(o.settle || 2500));
-      for (let i = 0; i < +(o.stream || 40); i++) { const p = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (p < 2) break; await b.sleep(1000); }
-      await b.eval(camJS(s)); await b.sleep(1200);
-      const ms = await b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 1500) requestAnimationFrame(f); else res(+(ts.reduce((p, c) => p + c, 0) / ts.length).toFixed(1)); }; requestAnimationFrame(f); })`);
-      const file = path.join(DIR, `${SET}_${s.id}${suffix}.${o.fmt || 'png'}`);
-      await b.screenshot(file);
-      rep.shots[s.id + suffix] = { cam: JSON.parse(cam.startsWith('{') ? cam : '{}'), ms };
-      console.log(s.id + suffix, cam, ms + ' ms');
-    }
-    rep.errors = [...new Set(b.errors)].slice(0, 30);
-    if (rep.errors.length) console.log('ERRORS\n' + rep.errors.join('\n'));
-  });
+  await withBrowser(
+    { width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +(o.max || 1500) },
+    async (b) => {
+      await b.goto('http://127.0.0.1:' + (o.port || 5200) + '/?mute' + (q || ''));
+      await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
+      if (!(await startGame(b))) console.log('WARN: title did not close');
+      await b.eval(
+        `(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; try { game.weather?.set?.('clear', { instant: true }); } catch (e) {} return 1; })()`,
+      );
+      for (const s of SPOTS) {
+        await b.eval(
+          `(() => { game.timeOfDay = ${s.tod ?? 11}; game.cameraOverride = null; return 1; })()`,
+        );
+        const cam = await b.eval(camJS(s));
+        await b.sleep(+(o.settle || 2500));
+        for (let i = 0; i < +(o.stream || 40); i++) {
+          const p = await b.eval('(game.city?.streamer?.pending?.() ?? 0)');
+          if (p < 2) break;
+          await b.sleep(1000);
+        }
+        await b.eval(camJS(s));
+        await b.sleep(1200);
+        const ms = await b.eval(
+          `new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 1500) requestAnimationFrame(f); else res(+(ts.reduce((p, c) => p + c, 0) / ts.length).toFixed(1)); }; requestAnimationFrame(f); })`,
+        );
+        const file = path.join(DIR, `${SET}_${s.id}${suffix}.${o.fmt || 'png'}`);
+        await b.screenshot(file);
+        rep.shots[s.id + suffix] = { cam: JSON.parse(cam.startsWith('{') ? cam : '{}'), ms };
+        console.log(s.id + suffix, cam, ms + ' ms');
+      }
+      rep.errors = [...new Set(b.errors)].slice(0, 30);
+      if (rep.errors.length) console.log('ERRORS\n' + rep.errors.join('\n'));
+    },
+  );
 }
-if (o.ab) { await run(o.q || '', '_A'); await run(o.ab, '_B'); } else await run(o.q || '', '');
+if (o.ab) {
+  await run(o.q || '', '_A');
+  await run(o.ab, '_B');
+} else await run(o.q || '', '');
 fs.mkdirSync('docs/v2/reports', { recursive: true });
 fs.writeFileSync(`docs/v2/reports/r2roads-shots-${SET}.json`, JSON.stringify(rep, null, 2));

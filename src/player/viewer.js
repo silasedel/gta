@@ -6,30 +6,162 @@ import { preloadCharacters, createCharacter } from './characterModel.js';
 import { texturesReady } from './nico/index.js';
 import { CATALOG, SLOTS } from './wardrobe/outfit.js';
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
 document.body.appendChild(renderer.domElement);
-const scene = new THREE.Scene(); const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
-const sun = new THREE.DirectionalLight(0xfff1dd, 3); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.camera.left = sun.shadow.camera.bottom = -2; sun.shadow.camera.right = sun.shadow.camera.top = 2; sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.012; scene.add(sun);
-const ground = new THREE.Mesh(new THREE.CircleGeometry(6, 48), new THREE.MeshStandardMaterial({ color: 0x8a8478, roughness: 0.9 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
-const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.03, 100); const controls = new OrbitControls(camera, renderer.domElement);
-const LIGHTS = { noon: [0x9fc3e6, [2, 5, 3], 3.2, 1.0], golden: [0xe8b98a, [4, 1.6, 2], 3.6, 0.7], overcast: [0xaab0b8, [1, 5, 1], 0.8, 1.3], night: [0x10141f, [-2, 3, -2], 0.5, 0.25], studio: [0x6a7078, [1.6, 2.6, 2.4], 2.6, 0.9] };
-window.setLight = (n) => { const L = LIGHTS[n] || LIGHTS.studio; scene.background = new THREE.Color(L[0]); sun.position.set(...L[1]); sun.intensity = L[2]; scene.environmentIntensity = L[3]; };
-const CAMS = { full: [[0, 1.0, 5.2], [0, 0.92, 0]], face: [[0.12, 1.69, 0.72], [0, 1.66, 0]], face34: [[0.42, 1.70, 0.58], [0, 1.655, 0]], hands: [[-0.75, 1.0, 0.95], [-0.3, 0.88, 0.05]], back: [[0, 1.0, -5.2], [0, 0.92, 0]], torso: [[0.5, 1.3, 1.9], [0, 1.2, 0]], feet: [[0.6, 0.35, 1.2], [0, 0.08, 0]] };
-window.camAt = (p, t) => { camera.position.set(...p); controls.target.set(...t); controls.update(); };
-window.setCam = (n) => { const c = CAMS[n] || CAMS.full; camera.position.set(...c[0]); controls.target.set(...c[1]); controls.update(); };
-const game = { THREE, scene, camera, renderer, emit() { return true; } }; window.vgame = game;
+const scene = new THREE.Scene();
+const pm = new THREE.PMREMGenerator(renderer);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+const sun = new THREE.DirectionalLight(0xfff1dd, 3);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = sun.shadow.camera.bottom = -2;
+sun.shadow.camera.right = sun.shadow.camera.top = 2;
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.012;
+scene.add(sun);
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(6, 48),
+  new THREE.MeshStandardMaterial({ color: 0x8a8478, roughness: 0.9 }),
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.03, 100);
+const controls = new OrbitControls(camera, renderer.domElement);
+const LIGHTS = {
+  noon: [0x9fc3e6, [2, 5, 3], 3.2, 1.0],
+  golden: [0xe8b98a, [4, 1.6, 2], 3.6, 0.7],
+  overcast: [0xaab0b8, [1, 5, 1], 0.8, 1.3],
+  night: [0x10141f, [-2, 3, -2], 0.5, 0.25],
+  studio: [0x6a7078, [1.6, 2.6, 2.4], 2.6, 0.9],
+};
+window.setLight = (n) => {
+  const L = LIGHTS[n] || LIGHTS.studio;
+  scene.background = new THREE.Color(L[0]);
+  sun.position.set(...L[1]);
+  sun.intensity = L[2];
+  scene.environmentIntensity = L[3];
+};
+const CAMS = {
+  full: [
+    [0, 1.0, 5.2],
+    [0, 0.92, 0],
+  ],
+  face: [
+    [0.12, 1.69, 0.72],
+    [0, 1.66, 0],
+  ],
+  face34: [
+    [0.42, 1.7, 0.58],
+    [0, 1.655, 0],
+  ],
+  hands: [
+    [-0.75, 1.0, 0.95],
+    [-0.3, 0.88, 0.05],
+  ],
+  back: [
+    [0, 1.0, -5.2],
+    [0, 0.92, 0],
+  ],
+  torso: [
+    [0.5, 1.3, 1.9],
+    [0, 1.2, 0],
+  ],
+  feet: [
+    [0.6, 0.35, 1.2],
+    [0, 0.08, 0],
+  ],
+};
+window.camAt = (p, t) => {
+  camera.position.set(...p);
+  controls.target.set(...t);
+  controls.update();
+};
+window.setCam = (n) => {
+  const c = CAMS[n] || CAMS.full;
+  camera.position.set(...c[0]);
+  controls.target.set(...c[1]);
+  controls.update();
+};
+const game = {
+  THREE,
+  scene,
+  camera,
+  renderer,
+  emit() {
+    return true;
+  },
+};
+window.vgame = game;
 await preloadCharacters(game);
-const nico = createCharacter(game, { variant: 'player', seed: 1 }); scene.add(nico.root);
-window.nico = nico; window.anim = { speed: 0, grounded: true }; window.turn = false; window.CATALOG = CATALOG; window.THREE = THREE; window.scene = scene; window.camera = camera;
-const clock = new THREE.Clock(); window.paused = false;
-window.step = (n = 1, dt = 1 / 60) => { for (let i = 0; i < n; i++) nico.update(dt, window.anim); renderer.render(scene, camera); };
-renderer.setAnimationLoop(() => { const dt = Math.min(0.05, clock.getDelta()); if (window.turn) nico.root.rotation.y += dt * 0.6; if (!window.paused) nico.update(dt, window.anim); controls.update(); renderer.render(scene, camera); });
-const ui = document.getElementById('ui'); const btn = (t, f) => { const b = document.createElement('button'); b.textContent = t; b.onclick = f; ui.appendChild(b); };
-Object.keys(CAMS).forEach((k) => btn(k, () => setCam(k))); Object.keys(LIGHTS).forEach((k) => btn(k, () => setLight(k))); btn('turntable', () => { window.turn = !window.turn; });
-for (const s of SLOTS) { const sel = document.createElement('select'); sel.innerHTML = `<option value="">${s}: none</option>` + CATALOG.filter((p) => p.slot === s).map((p) => `<option value="${p.id}">${p.name}</option>`).join(''); sel.onchange = () => (sel.value ? nico.outfit?.wear(sel.value) : nico.outfit?.remove(s)); ui.appendChild(sel); }
-[['idle', { speed: 0 }], ['walk', { speed: 1.5 }], ['run', { speed: 3.8 }], ['sprint', { speed: 6, sprint: true }], ['swim', { idleStyle: 'swim', swimming: true }], ['sit', { idleStyle: 'sitBench' }], ['dance', { idleStyle: 'dance' }]].forEach(([n, a]) => btn(n, () => { window.anim = { grounded: true, ...a }; }));
-Object.keys(nico.face?.expressions ? Object.fromEntries(nico.face.expressions.map((e) => [e, 1])) : {}).forEach((e) => btn(e, () => nico.face.setExpression(e)));
+const nico = createCharacter(game, { variant: 'player', seed: 1 });
+scene.add(nico.root);
+window.nico = nico;
+window.anim = { speed: 0, grounded: true };
+window.turn = false;
+window.CATALOG = CATALOG;
+window.THREE = THREE;
+window.scene = scene;
+window.camera = camera;
+const clock = new THREE.Clock();
+window.paused = false;
+window.step = (n = 1, dt = 1 / 60) => {
+  for (let i = 0; i < n; i++) nico.update(dt, window.anim);
+  renderer.render(scene, camera);
+};
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(0.05, clock.getDelta());
+  if (window.turn) nico.root.rotation.y += dt * 0.6;
+  if (!window.paused) nico.update(dt, window.anim);
+  controls.update();
+  renderer.render(scene, camera);
+});
+const ui = document.getElementById('ui');
+const btn = (t, f) => {
+  const b = document.createElement('button');
+  b.textContent = t;
+  b.onclick = f;
+  ui.appendChild(b);
+};
+Object.keys(CAMS).forEach((k) => btn(k, () => setCam(k)));
+Object.keys(LIGHTS).forEach((k) => btn(k, () => setLight(k)));
+btn('turntable', () => {
+  window.turn = !window.turn;
+});
+for (const s of SLOTS) {
+  const sel = document.createElement('select');
+  sel.innerHTML =
+    `<option value="">${s}: none</option>` +
+    CATALOG.filter((p) => p.slot === s)
+      .map((p) => `<option value="${p.id}">${p.name}</option>`)
+      .join('');
+  sel.onchange = () => (sel.value ? nico.outfit?.wear(sel.value) : nico.outfit?.remove(s));
+  ui.appendChild(sel);
+}
+[
+  ['idle', { speed: 0 }],
+  ['walk', { speed: 1.5 }],
+  ['run', { speed: 3.8 }],
+  ['sprint', { speed: 6, sprint: true }],
+  ['swim', { idleStyle: 'swim', swimming: true }],
+  ['sit', { idleStyle: 'sitBench' }],
+  ['dance', { idleStyle: 'dance' }],
+].forEach(([n, a]) =>
+  btn(n, () => {
+    window.anim = { grounded: true, ...a };
+  }),
+);
+Object.keys(
+  nico.face?.expressions ? Object.fromEntries(nico.face.expressions.map((e) => [e, 1])) : {},
+).forEach((e) => btn(e, () => nico.face.setExpression(e)));
 btn('say', () => nico.face?.say('Hey, welcome to Southline. You need a ride?'));
-setLight('studio'); setCam('full');
-await new Promise((r) => setTimeout(r, 600)); await texturesReady(); await new Promise((r) => setTimeout(r, 400));
+setLight('studio');
+setCam('full');
+await new Promise((r) => setTimeout(r, 600));
+await texturesReady();
+await new Promise((r) => setTimeout(r, 400));
 window.ready = true;

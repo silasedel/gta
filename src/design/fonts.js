@@ -12,24 +12,38 @@ export const FONT_ROLES = {
   // ---- geometric and grotesque sans
   geo: R('"PS Geo", Futura, "Century Gothic", "Trebuchet MS", sans-serif', 500),
   geoBold: R('"PS Geo", Futura, "Century Gothic", "Trebuchet MS", sans-serif', 700),
-  geoCond: R('"PS Geo Condensed", Futura, "Arial Narrow", sans-serif', 500, { stretch: 'condensed' }),
-  geoCondBlack: R('"PS Geo Condensed", Futura, Impact, "Arial Narrow", sans-serif', 800, { stretch: 'condensed' }),
+  geoCond: R('"PS Geo Condensed", Futura, "Arial Narrow", sans-serif', 500, {
+    stretch: 'condensed',
+  }),
+  geoCondBlack: R('"PS Geo Condensed", Futura, Impact, "Arial Narrow", sans-serif', 800, {
+    stretch: 'condensed',
+  }),
   grotesk: R('"PS Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif', 700),
   groteskBlack: R('"PS Grotesk", "Helvetica Neue", "Arial Black", Arial, sans-serif', 900),
   groteskThin: R('"PS Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif', 100),
-  groteskCond: R('"PS Grotesk Condensed", "Helvetica Neue", "Arial Narrow", sans-serif', 900, { stretch: 'condensed' }),
+  groteskCond: R('"PS Grotesk Condensed", "Helvetica Neue", "Arial Narrow", sans-serif', 900, {
+    stretch: 'condensed',
+  }),
   avenir: R('"PS Avenir", "Avenir Next", Avenir, "Segoe UI", sans-serif', 600),
   avenirHeavy: R('"PS Avenir", "Avenir Next", Avenir, "Segoe UI Black", sans-serif', 900),
   cond: R('"PS Cond", "Avenir Next Condensed", "Arial Narrow", sans-serif', 700),
   condHeavy: R('"PS Cond", "Avenir Next Condensed", Impact, "Arial Narrow", sans-serif', 900),
-  condItalic: R('"PS Cond", "Avenir Next Condensed", Impact, "Arial Narrow", sans-serif', 900, { italic: true }),
+  condItalic: R('"PS Cond", "Avenir Next Condensed", Impact, "Arial Narrow", sans-serif', 900, {
+    italic: true,
+  }),
   din: R('"PS Din", "DIN Alternate", "Bahnschrift", "Arial Narrow", sans-serif', 700),
-  dinCond: R('"PS Din Condensed", "DIN Condensed", "Bahnschrift Condensed", "Arial Narrow", sans-serif', 400),
+  dinCond: R(
+    '"PS Din Condensed", "DIN Condensed", "Bahnschrift Condensed", "Arial Narrow", sans-serif',
+    400,
+  ),
   impact: R('"PS Impact", Impact, "Haettenschweiler", "Arial Narrow", sans-serif', 400),
   black: R('"PS Black", "Arial Black", "Avenir Next", sans-serif', 900),
   wide: R('"PS Wide", "Hiragino Sans", "Arial Black", Verdana, sans-serif', 900),
   verdana: R('Verdana, Geneva, sans-serif', 700),
-  rounded: R('"PS Rounded", "Arial Rounded MT Bold", "Varela Round", "Trebuchet MS", sans-serif', 700),
+  rounded: R(
+    '"PS Rounded", "Arial Rounded MT Bold", "Varela Round", "Trebuchet MS", sans-serif',
+    700,
+  ),
   // ---- humanist sans
   gill: R('"PS Gill", "Gill Sans", "Gill Sans MT", Calibri, sans-serif', 700),
   gillLight: R('"PS Gill", "Gill Sans", "Gill Sans MT", Calibri, sans-serif', 300),
@@ -41,11 +55,17 @@ export const FONT_ROLES = {
   // ---- serifs
   didone: R('"PS Didone", Didot, "Bodoni 72", "Bodoni MT", "Times New Roman", serif', 700),
   didoneLight: R('"PS Didone", Didot, "Bodoni 72", "Bodoni MT", "Times New Roman", serif', 400),
-  didoneItalic: R('"PS Didone", Didot, "Bodoni 72", "Bodoni MT", "Times New Roman", serif', 400, { italic: true }),
+  didoneItalic: R('"PS Didone", Didot, "Bodoni 72", "Bodoni MT", "Times New Roman", serif', 400, {
+    italic: true,
+  }),
   bodoni: R('"PS Bodoni", "Bodoni 72", Didot, "Bodoni MT", serif', 700),
   bodoniCaps: R('"Bodoni 72 Smallcaps", "Bodoni 72", Didot, serif', 400),
   baskerville: R('"PS Baskerville", Baskerville, "Baskerville Old Face", Georgia, serif', 700),
-  baskervilleItalic: R('"PS Baskerville", Baskerville, "Baskerville Old Face", Georgia, serif', 400, { italic: true }),
+  baskervilleItalic: R(
+    '"PS Baskerville", Baskerville, "Baskerville Old Face", Georgia, serif',
+    400,
+    { italic: true },
+  ),
   caslon: R('"Big Caslon", "Book Antiqua", Palatino, Georgia, serif', 400),
   cochin: R('Cochin, Georgia, "Times New Roman", serif', 700),
   hoefler: R('"Hoefler Text", "Baskerville Old Face", Garamond, Georgia, serif', 700),
@@ -59,9 +79,14 @@ export const FONT_ROLES = {
   slabLight: R('"PS Slab", Rockwell, "Rockwell Nova", "Courier New", serif', 400),
   clarendon: R('"PS Clarendon", Superclarendon, Rockwell, Georgia, serif', 900),
   typewriter: R('"PS Typewriter", "American Typewriter", "Courier New", monospace', 700),
-  typewriterCond: R('"PS Typewriter", "American Typewriter", "Courier New", monospace', 300, { stretch: 'condensed' }),
+  typewriterCond: R('"PS Typewriter", "American Typewriter", "Courier New", monospace', 300, {
+    stretch: 'condensed',
+  }),
   // ---- engraved and titling
-  copperplate: R('"PS Copperplate", Copperplate, "Copperplate Gothic Bold", "Trajan Pro", serif', 700),
+  copperplate: R(
+    '"PS Copperplate", Copperplate, "Copperplate Gothic Bold", "Trajan Pro", serif',
+    700,
+  ),
   copperplateLight: R('"PS Copperplate", Copperplate, "Copperplate Gothic Light", serif', 300),
   engraved: R('"Academy Engraved LET", "Colonna MT", Didot, serif', 400),
   inline: R('"PS Inline", Phosphate, Impact, sans-serif', 400),
@@ -103,7 +128,10 @@ export const FONT_ROLES = {
 export const fontRoles = Object.keys(FONT_ROLES);
 
 export function fontSpec(role) {
-  if (role && typeof role === 'object') { const base = FONT_ROLES[role.role] || FONT_ROLES.grotesk; return { ...base, ...role }; }
+  if (role && typeof role === 'object') {
+    const base = FONT_ROLES[role.role] || FONT_ROLES.grotesk;
+    return { ...base, ...role };
+  }
   return FONT_ROLES[role] || (role && /[",]/.test(role) ? R(role) : FONT_ROLES.grotesk);
 }
 // CSS font shorthand for a role at a pixel size.
@@ -118,10 +146,22 @@ export const BUNDLED_FONTS = [/* { family: 'PS Geo', file: 'ps-geo.woff2', weigh
 let fontsPromise = null;
 export function loadFonts(base = 'assets/design/fonts/') {
   if (fontsPromise) return fontsPromise;
-  if (!hasDOM || !BUNDLED_FONTS.length || typeof FontFace === 'undefined') return (fontsPromise = Promise.resolve([]));
-  fontsPromise = Promise.all(BUNDLED_FONTS.map(async (f) => {
-    try { const face = new FontFace(f.family, `url(${base}${f.file})`, { weight: f.weight || '400', style: f.style || 'normal' }); await face.load(); document.fonts.add(face); return f.family; }
-    catch (e) { return null; }
-  }));
+  if (!hasDOM || !BUNDLED_FONTS.length || typeof FontFace === 'undefined')
+    return (fontsPromise = Promise.resolve([]));
+  fontsPromise = Promise.all(
+    BUNDLED_FONTS.map(async (f) => {
+      try {
+        const face = new FontFace(f.family, `url(${base}${f.file})`, {
+          weight: f.weight || '400',
+          style: f.style || 'normal',
+        });
+        await face.load();
+        document.fonts.add(face);
+        return f.family;
+      } catch (e) {
+        return null;
+      }
+    }),
+  );
   return fontsPromise;
 }

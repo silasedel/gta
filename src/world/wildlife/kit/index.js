@@ -64,11 +64,23 @@ export function makeCreature(THREE, def, variant = null, rand = Math.random) {
   const key = def.id + '|' + (def.skinKey ? def.skinKey(v) : JSON.stringify(v));
   const tex = T.skinTextures(THREE, key, () => def.paint(T, v), def.texOpts || {});
   const c = def.build(THREE, tex, v);
-  c.def = def; c.variant = v; c.skinKey = key;
+  c.def = def;
+  c.variant = v;
+  c.skinKey = key;
   const disp = c.dispose?.bind(c);
-  c.dispose = () => { disp?.(); c.group.traverse((o) => { if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose(); if (o.material && !o.material.userData.shared) o.material.dispose?.(); }); T.releaseSkin(key); };
+  c.dispose = () => {
+    disp?.();
+    c.group.traverse((o) => {
+      if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose();
+      if (o.material && !o.material.userData.shared) o.material.dispose?.();
+    });
+    T.releaseSkin(key);
+  };
   return c;
 }
 
 // distance-based animation throttle: returns true when this creature should update its skeleton this frame
-export function lodTick(c, dist, frame) { const n = dist < 25 ? 1 : dist < 60 ? 2 : dist < 120 ? 4 : 8; return ((frame + (c._lodSeed ??= (Math.random() * 8) | 0)) % n) === 0 ? n : 0; }
+export function lodTick(c, dist, frame) {
+  const n = dist < 25 ? 1 : dist < 60 ? 2 : dist < 120 ? 4 : 8;
+  return (frame + (c._lodSeed ??= (Math.random() * 8) | 0)) % n === 0 ? n : 0;
+}

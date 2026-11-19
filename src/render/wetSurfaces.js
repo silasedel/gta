@@ -17,7 +17,8 @@ export const WEATHER_U = new Float32Array([0, 0, 0, 0]);
     const L = THREE.ShaderLib[k];
     if (L && L.uniforms && !L.uniforms.uWeather) L.uniforms.uWeather = { value: WEATHER_U };
   }
-  C.lights_physical_pars_fragment = /* glsl */`
+  C.lights_physical_pars_fragment =
+    /* glsl */ `
 uniform vec4 uWeather;
 float wetHash( vec2 p ) { p = fract( p * vec2( 123.34, 345.45 ) ); p += dot( p, p + 34.345 ); return fract( p.x * p.y ); }
 float wetNoise( vec2 p ) {
@@ -41,8 +42,13 @@ vec2 wetRipple( vec2 p, float t ) {
 }
 ` + C.lights_physical_pars_fragment;
   const find = 'material.roughness = min( material.roughness, 1.0 );';
-  if (!C.lights_physical_fragment.includes(find)) { console.warn('[wet] chunk layout changed; not patched'); return; }
-  C.lights_physical_fragment = C.lights_physical_fragment.replace(find, `${find}
+  if (!C.lights_physical_fragment.includes(find)) {
+    console.warn('[wet] chunk layout changed; not patched');
+    return;
+  }
+  C.lights_physical_fragment = C.lights_physical_fragment.replace(
+    find,
+    `${find}
 #ifndef NO_WET
 if ( uWeather.x > 0.001 ) { // stage1 wet
   vec3 wN = ( vec4( normal, 0.0 ) * viewMatrix ).xyz;                       // view -> world (rotation transpose)
@@ -78,5 +84,6 @@ if ( uWeather.x > 0.001 ) { // stage1 wet
   vec3 flatN = normalize( ( viewMatrix * vec4( rip.x, 1.0, rip.y, 0.0 ) ).xyz );
   normal = normalize( mix( normal, flatN, puddle ) );
 }
-#endif`);
+#endif`,
+  );
 })();

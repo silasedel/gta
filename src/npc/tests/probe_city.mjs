@@ -3,7 +3,8 @@ import { withBrowser, GAME_READY } from '../../../tools/v2/browser.mjs';
 await withBrowser({ maxSeconds: 230 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute');
   await b.waitFor(GAME_READY, 200);
-  const out = await b.eval(`(() => { const c = game.city; const o = { keys: Object.keys(c), bounds: c.bounds, spawn: c.playerSpawn, v2: game.v2, gameKeys: Object.keys(game) };
+  const out =
+    await b.eval(`(() => { const c = game.city; const o = { keys: Object.keys(c), bounds: c.bounds, spawn: c.playerSpawn, v2: game.v2, gameKeys: Object.keys(game) };
     const cnt = (a, k) => { const m = {}; for (const s of a || []) m[s[k] ?? '?'] = (m[s[k] ?? '?'] || 0) + 1; return m; };
     o.storefronts = (c.storefronts || []).length; o.sfKinds = cnt(c.storefronts, 'kind'); o.sf0 = (c.storefronts || [])[0];
     o.shopLots = (c.shopLots || []).length; o.benches = (c.benches || []).length; o.bench0 = (c.benches || [])[0]; o.lean = (c.leanSpots || []).length;

@@ -28,7 +28,9 @@ export function createSkyMaterial() {
       uHorizonBlend: { value: 1.0 },
       uCloudCover: { value: 0.385 },
       // stage 1 weather: overcast deck (0..1), its color, and a lightning flash (0..1+)
-      uOvercast: { value: 0 }, uOvercastCol: { value: new THREE.Color(0.5, 0.52, 0.55) }, uFlash: { value: 0 },
+      uOvercast: { value: 0 },
+      uOvercastCol: { value: new THREE.Color(0.5, 0.52, 0.55) },
+      uFlash: { value: 0 },
       uNightCloud: { value: 1.0 }, // look track: 1 = moon-lit dim night clouds, 0 = old look (A/B)
       uCloudOff: { value: new THREE.Vector2() },
       uCirrus: { value: 0.4 },
@@ -37,7 +39,7 @@ export function createSkyMaterial() {
       uCirrusColor: { value: new THREE.Color(1, 0.5, 0.4) },
       uCloudR2: { value: 0 }, // r2-look: 1 = warped, crisper cumulus with darker bases (environment.js sets it from game.lookR2)
     },
-    vertexShader: /* glsl */`
+    vertexShader: /* glsl */ `
       uniform vec3 sunDir;
       uniform float rayleigh;
       uniform float turbidity;
@@ -67,7 +69,7 @@ export function createSkyMaterial() {
         float c = ( 0.2 * turbidity ) * 10E-18;
         vBetaM = 0.434 * c * MieConst * mieCoefficient;
       }`,
-    fragmentShader: /* glsl */`
+    fragmentShader: /* glsl */ `
       uniform vec3 sunDir;
       uniform vec3 moonDir;
       uniform vec3 lightDir;

@@ -48,7 +48,8 @@ export function createRadioStreams() {
     source(ctx, id, onTrack) {
       const sid = api.alias(id);
       if (!sid || typeof ctx.createMediaElementSource !== 'function') return null;
-      if (typeof OfflineAudioContext !== 'undefined' && ctx instanceof OfflineAudioContext) return null;
+      if (typeof OfflineAudioContext !== 'undefined' && ctx instanceof OfflineAudioContext)
+        return null;
       const el = new Audio();
       el.crossOrigin = 'anonymous';
       el.preload = 'auto';
@@ -74,16 +75,24 @@ export function createRadioStreams() {
           const seek = () => {
             try {
               el.currentTime = api.nowPlaying(sid)?.offset ?? 0;
-            } catch (e) { /* not seekable yet */ }
+            } catch (e) {
+              /* not seekable yet */
+            }
           };
           if (el.readyState >= 1) seek();
           else el.addEventListener('loadedmetadata', seek, { once: true });
-          el.play().catch(() => { /* resumes on the next tune once the page has had a gesture */ });
+          el.play().catch(() => {
+            /* resumes on the next tune once the page has had a gesture */
+          });
           try {
             onTrack?.(np.track, np.station);
-          } catch (e) { /* */ }
+          } catch (e) {
+            /* */
+          }
         } else if (el.paused) {
-          el.play().catch(() => { /* */ });
+          el.play().catch(() => {
+            /* */
+          });
         }
         clearTimeout(timer);
         timer = setTimeout(tune, Math.min(4000, Math.max(250, np.left * 1000 + 30)));
@@ -102,7 +111,9 @@ export function createRadioStreams() {
             el.removeAttribute('src');
             el.load();
             src.disconnect();
-          } catch (e) { /* */ }
+          } catch (e) {
+            /* */
+          }
         },
       };
     },
@@ -121,6 +132,8 @@ export function createRadioStreams() {
         api.list.push({ id: s.id, name: s.name, genre: s.genre, color: s.color });
       }
     })
-    .catch(() => { /* procedural stations stay */ });
+    .catch(() => {
+      /* procedural stations stay */
+    });
   return api;
 }

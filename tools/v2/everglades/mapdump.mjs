@@ -19,5 +19,6 @@ await withBrowser({ width: 800, height: 600, maxSeconds: 600 }, async (b) => {
     for (const e of c.roadGraph.edges) { g.beginPath(); e.pts.forEach((p, n) => { const px = (p[0] - X0) / S, py = (p[1] - Z0) / S; n ? g.lineTo(px, py) : g.moveTo(px, py); }); g.stroke(); }
     g.fillStyle = '#fff'; g.font = '9px sans-serif'; for (let x = -6000; x <= 400; x += 1000) for (let z = -6000; z <= 3500; z += 1000) { g.fillRect((x - X0) / S, (z - Z0) / S, 2, 2); g.fillText(x + ',' + z, (x - X0) / S + 2, (z - Z0) / S - 2); }
     return cv.toDataURL('image/png'); })()`);
-  fs.writeFileSync(OUT, Buffer.from(url.split(',')[1], 'base64')); console.log('MAP', OUT);
+  fs.writeFileSync(OUT, Buffer.from(url.split(',')[1], 'base64'));
+  console.log('MAP', OUT);
 });

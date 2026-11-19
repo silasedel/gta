@@ -11,19 +11,40 @@
 // Without isWaterRaw it falls back to the old per-cell loop.
 const REACH = 72 + 30; // pocket reach + sliver reach, metres (generous: either rule alone needs at most 72 m)
 
-export function* fillLandFromWater(land, W, H, minX, minZ, cell, isWater, isWaterRaw, stats = null) {
+export function* fillLandFromWater(
+  land,
+  W,
+  H,
+  minX,
+  minZ,
+  cell,
+  isWater,
+  isWaterRaw,
+  stats = null,
+) {
   const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
   let calls = 0;
   if (typeof isWaterRaw !== 'function') {
     for (let j = 0; j < H; j++) {
-      for (let i = 0; i < W; i++) { const k = j * W + i; if (!land[k]) { calls++; if (!isWater(minX + (i + 0.5) * cell, minZ + (j + 0.5) * cell)) land[k] = 1; } }
+      for (let i = 0; i < W; i++) {
+        const k = j * W + i;
+        if (!land[k]) {
+          calls++;
+          if (!isWater(minX + (i + 0.5) * cell, minZ + (j + 0.5) * cell)) land[k] = 1;
+        }
+      }
       if (j % 2 === 1) yield;
     }
-    if (stats) { stats.calls = calls; stats.ms = performance.now() - t0; stats.fast = false; }
+    if (stats) {
+      stats.calls = calls;
+      stats.ms = performance.now() - t0;
+      stats.fast = false;
+    }
     return;
   }
   // 1. raw land at the cell centre (cheap grid lookup) -> chamfer distance in cells (two passes)
-  const INF = 65000, d = new Uint16Array(W * H);
+  const INF = 65000,
+    d = new Uint16Array(W * H);
   for (let j = 0; j < H; j++) {
     const z = minZ + (j + 0.5) * cell;
     for (let i = 0; i < W; i++) d[j * W + i] = isWaterRaw(minX + (i + 0.5) * cell, z) ? INF : 0;
@@ -31,18 +52,30 @@ export function* fillLandFromWater(land, W, H, minX, minZ, cell, isWater, isWate
   }
   for (let j = 0; j < H; j++) {
     for (let i = 0; i < W; i++) {
-      const k = j * W + i; let v = d[k]; if (v === 0) continue;
+      const k = j * W + i;
+      let v = d[k];
+      if (v === 0) continue;
       if (i > 0 && d[k - 1] + 1 < v) v = d[k - 1] + 1;
-      if (j > 0) { if (d[k - W] + 1 < v) v = d[k - W] + 1; if (i > 0 && d[k - W - 1] + 1 < v) v = d[k - W - 1] + 1; if (i < W - 1 && d[k - W + 1] + 1 < v) v = d[k - W + 1] + 1; }
+      if (j > 0) {
+        if (d[k - W] + 1 < v) v = d[k - W] + 1;
+        if (i > 0 && d[k - W - 1] + 1 < v) v = d[k - W - 1] + 1;
+        if (i < W - 1 && d[k - W + 1] + 1 < v) v = d[k - W + 1] + 1;
+      }
       d[k] = v;
     }
   }
   yield;
   for (let j = H - 1; j >= 0; j--) {
     for (let i = W - 1; i >= 0; i--) {
-      const k = j * W + i; let v = d[k]; if (v === 0) continue;
+      const k = j * W + i;
+      let v = d[k];
+      if (v === 0) continue;
       if (i < W - 1 && d[k + 1] + 1 < v) v = d[k + 1] + 1;
-      if (j < H - 1) { if (d[k + W] + 1 < v) v = d[k + W] + 1; if (i < W - 1 && d[k + W + 1] + 1 < v) v = d[k + W + 1] + 1; if (i > 0 && d[k + W - 1] + 1 < v) v = d[k + W - 1] + 1; }
+      if (j < H - 1) {
+        if (d[k + W] + 1 < v) v = d[k + W] + 1;
+        if (i < W - 1 && d[k + W + 1] + 1 < v) v = d[k + W + 1] + 1;
+        if (i > 0 && d[k + W - 1] + 1 < v) v = d[k + W - 1] + 1;
+      }
       d[k] = v;
     }
   }
@@ -60,5 +93,10 @@ export function* fillLandFromWater(land, W, H, minX, minZ, cell, isWater, isWate
     }
     if (j % 4 === 3) yield;
   }
-  if (stats) { stats.calls = calls; stats.ms = performance.now() - t0; stats.fast = true; stats.cells = W * H; }
+  if (stats) {
+    stats.calls = calls;
+    stats.ms = performance.now() - t0;
+    stats.fast = true;
+    stats.cells = W * H;
+  }
 }

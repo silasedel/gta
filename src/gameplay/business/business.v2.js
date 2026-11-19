@@ -2,14 +2,51 @@
 // green marker and press E to buy or manage. The simulation (income per game hour, staff, upgrades, raids) is
 // src/systems/business.js; this module places them, runs the events (robberies you defend, inspections, supply
 // runs) and the management panel. Exposes game.club.open for the club music.
-import { fmt, dist2, help, notify, canAct, getPanel, makeMarker, spawnKitPed, pedOut, release, keepFighting, fireAtPlayer } from '../../jobs/kit.js';
+import {
+  fmt,
+  dist2,
+  help,
+  notify,
+  canAct,
+  getPanel,
+  makeMarker,
+  spawnKitPed,
+  pedOut,
+  release,
+  keepFighting,
+  fireAtPlayer,
+} from '../../jobs/kit.js';
 
 export const order = 125;
 
 const SITES = [
-  { id: 'biz_club', type: 'nightclub', name: 'Velvet Undertow', kinds: ['nightclub'], districts: ['South Beach'], prefer: 39, price: 650000 },
-  { id: 'biz_wash', type: 'car_wash', name: 'Bayside Suds Car Wash', kinds: ['car_repair', 'car', 'tyres'], districts: ['South Beach', 'Bayshore', 'Edgewater'], prefer: 682, price: 95000 },
-  { id: 'biz_store', type: 'convenience', name: 'Night Owl Mart', kinds: ['convenience'], districts: ['Downtown', 'Overtown'], prefer: 72, price: 60000 },
+  {
+    id: 'biz_club',
+    type: 'nightclub',
+    name: 'Velvet Undertow',
+    kinds: ['nightclub'],
+    districts: ['South Beach'],
+    prefer: 39,
+    price: 650000,
+  },
+  {
+    id: 'biz_wash',
+    type: 'car_wash',
+    name: 'Bayside Suds Car Wash',
+    kinds: ['car_repair', 'car', 'tyres'],
+    districts: ['South Beach', 'Bayshore', 'Edgewater'],
+    prefer: 682,
+    price: 95000,
+  },
+  {
+    id: 'biz_store',
+    type: 'convenience',
+    name: 'Night Owl Mart',
+    kinds: ['convenience'],
+    districts: ['Downtown', 'Overtown'],
+    prefer: 72,
+    price: 60000,
+  },
 ];
 const ROBBER_KIT = {
   top: [0x2b2b2b, 0x3a3f45, 0x1c1c1c],
@@ -38,9 +75,23 @@ export async function initV2(game) {
     const l = Math.hypot(dx, dz) || 1;
     dx /= l;
     dz /= l;
-    const site = { ...s, x: f.fx + dx * 2.2, z: f.fz + dz * 2.2, street: f.street, district: f.district, front: { dx, dz } };
+    const site = {
+      ...s,
+      x: f.fx + dx * 2.2,
+      z: f.fz + dz * 2.2,
+      street: f.street,
+      district: f.district,
+      front: { dx, dz },
+    };
     sites.push(site);
-    B.addListing({ id: s.id, type: s.type, name: s.name, district: f.district, price: s.price, seller: 'Coastline Business Brokers' });
+    B.addListing({
+      id: s.id,
+      type: s.type,
+      name: s.name,
+      district: f.district,
+      price: s.price,
+      seller: 'Coastline Business Brokers',
+    });
     site.marker = makeMarker(game, site, 0x55e08a, { r: 0.7, h: 0.5 });
     site.marker.userData.ring.material = site.marker.userData.ring.material.clone();
   }
@@ -55,7 +106,13 @@ export async function initV2(game) {
   game.on?.('businessRaid', (e) => {
     const s = SITE[e.id];
     if (!s) return;
-    ev.robbery = { id: e.id, deadline: e.deadline, n: Math.min(5, e.attackers || 4), started: false, robbers: [] };
+    ev.robbery = {
+      id: e.id,
+      deadline: e.deadline,
+      n: Math.min(5, e.attackers || 4),
+      started: false,
+      robbers: [],
+    };
     notify(game, `${s.name} is being robbed! Get there to defend it.`, 5000);
     game.waypoint = { x: s.x, z: s.z };
     logEvent(e.id, 'Robbery reported');
@@ -79,7 +136,13 @@ export async function initV2(game) {
       r.started = true;
       game.save?.inhibit?.('robbery');
       for (let i = 0; i < r.n; i++) {
-        const p = spawnKitPed(game, { x: s.x + s.front.dx * 4 + (i - r.n / 2) * 1.4, z: s.z + s.front.dz * 4 }, ROBBER_KIT, 900 + i, { tag: { robber: r.id } });
+        const p = spawnKitPed(
+          game,
+          { x: s.x + s.front.dx * 4 + (i - r.n / 2) * 1.4, z: s.z + s.front.dz * 4 },
+          ROBBER_KIT,
+          900 + i,
+          { tag: { robber: r.id } },
+        );
         if (p) {
           p.armed = i === 0;
           r.robbers.push(p);
@@ -105,8 +168,16 @@ export async function initV2(game) {
     if (!alive.length) {
       B.raid.resolve(r.id, { defended: true });
       const bonus = 250;
-      game.wallet?.earn?.(bonus, { category: 'business', memo: `${s.name}: robbers' dropped cash`, hot: true });
-      notify(game, `Robbery stopped. The crew is grateful and the safe is safe. +${fmt(bonus)}`, 4000);
+      game.wallet?.earn?.(bonus, {
+        category: 'business',
+        memo: `${s.name}: robbers' dropped cash`,
+        hot: true,
+      });
+      notify(
+        game,
+        `Robbery stopped. The crew is grateful and the safe is safe. +${fmt(bonus)}`,
+        4000,
+      );
       game.hud?.setMission?.(null);
       game.save?.release?.('robbery');
       for (const p of r.robbers) release(p);
@@ -121,20 +192,25 @@ export async function initV2(game) {
     }
   }
   // every 8 game hours each owned business may get an event
-  game.time?.every?.(480, () => {
-    for (const b of B.owned()) {
-      const s = SITE[b.id];
-      if (!s) continue;
-      const sec = B.security(b.id);
-      const roll = Math.random();
-      if (roll < 0.3 * (1 - sec) && !B.raid.pending(b.id) && !ev.robbery) B.raid.start(b.id, { attackers: 3 + Math.floor(Math.random() * 2), windowMinutes: 120 });
-      else if (roll < 0.55) inspection(b);
-      if ((b.stock ?? 1) < 0.35) {
-        notify(game, `${s.name} is running low on stock. Open its panel for a supply run.`, 4000);
-        logEvent(b.id, 'Stock low');
+  game.time?.every?.(
+    480,
+    () => {
+      for (const b of B.owned()) {
+        const s = SITE[b.id];
+        if (!s) continue;
+        const sec = B.security(b.id);
+        const roll = Math.random();
+        if (roll < 0.3 * (1 - sec) && !B.raid.pending(b.id) && !ev.robbery)
+          B.raid.start(b.id, { attackers: 3 + Math.floor(Math.random() * 2), windowMinutes: 120 });
+        else if (roll < 0.55) inspection(b);
+        if ((b.stock ?? 1) < 0.35) {
+          notify(game, `${s.name} is running low on stock. Open its panel for a supply run.`, 4000);
+          logEvent(b.id, 'Stock low');
+        }
       }
-    }
-  }, { id: 'biz:events', catchUp: 'last' });
+    },
+    { id: 'biz:events', catchUp: 'last' },
+  );
   function inspection(b) {
     const s = SITE[b.id];
     const tiers = Object.keys(b.upgrades).filter((k) => /^(decor|staff)_/.test(k)).length;
@@ -143,10 +219,14 @@ export async function initV2(game) {
       logEvent(b.id, 'Health and safety inspection: passed');
       notify(game, `${s.name} passed its inspection.`, 2600);
     } else {
-      const fine = Math.round(b.price * 0.006 / 50) * 50 + 200;
+      const fine = Math.round((b.price * 0.006) / 50) * 50 + 200;
       game.fines?.issue?.({ kind: 'court', amount: fine, note: `${s.name}: code violations` });
       logEvent(b.id, `Inspection failed: ${fmt(fine)} fine (mailed)`);
-      notify(game, `${s.name} failed an inspection. ${fmt(fine)} fine in the mail. Upgrades help.`, 3600);
+      notify(
+        game,
+        `${s.name} failed an inspection. ${fmt(fine)} fine in the mail. Upgrades help.`,
+        3600,
+      );
     }
     game.emit?.('businessInspection', { id: b.id, pass });
   }
@@ -154,12 +234,25 @@ export async function initV2(game) {
   function startSupply(id) {
     const s = SITE[id];
     const P = game.player.position;
-    const cands = sf.filter((x) => (x.kind === 'supermarket' || x.kind === 'wholesale' || x.kind === 'hardware') && dist2(x, s) > 300 && dist2(x, s) < 1600);
+    const cands = sf.filter(
+      (x) =>
+        (x.kind === 'supermarket' || x.kind === 'wholesale' || x.kind === 'hardware') &&
+        dist2(x, s) > 300 &&
+        dist2(x, s) < 1600,
+    );
     const w = cands[Math.floor(Math.random() * cands.length)] || sf.find((x) => dist2(x, s) > 400);
     if (!w) return;
-    ev.supply = { id, stage: 0, at: { x: w.fx, z: w.fz }, marker: makeMarker(game, { x: w.fx, z: w.fz }, 0xffd25a), start: game.time?.now || 0 };
+    ev.supply = {
+      id,
+      stage: 0,
+      at: { x: w.fx, z: w.fz },
+      marker: makeMarker(game, { x: w.fx, z: w.fz }, 0xffd25a),
+      start: game.time?.now || 0,
+    };
     game.waypoint = { x: w.fx, z: w.fz };
-    game.hud?.setMission?.(`Supply run for ${s.name}: pick up the order (${w.street || 'wholesaler'})`);
+    game.hud?.setMission?.(
+      `Supply run for ${s.name}: pick up the order (${w.street || 'wholesaler'})`,
+    );
     notify(game, 'Supply run started. Pick up at the yellow marker.', 3000);
     void P;
   }
@@ -179,8 +272,17 @@ export async function initV2(game) {
       } else {
         game.scene.remove(sp.marker);
         B.restock(sp.id);
-        const pay = game.wallet?.pay?.(350, { to: 'Wholesaler', category: 'business', memo: `${s.name}: restock`, accepts: ['bank', 'cash'] });
-        notify(game, `${s.name} restocked${pay?.ok ? ' (-$350 wholesale)' : ''}. Customers are back.`, 3500);
+        const pay = game.wallet?.pay?.(350, {
+          to: 'Wholesaler',
+          category: 'business',
+          memo: `${s.name}: restock`,
+          accepts: ['bank', 'cash'],
+        });
+        notify(
+          game,
+          `${s.name} restocked${pay?.ok ? ' (-$350 wholesale)' : ''}. Customers are back.`,
+          3500,
+        );
         logEvent(sp.id, 'Supply run done: fully stocked');
         game.hud?.setMission?.(null);
         game.waypoint = null;
@@ -223,7 +325,11 @@ export async function initV2(game) {
         continue;
       }
       const u = t.upgrades[key];
-      ups.push({ label: `${cap(line)} ${u.tier}: ${u.name}`, price: fmt(B.upgradeCost(id, key)), fn: () => upgrade(id, key) });
+      ups.push({
+        label: `${cap(line)} ${u.tier}: ${u.name}`,
+        price: fmt(B.upgradeCost(id, key)),
+        fn: () => upgrade(id, key),
+      });
     }
     const raid = B.raid.pending(id);
     const html = `<h2>${b.name}</h2><div class="sub">${t.name} · ${s.street} · ${b.open ? '<span class="tag" style="background:#1f7a46">OPEN</span>' : '<span class="tag" style="background:#5b6475">CLOSED</span>'}</div>
@@ -235,14 +341,49 @@ export async function initV2(game) {
       <div class="row"><span>Security</span><b>${Math.round(B.security(id) * 100)}%</b></div>
       <div class="row"><span>Staff</span><b>${b.staff.length}</b></div>
       ${raid ? '<div class="row" style="color:#ff6b5a"><b>Robbery in progress!</b></div>' : ''}
-      <h3>Recent</h3>${ev.log.filter((e) => e.id === id).slice(0, 3).map((e) => `<div class="row"><span>${e.text}</span><small>Day ${e.day} ${e.clock}</small></div>`).join('') || '<div class="row"><span>Quiet so far</span></div>'}
+      <h3>Recent</h3>${
+        ev.log
+          .filter((e) => e.id === id)
+          .slice(0, 3)
+          .map(
+            (e) =>
+              `<div class="row"><span>${e.text}</span><small>Day ${e.day} ${e.clock}</small></div>`,
+          )
+          .join('') || '<div class="row"><span>Quiet so far</span></div>'
+      }
       <h3>Actions</h3>`;
     const app = B.applicants(id).sort((a, c) => c.skill - a.skill)[0];
     panel.show('biz', html, [
-      { label: 'Collect the safe', price: fmt(Math.max(0, b.safe)), disabled: b.safe < 1, fn: () => { const a = B.collect(id); notify(game, `Collected ${fmt(a)}.`, 2000); openPanel(id); } },
+      {
+        label: 'Collect the safe',
+        price: fmt(Math.max(0, b.safe)),
+        disabled: b.safe < 1,
+        fn: () => {
+          const a = B.collect(id);
+          notify(game, `Collected ${fmt(a)}.`, 2000);
+          openPanel(id);
+        },
+      },
       ...ups,
-      { label: app ? `Hire ${app.name} (${app.role.replace(/_/g, ' ')}, skill ${Math.round(app.skill * 100)})` : 'No applicants today', price: app ? `$${app.wage}/h` : '', disabled: !app, fn: () => { B.hire(id, app.id); openPanel(id); } },
-      { label: ev.supply ? 'Supply run in progress' : 'Start a supply run (restock)', disabled: !!ev.supply, fn: () => { panel.hide(); startSupply(id); } },
+      {
+        label: app
+          ? `Hire ${app.name} (${app.role.replace(/_/g, ' ')}, skill ${Math.round(app.skill * 100)})`
+          : 'No applicants today',
+        price: app ? `$${app.wage}/h` : '',
+        disabled: !app,
+        fn: () => {
+          B.hire(id, app.id);
+          openPanel(id);
+        },
+      },
+      {
+        label: ev.supply ? 'Supply run in progress' : 'Start a supply run (restock)',
+        disabled: !!ev.supply,
+        fn: () => {
+          panel.hide();
+          startSupply(id);
+        },
+      },
       { label: 'Close', fn: () => panel.hide() },
     ]);
   }
@@ -252,7 +393,13 @@ export async function initV2(game) {
     // big purchases come out of the bank first: move cash across if the bank alone is short
     const r = B.buy(id);
     if (!r.ok) {
-      notify(game, r.reason === 'insufficient' || r.reason === 'card_declined' ? `You need ${fmt(s.price)} in the bank or in cash.` : `Could not buy: ${r.reason}`, 3000);
+      notify(
+        game,
+        r.reason === 'insufficient' || r.reason === 'card_declined'
+          ? `You need ${fmt(s.price)} in the bank or in cash.`
+          : `Could not buy: ${r.reason}`,
+        3000,
+      );
       return;
     }
     notify(game, `You own ${s.name}. It earns every hour it is open.`, 4000);
@@ -263,7 +410,14 @@ export async function initV2(game) {
   }
   function upgrade(id, key) {
     const r = B.upgrade(id, key);
-    if (!r.ok) notify(game, r.reason === 'needs_tier_1' ? 'Build tier 1 first.' : `Not enough money (${fmt(r.cost || 0)}).`, 2500);
+    if (!r.ok)
+      notify(
+        game,
+        r.reason === 'needs_tier_1'
+          ? 'Build tier 1 first.'
+          : `Not enough money (${fmt(r.cost || 0)}).`,
+        2500,
+      );
     else notify(game, `Upgrade done (-${fmt(r.cost)}).`, 2000);
     openPanel(id);
   }
@@ -302,11 +456,14 @@ export async function initV2(game) {
       s.marker.children[0].visible = dist2(P.position, s) > 4;
       if (!canAct(game) || P.state?.inVehicle || dist2(P.position, s) > 3.2) continue;
       const b = B.get(s.id);
-      prompt = b ? `${s.name} · safe ${fmt(b.safe)} · <b>E</b> manage` : `${s.name} for sale · ${fmt(s.price)} · <b>E</b> view`;
+      prompt = b
+        ? `${s.name} · safe ${fmt(b.safe)} · <b>E</b> manage`
+        : `${s.name} for sale · ${fmt(s.price)} · <b>E</b> view`;
       if (game.input.pressed('KeyE')) openPanel(s.id);
     }
     help(game, 'biz', prompt);
-    if (panel.open && panel.owner === 'biz' && !sites.some((s) => dist2(P.position, s) < 6)) panel.hide();
+    if (panel.open && panel.owner === 'biz' && !sites.some((s) => dist2(P.position, s) < 6))
+      panel.hide();
     if (ev.robbery) robberyTick(dt);
     if (ev.supply) supplyTick();
     syncT -= dt;
@@ -341,7 +498,16 @@ export async function initV2(game) {
         g.fillText('$', x, y + 4);
       }
     },
-    legend: () => [['#55e08a', 'Business for sale'], ['#2fe0d0', 'Your business']],
+    legend: () => [
+      ['#55e08a', 'Business for sale'],
+      ['#2fe0d0', 'Your business'],
+    ],
   });
-  game.bizSites = { sites, open: openPanel, events: ev, startSupply, inspection: (id) => inspection(B.get(id)) };
+  game.bizSites = {
+    sites,
+    open: openPanel,
+    events: ev,
+    startSupply,
+    inspection: (id) => inspection(B.get(id)),
+  };
 }

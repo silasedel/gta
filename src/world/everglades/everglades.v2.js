@@ -29,19 +29,67 @@ export async function initV2(game) {
   if (!game.city?.districtAt || !game.city?.isWater) return;
   const only = (/[?&]gl7parts=([a-z,]+)/.exec(q) || [])[1]?.split(',') || null;
   const G = createRegion(game);
-  const make = { water: createSwampWater, cypress: createCypress, moss: createMoss, snags: createSnags, wildlife: createWildlife, mist: createMist, camps: createCamps };
+  const make = {
+    water: createSwampWater,
+    cypress: createCypress,
+    moss: createMoss,
+    snags: createSnags,
+    wildlife: createWildlife,
+    mist: createMist,
+    camps: createCamps,
+  };
   const parts = {};
-  for (const [k, f] of Object.entries(make)) { if (only && !only.includes(k)) continue; try { parts[k] = f(game, G); } catch (e) { console.warn('[everglades] ' + k, e); } }
-  let active = false, chkT = 0;
+  for (const [k, f] of Object.entries(make)) {
+    if (only && !only.includes(k)) continue;
+    try {
+      parts[k] = f(game, G);
+    } catch (e) {
+      console.warn('[everglades] ' + k, e);
+    }
+  }
+  let active = false,
+    chkT = 0;
   const pl = { x: 0, z: 0 };
   const timing = { ms: 0, max: 0 };
   game.updaters.push((dt) => {
-    const cam = game.camera?.position; if (!cam) return;
-    if ((chkT -= dt) <= 0) { chkT = 1; active = G.nearGlades(cam.x, cam.z, 500) && !game.interiors?.current; }
-    const pp = game.player?.position; if (pp) { pl.x = pp.x; pl.z = pp.z; } else { pl.x = cam.x; pl.z = cam.z; }
+    const cam = game.camera?.position;
+    if (!cam) return;
+    if ((chkT -= dt) <= 0) {
+      chkT = 1;
+      active = G.nearGlades(cam.x, cam.z, 500) && !game.interiors?.current;
+    }
+    const pp = game.player?.position;
+    if (pp) {
+      pl.x = pp.x;
+      pl.z = pp.z;
+    } else {
+      pl.x = cam.x;
+      pl.z = cam.z;
+    }
     const t0 = performance.now();
-    for (const k in parts) { try { parts[k].update(dt, cam, active, pl); } catch (e) { console.warn('[everglades] ' + k, e); delete parts[k]; } }
-    const ms = performance.now() - t0; timing.ms = timing.ms * 0.95 + ms * 0.05; if (ms > timing.max) timing.max = ms;
+    for (const k in parts) {
+      try {
+        parts[k].update(dt, cam, active, pl);
+      } catch (e) {
+        console.warn('[everglades] ' + k, e);
+        delete parts[k];
+      }
+    }
+    const ms = performance.now() - t0;
+    timing.ms = timing.ms * 0.95 + ms * 0.05;
+    if (ms > timing.max) timing.max = ms;
   });
-  game.everglades = { parts, region: G, get active() { return active; }, stats: () => ({ active, ms: +timing.ms.toFixed(3), maxMs: +timing.max.toFixed(2), ...Object.fromEntries(Object.entries(parts).map(([k, p]) => [k, p.stats])) }) };
+  game.everglades = {
+    parts,
+    region: G,
+    get active() {
+      return active;
+    },
+    stats: () => ({
+      active,
+      ms: +timing.ms.toFixed(3),
+      maxMs: +timing.max.toFixed(2),
+      ...Object.fromEntries(Object.entries(parts).map(([k, p]) => [k, p.stats])),
+    }),
+  };
 }

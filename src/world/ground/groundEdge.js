@@ -11,17 +11,35 @@ import { GM_GLSL, gmUniforms } from './surfaceMask.js';
 const OFF = typeof location !== 'undefined' && /[?&](gmask|gedge)=0\b/.test(location.search);
 
 export function patchTerrainEdges(mat, o = {}) {
-  if (!mat || OFF || mat.userData.gmEdge) return mat; mat.userData.gmEdge = true;
-  const prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
-  const SAND = o.sand ?? 6, GRAV = o.gravel ?? 14, DIRT = o.dirt ?? 8, SHELL = o.shell ?? 7, LAWN = o.lawn ?? 0, MULCH = o.mulch ?? 2;
+  if (!mat || OFF || mat.userData.gmEdge) return mat;
+  mat.userData.gmEdge = true;
+  const prev = mat.onBeforeCompile,
+    prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
+  const SAND = o.sand ?? 6,
+    GRAV = o.gravel ?? 14,
+    DIRT = o.dirt ?? 8,
+    SHELL = o.shell ?? 7,
+    LAWN = o.lawn ?? 0,
+    MULCH = o.mulch ?? 2;
   mat.onBeforeCompile = (sh, r) => {
     if (prev) prev.call(mat, sh, r);
-    if (!sh.fragmentShader.includes('// macro variation over everything')) { console.warn('[ground] terrain shader anchor missing: edges off'); return; }
+    if (!sh.fragmentShader.includes('// macro variation over everything')) {
+      console.warn('[ground] terrain shader anchor missing: edges off');
+      return;
+    }
     gmUniforms(sh.uniforms);
     // (no vertex lowering under roads: dropping the 4 m terrain grid let the low-detail land base show through in saw-tooth triangles)
-    sh.fragmentShader = sh.fragmentShader.replace('void main() {', GM_GLSL + /* glsl */`
+    sh.fragmentShader = sh.fragmentShader
+      .replace(
+        'void main() {',
+        GM_GLSL +
+          /* glsl */ `
 GS gsMix(GS a, GS b, float w) { GS s; s.alb = mix(a.alb, b.alb, w); s.tilt = mix(a.tilt, b.tilt, w); s.ao = mix(a.ao, b.ao, w); s.rough = mix(a.rough, b.rough, w); s.h = mix(a.h, b.h, w); s.wet = mix(a.wet, b.wet, w); s.shore = mix(a.shore, b.shore, w); return s; }
-void main() {`).replace('// macro variation over everything', /* glsl */`
+void main() {`,
+      )
+      .replace(
+        '// macro variation over everything',
+        /* glsl */ `
       float gmCrumb = 0.0, gmSh = 0.0;
       { // r2-ground: Keys yards and lots read as a worked mosaic, not one material: soft-bordered patches of bare dirt, pale crushed
         // shell and loose sand over the matted base, height-weighted borders (grains win over the grass texture's low spots)
@@ -106,7 +124,8 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
         float mw = smoothstep(0.22, 0.34, mu) * (1.0 - smoothstep(0.72, 0.86, mu)) * gmFine(wp);
         if (mw > 0.01) { GS ml = gRecipe(${MULCH}, wp, gdx, gdy, gWantN); ml.alb *= vec3(0.47, 0.37, 0.3); ml.rough = 0.95; gs = gsMix(gs, ml, mw); }
       }
-      // macro variation over everything`);
+      // macro variation over everything`,
+      );
   };
   mat.customProgramCacheKey = () => prevKey() + '|gmedge';
   mat.needsUpdate = true;
@@ -117,17 +136,30 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
 // the last half meter in drifts, and the asphalt there is a bit lighter and rougher (crumbling, sun-bleached). Curbed edges (pavement
 // next to the asphalt), junction mouths and decks are left alone. patchRoadEdges(mat)
 export function patchRoadEdges(mat) {
-  if (!mat || OFF || mat.userData.gmRoad) return mat; mat.userData.gmRoad = true;
-  const prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
+  if (!mat || OFF || mat.userData.gmRoad) return mat;
+  mat.userData.gmRoad = true;
+  const prev = mat.onBeforeCompile,
+    prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
   mat.onBeforeCompile = (sh, r) => {
     if (prev) prev.call(mat, sh, r);
     gmUniforms(sh.uniforms);
-    sh.vertexShader = 'varying vec3 vGmW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n  vGmW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = GM_GLSL + /* glsl */`varying vec3 vGmW;
+    sh.vertexShader =
+      'varying vec3 vGmW;\n' +
+      sh.vertexShader.replace(
+        '#include <project_vertex>',
+        '#include <project_vertex>\n  vGmW = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+      );
+    sh.fragmentShader =
+      GM_GLSL +
+      /* glsl */ `varying vec3 vGmW;
 float reP = 0.0;
 float reH1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float reN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(reH1(i), reH1(i + vec2(1.0, 0.0)), f.x), mix(reH1(i + vec2(0.0, 1.0)), reH1(i + vec2(1.0, 1.0)), f.x), f.y); }
-` + sh.fragmentShader.replace('#include <normal_fragment_begin>', /* glsl */`{
+` +
+      sh.fragmentShader
+        .replace(
+          '#include <normal_fragment_begin>',
+          /* glsl */ `{
         vec2 w = vGmW.xz; float fine = gmFine(w);
         { // Keys asphalt (mock-up): pale, sun-bleached, a thin film of coral sand in patches; shallow puddles linger in the low spots
           float kk = smoothstep(4150.0, 4500.0, w.y);
@@ -166,7 +198,12 @@ float reN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
           }
         }
       }
-      #include <normal_fragment_begin>`).replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (reP > 0.0) normal = normalize(mix(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), reP));');
+      #include <normal_fragment_begin>`,
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          '#include <normal_fragment_maps>\n  if (reP > 0.0) normal = normalize(mix(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), reP));',
+        );
   };
   mat.customProgramCacheKey = () => prevKey() + '|gmroad';
   mat.needsUpdate = true;
@@ -177,17 +214,29 @@ float reN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
 // pavement edges, broken up by noise (keeps the fill's own texture detail, recolored toward dry soil), plus asphalt crumbs beside
 // open road edges. patchFillEdges(mat, { strength })
 export function patchFillEdges(mat, o = {}) {
-  if (!mat || OFF || mat.userData.gmFill) return mat; mat.userData.gmFill = true;
-  const prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
+  if (!mat || OFF || mat.userData.gmFill) return mat;
+  mat.userData.gmFill = true;
+  const prev = mat.onBeforeCompile,
+    prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
   const K = (o.strength ?? 1).toFixed(3);
   mat.onBeforeCompile = (sh, r) => {
     if (prev) prev.call(mat, sh, r);
     gmUniforms(sh.uniforms);
-    sh.vertexShader = 'varying vec3 vGmW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n  vGmW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = GM_GLSL + /* glsl */`varying vec3 vGmW;
+    sh.vertexShader =
+      'varying vec3 vGmW;\n' +
+      sh.vertexShader.replace(
+        '#include <project_vertex>',
+        '#include <project_vertex>\n  vGmW = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+      );
+    sh.fragmentShader =
+      GM_GLSL +
+      /* glsl */ `varying vec3 vGmW;
 float feH1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float feN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(feH1(i), feH1(i + vec2(1.0, 0.0)), f.x), mix(feH1(i + vec2(0.0, 1.0)), feH1(i + vec2(1.0, 1.0)), f.x), f.y); }
-` + sh.fragmentShader.replace('#include <normal_fragment_begin>', /* glsl */`{
+` +
+      sh.fragmentShader.replace(
+        '#include <normal_fragment_begin>',
+        /* glsl */ `{
         vec2 w = vGmW.xz; vec4 gn = gmNear(w); float nr = max(gn.r, gn.g * 0.8);
         if (nr > 0.02) {
           float n1 = feN(w * 0.9 + 4.7), n2 = feN(w * 3.1 - 2.3), n3 = feN(w * 0.23 + 1.1);
@@ -202,7 +251,8 @@ float feN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.1, 0.098, 0.095), crumb);
         }
       }
-      #include <normal_fragment_begin>`);
+      #include <normal_fragment_begin>`,
+      );
   };
   mat.customProgramCacheKey = () => prevKey() + '|gmfill';
   mat.needsUpdate = true;

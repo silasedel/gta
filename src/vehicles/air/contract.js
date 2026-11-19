@@ -42,60 +42,87 @@
 // the cameras, the HUD and the AUDIO track. All fields always exist (see makeState()).
 export function makeState() {
   return {
-    t: 0,                    // seconds since spawn (drives blinking lights)
+    t: 0, // seconds since spawn (drives blinking lights)
     engineOn: false,
-    engines: [0],            // per engine: 0..1 fraction of max rpm / N1 (piston idle is about 0.25, turbine idle 0.6)
-    power: [0],              // per engine: 0..1 delivered power / thrust fraction
-    rotorRpm: 0,             // helicopters: main rotor rpm fraction (1 = 100 %), 0 for planes
+    engines: [0], // per engine: 0..1 fraction of max rpm / N1 (piston idle is about 0.25, turbine idle 0.6)
+    power: [0], // per engine: 0..1 delivered power / thrust fraction
+    rotorRpm: 0, // helicopters: main rotor rpm fraction (1 = 100 %), 0 for planes
     tailRotorRpm: 0,
-    throttle: 0,             // 0..1 lever
-    collective: 0,           // 0..1 lever (helicopters)
-    pitch: 0, roll: 0, yaw: 0,   // control positions -1..1 (elevator / aileron / rudder or cyclic / pedals) AFTER assists
-    flaps: 0,                // 0..1 actual
-    gear: 1,                 // 1 = down and locked, 0 = up (fixed gear stays 1)
+    throttle: 0, // 0..1 lever
+    collective: 0, // 0..1 lever (helicopters)
+    pitch: 0,
+    roll: 0,
+    yaw: 0, // control positions -1..1 (elevator / aileron / rudder or cyclic / pedals) AFTER assists
+    flaps: 0, // 0..1 actual
+    gear: 1, // 1 = down and locked, 0 = up (fixed gear stays 1)
     gearCompress: [0, 0, 0], // 0..1 per gear point (strut compression)
-    wheelSpin: [0, 0, 0],    // rad/s per gear point
-    steer: 0,                // nose / tail wheel angle, rad
+    wheelSpin: [0, 0, 0], // rad/s per gear point
+    steer: 0, // nose / tail wheel angle, rad
     brake: 0,
-    ias: 0,                  // indicated airspeed m/s
-    gs: 0,                   // ground speed m/s
-    alt: 0,                  // meters above sea level
-    agl: 0,                  // meters above the surface below (ground, roof or water)
-    vs: 0,                   // vertical speed m/s
-    heading: 0,              // rad, 0 = south (+Z), same convention as the game
-    pitchAtt: 0, rollAtt: 0, // attitude, rad (nose up +, right wing down +)
-    slip: 0,                 // sideslip rad
-    aoa: 0,                  // angle of attack rad
-    g: 1,                    // load factor
-    stall: 0,                // 0..1 stall warning / buffet
-    onGround: false, onWater: false,
-    waterSpeed: 0,           // m/s through the water (floats / hull), for spray
-    torque: 0,               // 0..1 helicopter transmission torque (or prop torque)
-    fuel: 1,                 // 0..1
-    lights: { nav: false, strobe: false, beacon: false, landing: false, taxi: false, cabin: false, search: false },
-    searchAim: { yaw: 0, pitch: -0.9 },   // searchlight direction in body space (police helicopter)
-    night: 0,                // 0..1 (0 = day)
-    damage: 0,               // 0..1 (1 = destroyed)
-    smoke: 0, fire: 0,       // 0..1
-    rotorBroken: false, propBroken: [false],
-    doors: {},               // name -> 0..1
-    spray: 0,                // crop duster spray 0..1
-    hoist: 0,                // rescue hoist cable length m
-    banner: 0,               // banner deployed 0..1
+    ias: 0, // indicated airspeed m/s
+    gs: 0, // ground speed m/s
+    alt: 0, // meters above sea level
+    agl: 0, // meters above the surface below (ground, roof or water)
+    vs: 0, // vertical speed m/s
+    heading: 0, // rad, 0 = south (+Z), same convention as the game
+    pitchAtt: 0,
+    rollAtt: 0, // attitude, rad (nose up +, right wing down +)
+    slip: 0, // sideslip rad
+    aoa: 0, // angle of attack rad
+    g: 1, // load factor
+    stall: 0, // 0..1 stall warning / buffet
+    onGround: false,
+    onWater: false,
+    waterSpeed: 0, // m/s through the water (floats / hull), for spray
+    torque: 0, // 0..1 helicopter transmission torque (or prop torque)
+    fuel: 1, // 0..1
+    lights: {
+      nav: false,
+      strobe: false,
+      beacon: false,
+      landing: false,
+      taxi: false,
+      cabin: false,
+      search: false,
+    },
+    searchAim: { yaw: 0, pitch: -0.9 }, // searchlight direction in body space (police helicopter)
+    night: 0, // 0..1 (0 = day)
+    damage: 0, // 0..1 (1 = destroyed)
+    smoke: 0,
+    fire: 0, // 0..1
+    rotorBroken: false,
+    propBroken: [false],
+    doors: {}, // name -> 0..1
+    spray: 0, // crop duster spray 0..1
+    hoist: 0, // rescue hoist cable length m
+    banner: 0, // banner deployed 0..1
   };
 }
 
 // ------------------------------------------------------------------------------------------------ CONTROLS (keyboard + mouse)
 // Read by air.v2.js / preview sandbox, turned into sim.input(raw). Arrow keys are avoided (ArrowUp opens the phone).
 export const KEYS = {
-  throttleUp: 'KeyW', throttleDown: 'KeyS',      // planes: throttle lever; helicopters: collective (assisted: climb / descend)
-  left: 'KeyA', right: 'KeyD',                   // planes: roll (assisted: coordinated turn); helicopters: pedals (yaw)
-  yawLeft: 'KeyQ', yawRight: 'KeyE',             // planes: rudder; helicopters: cyclic roll (strafe) in assisted mode
-  pitchUp: 'KeyK', pitchDown: 'KeyI', rollLeft: 'KeyJ', rollRight: 'KeyL',   // keyboard stick (mouse does the same)
-  brake: 'Space',                                // wheel brakes; helicopters: hold hover (assisted)
-  gear: 'KeyG', flapsDown: 'KeyX', flapsUp: 'KeyZ',
-  camera: 'KeyV', lights: 'KeyN', search: 'KeyB', mode: 'KeyT', engine: 'KeyY', special: 'KeyR',   // R: spray / hoist / banner drop
-  exit: 'KeyF',                                  // on the ground; hold 1 s in the air to bail out
+  throttleUp: 'KeyW',
+  throttleDown: 'KeyS', // planes: throttle lever; helicopters: collective (assisted: climb / descend)
+  left: 'KeyA',
+  right: 'KeyD', // planes: roll (assisted: coordinated turn); helicopters: pedals (yaw)
+  yawLeft: 'KeyQ',
+  yawRight: 'KeyE', // planes: rudder; helicopters: cyclic roll (strafe) in assisted mode
+  pitchUp: 'KeyK',
+  pitchDown: 'KeyI',
+  rollLeft: 'KeyJ',
+  rollRight: 'KeyL', // keyboard stick (mouse does the same)
+  brake: 'Space', // wheel brakes; helicopters: hold hover (assisted)
+  gear: 'KeyG',
+  flapsDown: 'KeyX',
+  flapsUp: 'KeyZ',
+  camera: 'KeyV',
+  lights: 'KeyN',
+  search: 'KeyB',
+  mode: 'KeyT',
+  engine: 'KeyY',
+  special: 'KeyR', // R: spray / hoist / banner drop
+  exit: 'KeyF', // on the ground; hold 1 s in the air to bail out
 };
 export const MODES = ['assisted', 'realistic'];
 

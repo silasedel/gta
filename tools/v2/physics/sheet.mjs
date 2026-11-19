@@ -5,18 +5,45 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { withBrowser } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const A = o.a && fs.existsSync(o.a) ? JSON.parse(fs.readFileSync(o.a, 'utf8')) : (fs.existsSync('docs/v2/reports/physics-lab-1.json') ? JSON.parse(fs.readFileSync('docs/v2/reports/physics-lab-1.json', 'utf8')) : null);
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const A =
+  o.a && fs.existsSync(o.a)
+    ? JSON.parse(fs.readFileSync(o.a, 'utf8'))
+    : fs.existsSync('docs/v2/reports/physics-lab-1.json')
+      ? JSON.parse(fs.readFileSync('docs/v2/reports/physics-lab-1.json', 'utf8'))
+      : null;
 const B = JSON.parse(fs.readFileSync(o.b || 'docs/v2/reports/physics-lab-2.json', 'utf8'));
 const tests = String(o.tests || Object.keys(B.tests).join(',')).split(',');
-const SH = 'docs/v2/shots/r2-physics', LAB = SH + '/lab';
-const TITLE = { curb: 'Curb 15 cm: up and off the far edge', pothole: 'Pothole (right wheels)', rock: 'Rock 12 cm (left wheels)', bump: 'Speed hump 7.5 cm' };
-const strip = (name, phys, chase = false) => fs.readdirSync(LAB).filter((f) => f.startsWith(`${name}_p${phys}_`) && f.endsWith('.jpg') && f.includes('_chase_') === chase).sort().map((f) => 'file://' + path.resolve(LAB, f));
+const SH = 'docs/v2/shots/r2-physics',
+  LAB = SH + '/lab';
+const TITLE = {
+  curb: 'Curb 15 cm: up and off the far edge',
+  pothole: 'Pothole (right wheels)',
+  rock: 'Rock 12 cm (left wheels)',
+  bump: 'Speed hump 7.5 cm',
+};
+const strip = (name, phys, chase = false) =>
+  fs
+    .readdirSync(LAB)
+    .filter(
+      (f) =>
+        f.startsWith(`${name}_p${phys}_`) && f.endsWith('.jpg') && f.includes('_chase_') === chase,
+    )
+    .sort()
+    .map((f) => 'file://' + path.resolve(LAB, f));
 const html = (name) => {
-  const kind = name.replace(/\d+$/, ''), kmh = name.replace(/^\D+/, '');
-  const b = B.tests[name], a0 = A?.tests?.[name];
-  const imgs = strip(name, B.phys), chase = strip(name, B.phys, true);
+  const kind = name.replace(/\d+$/, ''),
+    kmh = name.replace(/^\D+/, '');
+  const b = B.tests[name],
+    a0 = A?.tests?.[name];
+  const imgs = strip(name, B.phys),
+    chase = strip(name, B.phys, true);
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   body{margin:0;background:#101317;color:#e8ecef;font:14px/1.35 -apple-system,Helvetica,Arial,sans-serif;width:1600px}
   h1{font-size:24px;margin:18px 22px 4px;font-weight:650;letter-spacing:.2px} .sub{margin:0 22px 12px;color:#9aa6b2}
@@ -63,10 +90,19 @@ const html = (name) => {
 await withBrowser({ width: 1600, height: 1200, maxSeconds: 300 }, async (br) => {
   for (const name of tests) {
     if (!B.tests[name]) continue;
-    const f = path.resolve(`${SH}/.sheet_${name}.html`); fs.writeFileSync(f, html(name));
-    await br.goto('file://' + f); await br.waitFor("document.title === 'ready' && [...document.images].every((i) => i.complete)", 30);
+    const f = path.resolve(`${SH}/.sheet_${name}.html`);
+    fs.writeFileSync(f, html(name));
+    await br.goto('file://' + f);
+    await br.waitFor(
+      "document.title === 'ready' && [...document.images].every((i) => i.complete)",
+      30,
+    );
     const h = await br.eval('document.body.scrollHeight');
-    await br.screenshot(`${SH}/${name}_sheet.jpg`, { quality: 90, clip: { x: 0, y: 0, width: 1600, height: h } });
-    fs.unlinkSync(f); console.log('sheet', name);
+    await br.screenshot(`${SH}/${name}_sheet.jpg`, {
+      quality: 90,
+      clip: { x: 0, y: 0, width: 1600, height: h },
+    });
+    fs.unlinkSync(f);
+    console.log('sheet', name);
   }
 });

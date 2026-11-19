@@ -38,7 +38,9 @@ await withBrowser({ width: 1600, height: 900, maxSeconds: 900 }, async (b) => {
     const near = await b.eval('game.camera.near');
     // two frames: make sure the page really rendered new frames in between (count rAF ticks)
     await b.screenshot(`docs/v2/shots/look/z_${SET}_${s.id}_a.png`);
-    const ticks = await b.eval('new Promise((res) => { let n = 0; const f = () => { if (++n < 3) requestAnimationFrame(f); else res(n); }; requestAnimationFrame(f); })');
+    const ticks = await b.eval(
+      'new Promise((res) => { let n = 0; const f = () => { if (++n < 3) requestAnimationFrame(f); else res(n); }; requestAnimationFrame(f); })',
+    );
     await b.screenshot(`docs/v2/shots/look/z_${SET}_${s.id}_b.png`);
     console.log(s.id, 'frames between', ticks);
     console.log(s.id, 'near', near);

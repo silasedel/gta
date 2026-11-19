@@ -7,9 +7,22 @@
 import * as THREE from 'three';
 import { NetClient } from './clientCore.js';
 import {
-  TICK_HZ, SEAT_NONE, weaponIndex, weaponKey,
-  F_IN_VEHICLE, F_GROUNDED, F_SPRINT, F_JUMPING, F_SWIMMING, F_DEAD, F_AIMING, F_PUNCH,
-  V_LIGHTS, V_BRAKE, V_REVERSE, V_SIREN,
+  TICK_HZ,
+  SEAT_NONE,
+  weaponIndex,
+  weaponKey,
+  F_IN_VEHICLE,
+  F_GROUNDED,
+  F_SPRINT,
+  F_JUMPING,
+  F_SWIMMING,
+  F_DEAD,
+  F_AIMING,
+  F_PUNCH,
+  V_LIGHTS,
+  V_BRAKE,
+  V_REVERSE,
+  V_SIREN,
 } from './protocol.js';
 import { createCharacter } from '../player/characterModel.js';
 
@@ -70,7 +83,10 @@ export async function startSession(game, opts) {
       if (typeof game.weather?.set === 'function') {
         game.weather.set(w.weather, { rain: w.rain });
       } else {
-        game.weather = Object.assign(game.weather && typeof game.weather === 'object' ? game.weather : {}, { kind: w.weather, rain: w.rain });
+        game.weather = Object.assign(
+          game.weather && typeof game.weather === 'object' ? game.weather : {},
+          { kind: w.weather, rain: w.rain },
+        );
       }
     } catch (e) {
       console.warn('[net] weather', e);
@@ -105,13 +121,17 @@ export async function startSession(game, opts) {
   });
   const proxies = new Map();
   let carMod = null;
-  import('../vehicles/carModel2.js').then((m) => {
-    carMod = m;
-  }).catch((e) => console.warn('[net] car models unavailable', e));
+  import('../vehicles/carModel2.js')
+    .then((m) => {
+      carMod = m;
+    })
+    .catch((e) => console.warn('[net] car models unavailable', e));
   let regMod = null;
-  import('../vehicles/registry.js').then((m) => {
-    regMod = m;
-  }).catch(() => {});
+  import('../vehicles/registry.js')
+    .then((m) => {
+      regMod = m;
+    })
+    .catch(() => {});
 
   function makeProxy(d) {
     if (!carMod) {
@@ -144,7 +164,14 @@ export async function startSession(game, opts) {
     try {
       const R = game.RAPIER;
       body = game.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased());
-      game.world.createCollider(R.ColliderDesc.cuboid((spec.W || 1.9) / 2, 0.7, (spec.L || 4.6) / 2).setTranslation(0, 0.7 - groundOff, 0), body);
+      game.world.createCollider(
+        R.ColliderDesc.cuboid((spec.W || 1.9) / 2, 0.7, (spec.L || 4.6) / 2).setTranslation(
+          0,
+          0.7 - groundOff,
+          0,
+        ),
+        body,
+      );
     } catch (e) {
       body = null;
     }
@@ -182,7 +209,12 @@ export async function startSession(game, opts) {
     root.quaternion.setFromEuler(_e);
     if (px.body) {
       px.body.setNextKinematicTranslation({ x, y, z });
-      px.body.setNextKinematicRotation({ x: root.quaternion.x, y: root.quaternion.y, z: root.quaternion.z, w: root.quaternion.w });
+      px.body.setNextKinematicRotation({
+        x: root.quaternion.x,
+        y: root.quaternion.y,
+        z: root.quaternion.z,
+        w: root.quaternion.w,
+      });
     }
     // wheels roll with the ground speed, front wheels steer
     const sp = px.init && dt > 0 ? Math.hypot(x - px.lx, z - px.lz) / dt : 0;
@@ -192,7 +224,7 @@ export async function startSession(game, opts) {
     px.lz = z;
     px.init = true;
     for (const w of px.car.wheels || []) {
-      w.spin.rotation.x += fwd * sp * dt / (w.r || 0.33);
+      w.spin.rotation.x += (fwd * sp * dt) / (w.r || 0.33);
       if (w.front) {
         w.steer.rotation.y = steer * 0.6;
       }
@@ -239,10 +271,12 @@ export async function startSession(game, opts) {
     scene.add(ch.root);
     applyLook(ch, info.get(id));
     const tag = document.createElement('div');
-    tag.style.cssText = 'position:absolute;left:0;top:0;transform:translate(-9999px,0);font:600 13px/1.2 "Archivo Black",system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;text-align:center;white-space:nowrap;letter-spacing:.04em';
+    tag.style.cssText =
+      'position:absolute;left:0;top:0;transform:translate(-9999px,0);font:600 13px/1.2 "Archivo Black",system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;text-align:center;white-space:nowrap;letter-spacing:.04em';
     const nameEl = document.createElement('div');
     const bar = document.createElement('div');
-    bar.style.cssText = 'margin:3px auto 0;width:56px;height:4px;border-radius:2px;background:rgba(0,0,0,.5);overflow:hidden';
+    bar.style.cssText =
+      'margin:3px auto 0;width:56px;height:4px;border-radius:2px;background:rgba(0,0,0,.5);overflow:hidden';
     const fill = document.createElement('div');
     fill.style.cssText = 'height:100%;width:100%;background:#4fd18b';
     bar.appendChild(fill);
@@ -307,7 +341,18 @@ export async function startSession(game, opts) {
         }
         if (px) {
           proxyUsed.add(r.veh);
-          placeProxy(px, _pose.x, _pose.y, _pose.z, _pose.h, r.pitch, r.roll, r.steer, r.vflags, dt);
+          placeProxy(
+            px,
+            _pose.x,
+            _pose.y,
+            _pose.z,
+            _pose.h,
+            r.pitch,
+            r.roll,
+            r.steer,
+            r.vflags,
+            dt,
+          );
         }
       }
       const ch = a.char;
@@ -360,7 +405,9 @@ export async function startSession(game, opts) {
       if (proxyUsed.has(vid) || d.owner === client.id) {
         continue;
       }
-      const drivenBy = [...client.remotes.values()].some((r) => r.veh === vid && r.seat !== SEAT_NONE);
+      const drivenBy = [...client.remotes.values()].some(
+        (r) => r.veh === vid && r.seat !== SEAT_NONE,
+      );
       if (drivenBy) {
         continue;
       }
@@ -388,8 +435,25 @@ export async function startSession(game, opts) {
 
   // ---------------------------------------------------------------- local player upload + reconciliation
   const st = {
-    flags: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, heading: 0, animSpeed: 0, health: 100, armor: 0,
-    wanted: 0, weapon: 0, veh: 0, seat: SEAT_NONE, pitch: 0, roll: 0, steer: 0, vflags: 0,
+    flags: 0,
+    x: 0,
+    y: 0,
+    z: 0,
+    vx: 0,
+    vy: 0,
+    vz: 0,
+    heading: 0,
+    animSpeed: 0,
+    health: 100,
+    armor: 0,
+    wanted: 0,
+    weapon: 0,
+    veh: 0,
+    seat: SEAT_NONE,
+    pitch: 0,
+    roll: 0,
+    steer: 0,
+    vflags: 0,
   };
   let vehCounter = 0;
   let myVeh = null;
@@ -438,7 +502,12 @@ export async function startSession(game, opts) {
     if (v !== myVeh) {
       if (myVeh && myVeh.body && myVeh.alive !== false) {
         const t = myVeh.body.translation();
-        client.sendJSON({ t: 'vpark', id: myVehId, p: [t.x, t.y, t.z], r: poseOf(myVeh, [0, 0, 0]) });
+        client.sendJSON({
+          t: 'vpark',
+          id: myVehId,
+          p: [t.x, t.y, t.z],
+          r: poseOf(myVeh, [0, 0, 0]),
+        });
       }
       myVeh = v;
       if (v && v.body) {
@@ -503,7 +572,11 @@ export async function startSession(game, opts) {
       st.pitch = pr[1];
       st.roll = pr[2];
       st.steer = Math.max(-1, Math.min(1, (v.steerCur || 0) / 0.6));
-      st.vflags = (v.lightsOn ? V_LIGHTS : 0) | (v.braking ? V_BRAKE : 0) | (v.reversing ? V_REVERSE : 0) | (v.sirenOn ? V_SIREN : 0);
+      st.vflags =
+        (v.lightsOn ? V_LIGHTS : 0) |
+        (v.braking ? V_BRAKE : 0) |
+        (v.reversing ? V_REVERSE : 0) |
+        (v.sirenOn ? V_SIREN : 0);
       st.veh = myVehId;
       st.seat = 0;
       st.animSpeed = 0;
@@ -570,7 +643,12 @@ export async function startSession(game, opts) {
   game.on('shot', offShot);
   game.on('shot:suppressed', offShot);
   game.on('punch', () => {
-    client.sendJSON({ t: 'melee', w: weaponKey(weaponIndex(P.weapon)), ct: performance.now() >>> 0, vt: Math.round(client.renderT) });
+    client.sendJSON({
+      t: 'melee',
+      w: weaponKey(weaponIndex(P.weapon)),
+      ct: performance.now() >>> 0,
+      vt: Math.round(client.renderT),
+    });
   });
   const _a = new THREE.Vector3();
   const _b = new THREE.Vector3();
@@ -591,7 +669,13 @@ export async function startSession(game, opts) {
     P.armor = (P.armor || 0) - ar;
     d -= ar;
     P.health = Math.max(0, (P.health || 0) - d);
-    game.emit?.('hit', { target: 'player', kind: 'bullet', damage: m.dmg, by: 'player:' + m.by, point: P.position.clone() });
+    game.emit?.('hit', {
+      target: 'player',
+      kind: 'bullet',
+      damage: m.dmg,
+      by: 'player:' + m.by,
+      point: P.position.clone(),
+    });
   });
   client.on('kill', (m) => {
     const a = info.get(m.by)?.name || (m.by === client.id ? 'You' : 'Someone');
@@ -614,7 +698,8 @@ export async function startSession(game, opts) {
       if (d < -12) {
         d += 24;
       }
-      game.timeOfDay = Math.abs(d) > 0.25 ? world.tod : (game.timeOfDay + d * Math.min(1, dt) + 24) % 24;
+      game.timeOfDay =
+        Math.abs(d) > 0.25 ? world.tod : (game.timeOfDay + d * Math.min(1, dt) + 24) % 24;
     }
     upload(dt);
     drawRemotes(dt);

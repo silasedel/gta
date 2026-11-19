@@ -14,18 +14,82 @@ const TRACK = fs.readFileSync(new URL('./r3-leak.track.js', import.meta.url), 'u
 import os from 'node:os';
 const T_START = Date.now();
 // this run's Chrome profile: the first ps-v2-chrome-* dir created after the script started
-let _prof = null; function myProfile() { if (_prof) return _prof; try { const c = fs.readdirSync(os.tmpdir()).filter((n) => n.startsWith('ps-v2-chrome-')).map((n) => [os.tmpdir().replace(/\/$/, '') + '/' + n, fs.statSync(os.tmpdir() + '/' + n).birthtimeMs]).filter((x) => x[1] >= T_START - 2000).sort((a, b) => a[1] - b[1]); _prof = c[0] ? c[0][0].split('/').pop() : null; } catch (e) { /* */ } return _prof; }
+let _prof = null;
+function myProfile() {
+  if (_prof) return _prof;
+  try {
+    const c = fs
+      .readdirSync(os.tmpdir())
+      .filter((n) => n.startsWith('ps-v2-chrome-'))
+      .map((n) => [
+        os.tmpdir().replace(/\/$/, '') + '/' + n,
+        fs.statSync(os.tmpdir() + '/' + n).birthtimeMs,
+      ])
+      .filter((x) => x[1] >= T_START - 2000)
+      .sort((a, b) => a[1] - b[1]);
+    _prof = c[0] ? c[0][0].split('/').pop() : null;
+  } catch (e) {
+    /* */
+  }
+  return _prof;
+}
 // physical footprint (MB) of this test's Chrome GPU and renderer processes (found by the temp profile dir in their command line)
-function footprints() { const out = {}; try { const ps = execSync('ps -axo pid,command', { encoding: 'utf8', maxBuffer: 32e6 }); const prof = myProfile();
-  if (!prof) return out; for (const line of ps.split('\n')) { if (!line.includes(prof)) continue; const ty = (line.match(/--type=(gpu-process|renderer)/) || [])[1]; if (!ty || (ty === 'renderer' && /--extension-process/.test(line))) continue; const pid = +line.trim().split(/\s+/)[0];
-    try { const vm = execSync(`vmmap --summary ${pid} 2>/dev/null | grep -E 'Physical footprint:|IOAccelerator \\(graphics\\)'`, { encoding: 'utf8' }); const f = vm.match(/Physical footprint:\s+([\d.]+)([GMK])/); const g = vm.match(/IOAccelerator \(graphics\)\s+([\d.]+)([GMK])/); const mb = (m) => m ? Math.round(+m[1] * (m[2] === 'G' ? 1024 : m[2] === 'K' ? 1 / 1024 : 1)) : null; out[ty === 'gpu-process' ? 'gpu' : 'ren'] = Math.max(out[ty === 'gpu-process' ? 'gpu' : 'ren'] || 0, mb(f)); if (g) out.gfx = mb(g); } catch (e) { /* */ } } } catch (e) { /* */ } return out; }
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const SET = o.set || 'base', SECS = +(o.secs || 660), EVERY = +(o.every || 20), STARS = +(o.stars ?? 3);
+function footprints() {
+  const out = {};
+  try {
+    const ps = execSync('ps -axo pid,command', { encoding: 'utf8', maxBuffer: 32e6 });
+    const prof = myProfile();
+    if (!prof) return out;
+    for (const line of ps.split('\n')) {
+      if (!line.includes(prof)) continue;
+      const ty = (line.match(/--type=(gpu-process|renderer)/) || [])[1];
+      if (!ty || (ty === 'renderer' && /--extension-process/.test(line))) continue;
+      const pid = +line.trim().split(/\s+/)[0];
+      try {
+        const vm = execSync(
+          `vmmap --summary ${pid} 2>/dev/null | grep -E 'Physical footprint:|IOAccelerator \\(graphics\\)'`,
+          { encoding: 'utf8' },
+        );
+        const f = vm.match(/Physical footprint:\s+([\d.]+)([GMK])/);
+        const g = vm.match(/IOAccelerator \(graphics\)\s+([\d.]+)([GMK])/);
+        const mb = (m) =>
+          m ? Math.round(+m[1] * (m[2] === 'G' ? 1024 : m[2] === 'K' ? 1 / 1024 : 1)) : null;
+        out[ty === 'gpu-process' ? 'gpu' : 'ren'] = Math.max(
+          out[ty === 'gpu-process' ? 'gpu' : 'ren'] || 0,
+          mb(f),
+        );
+        if (g) out.gfx = mb(g);
+      } catch (e) {
+        /* */
+      }
+    }
+  } catch (e) {
+    /* */
+  }
+  return out;
+}
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const SET = o.set || 'base',
+  SECS = +(o.secs || 660),
+  EVERY = +(o.every || 20),
+  STARS = +(o.stars ?? 3);
 const AP = fs.readFileSync(new URL('./r3-leak.ap.js', import.meta.url), 'utf8');
 const SHOTS = `docs/v2/shots/perf/r3-leak-${SET}`;
 fs.mkdirSync(SHOTS, { recursive: true });
-const rep = { set: SET, q: o.q || '', when: new Date().toISOString(), secs: SECS, samples: [], errors: [] };
+const rep = {
+  set: SET,
+  q: o.q || '',
+  when: new Date().toISOString(),
+  secs: SECS,
+  samples: [],
+  errors: [],
+};
 
 // page instrumentation installed before any page script: GL object lifetimes, audio nodes, listeners, timers
 const INSTR = `(() => {
@@ -83,12 +147,17 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: SECS + 900 }, async (b
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 15; return 1; })()`);
+  await b.eval(
+    `(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 15; return 1; })()`,
+  );
   console.log('tracker', await b.eval(TRACK));
   // route: Brickell -> downtown loop on the road graph (random straight-ish continuation on big roads, no edge reuse)
   const start = (o.from || '0,1760').split(',').map(Number);
-  await b.eval(`(async () => { game.teleport(${start[0]}, undefined, ${start[1]}); const st = game.city.streamer; const t0 = performance.now();
-    while (performance.now() - t0 < 40000) { await new Promise((r) => setTimeout(r, 200)); if (st.readyAround(${start[0]}, ${start[1]}, 120) && game.city.collidersReadyAt(${start[0]}, ${start[1]})) break; } return 1; })()`, 60000);
+  await b.eval(
+    `(async () => { game.teleport(${start[0]}, undefined, ${start[1]}); const st = game.city.streamer; const t0 = performance.now();
+    while (performance.now() - t0 < 40000) { await new Promise((r) => setTimeout(r, 200)); if (st.readyAround(${start[0]}, ${start[1]}, 120) && game.city.collidersReadyAt(${start[0]}, ${start[1]})) break; } return 1; })()`,
+    60000,
+  );
   await b.sleep(3000);
   const n = await b.eval(`(() => {
     const G = game.city.roadGraph, need = ${SECS * 20 + 3000}; const P = game.player.position;
@@ -110,28 +179,69 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: SECS + 900 }, async (b
       e = best[1];
     }
     window.__route = pts; window.__routeLen = len; return pts.length; })()`);
-  rep.routePoints = n; rep.routeLen = await b.eval('Math.round(window.__routeLen)');
+  rep.routePoints = n;
+  rep.routeLen = await b.eval('Math.round(window.__routeLen)');
   console.log('route', n, 'points', rep.routeLen, 'm');
   // car + autopilot: steer to a look-ahead point on the route (the route loops); reverse when stuck; less than 6 m of
   // progress in 7 s puts the car back on the route 20 m further on (a reset); a wrecked / disabled car is replaced
   await b.eval(AP);
   const ok = await b.eval('window.__apNewCar()');
   if (!ok) throw new Error('no car');
-  const t0 = Date.now(); let lastShot = -1e9, k = 0;
+  const t0 = Date.now();
+  let lastShot = -1e9,
+    k = 0;
   while ((Date.now() - t0) / 1000 < SECS) {
     // keep the chase going: hold the wanted level up
-    if (STARS) await b.eval(`(() => { if ((game.wanted?.level ?? 0) < ${STARS}) game.wanted.set(${STARS}, game.player.position, { visual: true }); try { window.__apKeep(); } catch (e) {} if (game.player.health < 50) game.player.health = 100; return 1; })()`).catch(() => {});
+    if (STARS)
+      await b
+        .eval(
+          `(() => { if ((game.wanted?.level ?? 0) < ${STARS}) game.wanted.set(${STARS}, game.player.position, { visual: true }); try { window.__apKeep(); } catch (e) {} if (game.player.health < 50) game.player.health = 100; return 1; })()`,
+        )
+        .catch(() => {});
     let s0 = null;
     try {
-      const s = s0 = JSON.parse(await b.eval(SAMPLE, 30000)); try { const hu = (await b.send('Runtime.getHeapUsage')).result; s.v8MB = Math.round(hu.usedSize / 1048576); s.abMB = Math.round(hu.backingStorageSize / 1048576); } catch (e) { /* */ } s.wall = Math.round((Date.now() - t0) / 1000); s.fp = footprints(); if (k % 2 === 0 || (Date.now() - t0) / 1000 > SECS - EVERY - 5) { try { s.orphans = await b.eval('JSON.stringify(window.__trk.census())', 60000).then(JSON.parse); } catch (e) { /* */ } } rep.samples.push(s);
-      console.log(`${String(s.wall).padStart(4)}s fp ${JSON.stringify(s.fp)} orph ${s.orphans ? s.orphans.orphan : '-'} fps ${s.fps} v8 ${s.v8MB} ab ${s.abMB} vao ${s.lk?.gl?.vaos} views ${s.views} work ${s.work} gap ${s.gap} heap ${s.heap} geo ${s.ri?.geo} tex ${s.ri?.tex} prog ${s.ri?.prog} calls ${s.ri?.calls} objs ${s.objs} inst ${s.inst} lights ${s.lights} bodies ${s.rap?.bodies} col ${s.rap?.colliders} veh ${s.veh.all} peds ${s.peds.active}/${s.peds.n} cops ${s.police.units}/${s.police.cars} upd ${s.upd}/${s.fixed} glbuf ${s.lk?.gl?.buffers} gltex ${s.lk?.gl?.textures} audio ${s.lk?.audio} lis ${s.lk?.listeners} int ${s.lk?.intervals} W${s.wanted} resets ${s.ap?.stuck} top ${s.sys.slice(0, 4).map((x) => x.join(' ')).join(', ')}`);
-    } catch (e) { console.log('sample failed', String(e).slice(0, 200)); }
+      const s = (s0 = JSON.parse(await b.eval(SAMPLE, 30000)));
+      try {
+        const hu = (await b.send('Runtime.getHeapUsage')).result;
+        s.v8MB = Math.round(hu.usedSize / 1048576);
+        s.abMB = Math.round(hu.backingStorageSize / 1048576);
+      } catch (e) {
+        /* */
+      }
+      s.wall = Math.round((Date.now() - t0) / 1000);
+      s.fp = footprints();
+      if (k % 2 === 0 || (Date.now() - t0) / 1000 > SECS - EVERY - 5) {
+        try {
+          s.orphans = await b.eval('JSON.stringify(window.__trk.census())', 60000).then(JSON.parse);
+        } catch (e) {
+          /* */
+        }
+      }
+      rep.samples.push(s);
+      console.log(
+        `${String(s.wall).padStart(4)}s fp ${JSON.stringify(s.fp)} orph ${s.orphans ? s.orphans.orphan : '-'} fps ${s.fps} v8 ${s.v8MB} ab ${s.abMB} vao ${s.lk?.gl?.vaos} views ${s.views} work ${s.work} gap ${s.gap} heap ${s.heap} geo ${s.ri?.geo} tex ${s.ri?.tex} prog ${s.ri?.prog} calls ${s.ri?.calls} objs ${s.objs} inst ${s.inst} lights ${s.lights} bodies ${s.rap?.bodies} col ${s.rap?.colliders} veh ${s.veh.all} peds ${s.peds.active}/${s.peds.n} cops ${s.police.units}/${s.police.cars} upd ${s.upd}/${s.fixed} glbuf ${s.lk?.gl?.buffers} gltex ${s.lk?.gl?.textures} audio ${s.lk?.audio} lis ${s.lk?.listeners} int ${s.lk?.intervals} W${s.wanted} resets ${s.ap?.stuck} top ${s.sys
+          .slice(0, 4)
+          .map((x) => x.join(' '))
+          .join(', ')}`,
+      );
+    } catch (e) {
+      console.log('sample failed', String(e).slice(0, 200));
+    }
     if (s0 && s0.orphans) console.log('   orphans', JSON.stringify(s0.orphans.top.slice(0, 6)));
-    if ((Date.now() - lastShot) / 1000 >= 120) { lastShot = Date.now(); try { await b.screenshot(`${SHOTS}/t${String(k++).padStart(2, '0')}.jpg`, { quality: 70 }); } catch (e) { /* */ } }
+    if ((Date.now() - lastShot) / 1000 >= 120) {
+      lastShot = Date.now();
+      try {
+        await b.screenshot(`${SHOTS}/t${String(k++).padStart(2, '0')}.jpg`, { quality: 70 });
+      } catch (e) {
+        /* */
+      }
+    }
     await b.sleep(EVERY * 1000);
   }
   rep.errors = [...new Set(b.errors)].slice(0, 30);
-  rep.spikes = JSON.parse(await b.eval('JSON.stringify((game.perf.spikes || []).slice(-20))').catch(() => '[]'));
+  rep.spikes = JSON.parse(
+    await b.eval('JSON.stringify((game.perf.spikes || []).slice(-20))').catch(() => '[]'),
+  );
 });
 fs.writeFileSync(`docs/v2/reports/r3-leak-${SET}.json`, JSON.stringify(rep, null, 1));
 console.log('wrote', `docs/v2/reports/r3-leak-${SET}.json`, 'errors', rep.errors.length);

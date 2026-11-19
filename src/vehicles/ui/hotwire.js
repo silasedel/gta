@@ -29,18 +29,46 @@ const CSS = `
 @keyframes sl-hw-shake{0%,100%{transform:translateX(-50%)}25%{transform:translateX(calc(-50% - 7px))}75%{transform:translateX(calc(-50% + 7px))}}
 `;
 const WIRE_COLORS = ['#e2483d', '#f2c230', '#8a5a2b'];
-const SKILL_KEY = 'southline.hotwireSkill', SKILL_AUTO = 8, STAGES = 2;
+const SKILL_KEY = 'southline.hotwireSkill',
+  SKILL_AUTO = 8,
+  STAGES = 2;
 const OFF = typeof location !== 'undefined' && /[?&]hotwire=0\b/.test(location.search);
 
 export function createHotwire(game) {
-  let el = null, st = null, raf = 0, last = 0;
-  const skill = () => { try { return Math.max(0, +(localStorage.getItem(SKILL_KEY) || 0)); } catch (e) { return 0; } };
-  const addSkill = () => { try { localStorage.setItem(SKILL_KEY, String(skill() + 1)); } catch (e) { /* private mode */ } };
+  let el = null,
+    st = null,
+    raf = 0,
+    last = 0;
+  const skill = () => {
+    try {
+      return Math.max(0, +(localStorage.getItem(SKILL_KEY) || 0));
+    } catch (e) {
+      return 0;
+    }
+  };
+  const addSkill = () => {
+    try {
+      localStorage.setItem(SKILL_KEY, String(skill() + 1));
+    } catch (e) {
+      /* private mode */
+    }
+  };
   function mount() {
     if (el) return el;
-    if (!document.getElementById('sl-hw-css')) { const s = document.createElement('style'); s.id = 'sl-hw-css'; s.textContent = CSS; document.head.appendChild(s); }
-    el = document.createElement('div'); el.className = 'sl-hw';
-    el.innerHTML = `<div class="hd"><b>Hotwire</b><span class="wires">${WIRE_COLORS.slice(0, STAGES + 1).map((c) => `<i class="wire" style="color:${c}"></i>`).join('')}</span></div>
+    if (!document.getElementById('sl-hw-css')) {
+      const s = document.createElement('style');
+      s.id = 'sl-hw-css';
+      s.textContent = CSS;
+      document.head.appendChild(s);
+    }
+    el = document.createElement('div');
+    el.className = 'sl-hw';
+    el.innerHTML = `<div class="hd"><b>Hotwire</b><span class="wires">${WIRE_COLORS.slice(
+      0,
+      STAGES + 1,
+    )
+      .map((c) => `<i class="wire" style="color:${c}"></i>`)
+      .join('')}</span></div>
       <div class="track"><div class="zone"></div><div class="core"></div><div class="spark"></div></div>
       <div class="ft"><span><kbd>E</kbd>touch the wires</span><span class="hint"></span></div>`;
     document.body.appendChild(el);
@@ -48,17 +76,48 @@ export function createHotwire(game) {
   }
   function placeZone() {
     const w = Math.min(0.3, 0.13 + skill() * 0.012); // skill widens the contact
-    st.zw = w; st.zc = w / 2 + 0.08 + Math.random() * (0.84 - w);
-    const z = el.querySelector('.zone'), c = el.querySelector('.core');
-    z.style.left = ((st.zc - w / 2) * 100) + '%'; z.style.width = (w * 100) + '%'; c.style.left = (st.zc * 100) + '%';
+    st.zw = w;
+    st.zc = w / 2 + 0.08 + Math.random() * (0.84 - w);
+    const z = el.querySelector('.zone'),
+      c = el.querySelector('.core');
+    z.style.left = (st.zc - w / 2) * 100 + '%';
+    z.style.width = w * 100 + '%';
+    c.style.left = st.zc * 100 + '%';
   }
-  function wireLit(n) { el.querySelectorAll('.wire').forEach((w, i) => { const on = i < n; w.classList.toggle('done', on); w.style.background = on ? w.style.color : ''; }); }
-  function flash(cls) { el.classList.remove('hit', 'miss'); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el && el.classList.remove(cls), 300); }
-  function sfx(name, vol = 0.5) { try { game.audio?.play?.(name, { position: st?.v?.mesh?.position?.clone?.(), volume: vol }); } catch (e) { /* optional */ } }
+  function wireLit(n) {
+    el.querySelectorAll('.wire').forEach((w, i) => {
+      const on = i < n;
+      w.classList.toggle('done', on);
+      w.style.background = on ? w.style.color : '';
+    });
+  }
+  function flash(cls) {
+    el.classList.remove('hit', 'miss');
+    void el.offsetWidth;
+    el.classList.add(cls);
+    setTimeout(() => el && el.classList.remove(cls), 300);
+  }
+  function sfx(name, vol = 0.5) {
+    try {
+      game.audio?.play?.(name, { position: st?.v?.mesh?.position?.clone?.(), volume: vol });
+    } catch (e) {
+      /* optional */
+    }
+  }
   function finish(ok) {
-    const s = st; st = null; cancelAnimationFrame(raf); raf = 0;
-    removeEventListener('keydown', onKey, true); removeEventListener('mousedown', onMouse, true);
-    if (el) { if (ok) { el.classList.add('ok'); wireLit(STAGES + 1); } setTimeout(() => el && el.classList.remove('on', 'ok'), ok ? 380 : 0); }
+    const s = st;
+    st = null;
+    cancelAnimationFrame(raf);
+    raf = 0;
+    removeEventListener('keydown', onKey, true);
+    removeEventListener('mousedown', onMouse, true);
+    if (el) {
+      if (ok) {
+        el.classList.add('ok');
+        wireLit(STAGES + 1);
+      }
+      setTimeout(() => el && el.classList.remove('on', 'ok'), ok ? 380 : 0);
+    }
     if (ok) addSkill();
     s?.done?.(ok);
   }
@@ -67,46 +126,103 @@ export function createHotwire(game) {
     const d = Math.abs(st.x - st.zc);
     if (d <= st.zw / 2) {
       const perfect = d < st.zw * 0.12;
-      st.stage = perfect ? STAGES : st.stage + 1; flash('hit'); sfx('spark', 0.45); wireLit(st.stage);
-      if (st.stage >= STAGES) { st.cool = 0.25; st.ending = true; return; }
-      st.speed *= 1.15; placeZone(); st.cool = 0.15;
-    } else { flash('miss'); sfx('spark', 0.2); st.cool = 0.45; st.speed *= 0.92; }
+      st.stage = perfect ? STAGES : st.stage + 1;
+      flash('hit');
+      sfx('spark', 0.45);
+      wireLit(st.stage);
+      if (st.stage >= STAGES) {
+        st.cool = 0.25;
+        st.ending = true;
+        return;
+      }
+      st.speed *= 1.15;
+      placeZone();
+      st.cool = 0.15;
+    } else {
+      flash('miss');
+      sfx('spark', 0.2);
+      st.cool = 0.45;
+      st.speed *= 0.92;
+    }
   }
   function onKey(e) {
     if (!st) return;
     if (e.code === 'KeyE' && !e.repeat) press();
   }
-  function onMouse(e) { if (st && e.button === 0) press(); }
+  function onMouse(e) {
+    if (st && e.button === 0) press();
+  }
   function loop(t) {
     if (!st) return;
-    const dt = Math.min(0.05, (t - (last || t)) / 1000); last = t;
+    const dt = Math.min(0.05, (t - (last || t)) / 1000);
+    last = t;
     const P = game.player?.state;
-    if (!P?.inVehicle || P.vehicle !== st.v || st.v.disabled) { finish(false); return; }
+    if (!P?.inVehicle || P.vehicle !== st.v || st.v.disabled) {
+      finish(false);
+      return;
+    }
     if (!game.ui?.paused) {
       st.t += dt;
       if (st.cool > 0) st.cool -= dt;
-      if (st.auto) { const k = Math.min(1, st.t / 0.8); wireLit(Math.floor(k * (STAGES + 1))); st.x = k; if (k >= 1) { finish(true); return; } }
-      else if (st.ending) { if (st.cool <= 0) { finish(true); return; } }
-      else { st.ph += dt * st.speed; st.x = 0.5 - 0.5 * Math.cos(st.ph); }   // eased sweep: slows at the ends, quick through the middle
-      el.querySelector('.spark').style.left = (st.x * 100) + '%';
+      if (st.auto) {
+        const k = Math.min(1, st.t / 0.8);
+        wireLit(Math.floor(k * (STAGES + 1)));
+        st.x = k;
+        if (k >= 1) {
+          finish(true);
+          return;
+        }
+      } else if (st.ending) {
+        if (st.cool <= 0) {
+          finish(true);
+          return;
+        }
+      } else {
+        st.ph += dt * st.speed;
+        st.x = 0.5 - 0.5 * Math.cos(st.ph);
+      } // eased sweep: slows at the ends, quick through the middle
+      el.querySelector('.spark').style.left = st.x * 100 + '%';
     }
     raf = requestAnimationFrame(loop);
   }
   const api = {
-    get active() { return !!st; },
+    get active() {
+      return !!st;
+    },
     start(v, done) {
       if (OFF || st || typeof document === 'undefined') return false;
-      mount(); el.classList.remove('ok', 'hit', 'miss');
+      mount();
+      el.classList.remove('ok', 'hit', 'miss');
       const auto = skill() >= SKILL_AUTO;
-      st = { v, done, t: 0, ph: Math.random() * 3, x: 0, speed: 3.4 + Math.random() * 0.6, stage: 0, cool: 0.35, auto, ending: false };
-      placeZone(); wireLit(0);
-      el.querySelector('.hint').textContent = auto ? 'you know this one' : skill() ? `${Math.min(skill(), SKILL_AUTO)}/${SKILL_AUTO} practice` : 'center = instant';
+      st = {
+        v,
+        done,
+        t: 0,
+        ph: Math.random() * 3,
+        x: 0,
+        speed: 3.4 + Math.random() * 0.6,
+        stage: 0,
+        cool: 0.35,
+        auto,
+        ending: false,
+      };
+      placeZone();
+      wireLit(0);
+      el.querySelector('.hint').textContent = auto
+        ? 'you know this one'
+        : skill()
+          ? `${Math.min(skill(), SKILL_AUTO)}/${SKILL_AUTO} practice`
+          : 'center = instant';
       el.classList.add('on');
-      addEventListener('keydown', onKey, true); addEventListener('mousedown', onMouse, true);
-      last = 0; raf = requestAnimationFrame(loop);
+      addEventListener('keydown', onKey, true);
+      addEventListener('mousedown', onMouse, true);
+      last = 0;
+      raf = requestAnimationFrame(loop);
       return true;
     },
-    cancel() { if (st) finish(false); },
+    cancel() {
+      if (st) finish(false);
+    },
   };
   return api;
 }

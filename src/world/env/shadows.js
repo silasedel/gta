@@ -13,13 +13,19 @@ export const LAYER_DYNAMIC = 7;
 
 let patched = false;
 export function patchShadowChunks() {
-  if (patched) return; patched = true;
+  if (patched) return;
+  patched = true;
   const C = THREE.ShaderChunk;
-  const anchor = 'RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );\n\n\t}\n\t#pragma unroll_loop_end\n\n#endif\n\n#if ( NUM_SPOT_LIGHTS > 0 )';
+  const anchor =
+    'RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );\n\n\t}\n\t#pragma unroll_loop_end\n\n#endif\n\n#if ( NUM_SPOT_LIGHTS > 0 )';
   const src = C.lights_fragment_begin;
   // find the directional-light shadow line and add the dynamic map (index 1) to light 0
-  const line = 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif';
-  if (!src.includes(line)) { console.warn('[shadows] directional shadow line not found; split shadows disabled'); return false; }
+  const line =
+    'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif';
+  if (!src.includes(line)) {
+    console.warn('[shadows] directional shadow line not found; split shadows disabled');
+    return false;
+  }
   // Edge fade (playtest-fixes): near the border of a shadow map the shadow fades out smoothly instead of
   // ending in a hard line that jumps whenever the map re-centers (seen as a quick "glitch" while moving).
   const edgeFn = `
@@ -39,7 +45,8 @@ float psShadowEdge( vec4 sc ) {
   // into it across the near map's edge band
   const nearLine = fadedLine.replace(
     'mix( getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ i ] ) ) : 1.0;',
-    `psStaticShadow( directionalShadowMap[ i ], directionalLightShadow, vDirectionalShadowCoord[ i ] ) : 1.0;`);
+    `psStaticShadow( directionalShadowMap[ i ], directionalLightShadow, vDirectionalShadowCoord[ i ] ) : 1.0;`,
+  );
   const nearFn = `
 #ifdef USE_SHADOWMAP
 #if NUM_DIR_LIGHT_SHADOWS > 2
@@ -59,15 +66,23 @@ float psStaticShadow( sampler2D farMap, DirectionalLightShadow farS, vec4 farC )
 #endif
 `;
   if (!C.shadowmap_pars_fragment.includes('psStaticShadow')) C.shadowmap_pars_fragment += nearFn;
-  C.lights_fragment_begin = src.replace(line, `#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 2 )
-		` + nearLine.replace(/\n\t\t#endif$/, '') + `
+  C.lights_fragment_begin = src.replace(
+    line,
+    `#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 2 )
+		` +
+      nearLine.replace(/\n\t\t#endif$/, '') +
+      `
 		#else
-		` + fadedLine.replace(/\n\t\t#endif$/, '') + `
+		` +
+      fadedLine.replace(/\n\t\t#endif$/, '') +
+      `
 		#endif
-		#endif` + `
+		#endif` +
+      `
 		#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 1 )
 		directLight.color *= ( directLight.visible && receiveShadow ) ? mix( getShadow( directionalShadowMap[ 1 ], directionalLightShadows[ 1 ].shadowMapSize, directionalLightShadows[ 1 ].shadowIntensity, directionalLightShadows[ 1 ].shadowBias, directionalLightShadows[ 1 ].shadowRadius, vDirectionalShadowCoord[ 1 ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ 1 ] ) ) : 1.0;
-		#endif`);
+		#endif`,
+  );
   // r2-look: shaded ambient. The sun's visibility at this fragment (cast shadow of the static, near and dynamic maps) is
   // kept in psSunVis; lights_fragment_end scales the sky / bounce / env light by mix(1 - uLookW.x, 1, psSunVis). A point in
   // a cast shadow (under a deck, a tree, a car, a roof overhang) is also hidden from much of the sky and of the sunlit
@@ -75,8 +90,15 @@ float psStaticShadow( sampler2D farMap, DirectionalLightShadow farS, vec4 farC )
   // from the sun are not in a cast shadow and keep their full sky light.
   {
     const s0 = C.lights_fragment_begin;
-    const at = s0.indexOf('#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 2 )');
-    const dynEnd = s0.indexOf('#endif', s0.indexOf('#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 1 )'));
+    const at = s0.indexOf(
+      '#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 2 )',
+    );
+    const dynEnd = s0.indexOf(
+      '#endif',
+      s0.indexOf(
+        '#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 1 )',
+      ),
+    );
     if (at > 0 && dynEnd > at) {
       // psSunVis is a global (lights_pars_begin, which every lit material includes before main): a material that swaps
       // in its own lights_fragment_begin still compiles (it just keeps psSunVis = 1)
@@ -85,12 +107,25 @@ float psStaticShadow( sampler2D farMap, DirectionalLightShadow farS, vec4 farC )
       // from the sun, so a person's back (or any wall facing away from the sun) in open daylight got NO ground / wall
       // bounce, while the same back standing in a building's shadow did: the form-shadow side read near-black against
       // the bright sunlit ground. Form shadow and cast shadow now get the same bounce. ?formbounce=0 = old.
-      const FORM_BOUNCE = !(typeof location !== 'undefined' && /[?&]formbounce=0\b/.test(location.search));
-      if (!C.lights_pars_begin.includes('PS_SUNVIS')) C.lights_pars_begin = '#define PS_SUNVIS\nfloat psSunVis = 1.0;\nfloat psSunFace = 1.0;\n' + C.lights_pars_begin;
-      C.lights_fragment_begin = s0.slice(0, at) + '#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 )\n\t\tvec3 psC0 = directLight.color;\n\t\t#endif\n\t\t'
-        + s0.slice(at, dynEnd + 6) + '\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 0 ) && defined( PS_SUNVIS )\n\t\tpsSunVis = mix( 1.0, dot( directLight.color, vec3( 1.0 ) ) / max( dot( psC0, vec3( 1.0 ) ), 1e-6 ), smoothstep( 0.02, 0.2, dot( geometryNormal, directLight.direction ) ) ); // faces turned away from the sun: no cast-shadow term\n\t\t'
-        + (FORM_BOUNCE ? 'psSunFace = smoothstep( 0.0, 0.25, dot( geometryNormal, directLight.direction ) );' : '') + '\n\t\t#endif' + s0.slice(dynEnd + 6);
-      C.lights_fragment_end = `#if defined( PS_LOOKU ) && defined( PS_SUNVIS )
+      const FORM_BOUNCE = !(
+        typeof location !== 'undefined' && /[?&]formbounce=0\b/.test(location.search)
+      );
+      if (!C.lights_pars_begin.includes('PS_SUNVIS'))
+        C.lights_pars_begin =
+          '#define PS_SUNVIS\nfloat psSunVis = 1.0;\nfloat psSunFace = 1.0;\n' +
+          C.lights_pars_begin;
+      C.lights_fragment_begin =
+        s0.slice(0, at) +
+        '#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 )\n\t\tvec3 psC0 = directLight.color;\n\t\t#endif\n\t\t' +
+        s0.slice(at, dynEnd + 6) +
+        '\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 0 ) && defined( PS_SUNVIS )\n\t\tpsSunVis = mix( 1.0, dot( directLight.color, vec3( 1.0 ) ) / max( dot( psC0, vec3( 1.0 ) ), 1e-6 ), smoothstep( 0.02, 0.2, dot( geometryNormal, directLight.direction ) ) ); // faces turned away from the sun: no cast-shadow term\n\t\t' +
+        (FORM_BOUNCE
+          ? 'psSunFace = smoothstep( 0.0, 0.25, dot( geometryNormal, directLight.direction ) );'
+          : '') +
+        '\n\t\t#endif' +
+        s0.slice(dynEnd + 6);
+      C.lights_fragment_end =
+        `#if defined( PS_LOOKU ) && defined( PS_SUNVIS )
 {
 	float psAmb = mix( 1.0 - uLookW.x, 1.0, psSunVis );
 	#if defined( RE_IndirectDiffuse )
@@ -123,25 +158,47 @@ export function guardLightLoops() {
   if (typeof location !== 'undefined' && /[?&]nolightguard\b/.test(location.search)) return false;
   const C = THREE.ShaderChunk;
   let s = C.lights_fragment_begin;
-  const RE = 'RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
+  const RE =
+    'RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
   const IF = '\n\t\tif ( any( notEqual( directLight.color, vec3( 0.0 ) ) ) ) {\n';
   let ok = 0;
   for (const [sec, info] of [
-    ['#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )', 'getPointLightInfo( pointLight, geometryPosition, directLight );'],
-    ['#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )', 'getSpotLightInfo( spotLight, geometryPosition, directLight );'],
-    ['#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )', 'getDirectionalLightInfo( directionalLight, directLight );'],
+    [
+      '#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )',
+      'getPointLightInfo( pointLight, geometryPosition, directLight );',
+    ],
+    [
+      '#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )',
+      'getSpotLightInfo( spotLight, geometryPosition, directLight );',
+    ],
+    [
+      '#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )',
+      'getDirectionalLightInfo( directionalLight, directLight );',
+    ],
   ]) {
-    const a = s.indexOf(sec); if (a < 0) continue;
-    const end = s.indexOf('#pragma unroll_loop_end', a); if (end < 0) continue;
+    const a = s.indexOf(sec);
+    if (a < 0) continue;
+    const end = s.indexOf('#pragma unroll_loop_end', a);
+    if (end < 0) continue;
     const body = s.slice(a, end);
-    const i1 = body.indexOf(info), i2 = body.lastIndexOf(RE);
+    const i1 = body.indexOf(info),
+      i2 = body.lastIndexOf(RE);
     if (i1 < 0 || i2 < i1) continue;
-    const nb = body.slice(0, i1 + info.length) + IF + body.slice(i1 + info.length, i2 + RE.length) + '\n\t\t}\n' + body.slice(i2 + RE.length);
+    const nb =
+      body.slice(0, i1 + info.length) +
+      IF +
+      body.slice(i1 + info.length, i2 + RE.length) +
+      '\n\t\t}\n' +
+      body.slice(i2 + RE.length);
     s = s.slice(0, a) + nb + s.slice(end);
     ok++;
   }
-  if (ok !== 3) { console.warn('[shadows] light-loop guard: only', ok, 'of 3 loops patched'); }
-  guardLightLoops.unguarded = C.lights_fragment_begin; guardLightLoops.guarded = s; guardLightLoops.chunks = C; // A/B tests (tools/v2/s1-perf.mjs)
+  if (ok !== 3) {
+    console.warn('[shadows] light-loop guard: only', ok, 'of 3 loops patched');
+  }
+  guardLightLoops.unguarded = C.lights_fragment_begin;
+  guardLightLoops.guarded = s;
+  guardLightLoops.chunks = C; // A/B tests (tools/v2/s1-perf.mjs)
   C.lights_fragment_begin = s;
   return ok;
 }
@@ -154,7 +211,8 @@ export function createSplitShadows(game, sun, dyn, near = null) {
   sm.render = (lights, sc, camera) => {
     if (!lights || lights.length < 2 || !camera?.layers) return origRender(lights, sc, camera);
     if (sm.enabled === false || (sm.autoUpdate === false && sm.needsUpdate === false)) return;
-    const mask = camera.layers.mask, nu = sm.needsUpdate;
+    const mask = camera.layers.mask,
+      nu = sm.needsUpdate;
     try {
       for (const l of lights) {
         const lm = l.userData?.casterMask;
@@ -162,7 +220,10 @@ export function createSplitShadows(game, sun, dyn, near = null) {
         sm.needsUpdate = nu; // per-light shadow.autoUpdate / needsUpdate still decide inside
         origRender([l], sc, camera);
       }
-    } finally { camera.layers.mask = mask; sm.needsUpdate = false; }
+    } finally {
+      camera.layers.mask = mask;
+      sm.needsUpdate = false;
+    }
   };
   sun.userData.casterMask = 1 << LAYER_STATIC;
   dyn.userData.casterMask = 1 << LAYER_DYNAMIC;
@@ -170,33 +231,41 @@ export function createSplitShadows(game, sun, dyn, near = null) {
 
   // tagging: top-level scene children are classified once (re-checked when new ones appear);
   // dynamic = vehicles, peds/player (anything containing a SkinnedMesh); everything else is static.
-  let tagT = 0, staticDirty = true;
+  let tagT = 0,
+    staticDirty = true;
   const topSeen = new WeakMap(); // child -> 'static' | 'dynamic'
   const meshSeen = new WeakSet();
   function dynamicRoots() {
     const set = new Set();
     for (const v of game.vehicles?.list || []) if (v?.mesh) set.add(v.mesh);
-    for (const p of game.peds?.list || []) { const r = p?.char?.root || p?.root; if (r) set.add(r); }
+    for (const p of game.peds?.list || []) {
+      const r = p?.char?.root || p?.root;
+      if (r) set.add(r);
+    }
     return set;
   }
   function classify(c, dyn) {
     if (dyn.has(c)) return 'dynamic';
     let skinned = false;
-    c.traverse((o) => { if (o.isSkinnedMesh) skinned = true; });
+    c.traverse((o) => {
+      if (o.isSkinnedMesh) skinned = true;
+    });
     return skinned ? 'dynamic' : 'static';
   }
   function tagTree(c, kind) {
     let added = false;
     c.traverse((o) => {
       if (!(o.isMesh || o.isSkinnedMesh || o.isInstancedMesh) || meshSeen.has(o)) return;
-      meshSeen.add(o); added = true;
+      meshSeen.add(o);
+      added = true;
       o.layers.enable(kind === 'dynamic' ? LAYER_DYNAMIC : LAYER_STATIC);
     });
     return added;
   }
   // incremental: discover new top-level children / city tiles once a second, then tag their subtrees
   // from a queue under a per-frame time budget (no full-scene traversals, no spikes)
-  const queue = [], queued = new WeakSet();
+  const queue = [],
+    queued = new WeakSet();
   function discover() {
     const dyn = dynamicRoots();
     const cityRoot = game.city?.root || null;
@@ -204,16 +273,31 @@ export function createSplitShadows(game, sun, dyn, near = null) {
       let kind = topSeen.get(c);
       if (c === cityRoot) {
         if (kind !== 'static') topSeen.set(c, 'static');
-        for (const t of c.children) if (!queued.has(t)) { queued.add(t); queue.push([t, 'static']); }
+        for (const t of c.children)
+          if (!queued.has(t)) {
+            queued.add(t);
+            queue.push([t, 'static']);
+          }
         continue;
       }
       if (!kind || (kind === 'static' && dyn.has(c))) {
         const prev = kind;
-        kind = classify(c, dyn); topSeen.set(c, kind);
-        if (kind === 'dynamic' && prev === 'static') { c.traverse((o) => { o.layers.disable(LAYER_STATIC); o.layers.enable(LAYER_DYNAMIC); }); staticDirty = true; }
+        kind = classify(c, dyn);
+        topSeen.set(c, kind);
+        if (kind === 'dynamic' && prev === 'static') {
+          c.traverse((o) => {
+            o.layers.disable(LAYER_STATIC);
+            o.layers.enable(LAYER_DYNAMIC);
+          });
+          staticDirty = true;
+        }
       }
-      if (kind === 'dynamic') queue.push([c, 'dynamic']); // cheap re-check (attachments)
-      else if (!queued.has(c)) { queued.add(c); queue.push([c, kind]); }
+      if (kind === 'dynamic')
+        queue.push([c, 'dynamic']); // cheap re-check (attachments)
+      else if (!queued.has(c)) {
+        queued.add(c);
+        queue.push([c, kind]);
+      }
     }
   }
   function drain(budgetMs) {
@@ -226,8 +310,13 @@ export function createSplitShadows(game, sun, dyn, near = null) {
 
   return {
     debug: () => ({ tagT, queue: queue.length, staticDirty }),
-    tagNow: () => { discover(); drain(1e9); },
-    markStaticDirty() { staticDirty = true; },
+    tagNow: () => {
+      discover();
+      drain(1e9);
+    },
+    markStaticDirty() {
+      staticDirty = true;
+    },
     update(dt) {
       // Dynamic map rate. r2-look (Nov 17): at half rate every second frame showed a map drawn one frame earlier, so a
       // moving car's shadow jumped back by one frame of travel (0.4 m at 90 km/h) on alternate frames: the user saw the
@@ -242,29 +331,47 @@ export function createSplitShadows(game, sun, dyn, near = null) {
         this._ft = (this._ft || 0) - dt;
         if (this._ft <= 0) {
           this._ft = 0.25;
-          const f = game.player?.position, R = (dyn.shadow.camera.right || 42) + 12;
+          const f = game.player?.position,
+            R = (dyn.shadow.camera.right || 42) + 12;
           let fast = false;
           const pv = game.player?.state?.vehicle;
           if (pv && Math.abs(pv.speed || 0) > 0.8) fast = true;
-          if (!fast && f) for (const v of game.vehicles?.list || []) {
-            if (!v?.mesh || Math.abs(v.speed || 0) < 1.2) continue;
-            const p = v.mesh.position; if (Math.abs(p.x - f.x) < R && Math.abs(p.z - f.z) < R) { fast = true; break; }
-          }
-          if (!fast && f && this._pp) fast = Math.hypot(f.x - this._pp.x, f.z - this._pp.z) > 4.5 * 0.25; // player sprinting / ragdoll flight
-          if (f) (this._pp || (this._pp = { x: 0, z: 0 })).x = f.x, this._pp.z = f.z;
+          if (!fast && f)
+            for (const v of game.vehicles?.list || []) {
+              if (!v?.mesh || Math.abs(v.speed || 0) < 1.2) continue;
+              const p = v.mesh.position;
+              if (Math.abs(p.x - f.x) < R && Math.abs(p.z - f.z) < R) {
+                fast = true;
+                break;
+              }
+            }
+          if (!fast && f && this._pp)
+            fast = Math.hypot(f.x - this._pp.x, f.z - this._pp.z) > 4.5 * 0.25; // player sprinting / ragdoll flight
+          if (f) (((this._pp || (this._pp = { x: 0, z: 0 })).x = f.x), (this._pp.z = f.z));
           this._fast = fast;
         }
         half = !this._fast;
       }
-      if (half) { dyn.shadow.autoUpdate = false; dyn.shadow.needsUpdate = ((this._f = (this._f || 0) + 1) & 1) === 0; }
-      else { dyn.shadow.autoUpdate = true; this._f = 0; }
+      if (half) {
+        dyn.shadow.autoUpdate = false;
+        dyn.shadow.needsUpdate = ((this._f = (this._f || 0) + 1) & 1) === 0;
+      } else {
+        dyn.shadow.autoUpdate = true;
+        this._f = 0;
+      }
       this.dynHalf = half;
       tagT -= dt;
       try {
-        if (tagT <= 0) { tagT = 1; discover(); }
+        if (tagT <= 0) {
+          tagT = 1;
+          discover();
+        }
         drain(1.0);
-      } catch (e) { console.warn('[shadows] tag', e); }
-      const d = staticDirty; staticDirty = false;
+      } catch (e) {
+        console.warn('[shadows] tag', e);
+      }
+      const d = staticDirty;
+      staticDirty = false;
       return d;
     },
   };

@@ -17,14 +17,25 @@ export function createTaau(THREE) {
   const mat = new THREE.ShaderMaterial({
     name: 'SouthlineTAAU',
     uniforms: {
-      tCur: { value: null }, tHist: { value: null }, tDepth: { value: null }, tVel: { value: null },
-      uInvVP: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() },
-      uInTexel: { value: new THREE.Vector2(1, 1) }, uOutTexel: { value: new THREE.Vector2(1, 1) }, uInSize: { value: new THREE.Vector2(1, 1) },
-      uJitter: { value: new THREE.Vector2(0, 0) }, uReset: { value: 1 }, uVelOn: { value: 0 }, uNear: { value: 0.25 }, uFar: { value: 3000 },
+      tCur: { value: null },
+      tHist: { value: null },
+      tDepth: { value: null },
+      tVel: { value: null },
+      uInvVP: { value: new THREE.Matrix4() },
+      uPrevVP: { value: new THREE.Matrix4() },
+      uInTexel: { value: new THREE.Vector2(1, 1) },
+      uOutTexel: { value: new THREE.Vector2(1, 1) },
+      uInSize: { value: new THREE.Vector2(1, 1) },
+      uJitter: { value: new THREE.Vector2(0, 0) },
+      uReset: { value: 1 },
+      uVelOn: { value: 0 },
+      uNear: { value: 0.25 },
+      uFar: { value: 3000 },
       uBlendRest: { value: 0.08 },
     },
-    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
-    fragmentShader: /* glsl */`
+    vertexShader:
+      'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+    fragmentShader: /* glsl */ `
       #include <packing>
       uniform sampler2D tCur; uniform sampler2D tHist; uniform sampler2D tDepth; uniform sampler2D tVel;
       uniform mat4 uInvVP; uniform mat4 uPrevVP; uniform vec2 uInTexel, uOutTexel, uInSize, uJitter;
@@ -97,36 +108,70 @@ export function createTaau(THREE) {
         vec3 o = ( yc * wc + h * wh ) / ( wc + wh );
         gl_FragColor = vec4( itm( max( fromY( o ), 0.0 ) ), vz );
       }`,
-    depthTest: false, depthWrite: false,
+    depthTest: false,
+    depthWrite: false,
   });
-  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat); quad.frustumCulled = false;
-  const sc = new THREE.Scene(); sc.add(quad);
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
+  quad.frustumCulled = false;
+  const sc = new THREE.Scene();
+  sc.add(quad);
   const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  const opts = { type: THREE.HalfFloatType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter };
+  const opts = {
+    type: THREE.HalfFloatType,
+    depthBuffer: false,
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+  };
   const hist = [new THREE.WebGLRenderTarget(4, 4, opts), new THREE.WebGLRenderTarget(4, 4, opts)];
-  let flip = 0, reset = true;
+  let flip = 0,
+    reset = true;
   return {
-    material: mat, hist,
-    invalidate() { reset = true; },
+    material: mat,
+    hist,
+    invalidate() {
+      reset = true;
+    },
     // a scale change keeps the history (it is at the output size): only the input texel size changes
     setSize(inW, inH, outW, outH) {
       const U = mat.uniforms;
-      U.uInTexel.value.set(1 / inW, 1 / inH); U.uInSize.value.set(inW, inH);
-      if (hist[0].width !== outW || hist[0].height !== outH) { hist[0].setSize(outW, outH); hist[1].setSize(outW, outH); reset = true; }
+      U.uInTexel.value.set(1 / inW, 1 / inH);
+      U.uInSize.value.set(inW, inH);
+      if (hist[0].width !== outW || hist[0].height !== outH) {
+        hist[0].setSize(outW, outH);
+        hist[1].setSize(outW, outH);
+        reset = true;
+      }
       U.uOutTexel.value.set(1 / outW, 1 / outH);
     },
     // returns the output-size history target holding this frame (alpha = depth; copy it with alpha forced to 1)
     render(r, p) {
-      const U = mat.uniforms, dst = hist[flip], src = hist[1 - flip];
-      U.tCur.value = p.cur; U.tHist.value = src.texture; U.tDepth.value = p.depth; U.tVel.value = p.vel || null;
-      U.uVelOn.value = p.velOn ? 1 : 0; U.uInvVP.value.copy(p.invVP); U.uPrevVP.value.copy(p.prevVP);
-      U.uJitter.value.set(p.jitterPx[0], p.jitterPx[1]); U.uNear.value = p.near; U.uFar.value = p.far;
-      U.uReset.value = reset || p.reset ? 1 : 0; reset = false;
+      const U = mat.uniforms,
+        dst = hist[flip],
+        src = hist[1 - flip];
+      U.tCur.value = p.cur;
+      U.tHist.value = src.texture;
+      U.tDepth.value = p.depth;
+      U.tVel.value = p.vel || null;
+      U.uVelOn.value = p.velOn ? 1 : 0;
+      U.uInvVP.value.copy(p.invVP);
+      U.uPrevVP.value.copy(p.prevVP);
+      U.uJitter.value.set(p.jitterPx[0], p.jitterPx[1]);
+      U.uNear.value = p.near;
+      U.uFar.value = p.far;
+      U.uReset.value = reset || p.reset ? 1 : 0;
+      reset = false;
       const prev = r.getRenderTarget();
-      r.setRenderTarget(dst); r.render(sc, cam); r.setRenderTarget(prev);
+      r.setRenderTarget(dst);
+      r.render(sc, cam);
+      r.setRenderTarget(prev);
       flip = 1 - flip;
       return dst;
     },
-    dispose() { hist[0].dispose(); hist[1].dispose(); mat.dispose(); quad.geometry.dispose(); },
+    dispose() {
+      hist[0].dispose();
+      hist[1].dispose();
+      mat.dispose();
+      quad.geometry.dispose();
+    },
   };
 }

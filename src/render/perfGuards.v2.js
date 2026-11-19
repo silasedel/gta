@@ -110,17 +110,28 @@ function guardFacadeBatch() {
 // perf (Nov 19): 10, was 16. Every lit shader loops over all of them per pixel (spares at zero intensity too) and re-uploads
 // them on every program switch (~3800 uniform3f calls a frame downtown, 180 programs a frame). Measured live: 3-6 real point
 // lights downtown by day and night, interiors pool 4. ?pointlights=16 = old.
-const POINT_TARGET = (() => { const m = typeof location !== 'undefined' && /[?&]pointlights=(\d+)/.exec(location.search); return m ? Math.max(4, Math.min(32, +m[1])) : 10; })();
+const POINT_TARGET = (() => {
+  const m = typeof location !== 'undefined' && /[?&]pointlights=(\d+)/.exec(location.search);
+  return m ? Math.max(4, Math.min(32, +m[1])) : 10;
+})();
 const SPOT_TARGET = 4;
 let addPatched = false;
 const tracked = new Set();
 // render track (Nov 18): the per-render walk uses a plain array copy (for...of over the Set made an iterator per render)
-let trackedArr = [], trackedDirty = true;
-function trackedList() { if (trackedDirty) { trackedArr = Array.from(tracked); trackedDirty = false; } return trackedArr; }
+let trackedArr = [],
+  trackedDirty = true;
+function trackedList() {
+  if (trackedDirty) {
+    trackedArr = Array.from(tracked);
+    trackedDirty = false;
+  }
+  return trackedArr;
+}
 
 function register(o) {
   if (o && (o.isPointLight || o.isSpotLight) && !o.userData.psSpareLight && !tracked.has(o)) {
-    tracked.add(o); trackedDirty = true;
+    tracked.add(o);
+    trackedDirty = true;
   }
 }
 
@@ -203,7 +214,9 @@ function stabilizeLights(game) {
       for (let i = 0; i < list.length; i++) {
         const l = list[i];
         l.getWorldPosition(camPos);
-        l.userData.psD2 = camPos.distanceToSquared(cam.position) / Math.max(0.05, l.intensity || 0.05) * (FADE && l.userData.psIn ? 0.6 : 1);
+        l.userData.psD2 =
+          (camPos.distanceToSquared(cam.position) / Math.max(0.05, l.intensity || 0.05)) *
+          (FADE && l.userData.psIn ? 0.6 : 1);
       }
       list.sort(byDistance);
       if (!FADE || noFade) {
@@ -216,31 +229,64 @@ function stabilizeLights(game) {
         const now = performance.now() / 1000;
         active = 0;
         for (let i = 0; i < list.length; i++) {
-          const l = list[i], u = l.userData, want = i < target;
+          const l = list[i],
+            u = l.userData,
+            want = i < target;
           const h = u.psT === undefined ? 0 : Math.min(0.1, Math.max(0, now - u.psT));
-          u.psT = now; u.psIn = want;
+          u.psT = now;
+          u.psIn = want;
           if (u.psW === undefined) u.psW = want ? 1 : 0;
           else u.psW = want ? Math.min(1, u.psW + h * 3.3) : Math.max(0, u.psW - h * 3.3);
           if (u.psW > 0) active++;
         }
         // over the budget while lights cross over: the weakest fading-out lights give way
-        for (let i = list.length - 1; i >= 0 && active > target; i--) { const u = list[i].userData; if (!u.psIn && u.psW > 0) { u.psW = 0; active--; } }
-        for (let i = list.length - 1; i >= 0 && active > target; i--) { const u = list[i].userData; if (u.psW > 0) { u.psW = 0; active--; } }
+        for (let i = list.length - 1; i >= 0 && active > target; i--) {
+          const u = list[i].userData;
+          if (!u.psIn && u.psW > 0) {
+            u.psW = 0;
+            active--;
+          }
+        }
+        for (let i = list.length - 1; i >= 0 && active > target; i--) {
+          const u = list[i].userData;
+          if (u.psW > 0) {
+            u.psW = 0;
+            active--;
+          }
+        }
         for (let i = 0; i < list.length; i++) {
-          const l = list[i], w = l.userData.psW;
-          if (w <= 0) { l.visible = false; hiddenNow.push(l); }
-          else if (w < 1) { l.userData.psI0 = l.intensity; l.intensity *= w * w * (3 - 2 * w); scaled.push(l); }
+          const l = list[i],
+            w = l.userData.psW;
+          if (w <= 0) {
+            l.visible = false;
+            hiddenNow.push(l);
+          } else if (w < 1) {
+            l.userData.psI0 = l.intensity;
+            l.intensity *= w * w * (3 - 2 * w);
+            scaled.push(l);
+          }
         }
       }
     } else if (FADE) {
-      for (let i = 0; i < list.length; i++) { const u = list[i].userData; u.psW = 1; u.psIn = true; u.psT = undefined; }
+      for (let i = 0; i < list.length; i++) {
+        const u = list[i].userData;
+        u.psW = 1;
+        u.psIn = true;
+        u.psT = undefined;
+      }
     }
     const need = Math.max(0, target - active);
     for (let i = 0; i < spareList.length; i++) {
       spareList[i].visible = i < need;
     }
   }
-  function restoreScaled() { for (let i = 0; i < scaled.length; i++) { const l = scaled[i]; l.intensity = l.userData.psI0; } scaled.length = 0; }
+  function restoreScaled() {
+    for (let i = 0; i < scaled.length; i++) {
+      const l = scaled[i];
+      l.intensity = l.userData.psI0;
+    }
+    scaled.length = 0;
+  }
 
   let pruneT = 0;
   const prevBefore = scene.onBeforeRender;
@@ -280,7 +326,8 @@ function stabilizeLights(game) {
           if (top !== scene) {
             l.userData.psGone = (l.userData.psGone || 0) + 1;
             if (l.userData.psGone > 3) {
-              tracked.delete(l); trackedDirty = true;
+              tracked.delete(l);
+              trackedDirty = true;
             }
           } else {
             l.userData.psGone = 0;
@@ -311,7 +358,8 @@ function stabilizeLights(game) {
   // real program compiled synchronously on first draw (a drive measured 1.2-4.5 s of link stalls, frames up to 8.7 s).
   // compile now sees the same light set as the render. ?compilelights=0 = old behavior.
   if (!(typeof location !== 'undefined' && /[?&]compilelights=0\b/.test(location.search))) {
-    const r = game.renderer, comp0 = r.compile.bind(r);
+    const r = game.renderer,
+      comp0 = r.compile.bind(r);
     r.compile = function compile(sc, cam, target = null) {
       const ts = target || sc;
       if (ts !== scene || !cam || !cam.layers) return comp0(sc, cam, target);
@@ -321,7 +369,8 @@ function stabilizeLights(game) {
         liveSpot.length = 0;
         for (const l of tracked) {
           if (!effectiveIn(l, scene, cam.layers)) continue;
-          if (l.isSpotLight) liveSpot.push(l); else livePoint.push(l);
+          if (l.isSpotLight) liveSpot.push(l);
+          else livePoint.push(l);
         }
         fit(livePoint, POINT_TARGET, spares.point, cam, true);
         fit(liveSpot, SPOT_TARGET, spares.spot, cam, true);
@@ -384,14 +433,38 @@ function evenPacing(game) {
   let lastFire = 0;
   // perf (Nov 19): the boot-time probe ran during loading (slow frames) and could read a 120 Hz panel as 60 Hz; the refresh is
   // re-estimated all the time from the shortest native tick intervals (any 8.3 ms pair means a 120 Hz display)
-  let lastNative = 0, hzWin = [], hzN = 0;
+  let lastNative = 0,
+    hzWin = [],
+    hzN = 0;
   function pump(now) {
     scheduled = false;
-    if (lastNative) { const d = now - lastNative; if (d > 2 && d < 60) { hzWin.push(d); if (hzWin.length >= 90) { hzWin.sort((x, y) => x - y); const lo = hzWin[Math.floor(hzWin.length * 0.1)]; const hz = Math.round(1000 / lo); if (hz >= 90) { pace.hz = hz; hzN = 0; } else if (++hzN >= 8) { pace.hz = hz; hzN = 0; } hzWin = []; } } }
+    if (lastNative) {
+      const d = now - lastNative;
+      if (d > 2 && d < 60) {
+        hzWin.push(d);
+        if (hzWin.length >= 90) {
+          hzWin.sort((x, y) => x - y);
+          const lo = hzWin[Math.floor(hzWin.length * 0.1)];
+          const hz = Math.round(1000 / lo);
+          if (hz >= 90) {
+            pace.hz = hz;
+            hzN = 0;
+          } else if (++hzN >= 8) {
+            pace.hz = hz;
+            hzN = 0;
+          }
+          hzWin = [];
+        }
+      }
+    }
     lastNative = now;
     // on a 120 Hz panel ticks come every 8.3 ms: fire every second tick (present at 16.7 ms)
     // the setting can change (and settings load after this module): follow it on every tick
-    pace.on = pace.hz >= 90 && game.settings?.fpsLimit !== 0 && game.settings?.fpsLimit !== 120 && game.settings?.evenPacing !== false;
+    pace.on =
+      pace.hz >= 90 &&
+      game.settings?.fpsLimit !== 0 &&
+      game.settings?.fpsLimit !== 120 &&
+      game.settings?.evenPacing !== false;
     if (pace.on && now - lastFire < 12.5) {
       pace.skipped++;
       scheduled = true;
@@ -450,87 +523,107 @@ function warmStreamedShaders(game) {
   };
   game.shaderWarm = stats;
   // perf (Nov 18): the same warm-up for any other streamed group (generated houses, vegetation fields): game.shaderWarmWrap(group)
-  game.shaderWarmWrap = (g) => { if (g && !g._psWarm) { g._psWarm = true; wrap(g); } return g; };
+  game.shaderWarmWrap = (g) => {
+    if (g && !g._psWarm) {
+      g._psWarm = true;
+      wrap(g);
+    }
+    return g;
+  };
   wrap(root);
   function wrap(root) {
-  const origAdd = root.add;
-  root.add = function add(...objs) {
-    const r = origAdd.apply(this, objs);
-    for (const o of objs) {
-      if (!o || !o.isObject3D) {
-        continue;
-      }
-      const hidden = [];
-      o.traverse((m) => {
-        if ((m.isMesh || m.isInstancedMesh || m.isPoints || m.isLine) && m.layers.isEnabled(0)) {
-          m.layers.disable(0);
-          hidden.push(m);
+    const origAdd = root.add;
+    root.add = function add(...objs) {
+      const r = origAdd.apply(this, objs);
+      for (const o of objs) {
+        if (!o || !o.isObject3D) {
+          continue;
         }
-      });
-      if (!hidden.length) {
-        continue;
-      }
-      stats.pending++;
-      const t0 = performance.now();
-      let finished = false;
-      const done = () => {
-        // runs once: the 1.5 s timeout and the compile promise can both arrive
-        if (finished) {
-          return;
-        }
-        finished = true;
-        for (const m of hidden) {
-          m.layers.enable(0);
-        }
-        stats.pending--;
-        stats.warmed++;
-        stats.maxWaitMs = Math.max(stats.maxWaitMs, performance.now() - t0);
-      };
-      // compile with layer 0 on for this object only (compile follows the camera layers)
-      const mask = camera.layers.mask;
-      let promise = null;
-      try {
-        for (const m of hidden) {
-          m.layers.enable(0);
-        }
-        promise = renderer.compileAsync(o, camera, scene);
-      } catch (e) {
-        promise = null;
-      } finally {
-        for (const m of hidden) {
-          m.layers.disable(0);
-        }
-        camera.layers.mask = mask;
-      }
-      // r3-perf (building pop, ?popfix=0 rolls back): every new tile was hidden until compileAsync resolved, at least a
-      // frame and up to 1.5 s, even when all its shaders were long compiled. The mid LOD under a new near tile is cut away
-      // the moment the tile exists, so its buildings vanished for that time. Meshes whose program is already linked show at once;
-      // only ones that wait for a new shader stay hidden.
-      if (POPFIX && promise && promise.then) {
-        try {
-          const props = renderer.properties;
-          for (let i = hidden.length - 1; i >= 0; i--) {
-            const m = hidden[i], mats = Array.isArray(m.material) ? m.material : [m.material];
-            if (mats.every((mt) => { const p = mt && props.get(mt).currentProgram; return p && p.isReady && p.isReady(); })) { m.layers.enable(0); hidden.splice(i, 1); }
+        const hidden = [];
+        o.traverse((m) => {
+          if ((m.isMesh || m.isInstancedMesh || m.isPoints || m.isLine) && m.layers.isEnabled(0)) {
+            m.layers.disable(0);
+            hidden.push(m);
           }
-        } catch (e) { /* keep them hidden until the promise */ }
-      }
-      if (promise && promise.then) {
-        // never hold a tile back for long: show it after 1.5 s whatever happens
-        const timer = setTimeout(done, 1500);
-        promise.then(() => {
-          clearTimeout(timer);
-          done();
-        }, () => {
-          clearTimeout(timer);
-          done();
         });
-      } else {
-        done();
+        if (!hidden.length) {
+          continue;
+        }
+        stats.pending++;
+        const t0 = performance.now();
+        let finished = false;
+        const done = () => {
+          // runs once: the 1.5 s timeout and the compile promise can both arrive
+          if (finished) {
+            return;
+          }
+          finished = true;
+          for (const m of hidden) {
+            m.layers.enable(0);
+          }
+          stats.pending--;
+          stats.warmed++;
+          stats.maxWaitMs = Math.max(stats.maxWaitMs, performance.now() - t0);
+        };
+        // compile with layer 0 on for this object only (compile follows the camera layers)
+        const mask = camera.layers.mask;
+        let promise = null;
+        try {
+          for (const m of hidden) {
+            m.layers.enable(0);
+          }
+          promise = renderer.compileAsync(o, camera, scene);
+        } catch (e) {
+          promise = null;
+        } finally {
+          for (const m of hidden) {
+            m.layers.disable(0);
+          }
+          camera.layers.mask = mask;
+        }
+        // r3-perf (building pop, ?popfix=0 rolls back): every new tile was hidden until compileAsync resolved, at least a
+        // frame and up to 1.5 s, even when all its shaders were long compiled. The mid LOD under a new near tile is cut away
+        // the moment the tile exists, so its buildings vanished for that time. Meshes whose program is already linked show at once;
+        // only ones that wait for a new shader stay hidden.
+        if (POPFIX && promise && promise.then) {
+          try {
+            const props = renderer.properties;
+            for (let i = hidden.length - 1; i >= 0; i--) {
+              const m = hidden[i],
+                mats = Array.isArray(m.material) ? m.material : [m.material];
+              if (
+                mats.every((mt) => {
+                  const p = mt && props.get(mt).currentProgram;
+                  return p && p.isReady && p.isReady();
+                })
+              ) {
+                m.layers.enable(0);
+                hidden.splice(i, 1);
+              }
+            }
+          } catch (e) {
+            /* keep them hidden until the promise */
+          }
+        }
+        if (promise && promise.then) {
+          // never hold a tile back for long: show it after 1.5 s whatever happens
+          const timer = setTimeout(done, 1500);
+          promise.then(
+            () => {
+              clearTimeout(timer);
+              done();
+            },
+            () => {
+              clearTimeout(timer);
+              done();
+            },
+          );
+        } else {
+          done();
+        }
       }
-    }
-    return r;
-  };
+      return r;
+    };
   }
   return true;
 }
@@ -541,10 +634,14 @@ function warmStreamedShaders(game) {
 // takes one TypedArray.set (no per-element stores, no garbage); plain arrays keep the original. ?m4fast=0 = off.
 function fastMatrixToArray() {
   if (typeof location !== 'undefined' && /[?&]m4fast=0\b/.test(location.search)) return false;
-  const P = THREE.Matrix4.prototype; if (P._psFast) return true;
+  const P = THREE.Matrix4.prototype;
+  if (P._psFast) return true;
   const orig = P.toArray;
   P.toArray = function toArray(array = [], offset = 0) {
-    if (array.BYTES_PER_ELEMENT && array.length >= offset + 16) { array.set(this.elements, offset); return array; }
+    if (array.BYTES_PER_ELEMENT && array.length >= offset + 16) {
+      array.set(this.elements, offset);
+      return array;
+    }
     return orig.call(this, array, offset);
   };
   P._psFast = true;
@@ -552,7 +649,11 @@ function fastMatrixToArray() {
 }
 
 export async function initV2(game) {
-  try { fastMatrixToArray(); } catch (e) { console.warn('[perfGuards] m4 toArray', e); }
+  try {
+    fastMatrixToArray();
+  } catch (e) {
+    console.warn('[perfGuards] m4 toArray', e);
+  }
   const done = {
     interiorsList: false,
     facadeBatch: false,

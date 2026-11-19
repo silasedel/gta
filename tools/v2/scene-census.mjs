@@ -5,20 +5,77 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const PORT = +(o.port || 9341), SEG = o.seg || 'downtown', out = path.resolve(o.out || 'docs/v2/reports/scene-census.json');
-const p = spawn('npx', ['electron', 'desktop/app', `--remote-debugging-port=${PORT}`, `--ps-web-root=${path.resolve(o.web)}`, '--ps-bench=census', '--ps-bench-stay', '--ps-bench-out=/tmp/bench-census-run.json', '--ps-query=mute', '--ps-fullscreen'], { stdio: 'ignore' });
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const PORT = +(o.port || 9341),
+  SEG = o.seg || 'downtown',
+  out = path.resolve(o.out || 'docs/v2/reports/scene-census.json');
+const p = spawn(
+  'npx',
+  [
+    'electron',
+    'desktop/app',
+    `--remote-debugging-port=${PORT}`,
+    `--ps-web-root=${path.resolve(o.web)}`,
+    '--ps-bench=census',
+    '--ps-bench-stay',
+    '--ps-bench-out=/tmp/bench-census-run.json',
+    '--ps-query=mute',
+    '--ps-fullscreen',
+  ],
+  { stdio: 'ignore' },
+);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws = null;
-for (let i = 0; i < 120 && !ws; i++) { await sleep(1000); try { const t = (await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json()).find((x) => x.type === 'page' && /index\.html/.test(x.url)); if (t) ws = new WebSocket(t.webSocketDebuggerUrl); } catch (e) { /* not up */ } }
-if (!ws) { p.kill('SIGKILL'); process.exit(1); }
+for (let i = 0; i < 120 && !ws; i++) {
+  await sleep(1000);
+  try {
+    const t = (await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json()).find(
+      (x) => x.type === 'page' && /index\.html/.test(x.url),
+    );
+    if (t) ws = new WebSocket(t.webSocketDebuggerUrl);
+  } catch (e) {
+    /* not up */
+  }
+}
+if (!ws) {
+  p.kill('SIGKILL');
+  process.exit(1);
+}
 await new Promise((r) => ws.addEventListener('open', r));
-let id = 0; const wait = new Map();
-ws.addEventListener('message', (ev) => { const m = JSON.parse(ev.data); if (m.id && wait.has(m.id)) { wait.get(m.id)(m); wait.delete(m.id); } });
-const send = (method, params = {}) => new Promise((r) => { const i = ++id; wait.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
-const ev = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }); return r.result?.result?.value ?? r.result?.exceptionDetails?.exception?.description; };
-for (;;) { const cur = await ev('game?.bench?.seg?.id || ""'); if (cur === SEG) break; await sleep(300); }
+let id = 0;
+const wait = new Map();
+ws.addEventListener('message', (ev) => {
+  const m = JSON.parse(ev.data);
+  if (m.id && wait.has(m.id)) {
+    wait.get(m.id)(m);
+    wait.delete(m.id);
+  }
+});
+const send = (method, params = {}) =>
+  new Promise((r) => {
+    const i = ++id;
+    wait.set(i, r);
+    ws.send(JSON.stringify({ id: i, method, params }));
+  });
+const ev = async (expr) => {
+  const r = await send('Runtime.evaluate', {
+    expression: expr,
+    returnByValue: true,
+    awaitPromise: true,
+  });
+  return r.result?.result?.value ?? r.result?.exceptionDetails?.exception?.description;
+};
+for (;;) {
+  const cur = await ev('game?.bench?.seg?.id || ""');
+  if (cur === SEG) break;
+  await sleep(300);
+}
 await sleep(1000 * +(o.after || 8));
 const res = await ev(`(async () => {
   const sc = game.scene, snap = new Map();
@@ -37,5 +94,11 @@ const res = await ev(`(async () => {
 })()`);
 fs.writeFileSync(out, typeof res === 'string' ? res : JSON.stringify(res));
 console.log('wrote', out);
-p.kill('SIGTERM'); await sleep(1500); try { p.kill('SIGKILL'); } catch (e) { /* gone */ }
+p.kill('SIGTERM');
+await sleep(1500);
+try {
+  p.kill('SIGKILL');
+} catch (e) {
+  /* gone */
+}
 process.exit(0);

@@ -28,7 +28,14 @@ export const WALL_LAYERS = [
   { key: 'corrugated', name: 'corrugated_iron', neutral: 1, level: 0.8, tile: 2.4, metal: 0.55 },
   { key: 'siding', name: 'white_planks_clean', neutral: 1, level: 0.84, tile: 2.2 },
   { key: 'cmu', name: 'concrete_block_wall', neutral: 0.9, level: 0.7, tile: 2.4 },
-  { key: 'cladding', name: 'exterior_wall_cladding', neutral: 1, level: 0.8, tile: 3.0, metal: 0.35 },
+  {
+    key: 'cladding',
+    name: 'exterior_wall_cladding',
+    neutral: 1,
+    level: 0.8,
+    tile: 3.0,
+    metal: 0.35,
+  },
   { key: 'marble', name: 'marble_01', neutral: 0.2, level: 0.8, tile: 3.0, rough: 0.6 },
   { key: 'granite', name: 'granite_tile', neutral: 0.3, level: 0.34, tile: 2.4, rough: 0.6 },
   { key: 'shutter', name: 'painted_metal_shutter', neutral: 1, level: 0.78, tile: 2.4, metal: 0.4 },
@@ -37,36 +44,144 @@ export const WALL_LAYERS = [
   { key: 'roofMetal', name: 'corrugated_iron_02', neutral: 1, level: 0.74, tile: 3.0, metal: 0.6 },
   { key: 'roofConcrete', name: 'gravel_concrete', neutral: 0.8, level: 0.6, tile: 4.0 },
   { key: 'roofCoat', name: 'painted_concrete', neutral: 1, level: 0.84, tile: 4.0 },
-  { key: 'facadeTile', name: 'rectangular_facade_tiles', neutral: 1, level: 0.8, tile: 2.0, rough: 0.7 },
+  {
+    key: 'facadeTile',
+    name: 'rectangular_facade_tiles',
+    neutral: 1,
+    level: 0.8,
+    tile: 2.0,
+    rough: 0.7,
+  },
 ];
 const ART_GEO_OFF = typeof location !== 'undefined' && /[?&]artgeo=0\b/.test(location.search); // r2-art before/after: palette fade, patchiness, base course off
 export const WL = Object.fromEntries(WALL_LAYERS.map((l, i) => [l.key, i]));
-export const WIN = { punched: 0, ribbon: 1, curtain: 2, arched: 3, porthole: 4, blank: 5, storefront: 6, door: 7, garage: 8, roller: 9 };
-export const PROFILE = { office: 0, residential: 1, hotel: 2, retail: 3, industrial: 4, garage: 5, lobby: 6, restaurant: 7 };
-export const BIT = { boarded: 131072, bars: 262144, awning: 65536, pilaster: 1, spandrel: 2, belt: 4, stripes: 8, cross: 16, vsplit: 32, jalousie: 64, shutters: 128, ac: 256, darkFrame: 512, fins: 1024, surround: 2048, sill: 4096, grime: 8192, solidDoor: 16384, awningWin: 32768 };
-export const GLASS = { clear: 0, blue: 1, green: 2, bronze: 3, gray: 4, silver: 5, teal: 6, dark: 7 };
+export const WIN = {
+  punched: 0,
+  ribbon: 1,
+  curtain: 2,
+  arched: 3,
+  porthole: 4,
+  blank: 5,
+  storefront: 6,
+  door: 7,
+  garage: 8,
+  roller: 9,
+};
+export const PROFILE = {
+  office: 0,
+  residential: 1,
+  hotel: 2,
+  retail: 3,
+  industrial: 4,
+  garage: 5,
+  lobby: 6,
+  restaurant: 7,
+};
+export const BIT = {
+  boarded: 131072,
+  bars: 262144,
+  awning: 65536,
+  pilaster: 1,
+  spandrel: 2,
+  belt: 4,
+  stripes: 8,
+  cross: 16,
+  vsplit: 32,
+  jalousie: 64,
+  shutters: 128,
+  ac: 256,
+  darkFrame: 512,
+  fins: 1024,
+  surround: 2048,
+  sill: 4096,
+  grime: 8192,
+  solidDoor: 16384,
+  awningWin: 32768,
+};
+export const GLASS = {
+  clear: 0,
+  blue: 1,
+  green: 2,
+  bronze: 3,
+  gray: 4,
+  silver: 5,
+  teal: 6,
+  dark: 7,
+};
 
 let wallP = null;
 export function loadWallArray(renderer) {
-  if (!wallP) wallP = loadArray(renderer, WALL_LAYERS, { size: 1024 }) /* r2-art: the scans' native 1024 (768 resampled them soft: ~25% less detail at street level) */.then((a) => { a.tiles = WALL_LAYERS.map((l) => 1 / l.tile); return a; });
+  if (!wallP)
+    wallP = loadArray(renderer, WALL_LAYERS, {
+      size: 1024,
+    }) /* r2-art: the scans' native 1024 (768 resampled them soft: ~25% less detail at street level) */
+      .then((a) => {
+        a.tiles = WALL_LAYERS.map((l) => 1 / l.tile);
+        return a;
+      });
   return wallP;
 }
 
 // ---------------- geometry ----------------
 const _blank = [0, 3, 3.3, 0, 0, 0, 0, WIN.blank, 0, 0, 0, 0, 1, 1, 1, 0];
 export class FBatch extends Batch {
-  constructor() { super(); this.fx = []; this.s = _blank.slice(); }
+  constructor() {
+    super();
+    this.fx = [];
+    this.s = _blank.slice();
+  }
   // plain textured surface (no windows) in wall layer `layer`
-  blank(layer, groundY = 0, seed = 0) { const s = this.s; s[0] = layer; s[1] = 3; s[2] = 3.3; s[3] = seed; s[4] = s[5] = s[6] = 0; s[7] = WIN.blank; s[8] = groundY; s[9] = s[10] = s[11] = 0; s[12] = s[13] = s[14] = 1; s[15] = 0; return this; }
-  vert(x, y, z, nx, ny, nz, u, v, col) { super.vert(x, y, z, nx, ny, nz, u, v, col); const s = this.s; this.fx.push(s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10], s[11], s[12], s[13], s[14], s[15]); }
+  blank(layer, groundY = 0, seed = 0) {
+    const s = this.s;
+    s[0] = layer;
+    s[1] = 3;
+    s[2] = 3.3;
+    s[3] = seed;
+    s[4] = s[5] = s[6] = 0;
+    s[7] = WIN.blank;
+    s[8] = groundY;
+    s[9] = s[10] = s[11] = 0;
+    s[12] = s[13] = s[14] = 1;
+    s[15] = 0;
+    return this;
+  }
+  vert(x, y, z, nx, ny, nz, u, v, col) {
+    super.vert(x, y, z, nx, ny, nz, u, v, col);
+    const s = this.s;
+    this.fx.push(
+      s[0],
+      s[1],
+      s[2],
+      s[3],
+      s[4],
+      s[5],
+      s[6],
+      s[7],
+      s[8],
+      s[9],
+      s[10],
+      s[11],
+      s[12],
+      s[13],
+      s[14],
+      s[15],
+    );
+  }
   attach(g) {
-    const n = this.p.length / 3, fx = new Float32Array(this.fx.length ? this.fx : n * 16);
+    const n = this.p.length / 3,
+      fx = new Float32Array(this.fx.length ? this.fx : n * 16);
     const ib = new THREE.InterleavedBuffer(fx, 16);
-    g.setAttribute('aFa', new THREE.InterleavedBufferAttribute(ib, 4, 0)); g.setAttribute('aFb', new THREE.InterleavedBufferAttribute(ib, 4, 4));
-    g.setAttribute('aFc', new THREE.InterleavedBufferAttribute(ib, 4, 8)); g.setAttribute('aFd', new THREE.InterleavedBufferAttribute(ib, 4, 12));
+    g.setAttribute('aFa', new THREE.InterleavedBufferAttribute(ib, 4, 0));
+    g.setAttribute('aFb', new THREE.InterleavedBufferAttribute(ib, 4, 4));
+    g.setAttribute('aFc', new THREE.InterleavedBufferAttribute(ib, 4, 8));
+    g.setAttribute('aFd', new THREE.InterleavedBufferAttribute(ib, 4, 12));
     return g;
   }
-  build(material, o = {}) { const m = super.build(material, o); this.attach(m.geometry); return m; }
+  build(material, o = {}) {
+    const m = super.build(material, o);
+    this.attach(m.geometry);
+    return m;
+  }
 }
 
 // Walls around an oriented ring (outward normal = (-dz, dx)) from y0 to y1 with window style S:
@@ -75,44 +190,125 @@ export class FBatch extends Batch {
 // bays and floors are fitted to the run length and wall height. vBase offsets the floor index (stacked strips get new rooms).
 const _col = new THREE.Color();
 export function facadeWalls(batch, ring, y0, y1, S, vBase = 0, coll = null) {
-  const n = ring.length; if (n < 3 || y1 - y0 < 0.05) return;
-  const s = batch.s, E = [];
-  for (let i = 0; i < n; i++) { const p = ring[i], q = ring[(i + 1) % n], dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz); E.push({ p, q, L, tx: L > 1e-6 ? dx / L : 1, tz: L > 1e-6 ? dz / L : 0 }); }
+  const n = ring.length;
+  if (n < 3 || y1 - y0 < 0.05) return;
+  const s = batch.s,
+    E = [];
+  for (let i = 0; i < n; i++) {
+    const p = ring[i],
+      q = ring[(i + 1) % n],
+      dx = q[0] - p[0],
+      dz = q[1] - p[1],
+      L = Math.hypot(dx, dz);
+    E.push({ p, q, L, tx: L > 1e-6 ? dx / L : 1, tz: L > 1e-6 ? dz / L : 0 });
+  }
   // run starts where the wall turns by more than ~24 degrees
-  const turn = (i) => { const a = E[(i - 1 + n) % n], b = E[i]; return a.tx * b.tx + a.tz * b.tz < 0.914; };
-  let start = 0; for (let i = 0; i < n; i++) if (turn(i)) { start = i; break; }
-  const nf = Math.max(1, Math.round((y1 - y0) / S.floorH)), fh = (y1 - y0) / nf;
-  const tint = S.tint.isColor ? S.tint : _col.set(S.tint);
-  s[0] = S.layer; s[3] = S.seed; s[8] = S.groundY ?? 0; s[9] = S.profile ?? 0; s[10] = S.glass ?? 0; s[11] = S.reflect ?? 0.2;
-  s[12] = S.accent.r; s[13] = S.accent.g; s[14] = S.accent.b; s[15] = S.bits || 0;
-  let i = 0, runId = 0;
-  while (i < n) {
-    let j = i, Lr = 0; const run = [];
-    do { const e = E[(start + j) % n]; run.push(e); Lr += e.L; j++; } while (j < n && !turn((start + j) % n));
-    const minLen = S.type === WIN.curtain || S.type === WIN.ribbon ? 0.9 : Math.max(1.5, S.bayW * 0.62);
-    const blank = Lr < minLen || S.type === WIN.blank, nb = blank ? 1 : Math.max(1, Math.round(Lr / S.bayW)), bw = Lr / nb;
-    s[1] = bw; s[2] = fh; s[4] = blank ? 0 : S.winW; s[5] = S.winH; s[6] = S.sill; s[7] = blank ? WIN.blank : S.type;
-    const uB = runId * 41 + 3, v0 = vBase, v1 = vBase + nf; let cum = 0;
-    for (let k = 0; k < run.length; k++) {
-      const e = run[k]; if (e.L < 1e-4) continue;
-      const u0 = uB + nb * (cum / Lr), u1 = uB + nb * ((cum + e.L) / Lr); cum += e.L;
-      // smooth normals inside a run (curved walls), flat at its ends
-      const pe = k > 0 ? run[k - 1] : e, ne = k < run.length - 1 ? run[k + 1] : e;
-      let ax = -(e.tz + pe.tz), az = e.tx + pe.tx, al = Math.hypot(ax, az) || 1; ax /= al; az /= al;
-      let bx = -(e.tz + ne.tz), bz = e.tx + ne.tx, bl = Math.hypot(bx, bz) || 1; bx /= bl; bz /= bl;
-      const p = e.p, q = e.q;
-      batch.vert(p[0], y0, p[1], ax, 0, az, u0, v0, tint); batch.vert(q[0], y0, q[1], bx, 0, bz, u1, v0, tint); batch.vert(q[0], y1, q[1], bx, 0, bz, u1, v1, tint);
-      batch.vert(p[0], y0, p[1], ax, 0, az, u0, v0, tint); batch.vert(q[0], y1, q[1], bx, 0, bz, u1, v1, tint); batch.vert(p[0], y1, p[1], ax, 0, az, u0, v1, tint);
-      if (coll) { const w = _col.set(0xffffff); coll.vert(p[0], y0, p[1], ax, 0, az, 0, 0, w); coll.vert(q[0], y0, q[1], bx, 0, bz, 0, 0, w); coll.vert(q[0], y1, q[1], bx, 0, bz, 0, 0, w); coll.vert(p[0], y0, p[1], ax, 0, az, 0, 0, w); coll.vert(q[0], y1, q[1], bx, 0, bz, 0, 0, w); coll.vert(p[0], y1, p[1], ax, 0, az, 0, 0, w); }
+  const turn = (i) => {
+    const a = E[(i - 1 + n) % n],
+      b = E[i];
+    return a.tx * b.tx + a.tz * b.tz < 0.914;
+  };
+  let start = 0;
+  for (let i = 0; i < n; i++)
+    if (turn(i)) {
+      start = i;
+      break;
     }
-    i = j; runId++;
+  const nf = Math.max(1, Math.round((y1 - y0) / S.floorH)),
+    fh = (y1 - y0) / nf;
+  const tint = S.tint.isColor ? S.tint : _col.set(S.tint);
+  s[0] = S.layer;
+  s[3] = S.seed;
+  s[8] = S.groundY ?? 0;
+  s[9] = S.profile ?? 0;
+  s[10] = S.glass ?? 0;
+  s[11] = S.reflect ?? 0.2;
+  s[12] = S.accent.r;
+  s[13] = S.accent.g;
+  s[14] = S.accent.b;
+  s[15] = S.bits || 0;
+  let i = 0,
+    runId = 0;
+  while (i < n) {
+    let j = i,
+      Lr = 0;
+    const run = [];
+    do {
+      const e = E[(start + j) % n];
+      run.push(e);
+      Lr += e.L;
+      j++;
+    } while (j < n && !turn((start + j) % n));
+    const minLen =
+      S.type === WIN.curtain || S.type === WIN.ribbon ? 0.9 : Math.max(1.5, S.bayW * 0.62);
+    const blank = Lr < minLen || S.type === WIN.blank,
+      nb = blank ? 1 : Math.max(1, Math.round(Lr / S.bayW)),
+      bw = Lr / nb;
+    s[1] = bw;
+    s[2] = fh;
+    s[4] = blank ? 0 : S.winW;
+    s[5] = S.winH;
+    s[6] = S.sill;
+    s[7] = blank ? WIN.blank : S.type;
+    const uB = runId * 41 + 3,
+      v0 = vBase,
+      v1 = vBase + nf;
+    let cum = 0;
+    for (let k = 0; k < run.length; k++) {
+      const e = run[k];
+      if (e.L < 1e-4) continue;
+      const u0 = uB + nb * (cum / Lr),
+        u1 = uB + nb * ((cum + e.L) / Lr);
+      cum += e.L;
+      // smooth normals inside a run (curved walls), flat at its ends
+      const pe = k > 0 ? run[k - 1] : e,
+        ne = k < run.length - 1 ? run[k + 1] : e;
+      let ax = -(e.tz + pe.tz),
+        az = e.tx + pe.tx,
+        al = Math.hypot(ax, az) || 1;
+      ax /= al;
+      az /= al;
+      let bx = -(e.tz + ne.tz),
+        bz = e.tx + ne.tx,
+        bl = Math.hypot(bx, bz) || 1;
+      bx /= bl;
+      bz /= bl;
+      const p = e.p,
+        q = e.q;
+      batch.vert(p[0], y0, p[1], ax, 0, az, u0, v0, tint);
+      batch.vert(q[0], y0, q[1], bx, 0, bz, u1, v0, tint);
+      batch.vert(q[0], y1, q[1], bx, 0, bz, u1, v1, tint);
+      batch.vert(p[0], y0, p[1], ax, 0, az, u0, v0, tint);
+      batch.vert(q[0], y1, q[1], bx, 0, bz, u1, v1, tint);
+      batch.vert(p[0], y1, p[1], ax, 0, az, u0, v1, tint);
+      if (coll) {
+        const w = _col.set(0xffffff);
+        coll.vert(p[0], y0, p[1], ax, 0, az, 0, 0, w);
+        coll.vert(q[0], y0, q[1], bx, 0, bz, 0, 0, w);
+        coll.vert(q[0], y1, q[1], bx, 0, bz, 0, 0, w);
+        coll.vert(p[0], y0, p[1], ax, 0, az, 0, 0, w);
+        coll.vert(q[0], y1, q[1], bx, 0, bz, 0, 0, w);
+        coll.vert(p[0], y1, p[1], ax, 0, az, 0, 0, w);
+      }
+    }
+    i = j;
+    runId++;
   }
 }
 
 // ---------------- material ----------------
-const GLASS_TINTS = [[0.50, 0.57, 0.58], [0.27, 0.37, 0.47], [0.29, 0.42, 0.39], [0.44, 0.37, 0.28], [0.31, 0.34, 0.37], [0.66, 0.71, 0.73], [0.22, 0.40, 0.42], [0.09, 0.10, 0.11]];
+const GLASS_TINTS = [
+  [0.5, 0.57, 0.58],
+  [0.27, 0.37, 0.47],
+  [0.29, 0.42, 0.39],
+  [0.44, 0.37, 0.28],
+  [0.31, 0.34, 0.37],
+  [0.66, 0.71, 0.73],
+  [0.22, 0.4, 0.42],
+  [0.09, 0.1, 0.11],
+];
 
-const FRAG_HEAD = /* glsl */`
+const FRAG_HEAD = /* glsl */ `
 uniform sampler2DArray uFCol; uniform sampler2DArray uFNrm; uniform sampler2D uFRooms;
 uniform vec4 uFGrid; uniform vec2 uFRoomKind[8]; uniform float uFTile[NUM_FLAYERS]; uniform vec3 uFGlass[8];
 uniform float uFLit[8]; uniform float uFAwn; uniform float uFNight; uniform float uFDay; uniform float uFTime; uniform float uFGlow;
@@ -430,30 +626,76 @@ void facadeEval() {
 
 // shared: { uFLit: {value: Float32Array(8)}, uFNight, uFDay, uFTime, uFGlow } (uniform objects updated by materials.js)
 export function createFacadeMaterial(wall, rooms, shared, extra = null) {
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 1, envMapIntensity: 1.25 });
+  const mat = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 1,
+    metalness: 1,
+    envMapIntensity: 1.25,
+  });
   const kinds = new Array(8).fill(0).map(() => new THREE.Vector2(0, 1));
-  const order = ['office', 'residential', 'hotel', 'retail', 'industrial', 'garage', 'lobby', 'restaurant'];
-  order.forEach((k, i) => { const r = rooms.kinds[k] || rooms.kinds.residential; kinds[i].set(r.first, r.count); });
+  const order = [
+    'office',
+    'residential',
+    'hotel',
+    'retail',
+    'industrial',
+    'garage',
+    'lobby',
+    'restaurant',
+  ];
+  order.forEach((k, i) => {
+    const r = rooms.kinds[k] || rooms.kinds.residential;
+    kinds[i].set(r.first, r.count);
+  });
   mat.onBeforeCompile = (sh, r) => {
     Object.assign(sh.uniforms, {
-      uFCol: { value: wall.colR }, uFNrm: { value: wall.nrmAO }, uFRooms: { value: rooms.texture },
-      uFGrid: { value: new THREE.Vector4(rooms.cols, rooms.rows, 0.6 / rooms.cell, rooms.cols * rooms.rows) }, uFRoomKind: { value: kinds },
-      uFTile: { value: wall.tiles }, uFGlass: { value: GLASS_TINTS.map((c) => new THREE.Vector3(c[0], c[1], c[2])) },
-      uFLit: shared.uFLit, uFNight: shared.uFNight, uFDay: shared.uFDay, uFTime: shared.uFTime, uFGlow: shared.uFGlow, uFAwn: shared.uFAwn || { value: 1 },
+      uFCol: { value: wall.colR },
+      uFNrm: { value: wall.nrmAO },
+      uFRooms: { value: rooms.texture },
+      uFGrid: {
+        value: new THREE.Vector4(rooms.cols, rooms.rows, 0.6 / rooms.cell, rooms.cols * rooms.rows),
+      },
+      uFRoomKind: { value: kinds },
+      uFTile: { value: wall.tiles },
+      uFGlass: { value: GLASS_TINTS.map((c) => new THREE.Vector3(c[0], c[1], c[2])) },
+      uFLit: shared.uFLit,
+      uFNight: shared.uFNight,
+      uFDay: shared.uFDay,
+      uFTime: shared.uFTime,
+      uFGlow: shared.uFGlow,
+      uFAwn: shared.uFAwn || { value: 1 },
     });
-    sh.vertexShader = 'attribute vec4 aFa; attribute vec4 aFb; attribute vec4 aFc; attribute vec4 aFd;\nflat out vec4 vFa; flat out vec4 vFb; flat out vec4 vFc; flat out vec4 vFd;\nout vec3 vFWP; out vec3 vFWN; out vec2 vFuv;\n'
-      + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+    sh.vertexShader =
+      'attribute vec4 aFa; attribute vec4 aFb; attribute vec4 aFc; attribute vec4 aFd;\nflat out vec4 vFa; flat out vec4 vFb; flat out vec4 vFc; flat out vec4 vFd;\nout vec3 vFWP; out vec3 vFWN; out vec2 vFuv;\n' +
+      sh.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
         vFa = aFa; vFb = aFb; vFc = aFc; vFd = aFd; vFuv = uv;
-        vFWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vFWN = normalize(mat3(modelMatrix) * objectNormal);`);
+        vFWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vFWN = normalize(mat3(modelMatrix) * objectNormal);`,
+      );
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <clipping_planes_pars_fragment>', '#include <clipping_planes_pars_fragment>\n' + (ART_GEO_OFF ? '#define ART_GEO_OFF\n' : '') + FRAG_HEAD.replace('NUM_FLAYERS', String(wall.count)))
+      .replace(
+        '#include <clipping_planes_pars_fragment>',
+        '#include <clipping_planes_pars_fragment>\n' +
+          (ART_GEO_OFF ? '#define ART_GEO_OFF\n' : '') +
+          FRAG_HEAD.replace('NUM_FLAYERS', String(wall.count)),
+      )
       .replace('#include <map_fragment>', '#include <map_fragment>\n  facadeEval();')
       .replace('#include <color_fragment>', 'diffuseColor.rgb = gFAlb;')
       .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = gFRough;')
       .replace('#include <metalnessmap_fragment>', 'float metalnessFactor = gFMetal;')
-      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  normal = normalize((viewMatrix * vec4(gFNw, 0.0)).xyz);')
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += gFEmi;')
-      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n  reflectedLight.indirectDiffuse *= gFAO; reflectedLight.indirectSpecular *= mix(1.0, gFAO, 0.6);');
+      .replace(
+        '#include <normal_fragment_maps>',
+        '#include <normal_fragment_maps>\n  normal = normalize((viewMatrix * vec4(gFNw, 0.0)).xyz);',
+      )
+      .replace(
+        '#include <emissivemap_fragment>',
+        '#include <emissivemap_fragment>\n  totalEmissiveRadiance += gFEmi;',
+      )
+      .replace(
+        '#include <aomap_fragment>',
+        '#include <aomap_fragment>\n  reflectedLight.indirectDiffuse *= gFAO; reflectedLight.indirectSpecular *= mix(1.0, gFAO, 0.6);',
+      );
     if (extra) extra(sh, r);
   };
   mat.customProgramCacheKey = () => 'ps-facade-' + wall.count + (extra ? '-x' : '');

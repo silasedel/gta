@@ -69,14 +69,17 @@ function attach(win, startUrl) {
 
   const askAfterLoop = async () => {
     halted = true;
-    log.crash(`crash loop: ${crashTimes.length} crashes in ${CRASH_LOOP_WINDOW_MS / 1000}s, waiting for the user`);
+    log.crash(
+      `crash loop: ${crashTimes.length} crashes in ${CRASH_LOOP_WINDOW_MS / 1000}s, waiting for the user`,
+    );
     const r = await dialog.showMessageBox(win, {
       type: 'warning',
       buttons: ['Try again', 'Open log folder', 'Quit'],
       defaultId: 0,
       cancelId: 2,
       message: 'Southline keeps crashing',
-      detail: 'The game crashed several times in a row. The reasons are in crash.log in the log folder.',
+      detail:
+        'The game crashed several times in a row. The reasons are in crash.log in the log folder.',
     });
     if (r.response === 0) {
       crashTimes.length = 0;

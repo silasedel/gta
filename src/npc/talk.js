@@ -12,33 +12,33 @@ const R = {
   greet: {
     warm: [
       'Hey! Good to see a friendly face.',
-      'Hi there, how\'s your day going?',
-      'Well hello! You look like you\'re having a good one.',
-      'Hey you. What\'s new?',
+      "Hi there, how's your day going?",
+      "Well hello! You look like you're having a good one.",
+      "Hey you. What's new?",
       'Oh hi! I was just thinking this street needs more smiles.',
-      'Hey, hey. Pull up, what\'s going on?',
+      "Hey, hey. Pull up, what's going on?",
     ],
     neutral: [
       'Hi. Can I help you?',
       'Hey. Something you need?',
       'Hello. Do I know you?',
-      'Yeah, hi. What\'s up?',
-      'Hey there. Make it quick, I\'m on my way somewhere.',
+      "Yeah, hi. What's up?",
+      "Hey there. Make it quick, I'm on my way somewhere.",
       'Hi... you lost or something?',
     ],
     cold: [
       'You again. What now?',
-      'Oh, it\'s you. Last time you were a real charmer.',
+      "Oh, it's you. Last time you were a real charmer.",
       'I remember you. Keep it short.',
       'Not you. Not today.',
       'What do you want? And watch your mouth this time.',
-      'Mm. I haven\'t forgotten how you talked to me.',
+      "Mm. I haven't forgotten how you talked to me.",
     ],
   },
   compliment: {
     warm: [
       'Aw, stop it. You just made my whole day.',
-      'Really? Thank you, that\'s so sweet.',
+      "Really? Thank you, that's so sweet.",
       'Ha! Okay, I like you already.',
       'You noticed? Nobody ever notices.',
       'That is the nicest thing a stranger said to me all week.',
@@ -48,26 +48,26 @@ const R = {
       'Oh. Thanks, I guess.',
       'Uh, thank you. Is this a sales pitch?',
       'Thanks. You want something?',
-      'Okay, that\'s nice of you.',
-      'Ha. Thanks. Didn\'t expect that.',
+      "Okay, that's nice of you.",
+      "Ha. Thanks. Didn't expect that.",
       'Appreciate it. Have a good one.',
     ],
     cold: [
       'Compliments now? After last time? No.',
-      'Save it. I know what you\'re like.',
+      "Save it. I know what you're like.",
       'Nice try. Still not forgetting.',
       'Wow. Smooth. Still annoyed with you.',
       'You think a compliment fixes it? Cute.',
-      'Uh huh. Whatever you\'re selling, no.',
+      "Uh huh. Whatever you're selling, no.",
     ],
   },
   insult: {
     warm: [
       'Wow. Okay. I thought you were nice.',
-      'That\'s... that\'s really mean, you know that?',
+      "That's... that's really mean, you know that?",
       'Excuse me? Where did that come from?',
       'Ouch. Bad day or are you always like this?',
-      'Okay, I\'m walking away now.',
+      "Okay, I'm walking away now.",
       'Seriously? I was being friendly.',
     ],
     neutral: [
@@ -79,12 +79,12 @@ const R = {
       'Did you just insult me? On a Tuesday?',
     ],
     cold: [
-      'Again with this? You\'re a broken record.',
+      "Again with this? You're a broken record.",
       'Same mouth as last time, huh?',
       'You really came back for round two?',
       'I knew it. Some people never change.',
       'Keep talking and see what happens.',
-      'You\'re lucky I\'m in a hurry.',
+      "You're lucky I'm in a hurry.",
     ],
   },
   area: {
@@ -94,20 +94,20 @@ const R = {
       'This part of {district} has the best food after dark.',
       'People are nice here. Mostly. Watch the drivers.',
       'I grew up around {district}. It changed a lot, but I love it.',
-      'Go down to the water at sunset, it\'s free and it\'s beautiful.',
+      "Go down to the water at sunset, it's free and it's beautiful.",
     ],
     neutral: [
-      'It\'s {district}. Busy, loud, expensive.',
-      'Traffic\'s bad, parking\'s worse. Welcome.',
-      'It\'s fine. Rent\'s too high, like everywhere.',
+      "It's {district}. Busy, loud, expensive.",
+      "Traffic's bad, parking's worse. Welcome.",
+      "It's fine. Rent's too high, like everywhere.",
       '{district}? Lots of new buildings, not a lot of shade.',
-      'Some good spots, some tourist traps. You\'ll figure it out.',
-      'It\'s alright. Keep your car locked.',
+      "Some good spots, some tourist traps. You'll figure it out.",
+      "It's alright. Keep your car locked.",
     ],
     cold: [
       'Look it up on your phone.',
       'Why would I tell you anything?',
-      'It\'s a neighborhood. Go explore it somewhere else.',
+      "It's a neighborhood. Go explore it somewhere else.",
       'Ask someone who likes you.',
       'Nope. Next question.',
       'You figure it out.',
@@ -115,25 +115,25 @@ const R = {
   },
   directions: {
     warm: [
-      '{place}? Easy. That way, {dir}, you can\'t miss it.',
+      "{place}? Easy. That way, {dir}, you can't miss it.",
       'Oh, {place}! Head {dir}, maybe {dist}. Tell them I said hi.',
       'You want {place}. Go {dir}, about {dist}. Want me to draw it?',
       '{place} is right over there, {dir}. {dist}, more or less.',
       'Sure! {place}, {dir}. Follow the palm trees, ha.',
-      'That\'s {place}, {dir}, {dist}. Have fun!',
+      "That's {place}, {dir}, {dist}. Have fun!",
     ],
     neutral: [
       '{place}? That way. {dir}. Around {dist}.',
       'Go {dir}. {place} is about {dist}.',
       'Uh... {place}. {dir}, I think. {dist}?',
-      '{dir}, {dist}. That\'s {place}.',
-      'Pretty sure {place} is {dir}. Don\'t quote me.',
-      'Keep going {dir}, you\'ll hit {place}.',
+      "{dir}, {dist}. That's {place}.",
+      "Pretty sure {place} is {dir}. Don't quote me.",
+      "Keep going {dir}, you'll hit {place}.",
     ],
     cold: [
       '{place}? That way. Bye.',
       '{dir}. Now leave me alone.',
-      'It\'s {dir}. Don\'t follow me.',
+      "It's {dir}. Don't follow me.",
       'Somewhere {dir}. Good luck.',
       'Ugh. {place}, {dir}. We done?',
       'Figure it out. Fine, {dir}.',
@@ -144,20 +144,20 @@ const R = {
     neutral: [
       'You threatening me? Try it.',
       'Back up. Right now.',
-      'Big talk. Let\'s see it.',
-      'I\'ve dealt with worse than you before breakfast.',
+      "Big talk. Let's see it.",
+      "I've dealt with worse than you before breakfast.",
     ],
     cold: ['I knew you were trouble.', 'You want it? Come on then.'],
   },
   threatTimid: {
-    warm: ['Please, I don\'t want any trouble!', 'Okay, okay! I\'m going!'],
+    warm: ["Please, I don't want any trouble!", "Okay, okay! I'm going!"],
     neutral: [
-      'Don\'t hurt me, please!',
-      'I\'m leaving, I\'m leaving!',
+      "Don't hurt me, please!",
+      "I'm leaving, I'm leaving!",
       'Help! Somebody help!',
-      'I\'m calling the police!',
+      "I'm calling the police!",
     ],
-    cold: ['I knew it, I\'m calling 911!', 'Stay away from me!'],
+    cold: ["I knew it, I'm calling 911!", 'Stay away from me!'],
   },
   bye: {
     warm: [
@@ -166,35 +166,83 @@ const R = {
       'See you around, friend.',
       'Cuídate! Stay out of the sun.',
       'Nice talking to you!',
-      'Later! Don\'t be a stranger.',
+      "Later! Don't be a stranger.",
     ],
-    neutral: ['Okay. Bye.', 'See ya.', 'Alright, later.', 'Have a good one.', 'Take it easy.', 'Bye now.'],
-    cold: ['Finally.', 'Don\'t come back.', 'Yeah, go.', 'Bye. Forever, hopefully.', 'Good riddance.', 'Keep walking.'],
+    neutral: [
+      'Okay. Bye.',
+      'See ya.',
+      'Alright, later.',
+      'Have a good one.',
+      'Take it easy.',
+      'Bye now.',
+    ],
+    cold: [
+      'Finally.',
+      "Don't come back.",
+      'Yeah, go.',
+      'Bye. Forever, hopefully.',
+      'Good riddance.',
+      'Keep walking.',
+    ],
   },
 };
 // voice-group flavor added to the start or end of a reply
 const TAGS = {
   warm: { pre: ['Ay, ', 'Oh, ', 'Honey, ', ''], post: [' Bendiciones.', ' Okay?', ' Ha!', ''] },
-  kreyol: { pre: ['Eh, ', 'Mezanmi, ', 'Cheri, ', ''], post: [' Bondye bon.', ' Wi.', ' N\'ap boule.', ''] },
-  tourist: { pre: ['Oh gosh, ', 'Wow, ', 'Um, ', ''], post: [' We\'re from Ohio, by the way.', ' This place is wild.', ' Ha!', ''] },
-  elder: { pre: ['Mira, ', 'Oye, mijo, ', 'Ay, ', 'Chico, '], post: [' Así es.', ' Te lo digo yo.', ' Qué cosa.', ''] },
-  gruff: { pre: ['Look, ', 'Listen, ', 'Pff. ', ''], post: [' Got it?', ' Capisce?', ' Done.', ''] },
-  anxious: { pre: ['Um, ', 'Oh! ', 'Uh, sorry, ', ''], post: [' Sorry.', ' I think.', ' Is that okay?', ''] },
-  chill: { pre: ['Yo, ', 'Bro, ', 'Dale, ', 'Ey, '], post: [' Easy.', ' You feel me?', ' Wepa.', ''] },
-  pro: { pre: ['Right. ', 'Look, ', 'Okay. ', ''], post: [' I have a call.', ' Moving on.', ' Anyway.', ''] },
-  slick: { pre: ['Ey, papi, ', 'Babe, ', 'Listen, ', ''], post: [' I got a guy, by the way.', ' Follow me online.', ' Ha.', ''] },
+  kreyol: {
+    pre: ['Eh, ', 'Mezanmi, ', 'Cheri, ', ''],
+    post: [' Bondye bon.', ' Wi.', " N'ap boule.", ''],
+  },
+  tourist: {
+    pre: ['Oh gosh, ', 'Wow, ', 'Um, ', ''],
+    post: [" We're from Ohio, by the way.", ' This place is wild.', ' Ha!', ''],
+  },
+  elder: {
+    pre: ['Mira, ', 'Oye, mijo, ', 'Ay, ', 'Chico, '],
+    post: [' Así es.', ' Te lo digo yo.', ' Qué cosa.', ''],
+  },
+  gruff: {
+    pre: ['Look, ', 'Listen, ', 'Pff. ', ''],
+    post: [' Got it?', ' Capisce?', ' Done.', ''],
+  },
+  anxious: {
+    pre: ['Um, ', 'Oh! ', 'Uh, sorry, ', ''],
+    post: [' Sorry.', ' I think.', ' Is that okay?', ''],
+  },
+  chill: {
+    pre: ['Yo, ', 'Bro, ', 'Dale, ', 'Ey, '],
+    post: [' Easy.', ' You feel me?', ' Wepa.', ''],
+  },
+  pro: {
+    pre: ['Right. ', 'Look, ', 'Okay. ', ''],
+    post: [' I have a call.', ' Moving on.', ' Anyway.', ''],
+  },
+  slick: {
+    pre: ['Ey, papi, ', 'Babe, ', 'Listen, ', ''],
+    post: [' I got a guy, by the way.', ' Follow me online.', ' Ha.', ''],
+  },
 };
 const TIME = {
   morning: ['Morning. ', 'Too early for this, but ', 'Before coffee? Okay. ', ''],
   afternoon: ['', 'In this heat? ', 'Lunch hour, so ', ''],
-  evening: ['Evening. ', 'Long day, so ', '', 'Sun\'s going down, '],
-  night: ['At this hour? ', 'It\'s late, but ', 'Night owl, huh? ', ''],
+  evening: ['Evening. ', 'Long day, so ', '', "Sun's going down, "],
+  night: ['At this hour? ', "It's late, but ", 'Night owl, huh? ', ''],
 };
 const PLAYER = {
-  greet: ['Hey, how\'s it going?', 'Hi there.', 'What\'s up?', 'Buenas.'],
-  compliment: ['Love the {item}.', 'That {item} looks great on you.', 'You\'ve got style.', 'Nice {item}, seriously.'],
-  insult: ['Nice {item}. Did you lose a bet?', 'You walk like a lost tourist.', 'Move, you\'re blocking the sidewalk.', 'Who dressed you?'],
-  area: ['What\'s this area like?', 'Anything good around here?', 'What do people do around here?'],
+  greet: ["Hey, how's it going?", 'Hi there.', "What's up?", 'Buenas.'],
+  compliment: [
+    'Love the {item}.',
+    'That {item} looks great on you.',
+    "You've got style.",
+    'Nice {item}, seriously.',
+  ],
+  insult: [
+    'Nice {item}. Did you lose a bet?',
+    'You walk like a lost tourist.',
+    "Move, you're blocking the sidewalk.",
+    'Who dressed you?',
+  ],
+  area: ["What's this area like?", 'Anything good around here?', 'What do people do around here?'],
   directions: ['Which way to {place}?', 'How do I get to {place}?', 'Is {place} near here?'],
   threat: ['Give me your wallet.', 'Walk away before you get hurt.', 'You want problems?'],
   bye: ['See you around.', 'Take care.', 'Later.'],
@@ -205,23 +253,19 @@ const FOLLOW_UP = {
     'You again? After what you just said?',
     'Seriously? You just insulted me. Walk away.',
     'Oh, now you want to talk? No.',
-    'Round two? I don\'t think so.',
+    "Round two? I don't think so.",
     'Still here? You said enough already.',
   ],
   afterKind: [
-    'Back again? Okay, you\'re sweet, I\'ll give you that.',
+    "Back again? Okay, you're sweet, I'll give you that.",
     'Hi again! Still smiling about what you said.',
-    'Oh, it\'s you again. Hi.',
+    "Oh, it's you again. Hi.",
   ],
   afterDirections: [
-    'Lost again already? It\'s the way I pointed.',
+    "Lost again already? It's the way I pointed.",
     'Did you find it? No? Okay, listen this time.',
   ],
-  again: [
-    'Hey, we just talked. What else?',
-    'Back so soon? What\'s up?',
-    'Forgot something?',
-  ],
+  again: ['Hey, we just talked. What else?', "Back so soon? What's up?", 'Forgot something?'],
 };
 
 const OPTIONS = [
@@ -254,11 +298,11 @@ export function talkLineCount() {
 }
 
 export function createTalk(game, people) {
-  const memory = new Map();          // identity id -> { talks, rude, warm, last }
+  const memory = new Map(); // identity id -> { talks, rude, warm, last }
   const recent = [];
   const recentSet = new Set();
   const log = [];
-  let convo = null;                  // { ped, k, out, saved: { pos, quat } }
+  let convo = null; // { ped, k, out, saved: { pos, quat } }
   let prompted = null;
 
   // ---------------------------------------------------------------- UI
@@ -300,7 +344,15 @@ export function createTalk(game, people) {
   }
   const moodWord = (ped) => {
     const m = ped.mood ?? 0.5;
-    return m > 0.72 ? 'cheerful' : m > 0.55 ? 'relaxed' : m > 0.4 ? 'so-so' : m > 0.25 ? 'grumpy' : 'in a foul mood';
+    return m > 0.72
+      ? 'cheerful'
+      : m > 0.55
+        ? 'relaxed'
+        : m > 0.4
+          ? 'so-so'
+          : m > 0.25
+            ? 'grumpy'
+            : 'in a foul mood';
   };
 
   // ---------------------------------------------------------------- picking lines
@@ -323,7 +375,11 @@ export function createTalk(game, people) {
   function tierFor(ped) {
     const mem = memory.get(ped.identity.id);
     if (mem?.rude || (ped.mood ?? 0.5) < 0.3) return 'cold';
-    if ((mem?.warm || 0) > 0 || (ped.mood ?? 0.5) > 0.62 + (1 - ped.identity.traits.kindness) * 0.15) return 'warm';
+    if (
+      (mem?.warm || 0) > 0 ||
+      (ped.mood ?? 0.5) > 0.62 + (1 - ped.identity.traits.kindness) * 0.15
+    )
+      return 'warm';
     return 'neutral';
   }
   function compose(ped, topic, vars) {
@@ -341,7 +397,8 @@ export function createTalk(game, people) {
       const lead = pre || tag;
       let core2 = core;
       // after a lead-in that runs on ("Look, ", "It's late, but ") the reply continues in lower case
-      if (lead && /[,a-z] $/.test(lead) && !/^I\b/.test(core)) core2 = core.charAt(0).toLowerCase() + core.slice(1);
+      if (lead && /[,a-z] $/.test(lead) && !/^I\b/.test(core))
+        core2 = core.charAt(0).toLowerCase() + core.slice(1);
       text = lead + core2 + post;
       text = text.replace(/\{(\w+)\}/g, (m, k2) => vars[k2] ?? m);
       if (!recentSet.has(text)) break;
@@ -357,7 +414,9 @@ export function createTalk(game, people) {
     let curStreet = null;
     try {
       curStreet = city?.streetNameAt?.(here.x, here.z) || null;
-    } catch (e) { /* */ }
+    } catch (e) {
+      /* */
+    }
     const cands = [];
     for (let i = 0; i < 12; i++) {
       const a = (i / 12) * Math.PI * 2;
@@ -367,13 +426,18 @@ export function createTalk(game, people) {
         let name = null;
         try {
           name = city?.streetNameAt?.(x, z) || null;
-        } catch (e) { /* */ }
+        } catch (e) {
+          /* */
+        }
         if (!name) {
           try {
             name = city?.districtAt?.(x, z) || null;
-          } catch (e) { /* */ }
+          } catch (e) {
+            /* */
+          }
         }
-        if (name && name !== curStreet && !/water|bay$/i.test(name)) cands.push({ name: String(name), x, z, d });
+        if (name && name !== curStreet && !/water|bay$/i.test(name))
+          cands.push({ name: String(name), x, z, d });
       }
     }
     if (!cands.length) return null;
@@ -381,7 +445,9 @@ export function createTalk(game, people) {
   }
   const compass = (dx, dz) => {
     const a = Math.atan2(dx, -dz); // x east, z south: north is -z
-    return ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'][((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8];
+    return ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'][
+      ((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8
+    ];
   };
 
   // ---------------------------------------------------------------- conversation flow
@@ -392,13 +458,17 @@ export function createTalk(game, people) {
     if (log.length > 300) log.shift();
   }
   function playerSays(text) {
-    people.bubble?.({ pos: game.player.position, look: { height: 1.8 }, active: true, isPlayer: true }, text, 2600);
+    people.bubble?.(
+      { pos: game.player.position, look: { height: 1.8 }, active: true, isPlayer: true },
+      text,
+      2600,
+    );
     log.push({ who: 'Nico', text });
   }
   function itemOf(ped) {
     const acc = ped.look?.acc || [];
     const a = acc.find((x) => ITEM_WORD[x.kind]);
-    return a ? ITEM_WORD[a.kind] : (ped.look?.cls === 'business' ? 'suit' : 'outfit');
+    return a ? ITEM_WORD[a.kind] : ped.look?.cls === 'business' ? 'suit' : 'outfit';
   }
 
   function start(ped) {
@@ -415,7 +485,8 @@ export function createTalk(game, people) {
     ped.pending = null;
     ped.leaveGroup = true;
     ped.stateT = 60;
-    const mem = memory.get(ped.identity.id) || ped._talkMem || { talks: 0, rude: false, warm: 0, last: 0 };
+    const mem = memory.get(ped.identity.id) ||
+      ped._talkMem || { talks: 0, rude: false, warm: 0, last: 0 };
     memory.set(ped.identity.id, mem);
     ped._talkMem = mem;
     // short-term memory (playtest P6): talking again right after a conversation picks up where it left off
@@ -442,13 +513,21 @@ export function createTalk(game, people) {
       convo.shortFuse = true;
       setTimeout(() => {
         if (convo?.ped === ped && !convo.out && convo.choices === 0) {
-          end(ped.identity.traits.temper > 0.6 && ped.identity.traits.courage > 0.45 ? 'swing' : 'leave');
+          end(
+            ped.identity.traits.temper > 0.6 && ped.identity.traits.courage > 0.45
+              ? 'swing'
+              : 'leave',
+          );
         }
       }, 3500);
     }
     showWheel(ped);
     game.cameraOverride = cameraTwoShot;
-    try { game.emit?.('npcTalk', { phase: 'start', name: ped.identity.name }); } catch (e) { /* */ }
+    try {
+      game.emit?.('npcTalk', { phase: 'start', name: ped.identity.name });
+    } catch (e) {
+      /* */
+    }
     return true;
   }
 
@@ -477,14 +556,20 @@ export function createTalk(game, people) {
     };
     if (place) {
       vars.dir = compass(place.x - ped.pos.x, place.z - ped.pos.z);
-      vars.dist = place.d < 180 ? 'a couple of blocks' : place.d < 330 ? 'five minutes walking' : 'ten minutes walking';
+      vars.dist =
+        place.d < 180
+          ? 'a couple of blocks'
+          : place.d < 330
+            ? 'five minutes walking'
+            : 'ten minutes walking';
     }
     const pl = PLAYER[o.key];
     playerSays(pick(pl, '').replace(/\{(\w+)\}/g, (m, k) => vars[k] ?? m));
     convo.choices++;
-    const after = (fn, s) => setTimeout(() => {
-      if (convo?.ped === ped) fn();
-    }, s * 1000);
+    const after = (fn, s) =>
+      setTimeout(() => {
+        if (convo?.ped === ped) fn();
+      }, s * 1000);
 
     if (o.key === 'greet') {
       ped.mood = clamp((ped.mood ?? 0.5) + 0.03 * T.kindness);
@@ -519,7 +604,11 @@ export function createTalk(game, people) {
       mem.warm = 0;
       const brave = T.courage > 0.62 || (T.courage > 0.45 && T.temper > 0.65);
       after(() => say(ped, compose(ped, brave ? 'threatBrave' : 'threatTimid', vars)), 0.7);
-      after(() => end(brave ? (T.temper > 0.5 ? 'swing' : 'leave') : (T.honesty > 0.4 ? 'call911' : 'flee')), 2.0);
+      after(
+        () =>
+          end(brave ? (T.temper > 0.5 ? 'swing' : 'leave') : T.honesty > 0.4 ? 'call911' : 'flee'),
+        2.0,
+      );
     } else if (o.key === 'bye') {
       after(() => say(ped, compose(ped, 'bye', vars)), 0.6);
       after(() => end('leave'), 1.8);
@@ -564,7 +653,11 @@ export function createTalk(game, people) {
       }
       ped.idleStyle = null;
     }
-    try { game.emit?.('npcTalk', { phase: 'end', outcome, name: ped.identity?.name }); } catch (e) { /* */ }
+    try {
+      game.emit?.('npcTalk', { phase: 'end', outcome, name: ped.identity?.name });
+    } catch (e) {
+      /* */
+    }
   }
 
   // ---------------------------------------------------------------- camera two-shot
@@ -590,7 +683,7 @@ export function createTalk(game, people) {
     // to the side of the line between them, a little back toward the player
     const sx = -dz / d;
     const sz = dx / d;
-    _pos.set(_mid.x + sx * 2.9 - dx / d * 0.9, _mid.y + 0.15, _mid.z + sz * 2.9 - dz / d * 0.9);
+    _pos.set(_mid.x + sx * 2.9 - (dx / d) * 0.9, _mid.y + 0.15, _mid.z + sz * 2.9 - (dz / d) * 0.9);
     _m.lookAt(_pos, _mid, _up);
     _q.setFromRotationMatrix(_m);
     const e = convo.k * convo.k * (3 - 2 * convo.k);
@@ -623,8 +716,11 @@ export function createTalk(game, people) {
   const prevBR = scene.onBeforeRender;
   scene.onBeforeRender = function (...args) {
     try {
-      for (const p of game.peds.list) if (p.active && p.speakT > 0 && p.root?.visible) speechMotion(p);
-    } catch (e) { /* never break rendering */ }
+      for (const p of game.peds.list)
+        if (p.active && p.speakT > 0 && p.root?.visible) speechMotion(p);
+    } catch (e) {
+      /* never break rendering */
+    }
     if (prevBR) return prevBR.apply(this, args);
   };
 
@@ -646,7 +742,11 @@ export function createTalk(game, people) {
       start(prompted);
     }
   });
-  let losPed = null, losT = 0, losOK = true; const _lc = new THREE.Vector3(), _le = new THREE.Vector3();
+  let losPed = null,
+    losT = 0,
+    losOK = true;
+  const _lc = new THREE.Vector3(),
+    _le = new THREE.Vector3();
   function nearestTalkable() {
     const P = game.player;
     if (!P?.position || P.state?.inVehicle) return null;
@@ -657,13 +757,14 @@ export function createTalk(game, people) {
     let bd = 3.2;
     for (const p of game.peds.list) {
       if (!p.active || p.dead || !p.identity || p.isCop) continue;
-      if (['flee', 'fight', 'down', 'dead', 'gettingUp', 'swim', 'cower'].includes(p.state)) continue;
+      if (['flee', 'fight', 'down', 'dead', 'gettingUp', 'swim', 'cower'].includes(p.state))
+        continue;
       const dx = p.pos.x - pp.x;
       const dz = p.pos.z - pp.z;
       const d = Math.hypot(dx, dz);
       if (d > bd) continue;
       if (d > 1.2 && (dx * fx + dz * fz) / d < 0.2) continue;
-      if (!p.char || p.root?.visible === false) continue;   // no model shown: nobody to talk to
+      if (!p.char || p.root?.visible === false) continue; // no model shown: nobody to talk to
       bd = d;
       best = p;
     }
@@ -672,9 +773,12 @@ export function createTalk(game, people) {
     if (best) {
       const t = performance.now();
       if (best !== losPed || t - losT > 250) {
-        losPed = best; losT = t;
+        losPed = best;
+        losT = t;
         const chest = _lc.set(best.pos.x, best.pos.y + 1.3, best.pos.z);
-        losOK = hasLOS(game, _le.set(pp.x, pp.y + 1.55, pp.z), chest) && (!game.camera || hasLOS(game, game.camera.position, chest));
+        losOK =
+          hasLOS(game, _le.set(pp.x, pp.y + 1.55, pp.z), chest) &&
+          (!game.camera || hasLOS(game, game.camera.position, chest));
       }
       if (!losOK) return null;
     }
@@ -685,7 +789,13 @@ export function createTalk(game, people) {
     if (convo && !convo.out) {
       const ped = convo.ped;
       const pp = game.player.position;
-      if (!ped.active || ped.dead || ped.state !== 'convo' || Math.hypot(ped.pos.x - pp.x, ped.pos.z - pp.z) > 7) end('leave');
+      if (
+        !ped.active ||
+        ped.dead ||
+        ped.state !== 'convo' ||
+        Math.hypot(ped.pos.x - pp.x, ped.pos.z - pp.z) > 7
+      )
+        end('leave');
     }
     prompted = convo ? null : nearestTalkable();
     if (prompted) {

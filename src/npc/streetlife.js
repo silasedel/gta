@@ -74,7 +74,7 @@ export function createSignals(game) {
     }
     const ref = angleAt(edges[0], nodeId);
     const phase = Math.abs(Math.sin(angleAt(best, nodeId) - ref)) < 0.6 ? 0 : 1;
-    const off = ((nodeId * 7.31) % SIG_CYCLE + SIG_CYCLE) % SIG_CYCLE;
+    const off = (((nodeId * 7.31) % SIG_CYCLE) + SIG_CYCLE) % SIG_CYCLE;
     const k = (performance.now() / 1000 + off) % SIG_CYCLE;
     const s = phase === 0 ? k : (k + SIG_CYCLE / 2) % SIG_CYCLE;
     if (!state) {
@@ -153,7 +153,11 @@ export function createSpots(game) {
     const fz = f.fz ?? f.z;
     const ox = Math.sin(f.facing || 0);
     const oz = Math.cos(f.facing || 0);
-    const T = [[-2.6, 2.8], [2.6, 2.8], [0, 5.2]][(Math.random() * 3) | 0];
+    const T = [
+      [-2.6, 2.8],
+      [2.6, 2.8],
+      [0, 5.2],
+    ][(Math.random() * 3) | 0];
     const tx = fx + ox * T[1] - oz * T[0];
     const tz = fz + oz * T[1] + ox * T[0];
     // tables only stand on the raised sidewalk (curb height)
@@ -167,7 +171,15 @@ export function createSpots(game) {
     if (taken.has(key)) {
       return null;
     }
-    return { kind: 'cafe', key, x, y: ground(x, z), z, heading: a + Math.PI, table: { x: tx, z: tz } };
+    return {
+      kind: 'cafe',
+      key,
+      x,
+      y: ground(x, z),
+      z,
+      heading: a + Math.PI,
+      table: { x: tx, z: tz },
+    };
   }
   /** a small group standing on the sidewalk in front of a shop (talking), facing a shared center */
   function group(cx, cz, rMin, rMax) {
@@ -183,7 +195,14 @@ export function createSpots(game) {
     if (taken.has(key)) {
       return null;
     }
-    return { kind: 'group', key, x: gx, y: ground(gx, gz), z: gz, n: 2 + ((Math.random() * 3) | 0) };
+    return {
+      kind: 'group',
+      key,
+      x: gx,
+      y: ground(gx, gz),
+      z: gz,
+      n: 2 + ((Math.random() * 3) | 0),
+    };
   }
   /** a shop door: people walk out of it onto the sidewalk, or into it from the sidewalk */
   function door(cx, cz, rMin, rMax) {

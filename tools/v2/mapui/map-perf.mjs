@@ -4,7 +4,9 @@ import { withBrowser } from '../browser.mjs';
 await withBrowser({ width: 800, height: 600, maxSeconds: 300 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/tools/v2/mapui/mapshot.html?wanted=0');
   await b.waitFor('window.mapReady === true', 120);
-  const mods = fs.existsSync('tools/v2/mapui/_old_mapRender.js') ? ['/tools/v2/mapui/_old_mapRender.js', '/src/ui/mapRender.js'] : ['/src/ui/mapRender.js'];
+  const mods = fs.existsSync('tools/v2/mapui/_old_mapRender.js')
+    ? ['/tools/v2/mapui/_old_mapRender.js', '/src/ui/mapRender.js']
+    : ['/src/ui/mapRender.js'];
   for (const url of mods) {
     const r = await b.eval(`(async () => {
       const m = await import('${url}?t=' + Date.now());

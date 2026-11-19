@@ -3,8 +3,14 @@
 //   node tools/v2/npcs/shots.mjs out_prefix "query1" "query2" ... [--w 1600 --h 900]
 // Each query string is appended to the preview URL; writes <out_prefix>_<i>.png and prints window.stats.
 import { withBrowser } from '../browser.mjs';
-const args = process.argv.slice(2); const o = { w: 1600, h: 900 }; const qs = [];
-for (let i = 0; i < args.length; i++) { if (args[i] === '--w') o.w = +args[++i]; else if (args[i] === '--h') o.h = +args[++i]; else qs.push(args[i]); }
+const args = process.argv.slice(2);
+const o = { w: 1600, h: 900 };
+const qs = [];
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--w') o.w = +args[++i];
+  else if (args[i] === '--h') o.h = +args[++i];
+  else qs.push(args[i]);
+}
 const out = qs.shift();
 await withBrowser({ width: o.w, height: o.h, maxSeconds: 400 }, async (b) => {
   for (let i = 0; i < qs.length; i++) {

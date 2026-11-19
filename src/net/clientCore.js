@@ -2,9 +2,20 @@
 // state upload, delta snapshot decoding, jitter-buffered interpolation of remote players, and the history
 // used for reconciliation. No DOM and no three.js, so the headless test bots run this exact code in Node.
 import {
-  PROTOCOL_VERSION, TICK_HZ, SEAT_NONE, MSG_SNAPSHOT, MSG_CORRECT,
-  M_POS, M_ROT, M_ANIM, M_STAT, M_VEH,
-  Writer, encodeState, decodeSnapshot, decodeCorrect,
+  PROTOCOL_VERSION,
+  TICK_HZ,
+  SEAT_NONE,
+  MSG_SNAPSHOT,
+  MSG_CORRECT,
+  M_POS,
+  M_ROT,
+  M_ANIM,
+  M_STAT,
+  M_VEH,
+  Writer,
+  encodeState,
+  decodeSnapshot,
+  decodeCorrect,
 } from './protocol.js';
 
 const BUF = 48;
@@ -46,9 +57,9 @@ export class NetClient {
     this.connected = false;
     this.w = new Writer(128);
     this.seq = 0;
-    this.hist = new Array(256);          // seq & 255 -> { seq, x, y, z }
+    this.hist = new Array(256); // seq & 255 -> { seq, x, y, z }
     this.remotes = new Map();
-    this.offset = null;                  // server time - local time
+    this.offset = null; // server time - local time
     this.jitter = 0;
     this.interpDelay = BASE_DELAY;
     this.renderT = 0;
@@ -179,69 +190,74 @@ export class NetClient {
   onSnapshot(u8) {
     const now = performance.now();
     const head = this.head;
-    decodeSnapshot(u8, head, (id, mask, e, t) => {
-      let r = this.remotes.get(id);
-      if (!r) {
-        r = {
-          id,
-          buf: [],
-          flags: 0,
-          animSpeed: 0,
-          heading: 0,
-          health: 100,
-          armor: 0,
-          wanted: 0,
-          weapon: 0,
-          veh: 0,
-          seat: SEAT_NONE,
-          pitch: 0,
-          roll: 0,
-          steer: 0,
-          vflags: 0,
-        };
-        this.remotes.set(id, r);
-      }
-      if (mask & M_ROT) {
-        r.heading = e.heading;
-      }
-      if (mask & M_POS) {
-        let s = r.buf.length >= BUF ? r.buf.shift() : {};
-        if (r.buf.length && t <= r.buf[r.buf.length - 1].t) {
-          r.buf.length = 0;
+    decodeSnapshot(
+      u8,
+      head,
+      (id, mask, e, t) => {
+        let r = this.remotes.get(id);
+        if (!r) {
+          r = {
+            id,
+            buf: [],
+            flags: 0,
+            animSpeed: 0,
+            heading: 0,
+            health: 100,
+            armor: 0,
+            wanted: 0,
+            weapon: 0,
+            veh: 0,
+            seat: SEAT_NONE,
+            pitch: 0,
+            roll: 0,
+            steer: 0,
+            vflags: 0,
+          };
+          this.remotes.set(id, r);
         }
-        s.t = t;
-        s.x = e.x;
-        s.y = e.y;
-        s.z = e.z;
-        s.vx = e.vx;
-        s.vy = e.vy;
-        s.vz = e.vz;
-        s.h = r.heading;
-        r.buf.push(s);
-      } else if ((mask & M_ROT) && r.buf.length) {
-        r.buf[r.buf.length - 1].h = r.heading;
-      }
-      if (mask & M_ANIM) {
-        r.flags = e.flags;
-        r.animSpeed = e.animSpeed;
-      }
-      if (mask & M_STAT) {
-        r.health = e.health;
-        r.armor = e.armor;
-        r.wanted = e.wanted;
-        r.weapon = e.weapon;
-      }
-      if (mask & M_VEH) {
-        r.veh = e.veh;
-        r.seat = e.seat;
-        if (e.seat !== SEAT_NONE) {
-          r.pitch = e.pitch;
-          r.roll = e.roll;
-          r.steer = e.steer;
-          r.vflags = e.vflags;
+        if (mask & M_ROT) {
+          r.heading = e.heading;
         }
-      }
-    }, (id) => this.remotes.delete(id));
+        if (mask & M_POS) {
+          let s = r.buf.length >= BUF ? r.buf.shift() : {};
+          if (r.buf.length && t <= r.buf[r.buf.length - 1].t) {
+            r.buf.length = 0;
+          }
+          s.t = t;
+          s.x = e.x;
+          s.y = e.y;
+          s.z = e.z;
+          s.vx = e.vx;
+          s.vy = e.vy;
+          s.vz = e.vz;
+          s.h = r.heading;
+          r.buf.push(s);
+        } else if (mask & M_ROT && r.buf.length) {
+          r.buf[r.buf.length - 1].h = r.heading;
+        }
+        if (mask & M_ANIM) {
+          r.flags = e.flags;
+          r.animSpeed = e.animSpeed;
+        }
+        if (mask & M_STAT) {
+          r.health = e.health;
+          r.armor = e.armor;
+          r.wanted = e.wanted;
+          r.weapon = e.weapon;
+        }
+        if (mask & M_VEH) {
+          r.veh = e.veh;
+          r.seat = e.seat;
+          if (e.seat !== SEAT_NONE) {
+            r.pitch = e.pitch;
+            r.roll = e.roll;
+            r.steer = e.steer;
+            r.vflags = e.vflags;
+          }
+        }
+      },
+      (id) => this.remotes.delete(id),
+    );
     this.ack = head.ack;
     // clock: the least-delayed snapshot gives the offset; jitter is the spread around it
     const o = head.serverTime - now;
@@ -255,7 +271,7 @@ export class NetClient {
     }
     const late = this.offset - o;
     this.jitter += (late - this.jitter) * 0.05;
-    const want = Math.min(350, Math.max(BASE_DELAY, 1000 / TICK_HZ * 1.5 + this.jitter * 2.5));
+    const want = Math.min(350, Math.max(BASE_DELAY, (1000 / TICK_HZ) * 1.5 + this.jitter * 2.5));
     this.interpDelay += (want - this.interpDelay) * 0.02;
     this.lastSnapAt = now;
     this.emit('snapshot', head);
@@ -335,7 +351,7 @@ export class NetClient {
     const last = b[b.length - 1];
     if (t >= last.t || b.length === 1) {
       const dt = Math.min(Math.max(0, t - last.t), EXTRAP_MS) / 1000;
-      const k = dt * (1 - dt / (2 * EXTRAP_MS / 1000) * 0.5);
+      const k = dt * (1 - (dt / ((2 * EXTRAP_MS) / 1000)) * 0.5);
       out.x = last.x + last.vx * k;
       out.y = last.y + last.vy * k;
       out.z = last.z + last.vz * k;

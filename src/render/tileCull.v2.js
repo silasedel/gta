@@ -18,22 +18,45 @@ export const order = 9;
 
 export async function initV2(game) {
   const qs = new URLSearchParams(location.search);
-  const C = game.tileCull = { on: qs.get('tilecull') !== '0', margin: 4, stats: { tested: 0, hidden: 0, objectsSkipped: 0, boxMs: 0 } };
-  const scene = game.scene, cam = game.camera;
+  const C = (game.tileCull = {
+    on: qs.get('tilecull') !== '0',
+    margin: 4,
+    stats: { tested: 0, hidden: 0, objectsSkipped: 0, boxMs: 0 },
+  });
+  const scene = game.scene,
+    cam = game.camera;
   const info = new WeakMap(); // child -> { box, n, t, objects }
-  const fr = new THREE.Frustum(), m = new THREE.Matrix4(), tmp = new THREE.Box3();
+  const fr = new THREE.Frustum(),
+    m = new THREE.Matrix4(),
+    tmp = new THREE.Box3();
   const hidden = [];
-  let clock = 0, rr = 0;
+  let clock = 0,
+    rr = 0;
 
-  function countObjects(o) { let n = 0; o.traverse(() => { n++; }); return n; }
+  function countObjects(o) {
+    let n = 0;
+    o.traverse(() => {
+      n++;
+    });
+    return n;
+  }
   function refresh(c, I) {
     const t0 = performance.now();
     I.box.makeEmpty();
     // precise = false: geometry bounding boxes (instanced meshes use their instance bounds)
-    try { I.box.setFromObject(c, false); } catch (e) { I.box.makeEmpty(); }
+    try {
+      I.box.setFromObject(c, false);
+    } catch (e) {
+      I.box.makeEmpty();
+    }
     if (!I.box.isEmpty()) I.box.expandByScalar(C.margin);
-    I.objects = countObjects(c); I.n = c.children.length; I.t = clock;
-    I.dynamic = false; c.traverse((o) => { if (o.isInstancedMesh && o.instanceMatrix?.usage === 35048) I.dynamic = true; }); // DynamicDrawUsage
+    I.objects = countObjects(c);
+    I.n = c.children.length;
+    I.t = clock;
+    I.dynamic = false;
+    c.traverse((o) => {
+      if (o.isInstancedMesh && o.instanceMatrix?.usage === 35048) I.dynamic = true;
+    }); // DynamicDrawUsage
     C.stats.boxMs += performance.now() - t0;
   }
   function hide(camera) {
@@ -42,41 +65,73 @@ export async function initV2(game) {
     m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     fr.setFromProjectionMatrix(m);
     const kids = root.children;
-    C.stats.tested = kids.length; C.stats.hidden = 0; C.stats.objectsSkipped = 0;
+    C.stats.tested = kids.length;
+    C.stats.hidden = 0;
+    C.stats.objectsSkipped = 0;
     // one stale box refreshed per frame (round-robin), plus any whose child count changed
-    if (kids.length) { rr = (rr + 1) % kids.length; const c = kids[rr], I = info.get(c); if (I && clock - I.t > 3) refresh(c, I); }
+    if (kids.length) {
+      rr = (rr + 1) % kids.length;
+      const c = kids[rr],
+        I = info.get(c);
+      if (I && clock - I.t > 3) refresh(c, I);
+    }
     for (const c of kids) {
       if (!c.visible) continue;
       let I = info.get(c);
-      if (!I) { I = { box: new THREE.Box3(), n: -1, t: -1, objects: 0 }; info.set(c, I); }
+      if (!I) {
+        I = { box: new THREE.Box3(), n: -1, t: -1, objects: 0 };
+        info.set(c, I);
+      }
       if (I.n !== c.children.length) refresh(c, I);
       if (I.box.isEmpty() || I.dynamic) continue;
       tmp.copy(I.box);
-      if (!fr.intersectsBox(tmp)) { c.visible = false; hidden.push(c); C.stats.hidden++; C.stats.objectsSkipped += I.objects; }
+      if (!fr.intersectsBox(tmp)) {
+        c.visible = false;
+        hidden.push(c);
+        C.stats.hidden++;
+        C.stats.objectsSkipped += I.objects;
+      }
     }
   }
-  function show() { for (const c of hidden) c.visible = true; }
-  function restore() { show(); hidden.length = 0; }
+  function show() {
+    for (const c of hidden) c.visible = true;
+  }
+  function restore() {
+    show();
+    hidden.length = 0;
+  }
 
   // scene hooks (chained with whatever is there)
-  const prevB = scene.onBeforeRender, prevA = scene.onAfterRender;
+  const prevB = scene.onBeforeRender,
+    prevA = scene.onAfterRender;
   // hide AFTER the earlier hooks (city.js cullPools, perfGuards lights) so their visibility decisions come first
   scene.onBeforeRender = function (r, sc, camera, ...rest) {
     if (prevB) prevB.call(this, r, sc, camera, ...rest);
     restore(); // a render that threw last frame never reached onAfterRender
-    try { hide(camera); } catch (e) { restore(); }
+    try {
+      hide(camera);
+    } catch (e) {
+      restore();
+    }
   };
   scene.onAfterRender = function (r, sc, camera, ...rest) {
     restore();
     if (prevA) prevA.call(this, r, sc, camera, ...rest);
   };
   // the shadow pass must see every caster: show for its duration, hide again after
-  const sm = game.renderer.shadowMap, smr = sm.render;
+  const sm = game.renderer.shadowMap,
+    smr = sm.render;
   sm.render = function (...args) {
     if (!hidden.length) return smr.apply(this, args);
     show();
-    try { return smr.apply(this, args); } finally { for (const c of hidden) c.visible = false; }
+    try {
+      return smr.apply(this, args);
+    } finally {
+      for (const c of hidden) c.visible = false;
+    }
   };
-  game.updaters.push(function tileCullTick(dt) { clock += dt; });
+  game.updaters.push(function tileCullTick(dt) {
+    clock += dt;
+  });
   void cam;
 }

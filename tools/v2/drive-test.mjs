@@ -6,11 +6,28 @@
 //   node tools/v2/drive-test.mjs [--secs 300] [--speed 22] [--from x,z]
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from './browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const SECS = +(o.secs || 300), SPEED = +(o.speed || 22);
-fs.mkdirSync('docs/v2/shots/stage1', { recursive: true }); fs.mkdirSync('docs/v2/reports', { recursive: true });
-const rep = { secs: SECS, speed: SPEED, samples: 0, gaps: [], floating: [], popRisk: [], slowFrames: 0, frameMsAvg: 0, route: [] };
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const SECS = +(o.secs || 300),
+  SPEED = +(o.speed || 22);
+fs.mkdirSync('docs/v2/shots/stage1', { recursive: true });
+fs.mkdirSync('docs/v2/reports', { recursive: true });
+const rep = {
+  secs: SECS,
+  speed: SPEED,
+  samples: 0,
+  gaps: [],
+  floating: [],
+  popRisk: [],
+  slowFrames: 0,
+  frameMsAvg: 0,
+  route: [],
+};
 await withBrowser({ width: 1920, height: 1080, maxSeconds: SECS + 600 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute');
   await b.waitFor(GAME_READY, 480);
@@ -37,7 +54,8 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: SECS + 600 }, async (
       e = best[1];
     }
     window.__route = pts; window.__routeLen = len; return pts.length; })()`);
-  rep.routePoints = n; rep.routeLen = await b.eval('Math.round(window.__routeLen)');
+  rep.routePoints = n;
+  rep.routeLen = await b.eval('Math.round(window.__routeLen)');
   // drive: the camera follows the route by time; samples run from the page clock
   await b.eval(`(() => { const R = window.__route, cum = [0]; for (let i = 1; i < R.length; i++) cum.push(cum[i - 1] + Math.hypot(R[i][0] - R[i - 1][0], R[i][2] - R[i - 1][2]));
     window.__drive = { t0: performance.now(), cum, R, samples: [], last: performance.now(), ft: [] };
@@ -46,25 +64,45 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: SECS + 600 }, async (
     game.cameraOverride = (dt, cam) => { const D = window.__drive, s = (performance.now() - D.t0) / 1000 * ${SPEED}; const p = at(s), q = at(s + 30);
       cam.position.set(p[0], p[1] + 1.5, p[2]); cam.lookAt(q[0], q[1] + 1.2, q[2]); return true; };
     return 1; })()`);
-  const t0 = Date.now(); let shot = 0, lastShot = 0;
+  const t0 = Date.now();
+  let shot = 0,
+    lastShot = 0;
   while ((Date.now() - t0) / 1000 < SECS) {
     await b.sleep(500);
-    const smp = await b.eval(`(() => { const D = window.__drive, c = game.camera.position, now = performance.now();
+    const smp =
+      await b.eval(`(() => { const D = window.__drive, c = game.camera.position, now = performance.now();
       const R = game.RAPIER || window.RAPIER; let hitY = null; try { const ray = new R.Ray({ x: c.x, y: c.y + 1, z: c.z }, { x: 0, y: -1, z: 0 }); const h = game.world.castRay(ray, 6, true); if (h) hitY = c.y + 1 - (h.timeOfImpact ?? h.toi); } catch (e) {}
       const roadY = c.y - 1.5; const st = game.city.streamer; let backlog = 0;
       if (st) for (const t of st.tiles.values()) if (!t.near && Math.hypot(t.cx - c.x, t.cz - c.z) < 120) backlog++;
       return JSON.stringify({ x: +c.x.toFixed(1), z: +c.z.toFixed(1), roadY: +roadY.toFixed(2), hitY: hitY === null ? null : +hitY.toFixed(2), backlog, fps: game.perf?.fps ? +game.perf.fps.toFixed(1) : null, water: !!game.city.isWater?.(c.x, c.z) }); })()`);
-    const s = JSON.parse(smp); rep.samples++; rep.route.push([s.x, s.z]);
+    const s = JSON.parse(smp);
+    rep.samples++;
+    rep.route.push([s.x, s.z]);
     if (s.hitY === null && !s.water) rep.gaps.push(s);
     else if (s.hitY !== null && Math.abs(s.hitY - s.roadY) > 0.45) rep.floating.push(s);
     if (s.backlog > 0) rep.popRisk.push(s);
     if (s.fps && s.fps < 55) rep.slowFrames++;
     rep.frameMsAvg += s.fps ? 1000 / s.fps : 0;
-    if ((Date.now() - lastShot) / 1000 >= 20) { lastShot = Date.now(); await b.screenshot(`docs/v2/shots/stage1/drive_${String(shot++).padStart(2, '0')}.png`); }
+    if ((Date.now() - lastShot) / 1000 >= 20) {
+      lastShot = Date.now();
+      await b.screenshot(`docs/v2/shots/stage1/drive_${String(shot++).padStart(2, '0')}.png`);
+    }
   }
   rep.frameMsAvg = +(rep.frameMsAvg / Math.max(1, rep.samples)).toFixed(2);
   if (b.errors.length) rep.errors = [...new Set(b.errors)].slice(0, 20);
 });
 rep.route = rep.route.filter((_, i) => i % 4 === 0);
 fs.writeFileSync('docs/v2/reports/stage1-drive.json', JSON.stringify(rep, null, 1));
-console.log(JSON.stringify({ samples: rep.samples, routeLen: rep.routeLen, gaps: rep.gaps.length, floating: rep.floating.length, popRisk: rep.popRisk.length, slowFrames: rep.slowFrames, frameMsAvg: rep.frameMsAvg, firstGaps: rep.gaps.slice(0, 5), firstFloat: rep.floating.slice(0, 5) }));
+console.log(
+  JSON.stringify({
+    samples: rep.samples,
+    routeLen: rep.routeLen,
+    gaps: rep.gaps.length,
+    floating: rep.floating.length,
+    popRisk: rep.popRisk.length,
+    slowFrames: rep.slowFrames,
+    frameMsAvg: rep.frameMsAvg,
+    firstGaps: rep.gaps.slice(0, 5),
+    firstFloat: rep.floating.slice(0, 5),
+  }),
+);

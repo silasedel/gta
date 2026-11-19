@@ -14,98 +14,273 @@ const DEF_DIST = { palm: [45, 160, 900], tree: [55, 190, 1100], shrub: [28, 90, 
 // texture, framed on the trunk base so every view shares one pivot. The impostor is a single camera-facing quad that shows the
 // view nearest to the true viewing azimuth (dithered blend of the two nearest), so a leaning palm or a lopsided crown projects
 // where the real mesh projects: no doubled crown or flat slab from crossed cards, no shape jump at the mesh <-> impostor swap.
-const _bakeCache = new Map(); let _bakeMats = null;
+const _bakeCache = new Map();
+let _bakeMats = null;
 export function bakeImpostor(renderer, kind, seed, geo, bark, leaf, S = 256, V = 8) {
-  const key = kind + ':' + seed + ':' + S + ':' + V; if (_bakeCache.has(key)) return _bakeCache.get(key);
+  const key = kind + ':' + seed + ':' + S + ':' + V;
+  if (_bakeCache.has(key)) return _bakeCache.get(key);
   const bb = new THREE.Box3();
-  if (geo.parts) { bb.makeEmpty(); for (const pt of geo.parts) { pt.geometry.computeBoundingBox(); bb.union(pt.geometry.boundingBox); } } // library models (models.js): own geometry + bake material per part
-  else { geo.leaf.computeBoundingBox(); geo.bark.computeBoundingBox(); bb.copy(geo.leaf.boundingBox); if (geo.bark.index && geo.bark.index.count) bb.union(geo.bark.boundingBox); }
-  const R = Math.max(0.5, Math.hypot(Math.max(Math.abs(bb.min.x), Math.abs(bb.max.x)), Math.max(Math.abs(bb.min.z), Math.abs(bb.max.z)))) * 1.02;
-  const y0 = Math.min(0, bb.min.y), hgt = (bb.max.y - y0) * 1.02;
-  const rh = Math.min(1024, Math.max(32, Math.round(S * hgt / (2 * R))));
+  if (geo.parts) {
+    bb.makeEmpty();
+    for (const pt of geo.parts) {
+      pt.geometry.computeBoundingBox();
+      bb.union(pt.geometry.boundingBox);
+    }
+  } // library models (models.js): own geometry + bake material per part
+  else {
+    geo.leaf.computeBoundingBox();
+    geo.bark.computeBoundingBox();
+    bb.copy(geo.leaf.boundingBox);
+    if (geo.bark.index && geo.bark.index.count) bb.union(geo.bark.boundingBox);
+  }
+  const R =
+    Math.max(
+      0.5,
+      Math.hypot(
+        Math.max(Math.abs(bb.min.x), Math.abs(bb.max.x)),
+        Math.max(Math.abs(bb.min.z), Math.abs(bb.max.z)),
+      ),
+    ) * 1.02;
+  const y0 = Math.min(0, bb.min.y),
+    hgt = (bb.max.y - y0) * 1.02;
+  const rh = Math.min(1024, Math.max(32, Math.round((S * hgt) / (2 * R))));
   const rt = new THREE.WebGLRenderTarget(S * V, rh, { samples: 4, colorSpace: THREE.NoColorSpace });
-  const scene = new THREE.Scene(); scene.add(new THREE.AmbientLight(0xffffff, Math.PI * 0.95));
+  const scene = new THREE.Scene();
+  scene.add(new THREE.AmbientLight(0xffffff, Math.PI * 0.95));
   // bake with neutral materials: no lean, no wind sway, no per-instance tint / wear (the impostor material applies those per instance,
   // exactly like the near mesh), so the far card is the same plant in the same pose and colour
-  _bakeMats ||= { bark: makeVegMaterial('bark', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat, leaf: makeVegMaterial('leaf', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat };
+  _bakeMats ||= {
+    bark: makeVegMaterial('bark', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat,
+    leaf: makeVegMaterial('leaf', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat,
+  };
   const g = new THREE.Group();
   if (geo.parts) for (const pt of geo.parts) g.add(new THREE.Mesh(pt.geometry, pt.material));
-  else { if (geo.bark.index && geo.bark.index.count) g.add(new THREE.Mesh(geo.bark, _bakeMats.bark)); g.add(new THREE.Mesh(geo.leaf, _bakeMats.leaf)); }
+  else {
+    if (geo.bark.index && geo.bark.index.count) g.add(new THREE.Mesh(geo.bark, _bakeMats.bark));
+    g.add(new THREE.Mesh(geo.leaf, _bakeMats.leaf));
+  }
   scene.add(g);
   const cam = new THREE.OrthographicCamera(-R, R, y0 + hgt, y0, 0.1, 400);
-  const prev = { rt: renderer.getRenderTarget(), cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha(), sun: vegUniforms.uSunCol.value.clone(), as: renderer.autoClear };
-  vegUniforms.uSunCol.value.setRGB(0, 0, 0); renderer.setClearColor(0x3e5a2c, 0); renderer.autoClear = false; renderer.setRenderTarget(rt); renderer.clear();
+  const prev = {
+    rt: renderer.getRenderTarget(),
+    cc: renderer.getClearColor(new THREE.Color()),
+    ca: renderer.getClearAlpha(),
+    sun: vegUniforms.uSunCol.value.clone(),
+    as: renderer.autoClear,
+  };
+  vegUniforms.uSunCol.value.setRGB(0, 0, 0);
+  renderer.setClearColor(0x3e5a2c, 0);
+  renderer.autoClear = false;
+  renderer.setRenderTarget(rt);
+  renderer.clear();
   for (let v = 0; v < V; v++) {
-    const a = v / V * Math.PI * 2; cam.position.set(Math.sin(a) * 100, 0, Math.cos(a) * 100); cam.lookAt(0, 0, 0); cam.updateMatrixWorld();
-    rt.viewport.set(v * S, 0, S, rh); rt.scissor.set(v * S, 0, S, rh); rt.scissorTest = true;
-    renderer.setRenderTarget(rt); renderer.render(scene, cam);
+    const a = (v / V) * Math.PI * 2;
+    cam.position.set(Math.sin(a) * 100, 0, Math.cos(a) * 100);
+    cam.lookAt(0, 0, 0);
+    cam.updateMatrixWorld();
+    rt.viewport.set(v * S, 0, S, rh);
+    rt.scissor.set(v * S, 0, S, rh);
+    rt.scissorTest = true;
+    renderer.setRenderTarget(rt);
+    renderer.render(scene, cam);
   }
-  rt.viewport.set(0, 0, rt.width, rt.height); rt.scissorTest = false;
-  renderer.setRenderTarget(prev.rt); renderer.setClearColor(prev.cc, prev.ca); renderer.autoClear = prev.as; vegUniforms.uSunCol.value.copy(prev.sun);
-  rt.texture.generateMipmaps = true; rt.texture.minFilter = THREE.LinearMipmapLinearFilter; rt.texture.userData.impostor = { views: V, R, y0, hgt };
+  rt.viewport.set(0, 0, rt.width, rt.height);
+  rt.scissorTest = false;
+  renderer.setRenderTarget(prev.rt);
+  renderer.setClearColor(prev.cc, prev.ca);
+  renderer.autoClear = prev.as;
+  vegUniforms.uSunCol.value.copy(prev.sun);
+  rt.texture.generateMipmaps = true;
+  rt.texture.minFilter = THREE.LinearMipmapLinearFilter;
+  rt.texture.userData.impostor = { views: V, R, y0, hgt };
   // geometry: one quad; position.xy = corner (-1..1, 0..1), the vertex shader turns it to face the camera around the plant's axis
   const ig = new THREE.BufferGeometry();
-  ig.setAttribute('position', new THREE.Float32BufferAttribute([-1, 0, 0, 1, 0, 0, 1, 1, 0, -1, 1, 0], 3));
-  ig.setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], 3));
+  ig.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute([-1, 0, 0, 1, 0, 0, 1, 1, 0, -1, 1, 0], 3),
+  );
+  ig.setAttribute(
+    'normal',
+    new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], 3),
+  );
   ig.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2));
-  ig.setAttribute('aWind', new THREE.Float32BufferAttribute([Math.max(0, y0), 0, 0, Math.max(0, y0), 0, 0, y0 + hgt, 0, 0, y0 + hgt, 0, 0], 3)); // same bend-by-height as the mesh
-  ig.setIndex([0, 1, 2, 0, 2, 3]); ig.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, y0 + hgt / 2, 0), Math.hypot(R, hgt / 2));
+  ig.setAttribute(
+    'aWind',
+    new THREE.Float32BufferAttribute(
+      [Math.max(0, y0), 0, 0, Math.max(0, y0), 0, 0, y0 + hgt, 0, 0, y0 + hgt, 0, 0],
+      3,
+    ),
+  ); // same bend-by-height as the mesh
+  ig.setIndex([0, 1, 2, 0, 2, 3]);
+  ig.boundingSphere = new THREE.Sphere(
+    new THREE.Vector3(0, y0 + hgt / 2, 0),
+    Math.hypot(R, hgt / 2),
+  );
   const out = { geometry: ig, texture: rt.texture, rt };
-  _bakeCache.set(key, out); g.clear();
+  _bakeCache.set(key, out);
+  g.clear();
   return out;
 }
 
 export function createVegField(renderer, kind, items, opts = {}) {
-  const type = KIND_TYPE[kind] || 'shrub', [d0, d1, d2] = opts.dist || DEF_DIST[type], b0 = Math.max(4, d0 * 0.18), b1 = Math.max(8, d1 * 0.15), b2 = d2 * 0.1;
-  const nV = opts.model ? 1 : (opts.variants ?? 4), seed = opts.seed ?? 1, group = new THREE.Group(); group.name = 'vegField_' + kind;
-  const fades = [[0, 0, d0 - b0, d0], [d0 - b0, d0, d1 - b1, d1], [d1 - b1, d1, d2 - b2, d2]];
-  const mats = fades.map((f, l) => l < 2 ? { bark: makeVegMaterial('bark', { fade: f, lean: 0.006, sway: 0.0035 }), leaf: makeVegMaterial('leaf', { fade: f, lean: 0.006, sway: 0.0035 }) } : null);
-  const variants = [], bakeM = { bark: makeVegMaterial('bark'), leaf: makeVegMaterial('leaf') };
-  if (opts.model) { // library model (models.js): its own near / mid meshes and baked impostor, same bands and update loop
-    const L = opts.model.materials(fades[0], fades[1], fades[2]), parts = [];
-    const mk = (q, lod, cast) => { const im = new THREE.InstancedMesh(q.geo, q.mat, Math.max(16, items.length)); im.count = 0; im.frustumCulled = false; im.castShadow = cast && opts.shadows !== false; im.receiveShadow = true; im.customDepthMaterial = q.depth; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); group.add(im); parts.push({ im, lod, tris: (q.geo.index ? q.geo.index.count : q.geo.attributes.position.count) / 3 }); };
+  const type = KIND_TYPE[kind] || 'shrub',
+    [d0, d1, d2] = opts.dist || DEF_DIST[type],
+    b0 = Math.max(4, d0 * 0.18),
+    b1 = Math.max(8, d1 * 0.15),
+    b2 = d2 * 0.1;
+  const nV = opts.model ? 1 : (opts.variants ?? 4),
+    seed = opts.seed ?? 1,
+    group = new THREE.Group();
+  group.name = 'vegField_' + kind;
+  const fades = [
+    [0, 0, d0 - b0, d0],
+    [d0 - b0, d0, d1 - b1, d1],
+    [d1 - b1, d1, d2 - b2, d2],
+  ];
+  const mats = fades.map((f, l) =>
+    l < 2
+      ? {
+          bark: makeVegMaterial('bark', { fade: f, lean: 0.006, sway: 0.0035 }),
+          leaf: makeVegMaterial('leaf', { fade: f, lean: 0.006, sway: 0.0035 }),
+        }
+      : null,
+  );
+  const variants = [],
+    bakeM = { bark: makeVegMaterial('bark'), leaf: makeVegMaterial('leaf') };
+  if (opts.model) {
+    // library model (models.js): its own near / mid meshes and baked impostor, same bands and update loop
+    const L = opts.model.materials(fades[0], fades[1], fades[2]),
+      parts = [];
+    const mk = (q, lod, cast) => {
+      const im = new THREE.InstancedMesh(q.geo, q.mat, Math.max(16, items.length));
+      im.count = 0;
+      im.frustumCulled = false;
+      im.castShadow = cast && opts.shadows !== false;
+      im.receiveShadow = true;
+      im.customDepthMaterial = q.depth;
+      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      group.add(im);
+      parts.push({
+        im,
+        lod,
+        tris: (q.geo.index ? q.geo.index.count : q.geo.attributes.position.count) / 3,
+      });
+    };
     for (const q of L.near) mk(q, 0, true);
-    for (const q of L.mid.length ? L.mid : opts.model.materials(fades[1], null, null).near) mk(q, 1, true); // no lod1 file: the near mesh in the mid band
+    for (const q of L.mid.length ? L.mid : opts.model.materials(fades[1], null, null).near)
+      mk(q, 1, true); // no lod1 file: the near mesh in the mid band
     if (L.imp) mk(L.imp, 2, false);
     variants.push({ parts, tris: [opts.model.tris[0], opts.model.tris[1], 4] });
   }
   for (let v = 0; v < (opts.model ? 0 : nV); v++) {
-    const vs = seed * 31 + v * 7 + 1, g0 = buildGeometry(kind, { seed: vs, lod: 0, ...opts.build }), g1 = type === 'palm' ? buildGeometry(kind, { seed: vs, lod: 1, ...opts.build }) : g0; // trees / shrubs: lod 1 is a different branch layout, so the mid band keeps the full mesh (no shape pop); palms share the crown across LODs
-    const imp = bakeImpostor(renderer, kind, vs, g0, bakeM.bark.mat, bakeM.leaf.mat), impMat = makeVegMaterial('imp', { map: imp.texture, fade: fades[2], lean: 0.006, sway: 0.0035, alphaTest: 0.5, transl: 0.5 });
+    const vs = seed * 31 + v * 7 + 1,
+      g0 = buildGeometry(kind, { seed: vs, lod: 0, ...opts.build }),
+      g1 = type === 'palm' ? buildGeometry(kind, { seed: vs, lod: 1, ...opts.build }) : g0; // trees / shrubs: lod 1 is a different branch layout, so the mid band keeps the full mesh (no shape pop); palms share the crown across LODs
+    const imp = bakeImpostor(renderer, kind, vs, g0, bakeM.bark.mat, bakeM.leaf.mat),
+      impMat = makeVegMaterial('imp', {
+        map: imp.texture,
+        fade: fades[2],
+        lean: 0.006,
+        sway: 0.0035,
+        alphaTest: 0.5,
+        transl: 0.5,
+      });
     const parts = [];
-    const mk = (geo, m, lod, cast) => { if (!geo.index || !geo.index.count) return; const im = new THREE.InstancedMesh(geo, m.mat, Math.max(16, items.length)); im.count = 0; im.frustumCulled = false; im.castShadow = cast && opts.shadows !== false; im.receiveShadow = true; im.customDepthMaterial = m.depth; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); group.add(im); parts.push({ im, lod, tris: geo.index.count / 3 }); };
-    mk(g0.bark, mats[0].bark, 0, true); mk(g0.leaf, mats[0].leaf, 0, true); mk(g1.bark, mats[1].bark, 1, true); mk(g1.leaf, mats[1].leaf, 1, true); mk(imp.geometry, impMat, 2, false);
+    const mk = (geo, m, lod, cast) => {
+      if (!geo.index || !geo.index.count) return;
+      const im = new THREE.InstancedMesh(geo, m.mat, Math.max(16, items.length));
+      im.count = 0;
+      im.frustumCulled = false;
+      im.castShadow = cast && opts.shadows !== false;
+      im.receiveShadow = true;
+      im.customDepthMaterial = m.depth;
+      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      group.add(im);
+      parts.push({ im, lod, tris: geo.index.count / 3 });
+    };
+    mk(g0.bark, mats[0].bark, 0, true);
+    mk(g0.leaf, mats[0].leaf, 0, true);
+    mk(g1.bark, mats[1].bark, 1, true);
+    mk(g1.leaf, mats[1].leaf, 1, true);
+    mk(imp.geometry, impMat, 2, false);
     variants.push({ parts, tris: [g0.tris, g1.tris, 4] });
   }
   // per-item matrices (scale and yaw), variant from a position hash
-  const mats4 = items.map((it) => new THREE.Matrix4().compose(new THREE.Vector3(it.x, it.y ?? 0, it.z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), it.ry ?? 0), new THREE.Vector3().setScalar(it.s ?? 1)));
+  const mats4 = items.map((it) =>
+    new THREE.Matrix4().compose(
+      new THREE.Vector3(it.x, it.y ?? 0, it.z),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), it.ry ?? 0),
+      new THREE.Vector3().setScalar(it.s ?? 1),
+    ),
+  );
   const varOf = items.map((it) => Math.abs(Math.floor(it.x * 12.9898 + it.z * 78.233)) % nV);
-  const last = new THREE.Vector3(1e9, 0, 0), frustum = new THREE.Frustum(), pm = new THREE.Matrix4(), sph = new THREE.Sphere();
+  const last = new THREE.Vector3(1e9, 0, 0),
+    frustum = new THREE.Frustum(),
+    pm = new THREE.Matrix4(),
+    sph = new THREE.Sphere();
   const radius = type === 'palm' ? 7 : type === 'tree' ? 10 : 2.5;
   let counts = [0, 0, 0];
   function update(camera, force = false) {
-    camera.updateMatrixWorld(); pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); frustum.setFromProjectionMatrix(pm);
+    camera.updateMatrixWorld();
+    pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(pm);
     if (!force && camera.position.distanceToSquared(last) < 1 && !update.dirtyView) return;
     last.copy(camera.position);
     for (const V of variants) for (const p of V.parts) p.im.count = 0;
     counts = [0, 0, 0];
     for (let i = 0; i < items.length; i++) {
-      const it = items[i], dx = it.x - camera.position.x, dz = it.z - camera.position.z, dy = (it.y ?? 0) - camera.position.y, d = Math.sqrt(dx * dx + dz * dz + dy * dy);
+      const it = items[i],
+        dx = it.x - camera.position.x,
+        dz = it.z - camera.position.z,
+        dy = (it.y ?? 0) - camera.position.y,
+        d = Math.sqrt(dx * dx + dz * dz + dy * dy);
       if (d > d2) continue;
-      sph.center.set(it.x, (it.y ?? 0) + radius * 0.6, it.z); sph.radius = radius * (it.s ?? 1) * 1.4; if (d > 15 && !frustum.intersectsSphere(sph)) continue;
+      sph.center.set(it.x, (it.y ?? 0) + radius * 0.6, it.z);
+      sph.radius = radius * (it.s ?? 1) * 1.4;
+      if (d > 15 && !frustum.intersectsSphere(sph)) continue;
       const V = variants[varOf[i]];
       const inL = [d < d0, d > d0 - b0 && d < d1, d > d1 - b1];
-      for (const p of V.parts) if (inL[p.lod]) { p.im.setMatrixAt(p.im.count++, mats4[i]); }
+      for (const p of V.parts)
+        if (inL[p.lod]) {
+          p.im.setMatrixAt(p.im.count++, mats4[i]);
+        }
       for (let l = 0; l < 3; l++) if (inL[l]) counts[l]++;
     }
-    for (const V of variants) for (const p of V.parts) { p.im.instanceMatrix.needsUpdate = true; p.im.visible = p.im.count > 0; }
+    for (const V of variants)
+      for (const p of V.parts) {
+        p.im.instanceMatrix.needsUpdate = true;
+        p.im.visible = p.im.count > 0;
+      }
   }
   update.dirtyView = true;
   function stats() {
-    let draws = 0, tris = 0; const lodTris = [0, 0, 0];
-    for (const V of variants) for (const p of V.parts) if (p.im.count) { draws++; tris += p.im.count * p.tris; lodTris[p.lod] += p.im.count * p.tris; }
-    return { kind, items: items.length, instancesPerLOD: counts.slice(), drawCalls: draws, tris, lodTris, trisPerPlant: variants.map((v) => v.tris), dist: [d0, d1, d2] };
+    let draws = 0,
+      tris = 0;
+    const lodTris = [0, 0, 0];
+    for (const V of variants)
+      for (const p of V.parts)
+        if (p.im.count) {
+          draws++;
+          tris += p.im.count * p.tris;
+          lodTris[p.lod] += p.im.count * p.tris;
+        }
+    return {
+      kind,
+      items: items.length,
+      instancesPerLOD: counts.slice(),
+      drawCalls: draws,
+      tris,
+      lodTris,
+      trisPerPlant: variants.map((v) => v.tris),
+      dist: [d0, d1, d2],
+    };
   }
-  function dispose() { for (const V of variants) for (const p of V.parts) { p.im.dispose(); } group.clear(); }
+  function dispose() {
+    for (const V of variants)
+      for (const p of V.parts) {
+        p.im.dispose();
+      }
+    group.clear();
+  }
   return { group, update, stats, dispose, variants, items, mats4 }; // items / mats4: vegGround.v2.js grounds or drops items in place (then update.dirtyView)
 }

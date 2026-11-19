@@ -5,12 +5,25 @@
 //   node tools/v2/npcs/crowd-perf.mjs [--n 60] [--rounds 4] [--secs 3] [--at 407,-110] [--set name] [--tod 15]
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const N = +(o.n || 60), ROUNDS = +(o.rounds || 4), SECS = +(o.secs || 3), SET = o.set || 'crowd';
-const AT = String(o.at || '407,-110').split(',').map(Number);
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const N = +(o.n || 60),
+  ROUNDS = +(o.rounds || 4),
+  SECS = +(o.secs || 3),
+  SET = o.set || 'crowd';
+const AT = String(o.at || '407,-110')
+  .split(',')
+  .map(Number);
 const PAGE = fs.readFileSync(new URL('../s1-perf.page.js', import.meta.url), 'utf8');
-const med = (x) => { const s = x.slice().sort((p, q) => p - q); return s[s.length >> 1]; };
+const med = (x) => {
+  const s = x.slice().sort((p, q) => p - q);
+  return s[s.length >> 1];
+};
 fs.mkdirSync('docs/v2/shots/people', { recursive: true });
 
 // in-page harness: a sidewalk path near the player, N walkers on it (either people or archetypes), updated every frame
@@ -58,29 +71,79 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = ${+(o.tod || 15)}; game.quality.set('${o.preset || 'high'}', { manual: true }); return 1; })()`);
+  await b.eval(
+    `(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = ${+(o.tod || 15)}; game.quality.set('${o.preset || 'high'}', { manual: true }); return 1; })()`,
+  );
   console.log('instrument', await b.eval(PAGE));
   await b.eval(`game.teleport(${AT[0]}, undefined, ${AT[1]}, 0)`);
   await b.sleep(8000);
-  for (let i = 0; i < 60; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
+  for (let i = 0; i < 60; i++) {
+    const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)');
+    if (q < 3) break;
+    await b.sleep(1000);
+  }
   // load people and archetypes
-  await b.eval(`(async () => { const ids = game.npc.cast.people.map((p) => p.id); game.npc.cast.want(ids.slice(0, 34)); for (let i = 0; i < 240; i++) { if (game.npc.cast.stats().loaded >= Math.min(34, ids.length)) break; await new Promise((r) => setTimeout(r, 500)); } await Promise.all(game.npc.archetypes().slice(0, 30).map((a) => game.npc.load(a.id).catch(() => null))); return game.npc.cast.stats().loaded; })()`, 300000);
-  console.log('people', await b.eval('JSON.stringify(game.npc.peopleStats())'), 'archetypes', await b.eval('game.npc.archetypes().filter((x) => x.loaded).length'));
+  await b.eval(
+    `(async () => { const ids = game.npc.cast.people.map((p) => p.id); game.npc.cast.want(ids.slice(0, 34)); for (let i = 0; i < 240; i++) { if (game.npc.cast.stats().loaded >= Math.min(34, ids.length)) break; await new Promise((r) => setTimeout(r, 500)); } await Promise.all(game.npc.archetypes().slice(0, 30).map((a) => game.npc.load(a.id).catch(() => null))); return game.npc.cast.stats().loaded; })()`,
+    300000,
+  );
+  console.log(
+    'people',
+    await b.eval('JSON.stringify(game.npc.peopleStats())'),
+    'archetypes',
+    await b.eval('game.npc.archetypes().filter((x) => x.loaded).length'),
+  );
   console.log('harness', await b.eval(HARNESS));
   // camera: looking down the sidewalk from 2.5 m up, 14 m behind the middle
-  await b.eval(`(() => { const m = __cp.mid; const hx = Math.sin(m.h), hz = Math.cos(m.h); game.cameraOverride = (dt, cam) => { cam.position.set(m.x - hx * 16 + Math.cos(m.h) * 3, (game.city.groundHeightAt(m.x, m.z, 1) || 0) + 2.6, m.z - hz * 16 - Math.sin(m.h) * 3); cam.lookAt(m.x + hx * 10, (game.city.groundHeightAt(m.x, m.z, 1) || 0) + 1.2, m.z + hz * 10); return true; }; return 1; })()`);
-  const measure = async () => JSON.parse(await b.eval(`window.__pf.measure(${SECS * 1000}, false).then(JSON.stringify)`));
+  await b.eval(
+    `(() => { const m = __cp.mid; const hx = Math.sin(m.h), hz = Math.cos(m.h); game.cameraOverride = (dt, cam) => { cam.position.set(m.x - hx * 16 + Math.cos(m.h) * 3, (game.city.groundHeightAt(m.x, m.z, 1) || 0) + 2.6, m.z - hz * 16 - Math.sin(m.h) * 3); cam.lookAt(m.x + hx * 10, (game.city.groundHeightAt(m.x, m.z, 1) || 0) + 1.2, m.z + hz * 10); return true; }; return 1; })()`,
+  );
+  const measure = async () =>
+    JSON.parse(await b.eval(`window.__pf.measure(${SECS * 1000}, false).then(JSON.stringify)`));
   const R = { people: [], arch: [], none: [] };
-  for (let r = 0; r < ROUNDS; r++) for (const kind of (r % 2 ? ['arch', 'people', 'none'] : ['people', 'arch', 'none'])) {
-    const n = kind === 'none' ? (await b.eval('(__cp.clear(), 0)')) : await b.eval(`__cp.spawn('${kind}', ${N})`);
-    await b.sleep(2500);
-    const m = await measure(); m.n = n; R[kind].push(m);
-    console.log(r, kind, n, JSON.stringify({ med: m.med, p95: m.p95, work: m.work, gpu: m.gpuMs, render: m.renderMs, shadow: m.shadowMs, calls: m.calls, tris: m.tris }));
-    if (r === 0 && kind !== 'none') await b.screenshot(`docs/v2/shots/people/perf_${SET}_${kind}.png`);
-  }
+  for (let r = 0; r < ROUNDS; r++)
+    for (const kind of r % 2 ? ['arch', 'people', 'none'] : ['people', 'arch', 'none']) {
+      const n =
+        kind === 'none'
+          ? await b.eval('(__cp.clear(), 0)')
+          : await b.eval(`__cp.spawn('${kind}', ${N})`);
+      await b.sleep(2500);
+      const m = await measure();
+      m.n = n;
+      R[kind].push(m);
+      console.log(
+        r,
+        kind,
+        n,
+        JSON.stringify({
+          med: m.med,
+          p95: m.p95,
+          work: m.work,
+          gpu: m.gpuMs,
+          render: m.renderMs,
+          shadow: m.shadowMs,
+          calls: m.calls,
+          tris: m.tris,
+        }),
+      );
+      if (r === 0 && kind !== 'none')
+        await b.screenshot(`docs/v2/shots/people/perf_${SET}_${kind}.png`);
+    }
   const sum = {};
-  for (const k in R) { const ws = R[k]; if (!ws.length) continue; sum[k] = {}; for (const f of ['med', 'p95', 'work', 'gpuMs', 'renderMs', 'shadowMs', 'calls', 'tris']) { const v = ws.map((w) => w[f]).filter((x) => x != null); sum[k][f] = v.length ? +med(v).toFixed(2) : null; } sum[k].n = ws[0].n; }
+  for (const k in R) {
+    const ws = R[k];
+    if (!ws.length) continue;
+    sum[k] = {};
+    for (const f of ['med', 'p95', 'work', 'gpuMs', 'renderMs', 'shadowMs', 'calls', 'tris']) {
+      const v = ws.map((w) => w[f]).filter((x) => x != null);
+      sum[k][f] = v.length ? +med(v).toFixed(2) : null;
+    }
+    sum[k].n = ws[0].n;
+  }
   console.log('SUMMARY', JSON.stringify(sum));
-  fs.writeFileSync(`docs/v2/reports/people-perf-${SET}.json`, JSON.stringify({ when: new Date().toISOString(), N, at: AT, sum, rounds: R }, null, 1));
+  fs.writeFileSync(
+    `docs/v2/reports/people-perf-${SET}.json`,
+    JSON.stringify({ when: new Date().toISOString(), N, at: AT, sum, rounds: R }, null, 1),
+  );
   if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].slice(0, 20).join('\n'));
 });

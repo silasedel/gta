@@ -370,8 +370,25 @@ export function writeRemovals(w, ids) {
 
 // Client side: calls onEntity(id, mask, fields, sampleTime) for each block; fields is reused between calls.
 const _ent = {
-  x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, heading: 0, flags: 0, animSpeed: 0,
-  health: 0, armor: 0, wanted: 0, weapon: 0, veh: 0, seat: SEAT_NONE, pitch: 0, roll: 0, steer: 0, vflags: 0,
+  x: 0,
+  y: 0,
+  z: 0,
+  vx: 0,
+  vy: 0,
+  vz: 0,
+  heading: 0,
+  flags: 0,
+  animSpeed: 0,
+  health: 0,
+  armor: 0,
+  wanted: 0,
+  weapon: 0,
+  veh: 0,
+  seat: SEAT_NONE,
+  pitch: 0,
+  roll: 0,
+  steer: 0,
+  vflags: 0,
 };
 export function decodeSnapshot(data, head, onEntity, onRemove) {
   const r = new Reader(data);
@@ -463,12 +480,23 @@ export function seqNewer(a, b) {
 // room codes: 4-8 letters and digits, no look-alike characters
 export const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export function cleanRoom(s) {
-  return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+  return String(s || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 8);
 }
 export function cleanName(s) {
-  const t = String(s || '').replace(/[\u0000-\u001f<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 18);
+  const t = String(s || '')
+    .replace(/[\u0000-\u001f<>&"'`\\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 18);
   return t || 'Player';
 }
 export function cleanChat(s) {
-  return String(s || '').replace(/[\u0000-\u001f]/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+  return String(s || '')
+    .replace(/[\u0000-\u001f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200);
 }

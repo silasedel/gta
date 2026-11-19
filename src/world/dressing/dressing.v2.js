@@ -21,7 +21,13 @@ import { preloadLib, libInstancer } from '../libprops.js';
 import { HAND_R } from './keysStreet.data.js';
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 // clipping sweep: trunk radius, height, crown radius of the tall plants placed here (shared occupancy index, src/world/ground/occupancy.js)
-const TALL = { coconut: [0.3, 9, 2.6], sabal: [0.3, 8, 2.4], liveoak: [0.35, 9, 3.2], royal: [0.35, 12, 2.6], gumbo: [0.35, 8, 3] };
+const TALL = {
+  coconut: [0.3, 9, 2.6],
+  sabal: [0.3, 8, 2.4],
+  liveoak: [0.35, 9, 3.2],
+  royal: [0.35, 12, 2.6],
+  gumbo: [0.35, 8, 3],
+};
 
 export const order = 70;
 
@@ -44,7 +50,8 @@ function vnoise(x, z) {
 }
 
 export async function initV2(game) {
-  if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('nodress')) return; // before/after shots
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('nodress'))
+    return; // before/after shots
   const { scene, renderer, world, RAPIER } = game;
   const city = game.city;
   const data = game.miamiData;
@@ -60,7 +67,11 @@ export async function initV2(game) {
   });
 
   // ------------------------------------------------------------------ 1. plain land re-skin
-  const [grassSet, sparseSet, dirtSet] = await Promise.all([loadSet(renderer, 'leafy_grass'), loadSet(renderer, 'sparse_grass'), loadSet(renderer, 'dirt')]);
+  const [grassSet, sparseSet, dirtSet] = await Promise.all([
+    loadSet(renderer, 'leafy_grass'),
+    loadSet(renderer, 'sparse_grass'),
+    loadSet(renderer, 'dirt'),
+  ]);
   function patchLand(mat) {
     mat.map = grassSet.map;
     mat.normalMap = grassSet.normalMap;
@@ -70,8 +81,14 @@ export async function initV2(game) {
     mat.onBeforeCompile = (sh) => {
       sh.uniforms.tSparse = { value: sparseSet.map };
       sh.uniforms.tDirt = { value: dirtSet.map };
-      sh.vertexShader = 'varying vec3 vLandWP;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvLandWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-      sh.fragmentShader = `uniform sampler2D tSparse;
+      sh.vertexShader =
+        'varying vec3 vLandWP;\n' +
+        sh.vertexShader.replace(
+          '#include <worldpos_vertex>',
+          '#include <worldpos_vertex>\nvLandWP = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+        );
+      sh.fragmentShader =
+        `uniform sampler2D tSparse;
 uniform sampler2D tDirt;
 varying vec3 vLandWP;
 float lHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -81,7 +98,10 @@ float lNoise(vec2 p) {
   vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(lHash(i), lHash(i + vec2(1.0, 0.0)), u.x), mix(lHash(i + vec2(0.0, 1.0)), lHash(i + vec2(1.0, 1.0)), u.x), u.y);
 }
-` + sh.fragmentShader.replace('#include <map_fragment>', `
+` +
+        sh.fragmentShader.replace(
+          '#include <map_fragment>',
+          `
   {
     vec2 wp = vLandWP.xz;
     vec2 uv1 = wp / 5.0;
@@ -99,7 +119,8 @@ float lNoise(vec2 p) {
     c.rgb *= 0.9 + 0.2 * lNoise(wp * 0.23);
     diffuseColor *= c;
   }
-`);
+`,
+        );
     };
     mat.customProgramCacheKey = () => 'dressing-land-v1';
     mat.needsUpdate = true;
@@ -109,7 +130,17 @@ float lNoise(vec2 p) {
     if (landMat) return true;
     city.root.traverse((o) => {
       const m = o.material;
-      if (!landMat && o.isMesh && m && !Array.isArray(m) && m.polygonOffset && m.polygonOffsetUnits === -1 && m.polygonOffsetFactor === -0.5 && m.map) landMat = m;
+      if (
+        !landMat &&
+        o.isMesh &&
+        m &&
+        !Array.isArray(m) &&
+        m.polygonOffset &&
+        m.polygonOffsetUnits === -1 &&
+        m.polygonOffsetFactor === -0.5 &&
+        m.map
+      )
+        landMat = m;
     });
     if (landMat) {
       patchLand(landMat);
@@ -135,12 +166,16 @@ float lNoise(vec2 p) {
   findLand();
   // stage 1 perf: each try walks the whole city tree. The new map has no 'miami-land-base' (and may have no land material
   // of this kind), so this searched forever every 1.5 s (a periodic spike). Retry with back-off and stop after ~2 min.
-  let landPoll = 0, landWait = 1.5, landTries = 0;
+  let landPoll = 0,
+    landWait = 1.5,
+    landTries = 0;
   game.updaters.push((dt) => {
     if ((landMat && stats.landBase) || landTries >= 8) return;
     landPoll += dt;
     if (landPoll > landWait) {
-      landPoll = 0; landWait = Math.min(30, landWait * 2); landTries++;
+      landPoll = 0;
+      landWait = Math.min(30, landWait * 2);
+      landTries++;
       findLand();
     }
   });
@@ -158,14 +193,52 @@ float lNoise(vec2 p) {
   };
   const vegKinds = {};
   const addVeg = (kind, it) => {
-    if (!CLIP_OFF && kind !== 'mangrove') { // never through a pole, lamp, sign, bench or another trunk (city tile props included)
-      const s = it.s || 1, T = TALL[kind];
+    if (!CLIP_OFF && kind !== 'mangrove') {
+      // never through a pole, lamp, sign, bench or another trunk (city tile props included)
+      const s = it.s || 1,
+        T = TALL[kind];
       if (T) {
-        const o = { y: it.y || 0, h: T[1] * s, gap: 0.1, crown: { r: T[2] * s * 0.8, y0: (it.y || 0) + T[1] * s * 0.55 } };
-        const inBld = data.surfaceAt ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => data.surfaceAt(it.x + dx * (T[0] * s + 0.4), it.z + dz * (T[0] * s + 0.4)) === 'building') : false; // trunk through a map building wall
-        if (inBld || occupancy.blocked(it.x, it.z, T[0] * s, o)) { stats.clipDropped = (stats.clipDropped || 0) + 1; return; }
-        occupancy.add({ x: it.x, z: it.z, r: T[0] * s, y: o.y, h: o.h, kind: 'palm', src: 'dressing.v2.js:addVeg', crown: o.crown, owner: 'dressing', audit: false });
-      } else if (occupancy.blocked(it.x, it.z, 0.5 * s, { y: it.y || 0, h: 1.5, soft: true, gap: 0.05 })) { stats.clipDropped = (stats.clipDropped || 0) + 1; return; }
+        const o = {
+          y: it.y || 0,
+          h: T[1] * s,
+          gap: 0.1,
+          crown: { r: T[2] * s * 0.8, y0: (it.y || 0) + T[1] * s * 0.55 },
+        };
+        const inBld = data.surfaceAt
+          ? [
+              [0, 0],
+              [1, 0],
+              [-1, 0],
+              [0, 1],
+              [0, -1],
+            ].some(
+              ([dx, dz]) =>
+                data.surfaceAt(it.x + dx * (T[0] * s + 0.4), it.z + dz * (T[0] * s + 0.4)) ===
+                'building',
+            )
+          : false; // trunk through a map building wall
+        if (inBld || occupancy.blocked(it.x, it.z, T[0] * s, o)) {
+          stats.clipDropped = (stats.clipDropped || 0) + 1;
+          return;
+        }
+        occupancy.add({
+          x: it.x,
+          z: it.z,
+          r: T[0] * s,
+          y: o.y,
+          h: o.h,
+          kind: 'palm',
+          src: 'dressing.v2.js:addVeg',
+          crown: o.crown,
+          owner: 'dressing',
+          audit: false,
+        });
+      } else if (
+        occupancy.blocked(it.x, it.z, 0.5 * s, { y: it.y || 0, h: 1.5, soft: true, gap: 0.05 })
+      ) {
+        stats.clipDropped = (stats.clipDropped || 0) + 1;
+        return;
+      }
     }
     (vegKinds[kind] ||= []).push(it);
   };
@@ -185,8 +258,19 @@ float lNoise(vec2 p) {
   // r4-library: picnic tables are the user's Picnic Table 1 (street/picnic_table.glb, 2.4 x 2.25 m as placed), instanced; the code table
   // (kit.js picnicTable) only if the file is missing
   preloadLib(['picnic_table']);
-  const picnicI = libInstancer(scene, 'picnic_table').onMissing((m) => { const g = K.picnicTable(); g.applyMatrix4(m); const pm = new THREE.Mesh(g, propMat); pm.castShadow = pm.receiveShadow = true; scene.add(pm); });
-  function placePicnic(x, y, z, ry) { tmpQ.setFromAxisAngle(Y, ry); picnicI.add(new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), tmpQ, new THREE.Vector3(0.8, 1, 1))); } // 0.8 along the planks: 2.4 m (8 ft) long
+  const picnicI = libInstancer(scene, 'picnic_table').onMissing((m) => {
+    const g = K.picnicTable();
+    g.applyMatrix4(m);
+    const pm = new THREE.Mesh(g, propMat);
+    pm.castShadow = pm.receiveShadow = true;
+    scene.add(pm);
+  });
+  function placePicnic(x, y, z, ry) {
+    tmpQ.setFromAxisAngle(Y, ry);
+    picnicI.add(
+      new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), tmpQ, new THREE.Vector3(0.8, 1, 1)),
+    );
+  } // 0.8 along the planks: 2.4 m (8 ft) long
   const brkGeos = [];
   function placeBreak(geo, x, y, z, ry, box, kind) {
     if (CLIP_OFF || !breakables.enabled) return place(geo, x, y, z, ry);
@@ -214,7 +298,9 @@ float lNoise(vec2 p) {
     // keys pass (Nov 17): within HAND_R of Nico's house the neighbors are hand placed (keysStreet.data.js, keysLots.js)
     const KEYS_HAND = !/[?&]keys=0\b/.test(location.search);
     const avoid = [{ x: hx, z: hz, r: KEYS_HAND ? HAND_R : 46 }];
-    for (const s of data.setpieces || []) if (s.id !== 'nico_house' && Math.hypot(s.x - hx, s.z - hz) < 900) avoid.push({ x: s.x, z: s.z, r: 30 });
+    for (const s of data.setpieces || [])
+      if (s.id !== 'nico_house' && Math.hypot(s.x - hx, s.z - hz) < 900)
+        avoid.push({ x: s.x, z: s.z, r: 30 });
     const clear = (x, z, r) => avoid.every((a) => Math.hypot(a.x - x, a.z - z) > a.r + r);
     const landBox = (x, z, ux, uz, w, d) => {
       // footprint fully on land
@@ -268,14 +354,33 @@ float lNoise(vec2 p) {
       let x = q.x + nx * side * (q.hw + 2.6);
       let z = q.z + nz * side * (q.hw + 2.6);
       if (isWater(x, z) || !clear(x, z, 2)) continue;
-      if (!CLIP_OFF) { // slide along the verge off any tile prop / palm crown; the line skips a pole rather than clip one
-        const f = occupancy.free(x, z, 0.16, { y: groundY(x, z), h: 10.4, pole: true, gap: 0.12, dir: [q.dx, q.dz] }, 4, (ax, az) => !isWater(ax, az) && clear(ax, az, 2));
+      if (!CLIP_OFF) {
+        // slide along the verge off any tile prop / palm crown; the line skips a pole rather than clip one
+        const f = occupancy.free(
+          x,
+          z,
+          0.16,
+          { y: groundY(x, z), h: 10.4, pole: true, gap: 0.12, dir: [q.dx, q.dz] },
+          4,
+          (ax, az) => !isWater(ax, az) && clear(ax, az, 2),
+        );
         if (!f) continue;
         x = f[0];
         z = f[1];
       }
       const y = groundY(x, z);
-      if (!CLIP_OFF) occupancy.add({ x, z, r: 0.16, y, h: 10.4, kind: 'upole', src: 'dressing.v2.js:spawn power line', pole: true, owner: 'dressing' });
+      if (!CLIP_OFF)
+        occupancy.add({
+          x,
+          z,
+          r: 0.16,
+          y,
+          h: 10.4,
+          kind: 'upole',
+          src: 'dressing.v2.js:spawn power line',
+          pole: true,
+          owner: 'dressing',
+        });
       const ry = Math.atan2(q.dx, q.dz);
       const pole = { x, y, z, ry, top: y + 10.36 };
       place(K.utilityPole(poleR, i % 21 === 0), x, y, z, ry);
@@ -283,7 +388,11 @@ float lNoise(vec2 p) {
       const prev = poles[poles.length - 1];
       if (prev && Math.hypot(prev.x - x, prev.z - z) < 70) {
         for (const off of [-1.05, 0, 1.05]) {
-          const a = new THREE.Vector3(prev.x + Math.sin(prev.ry + Math.PI / 2) * off * 0, prev.top, prev.z);
+          const a = new THREE.Vector3(
+            prev.x + Math.sin(prev.ry + Math.PI / 2) * off * 0,
+            prev.top,
+            prev.z,
+          );
           a.x = prev.x + Math.cos(prev.ry) * off;
           a.z = prev.z - Math.sin(prev.ry) * off;
           const b = new THREE.Vector3(x + Math.cos(ry) * off, pole.top, z - Math.sin(ry) * off);
@@ -326,10 +435,30 @@ float lNoise(vec2 p) {
         const ry = Math.atan2(-nx, -nz);
         const y = groundY(cx, cz);
         // houses: drawn by the house generator (src/world/setpieces/houses) on this lot; the bait shop stays here
-        const gen = !isBait && houseLots.enabled && !game.v2DressingBoxHouses
-          ? houseLots.add({ id: 'spawn:' + seed, x: cx, z: cz, y, heading: ry, w: H.w + 13, d: H.d + 6, front: H.d / 2 + 3, roadGap: Math.max(0, set - H.d / 2 - 3), source: 'street', seed,
-            house: { w: H.w, d: H.d, stilt: H.stilt, base: H.base, roadV: set - H.d / 2, drvU: null } })
-          : null;
+        const gen =
+          !isBait && houseLots.enabled && !game.v2DressingBoxHouses
+            ? houseLots.add({
+                id: 'spawn:' + seed,
+                x: cx,
+                z: cz,
+                y,
+                heading: ry,
+                w: H.w + 13,
+                d: H.d + 6,
+                front: H.d / 2 + 3,
+                roadGap: Math.max(0, set - H.d / 2 - 3),
+                source: 'street',
+                seed,
+                house: {
+                  w: H.w,
+                  d: H.d,
+                  stilt: H.stilt,
+                  base: H.base,
+                  roadV: set - H.d / 2,
+                  drvU: null,
+                },
+              })
+            : null;
         if (!gen) {
           place(H.geo, cx, y, cz, ry);
           for (const c of H.colliders) {
@@ -341,28 +470,59 @@ float lNoise(vec2 p) {
         lots.push({ x: cx, z: cz, y, ry, span, nx, nz, q, side, H, bait: isBait, seed, gen });
         if (isBait) {
           baitDone = true;
-          const tex = K.signTexture([{ text: 'LIVE BAIT  ·  ICE  ·  TACKLE', px: 92 }], { bg: '#efe6cf', ink: '#1d4a5a' });
+          const tex = K.signTexture([{ text: 'LIVE BAIT  ·  ICE  ·  TACKLE', px: 92 }], {
+            bg: '#efe6cf',
+            ink: '#1d4a5a',
+          });
           const sm = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 });
           const board = new THREE.Mesh(new THREE.PlaneGeometry(9, 1.3), sm);
           board.position.set(cx + Math.sin(ry) * H.signZ, y + H.signY, cz + Math.cos(ry) * H.signZ);
           board.rotation.y = ry;
           board.castShadow = true;
           extras.push(board);
-          const tex2 = K.signTexture([{ text: 'BAIT', px: 150 }, { text: 'OPEN 5 AM', px: 70, color: '#a8322a' }], { w: 512, h: 512, bg: '#f4f0e4', edge: '#a8322a', ink: '#a8322a' });
-          const roadSign = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshStandardMaterial({ map: tex2, roughness: 0.8, side: THREE.DoubleSide }));
+          const tex2 = K.signTexture(
+            [
+              { text: 'BAIT', px: 150 },
+              { text: 'OPEN 5 AM', px: 70, color: '#a8322a' },
+            ],
+            { w: 512, h: 512, bg: '#f4f0e4', edge: '#a8322a', ink: '#a8322a' },
+          );
+          const roadSign = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.4, 1.4),
+            new THREE.MeshStandardMaterial({ map: tex2, roughness: 0.8, side: THREE.DoubleSide }),
+          );
           const sx = q.x + nx * (q.hw + 2.2) + q.dx * 6;
           const sz = q.z + nz * (q.hw + 2.2) + q.dz * 6;
           roadSign.position.set(sx, groundY(sx, sz) + 2.2, sz);
           roadSign.rotation.y = Math.atan2(q.dx, q.dz) + Math.PI / 2;
           extras.push(roadSign);
           const post = new K.Parts();
-          for (const o of [-0.6, 0.6]) post.box(o * q.dz, 1.2, -o * q.dx, 0.1, 2.4, 0.1, K.SURF.planks, 0x9a8a70);
+          for (const o of [-0.6, 0.6])
+            post.box(o * q.dz, 1.2, -o * q.dx, 0.1, 2.4, 0.1, K.SURF.planks, 0x9a8a70);
           place(post.build(), sx, groundY(sx, sz), sz, 0);
         }
       }
       next = q.s + 26 + R() * 14;
     }
-    if (KEYS_HAND) { try { buildKeysLots(game, { THREE, spot, place, placePicnic, placeBreak, boxCol, cylCol, groundY, isWater, houseLots: houseLots.enabled && !game.v2DressingBoxHouses ? houseLots : null, K }); } catch (e) { console.error('[dressing] keys lots', e); } }
+    if (KEYS_HAND) {
+      try {
+        buildKeysLots(game, {
+          THREE,
+          spot,
+          place,
+          placePicnic,
+          placeBreak,
+          boxCol,
+          cylCol,
+          groundY,
+          isWater,
+          houseLots: houseLots.enabled && !game.v2DressingBoxHouses ? houseLots : null,
+          K,
+        });
+      } catch (e) {
+        console.error('[dressing] keys lots', e);
+      }
+    }
     // yards
     const carSpots = [];
     for (const L of lots) {
@@ -379,26 +539,93 @@ float lNoise(vec2 p) {
       // crushed-shell driveway from the road to the house
       const dlen = roadV - H.d / 2 + 1;
       const [dx0, dz0] = at(drvU, H.d / 2 + dlen / 2 - 1);
-      if (!(game.groundMask && game.groundMask.addDrive && game.groundMask.addDrive(dx0, dz0, L.ry, 3.4 + ((L.seed * 0.618) % 1) * 0.8, dlen + 1.5))) { // ground pass: drawn into the ground (crushed shell, ragged edges) by the terrain shader, not a slab
+      if (!(
+        game.groundMask &&
+        game.groundMask.addDrive &&
+        game.groundMask.addDrive(dx0, dz0, L.ry, 3.4 + ((L.seed * 0.618) % 1) * 0.8, dlen + 1.5)
+      )) {
+        // ground pass: drawn into the ground (crushed shell, ragged edges) by the terrain shader, not a slab
         const drive = new K.Parts().box(0, 0.025, 0, 3.4, 0.05, dlen, K.SURF.plaster, 0xe6e0d0);
-        place(drive.build(), dx0, groundY(dx0, dz0), dz0, L.ry); }
+        place(drive.build(), dx0, groundY(dx0, dz0), dz0, L.ry);
+      }
       const [mx, mz] = at(drvU + 2.3, roadV - 1.2);
       const LIBP = lotProps.enabled; // props pass: library mailbox + carts per house (src/world/props/lotProps.v2.js); the rng sequence is kept
-      const mbG = K.mailbox(r); if (!LIBP) placeBreak(mbG, mx, groundY(mx, mz), mz, L.ry, [0.14, 0.7, 0.3], 'mailbox');
+      const mbG = K.mailbox(r);
+      if (!LIBP) placeBreak(mbG, mx, groundY(mx, mz), mz, L.ry, [0.14, 0.7, 0.3], 'mailbox');
       const [bx, bz] = at(drvU - 2.3, roadV - 1.6);
-      if (!LIBP) placeBreak(K.wheelieBin(r() < 0.5 ? 0x2f5a3a : 0x3a3e44), bx, groundY(bx, bz), bz, L.ry + (r() - 0.5) * 0.4, [0.3, 0.52, 0.38], 'bin'); else { r(); r(); }
-      if (r() < 0.5) { if (!LIBP) placeBreak(K.wheelieBin(0x2c4f7c), bx - rx * 0.8, groundY(bx, bz), bz - rz * 0.8, L.ry + (r() - 0.5) * 0.4, [0.3, 0.52, 0.38], 'bin'); else r(); }
-      if (LIBP) { const [sx, sz] = at(-Math.sign(drvU) * (H.w / 2 + 0.8), H.d / 2 - 1.4);
-        lotProps.add('dressing:' + L.seed, [{ kind: 'mailbox', x: mx, y: groundY(mx, mz), z: mz, ry: L.ry, seed: L.seed }, { kind: 'carts', x: bx - rx * 0.4, y: groundY(bx, bz), z: bz - rz * 0.4, ry: L.ry, seed: L.seed + 1, side: { x: sx, y: groundY(sx, sz), z: sz, ry: L.ry } }]); }
+      if (!LIBP)
+        placeBreak(
+          K.wheelieBin(r() < 0.5 ? 0x2f5a3a : 0x3a3e44),
+          bx,
+          groundY(bx, bz),
+          bz,
+          L.ry + (r() - 0.5) * 0.4,
+          [0.3, 0.52, 0.38],
+          'bin',
+        );
+      else {
+        r();
+        r();
+      }
+      if (r() < 0.5) {
+        if (!LIBP)
+          placeBreak(
+            K.wheelieBin(0x2c4f7c),
+            bx - rx * 0.8,
+            groundY(bx, bz),
+            bz - rz * 0.8,
+            L.ry + (r() - 0.5) * 0.4,
+            [0.3, 0.52, 0.38],
+            'bin',
+          );
+        else r();
+      }
+      if (LIBP) {
+        const [sx, sz] = at(-Math.sign(drvU) * (H.w / 2 + 0.8), H.d / 2 - 1.4);
+        lotProps.add('dressing:' + L.seed, [
+          { kind: 'mailbox', x: mx, y: groundY(mx, mz), z: mz, ry: L.ry, seed: L.seed },
+          {
+            kind: 'carts',
+            x: bx - rx * 0.4,
+            y: groundY(bx, bz),
+            z: bz - rz * 0.4,
+            ry: L.ry,
+            seed: L.seed + 1,
+            side: { x: sx, y: groundY(sx, sz), z: sz, ry: L.ry },
+          },
+        ]);
+      }
       if (L.bait) {
-        carSpots.push({ x: at(-3, H.d / 2 + 6)[0], z: at(-3, H.d / 2 + 6)[1], ry: L.ry + Math.PI / 2 });
-        carSpots.push({ x: at(3.5, H.d / 2 + 6)[0], z: at(3.5, H.d / 2 + 6)[1], ry: L.ry + Math.PI / 2 });
+        carSpots.push({
+          x: at(-3, H.d / 2 + 6)[0],
+          z: at(-3, H.d / 2 + 6)[1],
+          ry: L.ry + Math.PI / 2,
+        });
+        carSpots.push({
+          x: at(3.5, H.d / 2 + 6)[0],
+          z: at(3.5, H.d / 2 + 6)[1],
+          ry: L.ry + Math.PI / 2,
+        });
         const [px, pz] = at(-H.w / 2 - 3, 1);
         placePicnic(px, groundY(px, pz), pz, L.ry + 0.3);
         const [cx2, cz2] = at(H.w / 2 + 1.5, -1);
         place(K.crabTrapStack(r), cx2, groundY(cx2, cz2), cz2, r() * 6);
-        place(K.dumpster(), at(H.w / 2 + 2, -H.d / 2)[0], groundY(L.x, L.z), at(H.w / 2 + 2, -H.d / 2)[1], L.ry);
-        boxCol(at(H.w / 2 + 2, -H.d / 2)[0], groundY(L.x, L.z) + 0.75, at(H.w / 2 + 2, -H.d / 2)[1], 0.95, 0.75, 0.7, L.ry);
+        place(
+          K.dumpster(),
+          at(H.w / 2 + 2, -H.d / 2)[0],
+          groundY(L.x, L.z),
+          at(H.w / 2 + 2, -H.d / 2)[1],
+          L.ry,
+        );
+        boxCol(
+          at(H.w / 2 + 2, -H.d / 2)[0],
+          groundY(L.x, L.z) + 0.75,
+          at(H.w / 2 + 2, -H.d / 2)[1],
+          0.95,
+          0.75,
+          0.7,
+          L.ry,
+        );
       } else {
         const [cx, cz] = at(drvU, H.d / 2 + 4);
         carSpots.push({ x: cx, z: cz, ry: L.ry + Math.PI });
@@ -421,7 +648,15 @@ float lNoise(vec2 p) {
           for (let v = -H.d / 2; v < roadV - 3; v += 3) {
             const [fx2, fz2] = at(u, v + 1.5);
             if (isWater(fx2, fz2) || r() < 0.07) continue;
-            placeBreak(K.fenceSegment(type, 3, r), fx2, groundY(fx2, fz2), fz2, L.ry + Math.PI / 2 + (r() - 0.5) * 0.05, [1.5, 0.75, 0.08], type === 'chain' ? 'chain' : 'fence');
+            placeBreak(
+              K.fenceSegment(type, 3, r),
+              fx2,
+              groundY(fx2, fz2),
+              fz2,
+              L.ry + Math.PI / 2 + (r() - 0.5) * 0.05,
+              [1.5, 0.75, 0.08],
+              type === 'chain' ? 'chain' : 'fence',
+            );
           }
         }
       }
@@ -439,7 +674,10 @@ float lNoise(vec2 p) {
         const v = -H.d / 2 - 2 - r() * 6;
         const [cx, cz] = at(u, v);
         if (isWater(cx, cz)) continue;
-        if (mk === 'picnic') { const [qx, qz] = at(u, v - 0.7); placePicnic(qx, groundY(qx, qz), qz, r() * 6.28); } else place(mk(), cx, groundY(cx, cz), cz, r() * 6.28);
+        if (mk === 'picnic') {
+          const [qx, qz] = at(u, v - 0.7);
+          placePicnic(qx, groundY(qx, qz), qz, r() * 6.28);
+        } else place(mk(), cx, groundY(cx, cz), cz, r() * 6.28);
       }
       // coral rock edging along the driveway
       if (r() < 0.4) {
@@ -472,18 +710,50 @@ float lNoise(vec2 p) {
         }
       }
       // planting: palms, sea grape, hibiscus, croton (never inside the house volume: porch, deck, stairs, carport; houses track)
-      const inHouse = (px, pz) => { const dx = px - L.x, dz = pz - L.z, u = (dx * rx + dz * rz) * Math.sign(drvU || 1), v = dx * fx + dz * fz;
-        return v > -H.d / 2 - 1.6 && v < H.d / 2 + (L.gen ? 8 : 3.5) && u < H.w / 2 + (L.gen ? 4.4 : 1.5) && u > -H.w / 2 - 1.6; };
+      const inHouse = (px, pz) => {
+        const dx = px - L.x,
+          dz = pz - L.z,
+          u = (dx * rx + dz * rz) * Math.sign(drvU || 1),
+          v = dx * fx + dz * fz;
+        return (
+          v > -H.d / 2 - 1.6 &&
+          v < H.d / 2 + (L.gen ? 8 : 3.5) &&
+          u < H.w / 2 + (L.gen ? 4.4 : 1.5) &&
+          u > -H.w / 2 - 1.6
+        );
+      };
       const np = 2 + ((r() * 3) | 0);
       for (let i = 0; i < np; i++) {
         const [px, pz] = at((r() - 0.5) * (H.w + 10), (r() - 0.3) * (H.d + 10));
-        if (isWater(px, pz) || Math.hypot(px - L.x, pz - L.z) < Math.max(H.w, H.d) / 2 + 1.5 || inHouse(px, pz)) continue;
-        addVeg(r() < 0.75 ? 'coconut' : 'sabal', { x: px, y: groundY(px, pz), z: pz, ry: r() * 6.28, s: 0.8 + r() * 0.4 });
+        if (
+          isWater(px, pz) ||
+          Math.hypot(px - L.x, pz - L.z) < Math.max(H.w, H.d) / 2 + 1.5 ||
+          inHouse(px, pz)
+        )
+          continue;
+        addVeg(r() < 0.75 ? 'coconut' : 'sabal', {
+          x: px,
+          y: groundY(px, pz),
+          z: pz,
+          ry: r() * 6.28,
+          s: 0.8 + r() * 0.4,
+        });
       }
       for (let i = 0; i < 6; i++) {
         const [px, pz] = at((r() - 0.5) * (H.w + 8), (r() - 0.5) * (H.d + 8));
-        if (isWater(px, pz) || Math.hypot(px - L.x, pz - L.z) < Math.max(H.w, H.d) / 2 + 1 || inHouse(px, pz)) continue;
-        addVeg(['seagrape', 'hibiscus', 'croton', 'seagrape'][(r() * 4) | 0], { x: px, y: groundY(px, pz), z: pz, ry: r() * 6.28, s: 0.7 + r() * 0.6 });
+        if (
+          isWater(px, pz) ||
+          Math.hypot(px - L.x, pz - L.z) < Math.max(H.w, H.d) / 2 + 1 ||
+          inHouse(px, pz)
+        )
+          continue;
+        addVeg(['seagrape', 'hibiscus', 'croton', 'seagrape'][(r() * 4) | 0], {
+          x: px,
+          y: groundY(px, pz),
+          z: pz,
+          ry: r() * 6.28,
+          s: 0.7 + r() * 0.6,
+        });
       }
     }
     // roadside: palms and sea grape on the verge, mangroves on every shore within 450 m
@@ -495,8 +765,19 @@ float lNoise(vec2 p) {
         const o = q.hw + 4 + h * 10;
         const x = q.x - q.dz * side * o;
         const z = q.z + q.dx * side * o;
-        if (isWater(x, z) || !clear(x, z, 3) || lots.some((l) => Math.hypot(l.x - x, l.z - z) < l.span + 1)) continue;
-        addVeg(h < 0.2 ? 'coconut' : 'seagrape', { x, y: groundY(x, z), z, ry: h * 40, s: 0.8 + h });
+        if (
+          isWater(x, z) ||
+          !clear(x, z, 3) ||
+          lots.some((l) => Math.hypot(l.x - x, l.z - z) < l.span + 1)
+        )
+          continue;
+        addVeg(h < 0.2 ? 'coconut' : 'seagrape', {
+          x,
+          y: groundY(x, z),
+          z,
+          ry: h * 40,
+          s: 0.8 + h,
+        });
       }
     }
     let mg = 0;
@@ -508,18 +789,39 @@ float lNoise(vec2 p) {
         const jz = z + (hash2(x, z, 5) - 0.5) * 3;
         // keys pass: mangroves stand on the shore fringe (a land cell with water within 3 m) with their prop roots sunk into the
         // wet sand at the waterline; the sea bed here drops to -5 m, so a mangrove out in the water hovered with its roots in the air
-        const wet = isWater(jx, jz); let near = false;
-        for (const [ox, oz] of [[3, 0], [-3, 0], [0, 3], [0, -3]]) if (isWater(jx + ox, jz + oz) !== wet) near = true;
+        const wet = isWater(jx, jz);
+        let near = false;
+        for (const [ox, oz] of [
+          [3, 0],
+          [-3, 0],
+          [0, 3],
+          [0, -3],
+        ])
+          if (isWater(jx + ox, jz + oz) !== wet) near = true;
         if (!near) continue;
-        const gy = wet ? null : groundY(jx, jz); if (wet || gy > 0.9) continue;
-        if (!clear(jx, jz, 8) || Math.hypot(jx - spot.dock?.[0], jz - spot.dock?.[1]) < 14) continue;
+        const gy = wet ? null : groundY(jx, jz);
+        if (wet || gy > 0.9) continue;
+        if (!clear(jx, jz, 8) || Math.hypot(jx - spot.dock?.[0], jz - spot.dock?.[1]) < 14)
+          continue;
         if (vnoise(jx * 0.02, jz * 0.02) < 0.38) continue;
-        addVeg('mangrove', { x: jx, y: Math.min(gy, 0.25) - 0.35, z: jz, ry: h * 60, s: 0.7 + h * 0.8 });
+        addVeg('mangrove', {
+          x: jx,
+          y: Math.min(gy, 0.25) - 0.35,
+          z: jz,
+          ry: h * 60,
+          s: 0.7 + h * 0.8,
+        });
         mg++;
       }
     }
     if (wire.list.length) geos.push(wire.build());
-    stats.spawn = { lots: lots.length, bait: baitDone, poles: poles.length, mangroves: mg, cars: carSpots.length };
+    stats.spawn = {
+      lots: lots.length,
+      bait: baitDone,
+      poles: poles.length,
+      mangroves: mg,
+      cars: carSpots.length,
+    };
     // parked cars: real traffic models through the vehicles API (parked, locked), the nearest few to the spawn
     const spawnCars = () => {
       const V = game.vehicles;
@@ -529,8 +831,18 @@ float lNoise(vec2 p) {
       let n = 0;
       for (const c of carSpots.slice(0, 6)) {
         try {
-          if (game.placement?.parkOk && !(game.placement.spotOk || game.placement.parkOk)(c.x, c.z, c.ry, 4.8, 2.0) && !/[?&]mapfix=0\b/.test(location.search)) continue; // map audit: not in a yard bush / hedge (shared placement rule)
-          const v = V.spawn(types[n % types.length], new THREE.Vector3(c.x, groundY(c.x, c.z) + 0.6, c.z), c.ry, { snap: false });
+          if (
+            game.placement?.parkOk &&
+            !(game.placement.spotOk || game.placement.parkOk)(c.x, c.z, c.ry, 4.8, 2.0) &&
+            !/[?&]mapfix=0\b/.test(location.search)
+          )
+            continue; // map audit: not in a yard bush / hedge (shared placement rule)
+          const v = V.spawn(
+            types[n % types.length],
+            new THREE.Vector3(c.x, groundY(c.x, c.z) + 0.6, c.z),
+            c.ry,
+            { snap: false },
+          );
           if (v) n++;
         } catch (e) {
           console.warn('[dressing] parked car', e);
@@ -566,8 +878,12 @@ float lNoise(vec2 p) {
     scene.add(mesh);
     stats.spawnTris = (merged.attributes.position.count / 3) | 0;
   }
-  if (brkGeos.length) { // X1 breakables: one mesh, one box collider per piece
-    const merged = mergeGeometries(brkGeos.map((b) => b.g), false);
+  if (brkGeos.length) {
+    // X1 breakables: one mesh, one box collider per piece
+    const merged = mergeGeometries(
+      brkGeos.map((b) => b.g),
+      false,
+    );
     const mesh = new THREE.Mesh(merged, propMat);
     mesh.name = 'dressing-breakables';
     mesh.castShadow = true;
@@ -577,12 +893,35 @@ float lNoise(vec2 p) {
     const P = merged.attributes.position;
     let off = 0;
     for (const b of brkGeos) {
-      const n = b.g.attributes.position.count, v0 = off;
+      const n = b.g.attributes.position.count,
+        v0 = off;
       off += n;
       b.g.dispose();
-      breakables.add({ x: b.x, y: b.y, z: b.z, hx: b.box[0], hy: b.box[1], hz: b.box[2], ry: b.ry, kind: b.kind, owner: 'dressing',
-        hide: () => { for (let i = v0; i < v0 + n; i++) P.setXYZ(i, b.x, b.y - 1, b.z); P.needsUpdate = true; } });
-      occupancy.add({ x: b.x, z: b.z, r: Math.min(b.box[0], b.box[2]) + 0.1, y: b.y, h: b.box[1] * 2, kind: b.kind, src: 'dressing.v2.js:spawn yards', owner: 'dressing' });
+      breakables.add({
+        x: b.x,
+        y: b.y,
+        z: b.z,
+        hx: b.box[0],
+        hy: b.box[1],
+        hz: b.box[2],
+        ry: b.ry,
+        kind: b.kind,
+        owner: 'dressing',
+        hide: () => {
+          for (let i = v0; i < v0 + n; i++) P.setXYZ(i, b.x, b.y - 1, b.z);
+          P.needsUpdate = true;
+        },
+      });
+      occupancy.add({
+        x: b.x,
+        z: b.z,
+        r: Math.min(b.box[0], b.box[2]) + 0.1,
+        y: b.y,
+        h: b.box[1] * 2,
+        kind: b.kind,
+        src: 'dressing.v2.js:spawn yards',
+        owner: 'dressing',
+      });
     }
     stats.breakables = brkGeos.length;
   }
@@ -597,9 +936,15 @@ float lNoise(vec2 p) {
       try {
         if (c.t === 'box') {
           const q = new THREE.Quaternion().setFromAxisAngle(Y, c.ry);
-          world.createCollider(RAPIER.ColliderDesc.cuboid(c.hx, c.hy, c.hz).setTranslation(c.x, c.y, c.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }));
+          world.createCollider(
+            RAPIER.ColliderDesc.cuboid(c.hx, c.hy, c.hz)
+              .setTranslation(c.x, c.y, c.z)
+              .setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }),
+          );
         } else {
-          world.createCollider(RAPIER.ColliderDesc.cylinder(c.h, c.r).setTranslation(c.x, c.y, c.z));
+          world.createCollider(
+            RAPIER.ColliderDesc.cylinder(c.h, c.r).setTranslation(c.x, c.y, c.z),
+          );
         }
       } catch (e) {
         console.warn('[dressing] collider', e);
@@ -610,7 +955,17 @@ float lNoise(vec2 p) {
 
   // ------------------------------------------------------------------ 2. real-Miami plain land: clustered planting (time-sliced)
   const RR = data.realRect;
-  const BAD = new Set(['building', 'asphalt', 'sidewalk', 'water', 'pier', 'wood', 'sand', 'tile', 'pavers']);
+  const BAD = new Set([
+    'building',
+    'asphalt',
+    'sidewalk',
+    'water',
+    'pier',
+    'wood',
+    'sand',
+    'tile',
+    'pavers',
+  ]);
   const OK = new Set(['concrete', 'grass_short', 'grass_long', 'dirt', 'gravel']);
   const scatter = {};
   const STEP = 7;
@@ -627,7 +982,14 @@ float lNoise(vec2 p) {
         if (!(n > 0.62 ? h < 0.16 : h < 0.012)) continue;
         if (data.coverAt(x, zz) !== 'none' || !OK.has(data.surfaceAt(x, zz))) continue;
         let bad = false;
-        for (const [ox, oz] of [[5, 0], [-5, 0], [0, 5], [0, -5], [3.5, 3.5], [-3.5, -3.5]]) {
+        for (const [ox, oz] of [
+          [5, 0],
+          [-5, 0],
+          [0, 5],
+          [0, -5],
+          [3.5, 3.5],
+          [-3.5, -3.5],
+        ]) {
           if (BAD.has(data.surfaceAt(x + ox, zz + oz))) {
             bad = true;
             break;
@@ -636,8 +998,33 @@ float lNoise(vec2 p) {
         if (bad) continue;
         const k = vnoise(x * 0.005 + 11, zz * 0.005);
         const pick = hash2(x, zz, 13);
-        const kind = k < 0.35 ? (pick < 0.6 ? 'coconut' : pick < 0.85 ? 'seagrape' : 'hibiscus') : k < 0.6 ? (pick < 0.45 ? 'sabal' : pick < 0.8 ? 'seagrape' : 'croton') : (pick < 0.3 ? 'liveoak' : pick < 0.6 ? 'seagrape' : pick < 0.85 ? 'coconut' : 'hibiscus');
-        (scatter[kind] ||= []).push({ x, y: 0, z: zz, ry: h * 60, s: 0.75 + hash2(x, zz, 17) * 0.5 });
+        const kind =
+          k < 0.35
+            ? pick < 0.6
+              ? 'coconut'
+              : pick < 0.85
+                ? 'seagrape'
+                : 'hibiscus'
+            : k < 0.6
+              ? pick < 0.45
+                ? 'sabal'
+                : pick < 0.8
+                  ? 'seagrape'
+                  : 'croton'
+              : pick < 0.3
+                ? 'liveoak'
+                : pick < 0.6
+                  ? 'seagrape'
+                  : pick < 0.85
+                    ? 'coconut'
+                    : 'hibiscus';
+        (scatter[kind] ||= []).push({
+          x,
+          y: 0,
+          z: zz,
+          ry: h * 60,
+          s: 0.75 + hash2(x, zz, 17) * 0.5,
+        });
       }
       sx += STEP;
     }

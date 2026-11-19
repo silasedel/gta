@@ -13,7 +13,9 @@ import * as THREE from 'three';
 // ON by default since 05:10 Nov 17 (console clean on both paths, frame A/B within noise, lead OK). Rollback: ?look3=0
 // (no look3 shader patch installed at all: the previous, stable picture). In a look3 page game.look3 = false switches the
 // look back at run time for in-session A/B.
-export const LOOK3_ENABLED = !(typeof location !== 'undefined' && /[?&]look3=0\b/.test(location.search));
+export const LOOK3_ENABLED = !(
+  typeof location !== 'undefined' && /[?&]look3=0\b/.test(location.search)
+);
 export const LOOK3_DEFAULT = LOOK3_ENABLED;
 export const LOOK_U = new Float32Array([0, LOOK3_DEFAULT ? 1 : 0, 0.022, 1.6]);
 // LOOK_V (fog): x = aerial-perspective density cap for clear weather (0 = the old fixed cap), y = haze color pull
@@ -23,7 +25,8 @@ export const LOOK_V = new Float32Array([0, 0, 0, 0]);
 // LOOK_W (r2-look): x = how much of the sky / env light a point in the sun's cast shadow loses (0..1, by day), yzw = the
 // bounce irradiance (linear RGB) it gains from the sunlit ground and walls around it (shadows.js lights_fragment_end patch).
 export const LOOK_W = new Float32Array([0, 0, 0, 0]);
-export const LOOKU_DECL = '#ifndef PS_LOOKU\n#define PS_LOOKU\nuniform vec4 uLookU;\nuniform vec4 uLookV;\nuniform vec4 uLookW;\n#endif\n';
+export const LOOKU_DECL =
+  '#ifndef PS_LOOKU\n#define PS_LOOKU\nuniform vec4 uLookU;\nuniform vec4 uLookV;\nuniform vec4 uLookW;\n#endif\n';
 // depth range of the sun shadow cameras (environment.js: near 1, far 900): converts a shadow-depth difference to meters
 const SUN_DEPTH_M = 899.0;
 
@@ -32,11 +35,19 @@ const SUN_DEPTH_M = 899.0;
   if (!LOOK3_ENABLED || C.shadowmap_pars_fragment.includes('psPCSS')) return;
   for (const k of Object.keys(THREE.ShaderLib)) {
     const L = THREE.ShaderLib[k];
-    if (L && L.uniforms && !L.uniforms.uLookU) { L.uniforms.uLookU = { value: LOOK_U }; L.uniforms.uLookV = { value: LOOK_V }; L.uniforms.uLookW = { value: LOOK_W }; }
+    if (L && L.uniforms && !L.uniforms.uLookU) {
+      L.uniforms.uLookU = { value: LOOK_U };
+      L.uniforms.uLookV = { value: LOOK_V };
+      L.uniforms.uLookW = { value: LOOK_W };
+    }
   }
   for (const k of ['fog', 'lights']) {
     const U = THREE.UniformsLib[k];
-    if (U && !U.uLookU) { U.uLookU = { value: LOOK_U }; U.uLookV = { value: LOOK_V }; U.uLookW = { value: LOOK_W }; }
+    if (U && !U.uLookU) {
+      U.uLookU = { value: LOOK_U };
+      U.uLookV = { value: LOOK_V };
+      U.uLookW = { value: LOOK_W };
+    }
   }
   C.fog_pars_fragment = LOOKU_DECL + C.fog_pars_fragment;
   // r2-look (lead / outside critique: "specular glare on sand and paint"; r2-art: keep a soft sheen): very rough
@@ -46,22 +57,28 @@ const SUN_DEPTH_M = 899.0;
   {
     const f = 'material.roughness = min( material.roughness, 1.0 );';
     if (C.lights_physical_fragment.includes(f) && !C.lights_physical_fragment.includes('psGlare')) {
-      C.lights_physical_fragment = C.lights_physical_fragment.replace(f, `${f}
+      C.lights_physical_fragment = C.lights_physical_fragment.replace(
+        f,
+        `${f}
 #ifdef PS_LOOKU
 { float psGlare = step( 1e-4, uLookW.x ) * smoothstep( 0.78, 0.95, material.roughness ) * ( 1.0 - metalnessFactor ); material.specularF90 *= 1.0 - 0.28 * psGlare; }
-#endif`);
+#endif`,
+      );
     }
   }
   // r2-look material debug views (LOOK_V.w = 1: lit materials output their base color / albedo; 2: roughness, metalness in R, G
   // for MeshStandard / Physical), used by
   // tools/v2/look/albedo-view.page.js to measure what is on screen. One uniform branch; 0 in the game.
-  C.opaque_fragment = `#if defined( PS_LOOKU ) && ( defined( STANDARD ) || defined( LAMBERT ) || defined( PHONG ) )
+  C.opaque_fragment =
+    `#if defined( PS_LOOKU ) && ( defined( STANDARD ) || defined( LAMBERT ) || defined( PHONG ) )
 if ( uLookV.w > 0.5 ) outgoingLight = diffuseColor.rgb;
 #endif
 #if defined( PS_LOOKU ) && defined( STANDARD )
 if ( uLookV.w > 1.5 ) outgoingLight = vec3( material.roughness, metalnessFactor, 0.0 ); // r2-art audit: final roughness (after maps, patches and specular AA), metalness
 #endif
-` + C.opaque_fragment + `
+` +
+    C.opaque_fragment +
+    `
 #if defined( PS_LOOKU ) && defined( OPAQUE ) && ( defined( STANDARD ) || defined( LAMBERT ) || defined( PHONG ) )
 // r2-look: the ambient share of this pixel's light goes to alpha (opaque lit materials only). The screen-space AO
 // (post.js) darkens only that share: AO occludes sky / bounce light, never the sun (sunlit ground next to a car or a
@@ -75,9 +92,15 @@ if ( uLookV.z > 0.5 ) { // only inside the main scene pass (post.js sets it): im
   const head = '#elif defined( SHADOWMAP_TYPE_PCF_SOFT )';
   const tail = '#elif defined( SHADOWMAP_TYPE_VSM )';
   let s = C.shadowmap_pars_fragment;
-  const a = s.indexOf(head), b = s.indexOf(tail);
-  if (a < 0 || b < a) { console.warn('[look3] PCF soft branch not found: soft shadows off'); return; }
-  const fn = LOOKU_DECL + /* glsl */`
+  const a = s.indexOf(head),
+    b = s.indexOf(tail);
+  if (a < 0 || b < a) {
+    console.warn('[look3] PCF soft branch not found: soft shadows off');
+    return;
+  }
+  const fn =
+    LOOKU_DECL +
+    /* glsl */ `
 	// r2-look: per-pixel IGN (fixed) + a golden-ratio step per frame: every pixel walks evenly through the rotations over
 	// TAA's history, so all pixels converge to the same soft value (the frame-offset IGN left a stable per-pixel bias: grain)
 	float psIgn( vec2 p ) { return uLookU.y > 1.5 ? fract( fract( 52.9829189 * fract( dot( p, vec2( 0.06711056, 0.00583715 ) ) ) ) + 0.61803399 * uLookU.x ) : fract( 52.9829189 * fract( dot( p + 5.588238 * uLookU.x, vec2( 0.06711056, 0.00583715 ) ) ) ); }
@@ -140,16 +163,26 @@ if ( uLookV.z > 0.5 ) { // only inside the main scene pass (post.js sets it): im
 `;
   // the helper must sit before getShadow (same #ifdef USE_SHADOWMAP block)
   const gs = s.indexOf('float getShadow(');
-  if (gs < 0) { console.warn('[look3] getShadow not found'); return; }
+  if (gs < 0) {
+    console.warn('[look3] getShadow not found');
+    return;
+  }
   s = s.slice(0, gs) + fn + '\n\t' + s.slice(gs);
-  const a2 = s.indexOf(head), b2 = s.indexOf(tail);
+  const a2 = s.indexOf(head),
+    b2 = s.indexOf(tail);
   const body = s.slice(a2 + head.length, b2);
-  s = s.slice(0, a2) + head + `
+  s =
+    s.slice(0, a2) +
+    head +
+    `
 			if ( uLookU.y > 0.5 && shadowRadius > 20.0 ) {
 				shadow = psPCSS( shadowMap, shadowMapSize, shadowRadius, shadowCoord.xyz );
 			} else {
-` + body + `
+` +
+    body +
+    `
 			}
-		` + s.slice(b2);
+		` +
+    s.slice(b2);
   C.shadowmap_pars_fragment = s;
 })();

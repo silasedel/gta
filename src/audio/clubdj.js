@@ -92,7 +92,15 @@ export function createClubDJ(ctx, opts = {}) {
       return cur ? cur.track.bpm * cur.rate : null;
     },
     get current() {
-      return cur ? { id: cur.track.id, title: cur.track.title, tags: cur.track.tags, bpm: +(cur.track.bpm * cur.rate).toFixed(2), rate: +cur.rate.toFixed(4) } : null;
+      return cur
+        ? {
+            id: cur.track.id,
+            title: cur.track.title,
+            tags: cur.track.tags,
+            bpm: +(cur.track.bpm * cur.rate).toFixed(2),
+            rate: +cur.rate.toFixed(4),
+          }
+        : null;
     },
     get running() {
       return running;
@@ -116,7 +124,13 @@ export function createClubDJ(ctx, opts = {}) {
         running,
         taps,
         current: api.current,
-        next: next ? { title: next.track.title, startsIn: +(next.tx - ctx.currentTime).toFixed(1), rate: +next.deck.rate.toFixed(4) } : null,
+        next: next
+          ? {
+              title: next.track.title,
+              startsIn: +(next.tx - ctx.currentTime).toFixed(1),
+              rate: +next.deck.rate.toFixed(4),
+            }
+          : null,
         recent: recent.slice(-5),
       };
     },
@@ -124,13 +138,16 @@ export function createClubDJ(ctx, opts = {}) {
 
   function load(track) {
     if (!bufs.has(track.id)) {
-      bufs.set(track.id, fetch(BASE + track.file)
-        .then((r) => r.arrayBuffer())
-        .then((ab) => ctx.decodeAudioData(ab))
-        .catch((e) => {
-          bufs.delete(track.id);
-          throw e;
-        }));
+      bufs.set(
+        track.id,
+        fetch(BASE + track.file)
+          .then((r) => r.arrayBuffer())
+          .then((ab) => ctx.decodeAudioData(ab))
+          .catch((e) => {
+            bufs.delete(track.id);
+            throw e;
+          }),
+      );
     }
     return bufs.get(track.id);
   }
@@ -183,7 +200,8 @@ export function createClubDJ(ctx, opts = {}) {
     const x = tau(cur, t);
     const k = (x - tr.beat0) / tr.period;
     const beat = Math.floor(k);
-    const bib = ((Math.round((tr.beat0 + beat * tr.period - tr.downbeat0) / tr.period) % 4) + 4) % 4;
+    const bib =
+      ((Math.round((tr.beat0 + beat * tr.period - tr.downbeat0) / tr.period) % 4) + 4) % 4;
     return {
       beat,
       beatInBar: bib,
@@ -206,7 +224,9 @@ export function createClubDJ(ctx, opts = {}) {
   function mood() {
     let h = hour();
     h = ((h % 24) + 24) % 24;
-    for (const m of MOODS) if (h >= m[0] && h < m[1]) return { tags: m[2], energy: m[3] + 0.08 * (crowd() - 0.5), bpm: m[4] };
+    for (const m of MOODS)
+      if (h >= m[0] && h < m[1])
+        return { tags: m[2], energy: m[3] + 0.08 * (crowd() - 0.5), bpm: m[4] };
     return { tags: MOODS[2][2], energy: 0.74, bpm: 128 };
   }
 
@@ -229,8 +249,13 @@ export function createClubDJ(ctx, opts = {}) {
       s += Math.random() * 0.4;
       if (!best || s > best.s) best = { t, s };
     }
-    if (!best && prev) { // nothing within the stretch range: take the closest tempo
-      best = { t: lib.tracks.filter((t) => t.id !== prev.track.id).sort((a, b) => Math.abs(masterBpm / a.bpm - 1) - Math.abs(masterBpm / b.bpm - 1))[0] };
+    if (!best && prev) {
+      // nothing within the stretch range: take the closest tempo
+      best = {
+        t: lib.tracks
+          .filter((t) => t.id !== prev.track.id)
+          .sort((a, b) => Math.abs(masterBpm / a.bpm - 1) - Math.abs(masterBpm / b.bpm - 1))[0],
+      };
     }
     return best?.t || null;
   }
@@ -255,10 +280,11 @@ export function createClubDJ(ctx, opts = {}) {
     const mid = tx + (L / 2) * beat;
     const end = tx + L * beat;
     // phase-lock real kicks, not just the grids: shift the incoming start by both local corrections
-    const xB = (o.offset ?? track.cueIn) + fixAt(track, o.offset ?? track.cueIn) - fixAt(ta, xA) * rate;
+    const xB =
+      (o.offset ?? track.cueIn) + fixAt(track, o.offset ?? track.cueIn) - fixAt(ta, xA) * rate;
     const B = makeDeck(track, buf, tx, xB, rate, 0);
-    const curveUp = new Float32Array(64).map((_, i) => Math.sin((i / 63) * Math.PI / 2));
-    const curveDown = new Float32Array(64).map((_, i) => Math.cos((i / 63) * Math.PI / 2));
+    const curveUp = new Float32Array(64).map((_, i) => Math.sin(((i / 63) * Math.PI) / 2));
+    const curveDown = new Float32Array(64).map((_, i) => Math.cos(((i / 63) * Math.PI) / 2));
     // incoming: fade up over the first half with its bass killed; bass in on the middle downbeat
     B.fader.gain.setValueAtTime(0, tx);
     B.fader.gain.setValueCurveAtTime(curveUp, tx, mid - tx);
@@ -294,7 +320,9 @@ export function createClubDJ(ctx, opts = {}) {
         taps--;
         try {
           out.disconnect(g);
-        } catch (e) { /* */ }
+        } catch (e) {
+          /* */
+        }
       },
     };
   }
@@ -329,7 +357,9 @@ export function createClubDJ(ctx, opts = {}) {
     try {
       cur?.src.stop();
       next?.deck.src.stop();
-    } catch (e) { /* */ }
+    } catch (e) {
+      /* */
+    }
     cur = null;
     next = null;
     bufs.clear(); // free the decoded audio
@@ -351,7 +381,8 @@ export function createClubDJ(ctx, opts = {}) {
       }
       return;
     }
-    if (next && now >= next.tx) { // the incoming deck becomes the master grid
+    if (next && now >= next.tx) {
+      // the incoming deck becomes the master grid
       const old = cur;
       cur = next.deck;
       recent.push(cur.track.id);
@@ -365,17 +396,20 @@ export function createClubDJ(ctx, opts = {}) {
     if (!next && !cur.pending) {
       const xA = cur.track.transStart;
       const tx = ctxAt(cur, xA);
-      if (tx - now < 25) { // choose and decode the next track ahead of its entry
+      if (tx - now < 25) {
+        // choose and decode the next track ahead of its entry
         const tr = pick(cur);
         if (!tr) return;
         const deck = cur;
         deck.pending = true;
-        load(tr).then((buf) => {
-          if (cur !== deck || !running) return;
-          scheduleTransition(tr, buf);
-        }).catch(() => {
-          deck.pending = false;
-        });
+        load(tr)
+          .then((buf) => {
+            if (cur !== deck || !running) return;
+            scheduleTransition(tr, buf);
+          })
+          .catch(() => {
+            deck.pending = false;
+          });
       }
     }
   }

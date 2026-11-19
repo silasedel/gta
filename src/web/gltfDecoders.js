@@ -14,9 +14,17 @@ if (!GLTFLoader.prototype.__slDecoders) {
   GLTFLoader.prototype.__slDecoders = true;
   GLTFLoader.prototype.parse = function (data, path, onLoad, onError) {
     try {
-      if (!this.dracoLoader) { if (!draco) { draco = new DRACOLoader(); draco.setDecoderPath(base()); } this.setDRACOLoader(draco); }
+      if (!this.dracoLoader) {
+        if (!draco) {
+          draco = new DRACOLoader();
+          draco.setDecoderPath(base());
+        }
+        this.setDRACOLoader(draco);
+      }
       if (!this.meshoptDecoder) this.setMeshoptDecoder(MeshoptDecoder);
-    } catch (e) { /* decoders are optional: uncompressed models still load */ }
+    } catch (e) {
+      /* decoders are optional: uncompressed models still load */
+    }
     return parse.call(this, data, path, onLoad, onError);
   };
 }

@@ -18,7 +18,8 @@ export const GANGS = [
     },
     car: { type: 'tarpon_classic', color: 0x1f9e92 },
     style: 'disciplined',
-    blurb: 'Old-school crew in teal and white. Calm until you disrespect the block, then they come in numbers.',
+    blurb:
+      'Old-school crew in teal and white. Calm until you disrespect the block, then they come in numbers.',
     armed: 0.25,
     aggression: 0.4,
     rivals: ['lyric'],

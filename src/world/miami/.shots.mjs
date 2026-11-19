@@ -8,8 +8,13 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { withBrowser, GAME_READY } from '../../../tools/v2/browser.mjs';
 
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
 const SET = o.set || 'after';
 const OUT = path.resolve('docs/v2/shots/city-look');
 const VIEWS = [
@@ -25,16 +30,25 @@ const VIEWS = [
   { id: 'wyn', label: 'Wynwood', x: -3050, z: -2400, re: '' },
   { id: 'oh', label: 'Overseas Highway (rural Keys)', x: -7005, z: 6529, re: 'Overseas' },
 ];
-const want = (o.views ? String(o.views).split(',') : VIEWS.slice(0, 6).map((v) => v.id));
-const hours = (o.hours ? String(o.hours).split(',').map(Number) : [14, 21.5]);
-const angles = (o.angles ? String(o.angles).split(',') : ['street', 'aerial']);
+const want = o.views ? String(o.views).split(',') : VIEWS.slice(0, 6).map((v) => v.id);
+const hours = o.hours ? String(o.hours).split(',').map(Number) : [14, 21.5];
+const angles = o.angles ? String(o.angles).split(',') : ['street', 'aerial'];
 const posesFile = path.join(OUT, 'views.json');
-let poses = {}; try { poses = JSON.parse(fs.readFileSync(posesFile, 'utf8')); } catch (e) { /* first run */ }
+let poses = {};
+try {
+  poses = JSON.parse(fs.readFileSync(posesFile, 'utf8'));
+} catch (e) {
+  /* first run */
+}
 fs.mkdirSync(path.join(OUT, SET), { recursive: true });
 const load = execSync('uptime').toString().trim();
 const metrics = { set: SET, when: new Date().toISOString(), uptime: load, views: {} };
 const metricsFile = path.join(OUT, `metrics_${SET}.json`);
-try { Object.assign(metrics.views, JSON.parse(fs.readFileSync(metricsFile, 'utf8')).views); } catch (e) { /* */ }
+try {
+  Object.assign(metrics.views, JSON.parse(fs.readFileSync(metricsFile, 'utf8')).views);
+} catch (e) {
+  /* */
+}
 
 const RESOLVE = (v) => `(() => {
   const g = game.city.roadGraph, re = ${v.re ? `new RegExp(${JSON.stringify(v.re)}, 'i')` : 'null'};
@@ -73,33 +87,76 @@ const MEASURE = `new Promise((res) => {
 })`;
 
 let bad = false;
-await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 235) }, async (b) => {
-  await b.goto(o.url || 'http://127.0.0.1:5200/?mute');
-  await b.waitFor(GAME_READY, 150);
-  if (o.pre) console.log('PRE', JSON.stringify(await b.eval(String(o.pre))));
-  for (const id of want) {
-    const v = VIEWS.find((q) => q.id === id); if (!v) continue;
-    if (!poses[id]) { poses[id] = await b.eval(RESOLVE(v)); poses[id].label = v.label; }
-    for (const hour of hours) for (const angle of angles) {
-      const info = await b.eval(STAGE(poses[id], angle, hour));
-      await b.sleep(1200);
-      try { await b.waitFor(SETTLED, +(o.settleWait || 45)); } catch (e) { console.log('  (stream not settled)', id); }
-      await b.sleep(+(o.settle || 2500));
-      // re-stage: a save load or the clock can move the hour after the first staging
-      await b.eval(STAGE(poses[id], angle, hour));
-      await b.sleep(3000);
-      console.log('  hour', await b.eval('game.timeOfDay'));
-      const m = o.nomeasure ? { calls: await b.eval('game.renderer.info.render.calls'), triangles: await b.eval('game.renderer.info.render.triangles') } : await b.eval(MEASURE);
-      const tag = `${id}_${angle}_${String(hour).replace('.', 'h')}`;
-      const file = path.join(OUT, SET, tag + '.png');
-      let shot = false; for (let k = 0; k < 3 && !shot; k++) { try { await b.screenshot(file); shot = true; } catch (e) { const r = await b.send('Page.captureScreenshot', { format: 'png' }); console.log('  screenshot retry', tag, JSON.stringify(r.error || r.result?.exceptionDetails || Object.keys(r)).slice(0, 200)); await b.sleep(1500); } }
-      m.shot = shot;
-      metrics.views[tag] = { ...m, ...info, street: poses[id].name };
-      console.log(tag, JSON.stringify(metrics.views[tag]));
+await withBrowser(
+  { width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 235) },
+  async (b) => {
+    await b.goto(o.url || 'http://127.0.0.1:5200/?mute');
+    await b.waitFor(GAME_READY, 150);
+    if (o.pre) console.log('PRE', JSON.stringify(await b.eval(String(o.pre))));
+    for (const id of want) {
+      const v = VIEWS.find((q) => q.id === id);
+      if (!v) continue;
+      if (!poses[id]) {
+        poses[id] = await b.eval(RESOLVE(v));
+        poses[id].label = v.label;
+      }
+      for (const hour of hours)
+        for (const angle of angles) {
+          const info = await b.eval(STAGE(poses[id], angle, hour));
+          await b.sleep(1200);
+          try {
+            await b.waitFor(SETTLED, +(o.settleWait || 45));
+          } catch (e) {
+            console.log('  (stream not settled)', id);
+          }
+          await b.sleep(+(o.settle || 2500));
+          // re-stage: a save load or the clock can move the hour after the first staging
+          await b.eval(STAGE(poses[id], angle, hour));
+          await b.sleep(3000);
+          console.log('  hour', await b.eval('game.timeOfDay'));
+          const m = o.nomeasure
+            ? {
+                calls: await b.eval('game.renderer.info.render.calls'),
+                triangles: await b.eval('game.renderer.info.render.triangles'),
+              }
+            : await b.eval(MEASURE);
+          const tag = `${id}_${angle}_${String(hour).replace('.', 'h')}`;
+          const file = path.join(OUT, SET, tag + '.png');
+          let shot = false;
+          for (let k = 0; k < 3 && !shot; k++) {
+            try {
+              await b.screenshot(file);
+              shot = true;
+            } catch (e) {
+              const r = await b.send('Page.captureScreenshot', { format: 'png' });
+              console.log(
+                '  screenshot retry',
+                tag,
+                JSON.stringify(r.error || r.result?.exceptionDetails || Object.keys(r)).slice(
+                  0,
+                  200,
+                ),
+              );
+              await b.sleep(1500);
+            }
+          }
+          m.shot = shot;
+          metrics.views[tag] = { ...m, ...info, street: poses[id].name };
+          console.log(tag, JSON.stringify(metrics.views[tag]));
+        }
     }
-  }
-  if (b.errors.length) { console.log('CONSOLE ERRORS (' + b.errors.length + '):\n' + [...new Set(b.errors)].slice(0, 20).join('\n')); metrics.errors = [...new Set(b.errors)].slice(0, 40); bad = !o.allowErrors; }
-});
+    if (b.errors.length) {
+      console.log(
+        'CONSOLE ERRORS (' +
+          b.errors.length +
+          '):\n' +
+          [...new Set(b.errors)].slice(0, 20).join('\n'),
+      );
+      metrics.errors = [...new Set(b.errors)].slice(0, 40);
+      bad = !o.allowErrors;
+    }
+  },
+);
 fs.writeFileSync(posesFile, JSON.stringify(poses, null, 1));
 fs.writeFileSync(metricsFile, JSON.stringify(metrics, null, 1));
 process.exit(bad ? 1 : 0);

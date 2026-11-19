@@ -3,7 +3,7 @@
 // product of both layers gives the knotted, ever-changing look. GLSL only; used by the terrain (groundShader.js) and the
 // seabed (miami/seabed.js) so both read the same light under the water.
 //   CAUSTIC_GLSL defines float r2Caustic(vec2 worldXZ, float timeSeconds) -> 0..~1.5 (multiply into the albedo as 1 + k * c)
-export const CAUSTIC_GLSL = /* glsl */`
+export const CAUSTIC_GLSL = /* glsl */ `
 #ifndef R2_CAUSTIC
 #define R2_CAUSTIC
 vec2 r2cH2(vec2 p) { return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453); }

@@ -9,13 +9,31 @@
 import * as THREE from 'three';
 
 const UP = new THREE.Vector3(0, 1, 0);
-const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _e = new THREE.Vector3();
-const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _m2 = new THREE.Matrix4();
+const _a = new THREE.Vector3(),
+  _b = new THREE.Vector3(),
+  _c = new THREE.Vector3(),
+  _d = new THREE.Vector3(),
+  _e = new THREE.Vector3();
+const _q = new THREE.Quaternion(),
+  _q2 = new THREE.Quaternion(),
+  _m = new THREE.Matrix4(),
+  _m2 = new THREE.Matrix4();
 const NAMES = {
-  hand: 'RightHand', fore: 'RightForeArm', arm: 'RightArm', lhand: 'LeftHand', lfore: 'LeftForeArm', larm: 'LeftArm',
+  hand: 'RightHand',
+  fore: 'RightForeArm',
+  arm: 'RightArm',
+  lhand: 'LeftHand',
+  lfore: 'LeftForeArm',
+  larm: 'LeftArm',
 };
 const FING = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
-function find(root, suffix) { let f = null; root.traverse((o) => { if (!f && (o.isBone || o.type === 'Bone') && o.name.endsWith(suffix)) f = o; }); return f; }
+function find(root, suffix) {
+  let f = null;
+  root.traverse((o) => {
+    if (!f && (o.isBone || o.type === 'Bone') && o.name.endsWith(suffix)) f = o;
+  });
+  return f;
+}
 // bones of a character root (cached on the root)
 export function rigOf(root) {
   if (!root) return null;
@@ -23,226 +41,566 @@ export function rigOf(root) {
   if (r && r.hand && r.hand.parent) return r;
   r = {};
   for (const k in NAMES) r[k] = find(root, NAMES[k]);
-  for (const side of ['Right', 'Left']) for (const f of FING) for (let i = 1; i <= 3; i++) r[side + 'Hand' + f + i] = find(root, side + 'Hand' + f + i);
-  r.rest = new Map();   // finger rest rotations: curls are applied from rest every frame (clips may not key fingers)
-  for (const side of ['Right', 'Left']) for (const f of FING) for (let i = 1; i <= 3; i++) { const b = r[side + 'Hand' + f + i]; if (b) r.rest.set(b, b.quaternion.clone()); }
+  for (const side of ['Right', 'Left'])
+    for (const f of FING)
+      for (let i = 1; i <= 3; i++) r[side + 'Hand' + f + i] = find(root, side + 'Hand' + f + i);
+  r.rest = new Map(); // finger rest rotations: curls are applied from rest every frame (clips may not key fingers)
+  for (const side of ['Right', 'Left'])
+    for (const f of FING)
+      for (let i = 1; i <= 3; i++) {
+        const b = r[side + 'Hand' + f + i];
+        if (b) r.rest.set(b, b.quaternion.clone());
+      }
   // finger joints must exist AND sit away from the wrist (some runtime rigs keep collapsed or unweighted finger joints)
   root.updateMatrixWorld(true);
-  const spread = (h, side) => { const m = r[side + 'HandMiddle1'], i = r[side + 'HandIndex1'], p = r[side + 'HandPinky1']; if (!h || !m || !i || !p) return false;
-    const hw = h.getWorldPosition(new THREE.Vector3()); return m.getWorldPosition(new THREE.Vector3()).distanceTo(hw) > 0.04 && i.getWorldPosition(new THREE.Vector3()).distanceTo(p.getWorldPosition(new THREE.Vector3())) > 0.02; };
+  const spread = (h, side) => {
+    const m = r[side + 'HandMiddle1'],
+      i = r[side + 'HandIndex1'],
+      p = r[side + 'HandPinky1'];
+    if (!h || !m || !i || !p) return false;
+    const hw = h.getWorldPosition(new THREE.Vector3());
+    return (
+      m.getWorldPosition(new THREE.Vector3()).distanceTo(hw) > 0.04 &&
+      i.getWorldPosition(new THREE.Vector3()).distanceTo(p.getWorldPosition(new THREE.Vector3())) >
+        0.02
+    );
+  };
   r.fingersR = spread(r.hand, 'Right');
   r.fingersL = spread(r.lhand, 'Left');
   // rigs without finger bones (the game's runtime skeletons): hand axes in the hand bone's own frame, from the bind pose
   if (!r.fingersR || !r.fingersL) bindAxes(root, r);
   r.ok = !!(r.hand && r.fore && r.arm && (r.fingersR || r.axR));
   r.lok = !!(r.lhand && r.lfore && r.larm && (r.fingersL || r.axL));
-  r.head = find(root, 'Head'); r.neck = find(root, 'Neck');
-  r.lfoot = find(root, 'LeftFoot'); r.rfoot = find(root, 'RightFoot'); r.ltoe = find(root, 'LeftToeBase'); r.rtoe = find(root, 'RightToeBase');
+  r.head = find(root, 'Head');
+  r.neck = find(root, 'Neck');
+  r.lfoot = find(root, 'LeftFoot');
+  r.rfoot = find(root, 'RightFoot');
+  r.ltoe = find(root, 'LeftToeBase');
+  r.rtoe = find(root, 'RightToeBase');
   r.hips = find(root, 'Hips');
   bindForward(root, r);
-  Object.defineProperty(root.userData, '__gunRig', { value: r, enumerable: false, configurable: true, writable: true });
+  Object.defineProperty(root.userData, '__gunRig', {
+    value: r,
+    enumerable: false,
+    configurable: true,
+    writable: true,
+  });
   return r;
 }
 const wp = (o, v) => o.getWorldPosition(v);
 // bind-pose body forward from the geometry: feet stick out in front of the ankle joints. Stored in the hips' and the
 // head's own frames (so the animated head direction is known), plus whether the rig names its sides mirrored.
 function bindForward(root, r) {
-  let mesh = null; root.traverse((o) => { if (o.isSkinnedMesh && o.skeleton && r.hand && o.skeleton.bones.includes(r.hand) && (!mesh || o.geometry.attributes.position.count > mesh.geometry.attributes.position.count)) mesh = o; });
+  let mesh = null;
+  root.traverse((o) => {
+    if (
+      o.isSkinnedMesh &&
+      o.skeleton &&
+      r.hand &&
+      o.skeleton.bones.includes(r.hand) &&
+      (!mesh || o.geometry.attributes.position.count > mesh.geometry.attributes.position.count)
+    )
+      mesh = o;
+  });
   if (!mesh || !r.hips) return;
-  const sk = mesh.skeleton, g = mesh.geometry, P = g.attributes.position, SI = g.attributes.skinIndex, SW = g.attributes.skinWeight;
-  const bindM = (b) => { const i = sk.bones.indexOf(b); return i < 0 ? null : new THREE.Matrix4().copy(sk.boneInverses[i]).invert(); };
-  const bpos = (b) => { const m = b && bindM(b); return m ? new THREE.Vector3().setFromMatrixPosition(m) : null; };
-  const feet = [r.lfoot, r.rfoot, r.ltoe, r.rtoe].filter(Boolean).map((b) => sk.bones.indexOf(b)).filter((i) => i >= 0);
+  const sk = mesh.skeleton,
+    g = mesh.geometry,
+    P = g.attributes.position,
+    SI = g.attributes.skinIndex,
+    SW = g.attributes.skinWeight;
+  const bindM = (b) => {
+    const i = sk.bones.indexOf(b);
+    return i < 0 ? null : new THREE.Matrix4().copy(sk.boneInverses[i]).invert();
+  };
+  const bpos = (b) => {
+    const m = b && bindM(b);
+    return m ? new THREE.Vector3().setFromMatrixPosition(m) : null;
+  };
+  const feet = [r.lfoot, r.rfoot, r.ltoe, r.rtoe]
+    .filter(Boolean)
+    .map((b) => sk.bones.indexOf(b))
+    .filter((i) => i >= 0);
   if (!feet.length) return;
-  const anchor = [bpos(r.lfoot), bpos(r.rfoot)].filter(Boolean); if (!anchor.length) return;
-  const ankle = anchor.reduce((a, v) => a.add(v), new THREE.Vector3()).multiplyScalar(1 / anchor.length);
-  const acc = new THREE.Vector3(), v = new THREE.Vector3(); let n = 0;
+  const anchor = [bpos(r.lfoot), bpos(r.rfoot)].filter(Boolean);
+  if (!anchor.length) return;
+  const ankle = anchor
+    .reduce((a, v) => a.add(v), new THREE.Vector3())
+    .multiplyScalar(1 / anchor.length);
+  const acc = new THREE.Vector3(),
+    v = new THREE.Vector3();
+  let n = 0;
   for (let k = 0; k < P.count; k++) {
-    let best = -1, bw = 0; for (let c = 0; c < 4; c++) { const w = SW.getComponent(k, c); if (w > bw) { bw = w; best = SI.getComponent(k, c); } }
+    let best = -1,
+      bw = 0;
+    for (let c = 0; c < 4; c++) {
+      const w = SW.getComponent(k, c);
+      if (w > bw) {
+        bw = w;
+        best = SI.getComponent(k, c);
+      }
+    }
     if (!feet.includes(best)) continue;
-    v.fromBufferAttribute(P, k).applyMatrix4(mesh.bindMatrix); acc.add(v); n++;
+    v.fromBufferAttribute(P, k).applyMatrix4(mesh.bindMatrix);
+    acc.add(v);
+    n++;
   }
   if (n < 20) return;
-  acc.multiplyScalar(1 / n).sub(ankle); acc.y = 0; if (acc.lengthSq() < 1e-8) return; acc.normalize();   // bind-space forward
-  const toLocal = (b) => { const m = bindM(b); if (!m) return null; const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(m)).invert(); return acc.clone().applyQuaternion(q); };
-  r.hipsFwd = toLocal(r.hips); if (r.head) r.headFwd = toLocal(r.head);
-  const la = bpos(r.larm), ra = bpos(r.arm); if (la && ra) r.mirror = new THREE.Vector3().crossVectors(la.sub(ra), UP).dot(acc) < 0;
+  acc.multiplyScalar(1 / n).sub(ankle);
+  acc.y = 0;
+  if (acc.lengthSq() < 1e-8) return;
+  acc.normalize(); // bind-space forward
+  const toLocal = (b) => {
+    const m = bindM(b);
+    if (!m) return null;
+    const q = new THREE.Quaternion()
+      .setFromRotationMatrix(new THREE.Matrix4().extractRotation(m))
+      .invert();
+    return acc.clone().applyQuaternion(q);
+  };
+  r.hipsFwd = toLocal(r.hips);
+  if (r.head) r.headFwd = toLocal(r.head);
+  const la = bpos(r.larm),
+    ra = bpos(r.arm);
+  if (la && ra) r.mirror = new THREE.Vector3().crossVectors(la.sub(ra), UP).dot(acc) < 0;
 }
 // bind-pose hand axes: F along the forearm -> hand line, S toward the character's front (thumb / index side in a
 // T- or A-pose), N = palm normal; stored in the hand bone's local frame
 function bindAxes(root, r) {
   // the skinned mesh with the most vertices on this skeleton (LOD0)
-  let mesh = null; root.traverse((o) => { if (o.isSkinnedMesh && o.skeleton && o.skeleton.bones.includes(r.hand) && (!mesh || o.geometry.attributes.position.count > mesh.geometry.attributes.position.count)) mesh = o; });
+  let mesh = null;
+  root.traverse((o) => {
+    if (
+      o.isSkinnedMesh &&
+      o.skeleton &&
+      o.skeleton.bones.includes(r.hand) &&
+      (!mesh || o.geometry.attributes.position.count > mesh.geometry.attributes.position.count)
+    )
+      mesh = o;
+  });
   if (!mesh) return;
-  const sk = mesh.skeleton, g = mesh.geometry, P = g.attributes.position, SI = g.attributes.skinIndex, SW = g.attributes.skinWeight;
-  const bw = (b) => { const i = sk.bones.indexOf(b); return i < 0 ? null : new THREE.Matrix4().copy(sk.boneInverses[i]).invert(); };
-  const pos = (b) => { const m = b && bw(b); return m ? new THREE.Vector3().setFromMatrixPosition(m) : null; };
+  const sk = mesh.skeleton,
+    g = mesh.geometry,
+    P = g.attributes.position,
+    SI = g.attributes.skinIndex,
+    SW = g.attributes.skinWeight;
+  const bw = (b) => {
+    const i = sk.bones.indexOf(b);
+    return i < 0 ? null : new THREE.Matrix4().copy(sk.boneInverses[i]).invert();
+  };
+  const pos = (b) => {
+    const m = b && bw(b);
+    return m ? new THREE.Vector3().setFromMatrixPosition(m) : null;
+  };
   const v = new THREE.Vector3();
   for (const side of ['R', 'L']) {
-    const h = side === 'R' ? r.hand : r.lhand, fo = side === 'R' ? r.fore : r.lfore; if (!h || !fo) continue;
-    const mh = bw(h), ph = pos(h), pf = pos(fo); if (!mh || !ph || !pf) continue;
+    const h = side === 'R' ? r.hand : r.lhand,
+      fo = side === 'R' ? r.fore : r.lfore;
+    if (!h || !fo) continue;
+    const mh = bw(h),
+      ph = pos(h),
+      pf = pos(fo);
+    if (!mh || !ph || !pf) continue;
     const F = ph.clone().sub(pf).normalize();
     // hand vertices (bind space): wrist-relative, projected across F
-    const hi = sk.bones.indexOf(h), pts = [];
+    const hi = sk.bones.indexOf(h),
+      pts = [];
     for (let k = 0; k < P.count; k++) {
-      let wsum = 0; for (let c = 0; c < 4; c++) { const bi = SI.getComponent(k, c); if (bi === hi || (sk.bones[bi] && sk.bones[bi].name.includes(side === 'R' ? 'RightHand' : 'LeftHand'))) wsum += SW.getComponent(k, c); }
+      let wsum = 0;
+      for (let c = 0; c < 4; c++) {
+        const bi = SI.getComponent(k, c);
+        if (
+          bi === hi ||
+          (sk.bones[bi] && sk.bones[bi].name.includes(side === 'R' ? 'RightHand' : 'LeftHand'))
+        )
+          wsum += SW.getComponent(k, c);
+      }
       if (wsum < 0.5) continue;
       v.fromBufferAttribute(P, k).applyMatrix4(mesh.bindMatrix).sub(ph);
-      const a = v.dot(F); if (a < -0.01) continue;
+      const a = v.dot(F);
+      if (a < -0.01) continue;
       pts.push(a, v.x - F.x * a, v.y - F.y * a, v.z - F.z * a);
     }
     if (pts.length < 40) continue;
     // 2x2 covariance in the plane across F: widest axis = across the knuckles (S), thinnest = palm normal (N)
-    const e1 = new THREE.Vector3(1, 0, 0); if (Math.abs(e1.dot(F)) > 0.9) e1.set(0, 1, 0); e1.addScaledVector(F, -e1.dot(F)).normalize(); const e2 = new THREE.Vector3().crossVectors(F, e1);
-    let c11 = 0, c12 = 0, c22 = 0, m1 = 0, m2 = 0, n = pts.length / 4, len = 0;
-    for (let k = 0; k < pts.length; k += 4) { v.set(pts[k + 1], pts[k + 2], pts[k + 3]); const x = v.dot(e1), y = v.dot(e2); m1 += x; m2 += y; len = Math.max(len, pts[k]); }
-    m1 /= n; m2 /= n;
-    for (let k = 0; k < pts.length; k += 4) { v.set(pts[k + 1], pts[k + 2], pts[k + 3]); const x = v.dot(e1) - m1, y = v.dot(e2) - m2; c11 += x * x; c12 += x * y; c22 += y * y; }
+    const e1 = new THREE.Vector3(1, 0, 0);
+    if (Math.abs(e1.dot(F)) > 0.9) e1.set(0, 1, 0);
+    e1.addScaledVector(F, -e1.dot(F)).normalize();
+    const e2 = new THREE.Vector3().crossVectors(F, e1);
+    let c11 = 0,
+      c12 = 0,
+      c22 = 0,
+      m1 = 0,
+      m2 = 0,
+      n = pts.length / 4,
+      len = 0;
+    for (let k = 0; k < pts.length; k += 4) {
+      v.set(pts[k + 1], pts[k + 2], pts[k + 3]);
+      const x = v.dot(e1),
+        y = v.dot(e2);
+      m1 += x;
+      m2 += y;
+      len = Math.max(len, pts[k]);
+    }
+    m1 /= n;
+    m2 /= n;
+    for (let k = 0; k < pts.length; k += 4) {
+      v.set(pts[k + 1], pts[k + 2], pts[k + 3]);
+      const x = v.dot(e1) - m1,
+        y = v.dot(e2) - m2;
+      c11 += x * x;
+      c12 += x * y;
+      c22 += y * y;
+    }
     const th = 0.5 * Math.atan2(2 * c12, c11 - c22);
     const S = e1.clone().multiplyScalar(Math.cos(th)).addScaledVector(e2, Math.sin(th)).normalize();
     const N = new THREE.Vector3().crossVectors(F, S).normalize();
     // signs: the thumb sticks out on one side near the wrist (that side is S); fingertips and thumb sit toward the palm (N)
-    let sp = 0, sn = 0, tipN = 0, tipC = 0, thN = 0, thC = 0;
-    for (let k = 0; k < pts.length; k += 4) { v.set(pts[k + 1], pts[k + 2], pts[k + 3]); const sv = v.dot(S); if (pts[k] < len * 0.55) { sp = Math.max(sp, sv); sn = Math.max(sn, -sv); } }
+    let sp = 0,
+      sn = 0,
+      tipN = 0,
+      tipC = 0,
+      thN = 0,
+      thC = 0;
+    for (let k = 0; k < pts.length; k += 4) {
+      v.set(pts[k + 1], pts[k + 2], pts[k + 3]);
+      const sv = v.dot(S);
+      if (pts[k] < len * 0.55) {
+        sp = Math.max(sp, sv);
+        sn = Math.max(sn, -sv);
+      }
+    }
     if (sn > sp) S.negate();
     const smax = Math.max(sp, sn);
     for (let k = 0; k < pts.length; k += 4) {
-      v.set(pts[k + 1], pts[k + 2], pts[k + 3]); const sv = v.dot(S), nv = v.dot(N);
-      if (pts[k] > len * 0.8) { tipN += nv; tipC++; }
-      if (pts[k] < len * 0.55 && sv > smax * 0.7) { thN += nv; thC++; }
+      v.set(pts[k + 1], pts[k + 2], pts[k + 3]);
+      const sv = v.dot(S),
+        nv = v.dot(N);
+      if (pts[k] > len * 0.8) {
+        tipN += nv;
+        tipC++;
+      }
+      if (pts[k] < len * 0.55 && sv > smax * 0.7) {
+        thN += nv;
+        thC++;
+      }
     }
-    const sideN = side === 'R' ? new THREE.Vector3().crossVectors(S, F) : new THREE.Vector3().crossVectors(F, S);
+    const sideN =
+      side === 'R'
+        ? new THREE.Vector3().crossVectors(S, F)
+        : new THREE.Vector3().crossVectors(F, S);
     // N (palm) must agree with the measured palm side; if the measurement says the other way, the thumb side was wrong
     const meas = (tipC ? tipN / tipC : 0) + (thC ? thN / thC : 0);
     const Nm = N.clone().multiplyScalar(Math.sign(meas || 1));
-    if (Math.abs(meas) > 0.002 && Nm.dot(sideN) < 0) { S.negate(); }
-    const Nf = side === 'R' ? new THREE.Vector3().crossVectors(S, F) : new THREE.Vector3().crossVectors(F, S);
-    const qi = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(mh)).invert();
-    r['ax' + side] = { F: F.applyQuaternion(qi), S: S.applyQuaternion(qi), N: Nf.normalize().applyQuaternion(qi), len: Math.max(0.07, len), dbg: { sp, sn, meas, n } };
+    if (Math.abs(meas) > 0.002 && Nm.dot(sideN) < 0) {
+      S.negate();
+    }
+    const Nf =
+      side === 'R'
+        ? new THREE.Vector3().crossVectors(S, F)
+        : new THREE.Vector3().crossVectors(F, S);
+    const qi = new THREE.Quaternion()
+      .setFromRotationMatrix(new THREE.Matrix4().extractRotation(mh))
+      .invert();
+    r['ax' + side] = {
+      F: F.applyQuaternion(qi),
+      S: S.applyQuaternion(qi),
+      N: Nf.normalize().applyQuaternion(qi),
+      len: Math.max(0.07, len),
+      dbg: { sp, sn, meas, n },
+    };
   }
 }
 // hand frame in world space: { o: wrist, F, S, N }
 function frame(r, side, out) {
-  const P = side === 'R' ? 'RightHand' : 'LeftHand', h = side === 'R' ? r.hand : r.lhand;
+  const P = side === 'R' ? 'RightHand' : 'LeftHand',
+    h = side === 'R' ? r.hand : r.lhand;
   if (!(side === 'R' ? r.fingersR : r.fingersL)) {
-    const ax = side === 'R' ? r.axR : r.axL; h.getWorldQuaternion(_q);
-    wp(h, out.o); out.S.copy(ax.S).applyQuaternion(_q); out.len = ax.len;
+    const ax = side === 'R' ? r.axR : r.axL;
+    h.getWorldQuaternion(_q);
+    wp(h, out.o);
+    out.S.copy(ax.S).applyQuaternion(_q);
+    out.len = ax.len;
     // F: the hand continues the forearm (robust on rigs whose bind frames differ from the runtime rest pose)
-    wp(side === 'R' ? r.fore : r.lfore, _a); out.F.subVectors(out.o, _a).normalize();
-    const Fb = _b.copy(ax.F).applyQuaternion(_q); if (Fb.dot(out.F) < 0.5) out.F.copy(Fb);   // a sharply bent wrist: trust the bone
+    wp(side === 'R' ? r.fore : r.lfore, _a);
+    out.F.subVectors(out.o, _a).normalize();
+    const Fb = _b.copy(ax.F).applyQuaternion(_q);
+    if (Fb.dot(out.F) < 0.5) out.F.copy(Fb); // a sharply bent wrist: trust the bone
     out.S.addScaledVector(out.F, -out.S.dot(out.F)).normalize();
-    if ((side === 'R') !== !!r.mirror) out.N.crossVectors(out.S, out.F); else out.N.crossVectors(out.F, out.S);   // anatomical handedness (rigs may name sides mirrored)
+    if ((side === 'R') !== !!r.mirror) out.N.crossVectors(out.S, out.F);
+    else out.N.crossVectors(out.F, out.S); // anatomical handedness (rigs may name sides mirrored)
     out.N.normalize();
     return out;
   }
-  wp(h, out.o); wp(r[P + 'Middle1'], out.F).sub(out.o); out.len = out.F.length(); out.F.normalize();
-  wp(r[P + 'Index1'], out.S); wp(r[P + 'Pinky1'], _a); out.S.sub(_a); out.S.addScaledVector(out.F, -out.S.dot(out.F)).normalize();
+  wp(h, out.o);
+  wp(r[P + 'Middle1'], out.F).sub(out.o);
+  out.len = out.F.length();
+  out.F.normalize();
+  wp(r[P + 'Index1'], out.S);
+  wp(r[P + 'Pinky1'], _a);
+  out.S.sub(_a);
+  out.S.addScaledVector(out.F, -out.S.dot(out.F)).normalize();
   // palm normal from handedness: right hand N = S x F, left hand N = F x S (the thumb is unreliable on mitten-like scans)
-  if ((side === 'R') !== !!r.mirror) out.N.crossVectors(out.S, out.F); else out.N.crossVectors(out.F, out.S);   // anatomical handedness (rigs may name sides mirrored)
+  if ((side === 'R') !== !!r.mirror) out.N.crossVectors(out.S, out.F);
+  else out.N.crossVectors(out.F, out.S); // anatomical handedness (rigs may name sides mirrored)
   out.N.normalize();
   return out;
 }
-const mkFrame = () => ({ o: new THREE.Vector3(), F: new THREE.Vector3(), S: new THREE.Vector3(), N: new THREE.Vector3(), len: 0.09 });
-const FR = mkFrame(), FL = mkFrame();
+const mkFrame = () => ({
+  o: new THREE.Vector3(),
+  F: new THREE.Vector3(),
+  S: new THREE.Vector3(),
+  N: new THREE.Vector3(),
+  len: 0.09,
+});
+const FR = mkFrame(),
+  FL = mkFrame();
 // rotate a bone by a world-space quaternion
 function rotW(bone, q) {
-  bone.getWorldQuaternion(_q2); _q2.premultiply(q);
-  bone.parent.getWorldQuaternion(_q).invert(); bone.quaternion.copy(_q.multiply(_q2)); bone.updateMatrixWorld(true);
+  bone.getWorldQuaternion(_q2);
+  _q2.premultiply(q);
+  bone.parent.getWorldQuaternion(_q).invert();
+  bone.quaternion.copy(_q.multiply(_q2));
+  bone.updateMatrixWorld(true);
 }
 // two-bone IK: upper/lower/end bones, world target, pole hint (world point)
-const _A = new THREE.Vector3(), _B = new THREE.Vector3(), _C = new THREE.Vector3(), _T = new THREE.Vector3(), _dir = new THREE.Vector3(), _bend = new THREE.Vector3(), _E = new THREE.Vector3();
+const _A = new THREE.Vector3(),
+  _B = new THREE.Vector3(),
+  _C = new THREE.Vector3(),
+  _T = new THREE.Vector3(),
+  _dir = new THREE.Vector3(),
+  _bend = new THREE.Vector3(),
+  _E = new THREE.Vector3();
 function ik2(up, lo, end, target, pole) {
-  wp(up, _A); wp(lo, _B); wp(end, _C);
-  const la = _A.distanceTo(_B), lb = _B.distanceTo(_C);
-  _T.copy(target); _dir.subVectors(_T, _A); let d = _dir.length(); if (d < 1e-4) return; _dir.multiplyScalar(1 / d);
-  d = Math.min(d, (la + lb) * 0.999); d = Math.max(d, Math.abs(la - lb) + 1e-3);
-  _bend.subVectors(pole, _A); _bend.addScaledVector(_dir, -_bend.dot(_dir)); if (_bend.lengthSq() < 1e-8) _bend.set(0, -1, 0); _bend.normalize();
-  const ca = THREE.MathUtils.clamp((la * la + d * d - lb * lb) / (2 * la * d), -1, 1), sa = Math.sqrt(1 - ca * ca);
-  _E.copy(_A).addScaledVector(_dir, la * ca).addScaledVector(_bend, la * sa);
-  _a.subVectors(_B, _A).normalize(); _b.subVectors(_E, _A).normalize(); _q.setFromUnitVectors(_a, _b); rotW(up, _q.clone());
-  wp(lo, _B); wp(end, _C); _T.copy(_A).addScaledVector(_dir, d);
-  _a.subVectors(_C, _B).normalize(); _b.subVectors(_T, _B).normalize(); _q.setFromUnitVectors(_a, _b); rotW(lo, _q.clone());
+  wp(up, _A);
+  wp(lo, _B);
+  wp(end, _C);
+  const la = _A.distanceTo(_B),
+    lb = _B.distanceTo(_C);
+  _T.copy(target);
+  _dir.subVectors(_T, _A);
+  let d = _dir.length();
+  if (d < 1e-4) return;
+  _dir.multiplyScalar(1 / d);
+  d = Math.min(d, (la + lb) * 0.999);
+  d = Math.max(d, Math.abs(la - lb) + 1e-3);
+  _bend.subVectors(pole, _A);
+  _bend.addScaledVector(_dir, -_bend.dot(_dir));
+  if (_bend.lengthSq() < 1e-8) _bend.set(0, -1, 0);
+  _bend.normalize();
+  const ca = THREE.MathUtils.clamp((la * la + d * d - lb * lb) / (2 * la * d), -1, 1),
+    sa = Math.sqrt(1 - ca * ca);
+  _E.copy(_A)
+    .addScaledVector(_dir, la * ca)
+    .addScaledVector(_bend, la * sa);
+  _a.subVectors(_B, _A).normalize();
+  _b.subVectors(_E, _A).normalize();
+  _q.setFromUnitVectors(_a, _b);
+  rotW(up, _q.clone());
+  wp(lo, _B);
+  wp(end, _C);
+  _T.copy(_A).addScaledVector(_dir, d);
+  _a.subVectors(_C, _B).normalize();
+  _b.subVectors(_T, _B).normalize();
+  _q.setFromUnitVectors(_a, _b);
+  rotW(lo, _q.clone());
 }
 // rotate the hand so its frame (F, S) matches the wanted (F, S)
-const _M1 = new THREE.Matrix4(), _M2 = new THREE.Matrix4(), _x1 = new THREE.Vector3(), _x2 = new THREE.Vector3(), _f2 = new THREE.Vector3(), _s2 = new THREE.Vector3();
+const _M1 = new THREE.Matrix4(),
+  _M2 = new THREE.Matrix4(),
+  _x1 = new THREE.Vector3(),
+  _x2 = new THREE.Vector3(),
+  _f2 = new THREE.Vector3(),
+  _s2 = new THREE.Vector3();
 function orientHand(r, side, Fw, Sw) {
   const fr = frame(r, side, side === 'R' ? FR : FL);
-  _x1.crossVectors(fr.F, fr.S).normalize(); _M1.makeBasis(fr.F, fr.S, _x1);
-  _f2.copy(Fw).normalize(); _s2.copy(Sw).addScaledVector(_f2, -Sw.dot(_f2)).normalize(); _x2.crossVectors(_f2, _s2).normalize(); _M2.makeBasis(_f2, _s2, _x2);
-  _M2.multiply(_M1.transpose()); _q.setFromRotationMatrix(_M2); rotW(side === 'R' ? r.hand : r.lhand, _q.clone());
+  _x1.crossVectors(fr.F, fr.S).normalize();
+  _M1.makeBasis(fr.F, fr.S, _x1);
+  _f2.copy(Fw).normalize();
+  _s2.copy(Sw).addScaledVector(_f2, -Sw.dot(_f2)).normalize();
+  _x2.crossVectors(_f2, _s2).normalize();
+  _M2.makeBasis(_f2, _s2, _x2);
+  _M2.multiply(_M1.transpose());
+  _q.setFromRotationMatrix(_M2);
+  rotW(side === 'R' ? r.hand : r.lhand, _q.clone());
 }
 // curl fingers toward the palm (angles per joint, radians)
 const CURL = {
-  pistolR: { Index: [0.35, 0.55, 0.3], Middle: [1.1, 1.35, 0.7], Ring: [1.15, 1.35, 0.7], Pinky: [1.2, 1.3, 0.7], Thumb: [0.25, 0.45, 0.3] },
-  longR: { Index: [0.4, 0.6, 0.35], Middle: [1.1, 1.35, 0.7], Ring: [1.15, 1.35, 0.7], Pinky: [1.2, 1.3, 0.7], Thumb: [0.3, 0.5, 0.3] },
-  meleeR: { Index: [1.0, 1.3, 0.7], Middle: [1.1, 1.35, 0.75], Ring: [1.15, 1.35, 0.75], Pinky: [1.2, 1.3, 0.75], Thumb: [0.45, 0.6, 0.35] },
-  supportL: { Index: [0.6, 0.8, 0.4], Middle: [0.75, 0.9, 0.5], Ring: [0.8, 0.95, 0.5], Pinky: [0.85, 0.95, 0.5], Thumb: [0.2, 0.3, 0.2] },
+  pistolR: {
+    Index: [0.35, 0.55, 0.3],
+    Middle: [1.1, 1.35, 0.7],
+    Ring: [1.15, 1.35, 0.7],
+    Pinky: [1.2, 1.3, 0.7],
+    Thumb: [0.25, 0.45, 0.3],
+  },
+  longR: {
+    Index: [0.4, 0.6, 0.35],
+    Middle: [1.1, 1.35, 0.7],
+    Ring: [1.15, 1.35, 0.7],
+    Pinky: [1.2, 1.3, 0.7],
+    Thumb: [0.3, 0.5, 0.3],
+  },
+  meleeR: {
+    Index: [1.0, 1.3, 0.7],
+    Middle: [1.1, 1.35, 0.75],
+    Ring: [1.15, 1.35, 0.75],
+    Pinky: [1.2, 1.3, 0.75],
+    Thumb: [0.45, 0.6, 0.35],
+  },
+  supportL: {
+    Index: [0.6, 0.8, 0.4],
+    Middle: [0.75, 0.9, 0.5],
+    Ring: [0.8, 0.95, 0.5],
+    Pinky: [0.85, 0.95, 0.5],
+    Thumb: [0.2, 0.3, 0.2],
+  },
 };
 function relax(r, side) {
   const P = side === 'R' ? 'RightHand' : 'LeftHand';
-  for (const f of FING) for (let i = 1; i <= 3; i++) { const b = r[P + f + i], q = b && r.rest.get(b); if (q) b.quaternion.copy(q); }
+  for (const f of FING)
+    for (let i = 1; i <= 3; i++) {
+      const b = r[P + f + i],
+        q = b && r.rest.get(b);
+      if (q) b.quaternion.copy(q);
+    }
   (side === 'R' ? r.hand : r.lhand)?.updateMatrixWorld(true);
 }
 // fingers back to rest (call when the character puts the weapon away)
-export function releaseHands(root) { const r = root?.userData?.__gunRig; if (!r || !r.ok) return; relax(r, 'R'); if (r.lok) relax(r, 'L'); r.curled = false; }
+export function releaseHands(root) {
+  const r = root?.userData?.__gunRig;
+  if (!r || !r.ok) return;
+  relax(r, 'R');
+  if (r.lok) relax(r, 'L');
+  r.curled = false;
+}
 function curl(r, side, set) {
   if (!(side === 'R' ? r.fingersR : r.fingersL)) return;
   relax(r, side);
-  const fr = frame(r, side, side === 'R' ? FR : FL), P = side === 'R' ? 'RightHand' : 'LeftHand';
+  const fr = frame(r, side, side === 'R' ? FR : FL),
+    P = side === 'R' ? 'RightHand' : 'LeftHand';
   for (const f of FING) {
-    const ang = set[f]; if (!ang) continue;
+    const ang = set[f];
+    if (!ang) continue;
     for (let i = 1; i <= 3; i++) {
-      const b = r[P + f + i], c = r[P + f + (i + 1)] || (b && b.children.find((x) => x.isBone));
+      const b = r[P + f + i],
+        c = r[P + f + (i + 1)] || (b && b.children.find((x) => x.isBone));
       if (!b || !c) continue;
-      wp(b, _a); wp(c, _b); _c.subVectors(_b, _a).normalize();
+      wp(b, _a);
+      wp(c, _b);
+      _c.subVectors(_b, _a).normalize();
       const n = f === 'Thumb' ? _d.copy(fr.N).addScaledVector(fr.F, 0.5).normalize() : fr.N;
-      _e.crossVectors(_c, n); if (_e.lengthSq() < 1e-6) continue; _e.normalize();
-      _q.setFromAxisAngle(_e, ang[i - 1]); rotW(b, _q.clone());
+      _e.crossVectors(_c, n);
+      if (_e.lengthSq() < 1e-6) continue;
+      _e.normalize();
+      _q.setFromAxisAngle(_e, ang[i - 1]);
+      rotW(b, _q.clone());
     }
   }
 }
 // grip offsets in the hand frame (meters): palm center along F, out of the palm along N, along S
-const GRIP = { pistol: { a: 0.062, b: 0.022, c: -0.018 }, long: { a: 0.062, b: 0.022, c: 0.004 }, melee: { a: 0.07, b: 0.022, c: 0.0 } };
+const GRIP = {
+  pistol: { a: 0.062, b: 0.022, c: -0.018 },
+  long: { a: 0.062, b: 0.022, c: 0.004 },
+  melee: { a: 0.07, b: 0.022, c: 0.0 },
+};
 // gun pose from the right hand frame
-const gripFor = (kind, len) => { const g = GRIP[kind] || GRIP.pistol, k = THREE.MathUtils.clamp((len || 0.17) / 0.17, 0.7, 1.25); return { a: g.a * k, b: g.b * k, c: g.c * k }; };
+const gripFor = (kind, len) => {
+  const g = GRIP[kind] || GRIP.pistol,
+    k = THREE.MathUtils.clamp((len || 0.17) / 0.17, 0.7, 1.25);
+  return { a: g.a * k, b: g.b * k, c: g.c * k };
+};
 function gunFromHand(model, kind, fr, out) {
-  const g = gripFor(kind, fr.len), hp = model.userData.holdPoint;
-  if (kind === 'melee') { _c.copy(fr.S).multiplyScalar(0.85).addScaledVector(fr.F, 0.53).normalize(); _b.copy(fr.N); }   // business end out of the index side of the fist, tipped down along the fingers
-  else { _c.copy(fr.F); _b.copy(fr.S); }
+  const g = gripFor(kind, fr.len),
+    hp = model.userData.holdPoint;
+  if (kind === 'melee') {
+    _c.copy(fr.S).multiplyScalar(0.85).addScaledVector(fr.F, 0.53).normalize();
+    _b.copy(fr.N);
+  } // business end out of the index side of the fist, tipped down along the fingers
+  else {
+    _c.copy(fr.F);
+    _b.copy(fr.S);
+  }
   // basis X = Y x Z
-  _a.crossVectors(_b, _c).normalize(); _b.crossVectors(_c, _a).normalize();
-  _m.makeBasis(_a, _b, _c); out.quaternion.setFromRotationMatrix(_m);
-  out.position.copy(fr.o).addScaledVector(fr.F, g.a).addScaledVector(fr.N, g.b).addScaledVector(fr.S, g.c);
+  _a.crossVectors(_b, _c).normalize();
+  _b.crossVectors(_c, _a).normalize();
+  _m.makeBasis(_a, _b, _c);
+  out.quaternion.setFromRotationMatrix(_m);
+  out.position
+    .copy(fr.o)
+    .addScaledVector(fr.F, g.a)
+    .addScaledVector(fr.N, g.b)
+    .addScaledVector(fr.S, g.c);
   if (hp && hp.lengthSq() > 0) out.position.sub(_d.copy(hp).applyQuaternion(out.quaternion));
 }
 const _pose = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
 // look down the sights: turn neck + head toward the target, a few degrees nose-down (cheek on the gun)
-const _hf = new THREE.Vector3(), _ht = new THREE.Vector3(), _hp = new THREE.Vector3(), _hq = new THREE.Quaternion(), _hi = new THREE.Quaternion();
+const _hf = new THREE.Vector3(),
+  _ht = new THREE.Vector3(),
+  _hp = new THREE.Vector3(),
+  _hq = new THREE.Quaternion(),
+  _hi = new THREE.Quaternion();
 function lookAlong(r, target, down, fw) {
   if (!r.head) return;
-  wp(r.head, _hp); _ht.subVectors(target, _hp).normalize(); _ht.y = THREE.MathUtils.clamp(_ht.y - down, -0.35, 0.3); _ht.normalize();   // keep the chin up: eyes down the sights, not a bow
-  if (r.headFwd) { r.head.getWorldQuaternion(_hq); _hf.copy(r.headFwd).applyQuaternion(_hq).normalize(); } else _hf.copy(fw);
-  const ang = _hf.angleTo(_ht); if (ang < 1e-3) return;
+  wp(r.head, _hp);
+  _ht.subVectors(target, _hp).normalize();
+  _ht.y = THREE.MathUtils.clamp(_ht.y - down, -0.35, 0.3);
+  _ht.normalize(); // keep the chin up: eyes down the sights, not a bow
+  if (r.headFwd) {
+    r.head.getWorldQuaternion(_hq);
+    _hf.copy(r.headFwd).applyQuaternion(_hq).normalize();
+  } else _hf.copy(fw);
+  const ang = _hf.angleTo(_ht);
+  if (ang < 1e-3) return;
   const k = Math.min(1, 1.2 / ang);
-  for (const [bone, w] of [[r.neck, 0.3], [r.head, 0.5]]) {
+  for (const [bone, w] of [
+    [r.neck, 0.3],
+    [r.head, 0.5],
+  ]) {
     if (!bone) continue;
-    _hq.setFromUnitVectors(_hf, _ht); _hq.slerp(_hi.identity(), 1 - w * k); rotW(bone, _hq.clone());
+    _hq.setFromUnitVectors(_hf, _ht);
+    _hq.slerp(_hi.identity(), 1 - w * k);
+    rotW(bone, _hq.clone());
   }
 }
-const _Z = new THREE.Vector3(), _Y = new THREE.Vector3(), _X = new THREE.Vector3(), _O = new THREE.Vector3(), _fw = new THREE.Vector3(), _lf = new THREE.Vector3(), _sh = new THREE.Vector3();
+const _Z = new THREE.Vector3(),
+  _Y = new THREE.Vector3(),
+  _X = new THREE.Vector3(),
+  _O = new THREE.Vector3(),
+  _fw = new THREE.Vector3(),
+  _lf = new THREE.Vector3(),
+  _sh = new THREE.Vector3();
 // wanted gun basis from a direction (roll keeps the slide up)
 function basisFrom(dir, roll = 0) {
-  _Z.copy(dir).normalize(); _X.crossVectors(UP, _Z); if (_X.lengthSq() < 1e-6) _X.set(1, 0, 0); _X.normalize(); _Y.crossVectors(_Z, _X).normalize();
-  if (roll) { _q.setFromAxisAngle(_Z, roll); _X.applyQuaternion(_q); _Y.applyQuaternion(_q); }
+  _Z.copy(dir).normalize();
+  _X.crossVectors(UP, _Z);
+  if (_X.lengthSq() < 1e-6) _X.set(1, 0, 0);
+  _X.normalize();
+  _Y.crossVectors(_Z, _X).normalize();
+  if (roll) {
+    _q.setFromAxisAngle(_Z, roll);
+    _X.applyQuaternion(_q);
+    _Y.applyQuaternion(_q);
+  }
 }
 // wrist target for a wanted gun origin + basis (inverse of gunFromHand for guns: F = Z, S = Y, N = X)
 function wristFor(model, kind, origin, out, hs = 1, len = 0.17) {
-  const g = gripFor(kind, len), hp = model.userData.holdPoint;
+  const g = gripFor(kind, len),
+    hp = model.userData.holdPoint;
   out.copy(origin);
-  if (hp && hp.lengthSq() > 0) out.add(_d.set(0, 0, 0).addScaledVector(_X, hp.x).addScaledVector(_Y, hp.y).addScaledVector(_Z, hp.z));
-  return out.addScaledVector(_Z, -g.a).addScaledVector(_X, -g.b * hs).addScaledVector(_Y, -g.c);
+  if (hp && hp.lengthSq() > 0)
+    out.add(
+      _d.set(0, 0, 0).addScaledVector(_X, hp.x).addScaledVector(_Y, hp.y).addScaledVector(_Z, hp.z),
+    );
+  return out
+    .addScaledVector(_Z, -g.a)
+    .addScaledVector(_X, -g.b * hs)
+    .addScaledVector(_Y, -g.c);
 }
-const _FL = new THREE.Vector3(), _SL = new THREE.Vector3(), _W = new THREE.Vector3(), _pole = new THREE.Vector3(), _lg = new THREE.Vector3(), _sm = new WeakMap();
+const _FL = new THREE.Vector3(),
+  _SL = new THREE.Vector3(),
+  _W = new THREE.Vector3(),
+  _pole = new THREE.Vector3(),
+  _lg = new THREE.Vector3(),
+  _sm = new WeakMap();
 // The solve below rotates bones RELATIVE to their current pose (IK swing, hand orient, head look). It must start from the
 // animation pose every call. Characters animated only on some frames (police LOD, far crowd) would otherwise solve on top
 // of their own last result and the wrists / hands twist further each frame (REQUESTS.md, Nov 18). So: remember each touched
@@ -253,41 +611,85 @@ function solvedBones(r) {
   if (r.solved) return r.solved;
   const list = [];
   for (const k of SOLVED) if (r[k]) list.push(r[k]);
-  for (const side of ['Right', 'Left']) for (const f of FING) for (let i = 1; i <= 3; i++) { const b = r[side + 'Hand' + f + i]; if (b) list.push(b); }
-  r.solved = list.map((b) => ({ b, pre: new THREE.Quaternion(), post: new THREE.Quaternion(), has: false }));
+  for (const side of ['Right', 'Left'])
+    for (const f of FING)
+      for (let i = 1; i <= 3; i++) {
+        const b = r[side + 'Hand' + f + i];
+        if (b) list.push(b);
+      }
+  r.solved = list.map((b) => ({
+    b,
+    pre: new THREE.Quaternion(),
+    post: new THREE.Quaternion(),
+    has: false,
+  }));
   return r.solved;
 }
 function restorePose(r) {
-  for (const s of solvedBones(r)) if (s.has && s.b.quaternion.equals(s.post)) s.b.quaternion.copy(s.pre);
+  for (const s of solvedBones(r))
+    if (s.has && s.b.quaternion.equals(s.post)) s.b.quaternion.copy(s.pre);
 }
-function snapPre(r) { for (const s of solvedBones(r)) s.pre.copy(s.b.quaternion); }
-function snapPost(r) { for (const s of solvedBones(r)) { s.post.copy(s.b.quaternion); s.has = true; } }
+function snapPre(r) {
+  for (const s of solvedBones(r)) s.pre.copy(s.b.quaternion);
+}
+function snapPost(r) {
+  for (const s of solvedBones(r)) {
+    s.post.copy(s.b.quaternion);
+    s.has = true;
+  }
+}
 // main entry. Returns true when the model was placed.
 export function holdWeapon(model, root, o = {}) {
-  const r = rigOf(root); if (!r || !r.ok || !model) return false;
-  restorePose(r); snapPre(r);
-  try { return solveHold(model, root, r, o); } finally { snapPost(r); }
+  const r = rigOf(root);
+  if (!r || !r.ok || !model) return false;
+  restorePose(r);
+  snapPre(r);
+  try {
+    return solveHold(model, root, r, o);
+  } finally {
+    snapPost(r);
+  }
 }
 function solveHold(model, root, r, o) {
-  const ud = model.userData, kind = ud.hold || 'pistol';
+  const ud = model.userData,
+    kind = ud.hold || 'pistol';
   root.updateMatrixWorld(true);
   // body forward: the feet point forward (toes); shoulders give a fallback and tell whether the rig names its sides
   // mirrored (then the 'Right' arm is the anatomical left one and every side-dependent offset flips)
-  if (r.hipsFwd) { r.hips.getWorldQuaternion(_q); _fw.copy(r.hipsFwd).applyQuaternion(_q).setY(0); }
-  else { wp(r.larm, _a); wp(r.arm, _b); _fw.crossVectors(_a.sub(_b), UP).setY(0); if (r.mirror) _fw.negate(); }
-  if (_fw.lengthSq() < 1e-6) { root.getWorldQuaternion(_q); _fw.set(0, 0, 1).applyQuaternion(_q).setY(0); }
+  if (r.hipsFwd) {
+    r.hips.getWorldQuaternion(_q);
+    _fw.copy(r.hipsFwd).applyQuaternion(_q).setY(0);
+  } else {
+    wp(r.larm, _a);
+    wp(r.arm, _b);
+    _fw.crossVectors(_a.sub(_b), UP).setY(0);
+    if (r.mirror) _fw.negate();
+  }
+  if (_fw.lengthSq() < 1e-6) {
+    root.getWorldQuaternion(_q);
+    _fw.set(0, 0, 1).applyQuaternion(_q).setY(0);
+  }
   _fw.normalize();
   const hs = r.mirror ? -1 : 1;
-  _lf.crossVectors(UP, _fw).normalize().multiplyScalar(hs);   // from the gun arm toward the body's center
-  const aiming = !!o.aim && kind !== 'melee', lowReady = !aiming && kind === 'long' && !o.free;
+  _lf.crossVectors(UP, _fw).normalize().multiplyScalar(hs); // from the gun arm toward the body's center
+  const aiming = !!o.aim && kind !== 'melee',
+    lowReady = !aiming && kind === 'long' && !o.free;
   const reload = !!o.reload && kind !== 'melee';
   if (aiming || lowReady || reload) {
     wp(r.arm, _sh);
     let dir;
     if (reload) {
-      dir = _e.copy(_fw).multiplyScalar(0.85).addScaledVector(_lf, kind === 'long' ? 0.5 : 0.25).addScaledVector(UP, 0.25).normalize();
+      dir = _e
+        .copy(_fw)
+        .multiplyScalar(0.85)
+        .addScaledVector(_lf, kind === 'long' ? 0.5 : 0.25)
+        .addScaledVector(UP, 0.25)
+        .normalize();
       basisFrom(dir, kind === 'long' ? -0.6 : -0.35);
-      _O.copy(_sh).addScaledVector(_lf, kind === 'long' ? 0.12 : 0.16).addScaledVector(_fw, 0.3).addScaledVector(UP, -0.24);
+      _O.copy(_sh)
+        .addScaledVector(_lf, kind === 'long' ? 0.12 : 0.16)
+        .addScaledVector(_fw, 0.3)
+        .addScaledVector(UP, -0.24);
     } else if (aiming) {
       // first guess from the shoulder, then aim from the muzzle area so the barrel converges on the crosshair point
       dir = _e.subVectors(o.aim, _sh).normalize();
@@ -295,29 +697,66 @@ function solveHold(model, root, r, o) {
         basisFrom(dir);
         if (kind === 'long') {
           const bt = ud.butt || _a.set(0, 0.03, -0.25);
-          _O.copy(_sh).addScaledVector(_lf, 0.075).addScaledVector(_fw, 0.03).addScaledVector(UP, -0.035)
-            .addScaledVector(_X, -bt.x).addScaledVector(_Y, -bt.y).addScaledVector(_Z, -bt.z);
+          _O.copy(_sh)
+            .addScaledVector(_lf, 0.075)
+            .addScaledVector(_fw, 0.03)
+            .addScaledVector(UP, -0.035)
+            .addScaledVector(_X, -bt.x)
+            .addScaledVector(_Y, -bt.y)
+            .addScaledVector(_Z, -bt.z);
           _O.addScaledVector(_Y, -(ud.sightLine ? ud.sightLine.y * 0.25 : 0));
-        } else _O.copy(_sh).addScaledVector(_lf, 0.16).addScaledVector(UP, -0.07).addScaledVector(dir, 0.44);
-        dir = _e.subVectors(o.aim, _a.copy(_O).addScaledVector(_Y, ud.sightLine ? ud.sightLine.y : 0.05)).normalize();
+        } else
+          _O.copy(_sh)
+            .addScaledVector(_lf, 0.16)
+            .addScaledVector(UP, -0.07)
+            .addScaledVector(dir, 0.44);
+        dir = _e
+          .subVectors(o.aim, _a.copy(_O).addScaledVector(_Y, ud.sightLine ? ud.sightLine.y : 0.05))
+          .normalize();
       }
       basisFrom(dir);
-      if (o.recoil) { const k = o.recoil * (o.kick || 0.02); _q.setFromAxisAngle(_X, -k * 5); _Z.applyQuaternion(_q); _Y.applyQuaternion(_q); _O.addScaledVector(_Z, -Math.min(0.05, k * 1.3)); }
+      if (o.recoil) {
+        const k = o.recoil * (o.kick || 0.02);
+        _q.setFromAxisAngle(_X, -k * 5);
+        _Z.applyQuaternion(_q);
+        _Y.applyQuaternion(_q);
+        _O.addScaledVector(_Z, -Math.min(0.05, k * 1.3));
+      }
     } else {
-      dir = _e.copy(_fw).multiplyScalar(0.75).addScaledVector(_lf, 0.42).addScaledVector(UP, -0.5).normalize();
+      dir = _e
+        .copy(_fw)
+        .multiplyScalar(0.75)
+        .addScaledVector(_lf, 0.42)
+        .addScaledVector(UP, -0.5)
+        .normalize();
       basisFrom(dir, -0.35);
       _O.copy(_sh).addScaledVector(_lf, -0.02).addScaledVector(_fw, 0.2).addScaledVector(UP, -0.36);
     }
     // smooth pose changes (aim in / out, reload)
-    let s = _sm.get(model); const dt = o.dt ?? 0.016;
-    if (!s) { s = { o: _O.clone(), z: _Z.clone(), y: _Y.clone(), t: 0 }; _sm.set(model, s); }
+    let s = _sm.get(model);
+    const dt = o.dt ?? 0.016;
+    if (!s) {
+      s = { o: _O.clone(), z: _Z.clone(), y: _Y.clone(), t: 0 };
+      _sm.set(model, s);
+    }
     const k = s.t < (o.time ?? 0) - 0.25 ? 1 : 1 - Math.exp(-dt * (aiming ? 22 : 12));
     s.t = o.time ?? 0;
-    s.o.lerp(_O, k); s.z.lerp(_Z, k).normalize(); s.y.lerp(_Y, k); s.y.addScaledVector(s.z, -s.y.dot(s.z)).normalize();
-    _O.copy(s.o); _Z.copy(s.z); _Y.copy(s.y); _X.crossVectors(_Y, _Z).normalize();
+    s.o.lerp(_O, k);
+    s.z.lerp(_Z, k).normalize();
+    s.y.lerp(_Y, k);
+    s.y.addScaledVector(s.z, -s.y.dot(s.z)).normalize();
+    _O.copy(s.o);
+    _Z.copy(s.z);
+    _Y.copy(s.y);
+    _X.crossVectors(_Y, _Z).normalize();
     // right arm to the grip, hand aligned with the gun
     wristFor(model, kind, _O, _W, hs, frame(r, 'R', FR).len);
-    wp(r.fore, _pole); _pole.copy(_sh).addScaledVector(UP, -0.6).addScaledVector(_lf, -0.35).addScaledVector(_fw, -0.1);
+    wp(r.fore, _pole);
+    _pole
+      .copy(_sh)
+      .addScaledVector(UP, -0.6)
+      .addScaledVector(_lf, -0.35)
+      .addScaledVector(_fw, -0.1);
     ik2(r.arm, r.fore, r.hand, _W, _pole);
     orientHand(r, 'R', _Z, _Y);
   } else _sm.delete(model);
@@ -325,30 +764,58 @@ function solveHold(model, root, r, o) {
   // place the weapon from the (possibly IK'd) right hand
   frame(r, 'R', FR);
   gunFromHand(model, kind, FR, _pose);
-  if (aiming || lowReady || reload) { _m.makeBasis(_X, _Y, _Z); _pose.quaternion.setFromRotationMatrix(_m); }
-  model.position.copy(_pose.position); model.quaternion.copy(_pose.quaternion); model.updateMatrixWorld(true);
+  if (aiming || lowReady || reload) {
+    _m.makeBasis(_X, _Y, _Z);
+    _pose.quaternion.setFromRotationMatrix(_m);
+  }
+  model.position.copy(_pose.position);
+  model.quaternion.copy(_pose.quaternion);
+  model.updateMatrixWorld(true);
   // support hand
   if (r.lok && (aiming || lowReady || reload) && o.support !== false) {
     const two = ud.twoHand || kind === 'long';
     if (reload) {
-      const bb = ud.bbox; _lg.set(0.0, bb ? bb.min[1] + 0.02 : -0.1, kind === 'long' ? 0.13 : -0.01); model.localToWorld(_lg);
-      _W.copy(_lg).addScaledVector(_Y, -0.05).addScaledVector(_Z, -0.04).addScaledVector(_X, 0.03 * hs);
-      wp(r.larm, _a); _pole.copy(_a).addScaledVector(UP, -0.6).addScaledVector(_lf, 0.4);
+      const bb = ud.bbox;
+      _lg.set(0.0, bb ? bb.min[1] + 0.02 : -0.1, kind === 'long' ? 0.13 : -0.01);
+      model.localToWorld(_lg);
+      _W.copy(_lg)
+        .addScaledVector(_Y, -0.05)
+        .addScaledVector(_Z, -0.04)
+        .addScaledVector(_X, 0.03 * hs);
+      wp(r.larm, _a);
+      _pole.copy(_a).addScaledVector(UP, -0.6).addScaledVector(_lf, 0.4);
       ik2(r.larm, r.lfore, r.lhand, _W, _pole);
       orientHand(r, 'L', _FL.copy(UP), _SL.copy(_Z));
     } else if (two && ud.leftGrip) {
-      _lg.copy(ud.leftGrip); model.localToWorld(_lg);
-      const Fl = _FL.copy(_Z).multiplyScalar(0.45).addScaledVector(_X, -0.9 * hs).normalize();
-      _W.copy(_lg).addScaledVector(_Y, -0.03).addScaledVector(Fl, -0.055).addScaledVector(_Z, -0.01);
-      wp(r.larm, _c); _pole.copy(_c).addScaledVector(UP, -0.7).addScaledVector(_lf, 0.3);
+      _lg.copy(ud.leftGrip);
+      model.localToWorld(_lg);
+      const Fl = _FL
+        .copy(_Z)
+        .multiplyScalar(0.45)
+        .addScaledVector(_X, -0.9 * hs)
+        .normalize();
+      _W.copy(_lg)
+        .addScaledVector(_Y, -0.03)
+        .addScaledVector(Fl, -0.055)
+        .addScaledVector(_Z, -0.01);
+      wp(r.larm, _c);
+      _pole.copy(_c).addScaledVector(UP, -0.7).addScaledVector(_lf, 0.3);
       ik2(r.larm, r.lfore, r.lhand, _W, _pole);
       orientHand(r, 'L', Fl, _SL.copy(_Z));
     } else {
       // two-handed handgun grip: the support palm cups the front / left of the shooting fist, thumb forward along the frame
-      const Fl = _FL.copy(_X).multiplyScalar(-0.85 * hs).addScaledVector(_Z, 0.4).normalize();
-      const Nl = hs > 0 ? _lg.crossVectors(Fl, _Y).normalize() : _lg.crossVectors(_Y, Fl).normalize();
-      _W.set(0.022 * hs, -0.045, 0.03); model.localToWorld(_W); _W.addScaledVector(Fl, -0.06).addScaledVector(Nl, -0.02);
-      wp(r.larm, _c); _pole.copy(_c).addScaledVector(UP, -0.7).addScaledVector(_lf, 0.25);
+      const Fl = _FL
+        .copy(_X)
+        .multiplyScalar(-0.85 * hs)
+        .addScaledVector(_Z, 0.4)
+        .normalize();
+      const Nl =
+        hs > 0 ? _lg.crossVectors(Fl, _Y).normalize() : _lg.crossVectors(_Y, Fl).normalize();
+      _W.set(0.022 * hs, -0.045, 0.03);
+      model.localToWorld(_W);
+      _W.addScaledVector(Fl, -0.06).addScaledVector(Nl, -0.02);
+      wp(r.larm, _c);
+      _pole.copy(_c).addScaledVector(UP, -0.7).addScaledVector(_lf, 0.25);
       ik2(r.larm, r.lfore, r.lhand, _W, _pole);
       orientHand(r, 'L', Fl, _SL.copy(_Y));
     }
@@ -361,42 +828,86 @@ function solveHold(model, root, r, o) {
 
 // debugging aid (tests): right-hand frame vs. the held model's axes, and the grip offset in the model frame
 export function holdDebug(root, model) {
-  const r = rigOf(root); if (!r || !r.ok || !model) return null;
-  frame(r, 'R', FR); model.updateMatrixWorld(true);
-  const e = model.matrixWorld.elements, X = new THREE.Vector3(e[0], e[1], e[2]).normalize(), Y = new THREE.Vector3(e[4], e[5], e[6]).normalize(), Z = new THREE.Vector3(e[8], e[9], e[10]).normalize();
+  const r = rigOf(root);
+  if (!r || !r.ok || !model) return null;
+  frame(r, 'R', FR);
+  model.updateMatrixWorld(true);
+  const e = model.matrixWorld.elements,
+    X = new THREE.Vector3(e[0], e[1], e[2]).normalize(),
+    Y = new THREE.Vector3(e[4], e[5], e[6]).normalize(),
+    Z = new THREE.Vector3(e[8], e[9], e[10]).normalize();
   const d = new THREE.Vector3().setFromMatrixPosition(model.matrixWorld).sub(FR.o);
   const f = (v) => +v.toFixed(3);
-  return { fingers: r.fingersR, F_Z: f(FR.F.dot(Z)), S_Y: f(FR.S.dot(Y)), N_X: f(FR.N.dot(X)), off: [f(d.dot(X)), f(d.dot(Y)), f(d.dot(Z))], len: f(FR.len) };
+  return {
+    fingers: r.fingersR,
+    F_Z: f(FR.F.dot(Z)),
+    S_Y: f(FR.S.dot(Y)),
+    N_X: f(FR.N.dot(X)),
+    off: [f(d.dot(X)), f(d.dot(Y)), f(d.dot(Z))],
+    len: f(FR.len),
+  };
 }
 // debugging aid (tests): the hand frame as world vectors { o, F, S, N } and how the rig was read
 export function handFrame(root, side = 'R') {
-  const r = rigOf(root); if (!r || !r.ok) return null;
+  const r = rigOf(root);
+  if (!r || !r.ok) return null;
   const f = frame(r, side, mkFrame());
-  return { o: f.o.toArray(), F: f.F.toArray(), S: f.S.toArray(), N: f.N.toArray(), fingers: side === 'R' ? r.fingersR : r.fingersL, ax: (side === 'R' ? r.axR : r.axL)?.dbg || null };
+  return {
+    o: f.o.toArray(),
+    F: f.F.toArray(),
+    S: f.S.toArray(),
+    N: f.N.toArray(),
+    fingers: side === 'R' ? r.fingersR : r.fingersL,
+    ax: (side === 'R' ? r.axR : r.axL)?.dbg || null,
+  };
 }
 
 // Hands up (surrender, robbery victims): both wrists above the shoulders, elbows out, palms forward. k = 0..1 blend from
 // the animated pose. Call after the animation update (the police code does, from gameplay.update).
-const _rw = new THREE.Vector3(), _rt = new THREE.Vector3(), _rp = new THREE.Vector3(), _rs = new THREE.Vector3(), _rf = new THREE.Vector3(), _rl = new THREE.Vector3();
+const _rw = new THREE.Vector3(),
+  _rt = new THREE.Vector3(),
+  _rp = new THREE.Vector3(),
+  _rs = new THREE.Vector3(),
+  _rf = new THREE.Vector3(),
+  _rl = new THREE.Vector3();
 export function raiseHands(root, k = 1) {
-  const r = rigOf(root); if (!r || !r.ok || !r.lok || k <= 0.001) return false;
+  const r = rigOf(root);
+  if (!r || !r.ok || !r.lok || k <= 0.001) return false;
   root.updateMatrixWorld(true);
-  if (r.hipsFwd) { r.hips.getWorldQuaternion(_q); _rf.copy(r.hipsFwd).applyQuaternion(_q).setY(0); }
-  else { root.getWorldQuaternion(_q); _rf.set(0, 0, 1).applyQuaternion(_q).setY(0); }
-  if (_rf.lengthSq() < 1e-6) _rf.set(0, 0, 1); _rf.normalize();
-  _rl.crossVectors(UP, _rf).normalize();          // toward the character's left
+  if (r.hipsFwd) {
+    r.hips.getWorldQuaternion(_q);
+    _rf.copy(r.hipsFwd).applyQuaternion(_q).setY(0);
+  } else {
+    root.getWorldQuaternion(_q);
+    _rf.set(0, 0, 1).applyQuaternion(_q).setY(0);
+  }
+  if (_rf.lengthSq() < 1e-6) _rf.set(0, 0, 1);
+  _rf.normalize();
+  _rl.crossVectors(UP, _rf).normalize(); // toward the character's left
   const hs = r.mirror ? -1 : 1;
   for (const side of ['R', 'L']) {
-    const arm = side === 'R' ? r.arm : r.larm, fore = side === 'R' ? r.fore : r.lfore, hand = side === 'R' ? r.hand : r.lhand;
-    const out = (side === 'R' ? -1 : 1) * hs;      // anatomical outward direction along _rl
-    wp(arm, _rs); wp(hand, _rw);
-    _rt.copy(_rs).addScaledVector(UP, 0.4).addScaledVector(_rl, out * 0.2).addScaledVector(_rf, 0.06);
+    const arm = side === 'R' ? r.arm : r.larm,
+      fore = side === 'R' ? r.fore : r.lfore,
+      hand = side === 'R' ? r.hand : r.lhand;
+    const out = (side === 'R' ? -1 : 1) * hs; // anatomical outward direction along _rl
+    wp(arm, _rs);
+    wp(hand, _rw);
+    _rt
+      .copy(_rs)
+      .addScaledVector(UP, 0.4)
+      .addScaledVector(_rl, out * 0.2)
+      .addScaledVector(_rf, 0.06);
     _rt.lerp(_rw, 1 - k);
-    _rp.copy(_rs).addScaledVector(_rl, out * 0.7).addScaledVector(UP, -0.05).addScaledVector(_rf, -0.1);
+    _rp
+      .copy(_rs)
+      .addScaledVector(_rl, out * 0.7)
+      .addScaledVector(UP, -0.05)
+      .addScaledVector(_rf, -0.1);
     ik2(arm, fore, hand, _rt, _rp);
     if (k > 0.35) {
       // fingers up, palm toward the front: right N = S x F, left N = F x S
-      if ((side === 'R') !== !!r.mirror) _rs.crossVectors(UP, _rf); else _rs.crossVectors(_rf, UP);
+      if ((side === 'R') !== !!r.mirror) _rs.crossVectors(UP, _rf);
+      else _rs.crossVectors(_rf, UP);
       orientHand(r, side, UP, _rs);
     }
     relax(r, side);

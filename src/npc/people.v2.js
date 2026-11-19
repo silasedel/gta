@@ -4,11 +4,26 @@
 // its hooks guarded (game.people?.dress?.()), so the game runs unchanged if this module fails.
 import * as THREE from 'three';
 import { unlockAllBodies, loadedBodies } from './library.js';
-import { makeLook, applyLook, realizedSignature, crowdLook, settleHanging, lookAudit } from './look.js';
+import {
+  makeLook,
+  applyLook,
+  realizedSignature,
+  crowdLook,
+  settleHanging,
+  lookAudit,
+} from './look.js';
 import { moodToday, districtKey } from './identity.js';
 import { HERITAGE } from './identity.js';
 import { PERSONAS } from './personality.js';
-import { personParams, chooseReaction, witnessReport, personForPlace, streetDensity, sampleSchedule, activityAt } from './mind.js';
+import {
+  personParams,
+  chooseReaction,
+  witnessReport,
+  personForPlace,
+  streetDensity,
+  sampleSchedule,
+  activityAt,
+} from './mind.js';
 import { pickLine, lineCount } from './lines.js';
 import { createCrowd, POSE } from './crowd.js';
 import { createPeopleCrowd } from './people/farCrowd.js';
@@ -19,7 +34,10 @@ import * as PR from './props.js';
 import { createSignals, createSpots, createGovernor } from './streetlife.js';
 import { walkGround, obstacleSteer, carYield } from './walk.js';
 import { makeTowel } from './beachTowel.js';
-const TOWEL_PAL = [0xe07f68, 0x2f8a86, 0xf0ede6, 0xe8d78a, 0x9cc1de, 0xb8a8d2, 0xe6b3b5, 0x3b6fb6, 0xf2a541, 0x5fb49c];
+const TOWEL_PAL = [
+  0xe07f68, 0x2f8a86, 0xf0ede6, 0xe8d78a, 0x9cc1de, 0xb8a8d2, 0xe6b3b5, 0x3b6fb6, 0xf2a541,
+  0x5fb49c,
+];
 import { GROUP_THEMES, groupMate, pickTheme } from './people/groups.js';
 
 export const order = 120;
@@ -29,40 +47,103 @@ export async function initV2(game) {
   if (!peds || !Array.isArray(peds.list)) return;
   const now = () => game.clock?.elapsed ?? performance.now() / 1000;
   const hour = () => (((game.timeOfDay ?? 14) % 24) + 24) % 24;
-  const weather = () => { const w = game.weather; const k = typeof w === 'string' ? w : (w?.kind || w?.type || w?.current || w?.state || 'clear'); return String(k).toLowerCase(); };
-  const districtAt = (x, z) => { try { return game.city?.districtAt?.(x, z) || ''; } catch (e) { return ''; } };
-  const zoneKey = (z) => (z === 'water' || z === 'causeway' ? 'beach' : z === 'downtown' ? 'business' : z || 'residential');
+  const weather = () => {
+    const w = game.weather;
+    const k = typeof w === 'string' ? w : w?.kind || w?.type || w?.current || w?.state || 'clear';
+    return String(k).toLowerCase();
+  };
+  const districtAt = (x, z) => {
+    try {
+      return game.city?.districtAt?.(x, z) || '';
+    } catch (e) {
+      return '';
+    }
+  };
+  const zoneKey = (z) =>
+    z === 'water' || z === 'causeway'
+      ? 'beach'
+      : z === 'downtown'
+        ? 'business'
+        : z || 'residential';
 
   // ---------------------------------------------------------------- bodies
   const bodyStatus = { unlocked: false, loaded: 0, total: 0 };
-  unlockAllBodies().then((r) => { Object.assign(bodyStatus, r, { unlocked: !!r.ok }); }).catch((e) => console.warn('[people] bodies', e));
-  let entryMap = new Map(), entryN = -1;
-  const entryOf = (bodyId) => { const L = loadedBodies(); if (L.length !== entryN) { entryMap = new Map(L.map((e) => [e.id, e])); entryN = L.length; } return entryMap.get(bodyId) || null; };
+  unlockAllBodies()
+    .then((r) => {
+      Object.assign(bodyStatus, r, { unlocked: !!r.ok });
+    })
+    .catch((e) => console.warn('[people] bodies', e));
+  let entryMap = new Map(),
+    entryN = -1;
+  const entryOf = (bodyId) => {
+    const L = loadedBodies();
+    if (L.length !== entryN) {
+      entryMap = new Map(L.map((e) => [e.id, e]));
+      entryN = L.length;
+    }
+    return entryMap.get(bodyId) || null;
+  };
 
   // ---------------------------------------------------------------- uniqueness audit
-  const audit = { spawned: 0, crowdSpawned: 0, dup: 0, dupInView: 0, lookFailed: 0, applyFailed: 0, sigs: new Map(), dupList: [] };
+  const audit = {
+    spawned: 0,
+    crowdSpawned: 0,
+    dup: 0,
+    dupInView: 0,
+    lookFailed: 0,
+    applyFailed: 0,
+    sigs: new Map(),
+    dupList: [],
+  };
   const record = (sig, idKey) => {
     const prev = audit.sigs.get(sig);
-    if (prev !== undefined && prev !== idKey) { audit.dup++; if (audit.dupList.length < 10) audit.dupList.push(sig); }
-    else audit.sigs.set(sig, idKey);
+    if (prev !== undefined && prev !== idKey) {
+      audit.dup++;
+      if (audit.dupList.length < 10) audit.dupList.push(sig);
+    } else audit.sigs.set(sig, idKey);
   };
 
   // ---------------------------------------------------------------- dress: identity + look + mind for a near (skinned) ped
   function stripLook(ch) {
     const kill = [];
-    ch.root.traverse((o) => { if (o.userData?.npcAcc) kill.push(o); });
-    for (const h of kill) { h.parent?.remove(h); h.traverse((m) => { if (m.isMesh) m.geometry?.dispose?.(); }); }
-    const head = ch.getBone?.('Head'); if (head) head.scale.setScalar(1);
+    ch.root.traverse((o) => {
+      if (o.userData?.npcAcc) kill.push(o);
+    });
+    for (const h of kill) {
+      h.parent?.remove(h);
+      h.traverse((m) => {
+        if (m.isMesh) m.geometry?.dispose?.();
+      });
+    }
+    const head = ch.getBone?.('Head');
+    if (head) head.scale.setScalar(1);
     ch.root.scale.setScalar(1);
   }
-  function raceFit(id, entry) { const H = HERITAGE[id.heritage] || HERITAGE.mixed; return (H?.race?.[entry.race] ?? 0.1); }
+  function raceFit(id, entry) {
+    const H = HERITAGE[id.heritage] || HERITAGE.mixed;
+    return H?.race?.[entry.race] ?? 0.1;
+  }
   function dress(ped, { zone, act }) {
-    const ch = ped.char; if (!ch?.human) return;
+    const ch = ped.char;
+    if (!ch?.human) return;
     // bodies outside the unlocked library (v1 boot set still streaming) get a minimal entry so they are still individuals
-    const entry = entryOf(ch.human.id) || { id: ch.human.id, gender: ch.human.gender === 'f' ? 'f' : 'm', race: ch.human.race || 'mixed', zone: ch.human.zone || ch.zoneTag || 'casual', years: ch.human.years || 32, shells: ch.human.shells || [], clothes: [] };
-    const x = ped.pos.x, z = ped.pos.z, h = hour(), district = districtAt(x, z), zk = zoneKey(zone);
+    const entry = entryOf(ch.human.id) || {
+      id: ch.human.id,
+      gender: ch.human.gender === 'f' ? 'f' : 'm',
+      race: ch.human.race || 'mixed',
+      zone: ch.human.zone || ch.zoneTag || 'casual',
+      years: ch.human.years || 32,
+      shells: ch.human.shells || [],
+      clothes: [],
+    };
+    const x = ped.pos.x,
+      z = ped.pos.z,
+      h = hour(),
+      district = districtAt(x, z),
+      zk = zoneKey(zone);
     // pick, among people who would be out here now, the one whose heritage fits this body best
-    let best = null, bs = -1;
+    let best = null,
+      bs = -1;
     // the body's own clothes must fit the job: suits for office workers, work clothes for trades, swimwear on the beach
     const KIND_FIT = {
       business: { office: 1.2, care: 0.4 },
@@ -74,40 +155,94 @@ export async function initV2(game) {
       const p = personForPlace({ zone: zk, district, hour: h, gender: entry.gender });
       const kind = p.id.jobDef?.kind || 'none';
       const fitTable = KIND_FIT[entry.zone];
-      const jobFit = fitTable ? (fitTable[kind] || -0.8) : (kind === 'office' ? -0.3 : 0.3);
+      const jobFit = fitTable ? fitTable[kind] || -0.8 : kind === 'office' ? -0.3 : 0.3;
       const s = raceFit(p.id, entry) + jobFit + Math.random() * 0.05;
-      if (s > bs) { bs = s; best = p; }
+      if (s > bs) {
+        bs = s;
+        best = p;
+      }
     }
     const id = best.id;
-    const ctx = { zone: zk, hour: h, weather: weather(), activity: act, onShift: /^work/.test(best.act.act), noCarry: act !== 'walk' };
+    const ctx = {
+      zone: zk,
+      hour: h,
+      weather: weather(),
+      activity: act,
+      onShift: /^work/.test(best.act.act),
+      noCarry: act !== 'walk',
+    };
     let L = null;
     for (let salt = 0; salt < 4 && !L; salt++) L = makeLook(id, ctx, [entry], null, salt);
-    if (!L) { audit.lookFailed++; return; }
+    if (!L) {
+      audit.lookFailed++;
+      return;
+    }
     let applied = null;
-    try { stripLook(ch); applied = applyLook(ch, L); }
-    catch (e) { audit.applyFailed++; console.warn('[people] applyLook', e); try { ch.root.scale.setScalar(1); } catch (e2) { /* */ } }
+    try {
+      stripLook(ch);
+      applied = applyLook(ch, L);
+    } catch (e) {
+      audit.applyFailed++;
+      console.warn('[people] applyLook', e);
+      try {
+        ch.root.scale.setScalar(1);
+      } catch (e2) {
+        /* */
+      }
+    }
     const mood = moodToday(id, Math.floor((game.clock?.elapsed ?? 0) / 1440), weather());
-    ped.identity = id; ped.look = L; ped.applied = applied; ped.mood = mood; ped.doing = best.act.act;
+    ped.identity = id;
+    ped.look = L;
+    ped.applied = applied;
+    ped.mood = mood;
+    ped.doing = best.act.act;
     ped.personality = id.persona;
     ped.P = personParams(id, PERSONAS[id.persona] || PERSONAS.calm, mood);
     ped.tough = Math.random() < ped.P.fight;
     ped.call = Math.random() < ped.P.call;
-    if (act !== 'jog') ped.walkSpeed = clamp(L.gait.speed * (zk === 'beach' ? 0.85 : 1) * (mood < 0.35 ? 0.94 : 1) * (best.act.act === 'commute' ? 1.1 : 1), 0.5, 2.1);
-    try { ch.setPersonality?.(ped.personality); } catch (e) { /* */ }
+    if (act !== 'jog')
+      ped.walkSpeed = clamp(
+        L.gait.speed *
+          (zk === 'beach' ? 0.85 : 1) *
+          (mood < 0.35 ? 0.94 : 1) *
+          (best.act.act === 'commute' ? 1.1 : 1),
+        0.5,
+        2.1,
+      );
+    try {
+      ch.setPersonality?.(ped.personality);
+    } catch (e) {
+      /* */
+    }
     const sig = applied ? realizedSignature(ch, applied, L) : L.sig;
     ped.sig = sig;
-    audit.spawned++; record(sig, id.id);
+    audit.spawned++;
+    record(sig, id.id);
     // two people in view must never be the same body with the same colors
-    for (const o of peds.list) if (o !== ped && o.active && o.sig && o.sig.split('|').slice(0, 3).join('|') === sig.split('|').slice(0, 3).join('|')) audit.dupInView++;
+    for (const o of peds.list)
+      if (
+        o !== ped &&
+        o.active &&
+        o.sig &&
+        o.sig.split('|').slice(0, 3).join('|') === sig.split('|').slice(0, 3).join('|')
+      )
+        audit.dupInView++;
     roster.set(ped, id);
   }
-  function undress(ch) { try { stripLook(ch); } catch (e) { /* */ } }
+  function undress(ch) {
+    try {
+      stripLook(ch);
+    } catch (e) {
+      /* */
+    }
+  }
   const roster = new Map();
 
   // ---------------------------------------------------------------- reactions
   const reactStats = {};
   function react(ped, ev) {
-    const id = ped.identity; if (!id) return null;
+    const id = ped.identity;
+    if (!id) return null;
     if (ped.act === 'swim') return 'swimAway';
     const src = ev.src === 'crash' ? 'crash' : 'shot';
     let r = chooseReaction(id, { src, d: ev.d, phone: id.ageGroup !== 'kid' });
@@ -119,37 +254,90 @@ export async function initV2(game) {
     return r;
   }
   function seenNow() {
-    const P = game.player || {}; const v = P.vehicle || P.state?.vehicle;
-    const vel = P.velocity || P.state?.velocity; let heading = null;
-    if (vel && Math.hypot(vel.x || 0, vel.z || 0) > 1) { const a = Math.atan2(vel.x, -vel.z); heading = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'][((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8]; }
-    return { gender: 'm', vehicle: P.state?.inVehicle ? (v?.def?.name || v?.name || 'car') : null, vehicleColor: v?.colorName || null, weapon: P.weapon && !/fist|unarmed|none/.test(P.weapon) ? String(P.weapon) : null, heading };
+    const P = game.player || {};
+    const v = P.vehicle || P.state?.vehicle;
+    const vel = P.velocity || P.state?.velocity;
+    let heading = null;
+    if (vel && Math.hypot(vel.x || 0, vel.z || 0) > 1) {
+      const a = Math.atan2(vel.x, -vel.z);
+      heading = [
+        'north',
+        'northeast',
+        'east',
+        'southeast',
+        'south',
+        'southwest',
+        'west',
+        'northwest',
+      ][((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8];
+    }
+    return {
+      gender: 'm',
+      vehicle: P.state?.inVehicle ? v?.def?.name || v?.name || 'car' : null,
+      vehicleColor: v?.colorName || null,
+      weapon: P.weapon && !/fist|unarmed|none/.test(P.weapon) ? String(P.weapon) : null,
+      heading,
+    };
   }
   const witnessLog = [];
   function callDone(ped, pe) {
-    const id = ped.identity; if (!id) return;
-    const what = pe.src === 'crash' ? 'crash' : pe.src === 'threat' ? 'threats' : pe.src === 'weapon' ? 'armed person' : pe.src === 'hit' || pe.src === 'knockdown' ? 'assault' : 'shots fired';
-    const rep = witnessReport(id, what, { x: pe.x, z: pe.z }, Math.hypot(ped.pos.x - pe.x, ped.pos.z - pe.z), seenNow());
-    witnessLog.push(rep); if (witnessLog.length > 40) witnessLog.shift();
-    try { game.emit?.('witness', rep); } catch (e) { /* */ }
+    const id = ped.identity;
+    if (!id) return;
+    const what =
+      pe.src === 'crash'
+        ? 'crash'
+        : pe.src === 'threat'
+          ? 'threats'
+          : pe.src === 'weapon'
+            ? 'armed person'
+            : pe.src === 'hit' || pe.src === 'knockdown'
+              ? 'assault'
+              : 'shots fired';
+    const rep = witnessReport(
+      id,
+      what,
+      { x: pe.x, z: pe.z },
+      Math.hypot(ped.pos.x - pe.x, ped.pos.z - pe.z),
+      seenNow(),
+    );
+    witnessLog.push(rep);
+    if (witnessLog.length > 40) witnessLog.shift();
+    try {
+      game.emit?.('witness', rep);
+    } catch (e) {
+      /* */
+    }
   }
 
   // ---------------------------------------------------------------- lines and speech bubbles
   const layer = document.createElement('div');
-  layer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden;font:600 13px/1.25 system-ui,-apple-system,sans-serif';
+  layer.style.cssText =
+    'position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden;font:600 13px/1.25 system-ui,-apple-system,sans-serif';
   document.body.appendChild(layer);
-  const bubbles = []; const lineLog = []; let lastGlobal = 0;
+  const bubbles = [];
+  const lineLog = [];
+  let lastGlobal = 0;
   const _hp = new THREE.Vector3();
   function say(ped, situation, ctx = {}) {
-    const id = ped?.identity; if (!id || !ped.active || ped.dead) return null;
+    const id = ped?.identity;
+    if (!id || !ped.active || ped.dead) return null;
     const t = now();
     if (ped.sayT && t - ped.sayT < (ctx.force ? 1.5 : 7)) return null;
-    const cam = game.camera?.position; if (cam && Math.hypot(ped.pos.x - cam.x, ped.pos.z - cam.z) > (ctx.far ? 45 : 32)) return null;
+    const cam = game.camera?.position;
+    if (cam && Math.hypot(ped.pos.x - cam.x, ped.pos.z - cam.z) > (ctx.far ? 45 : 32)) return null;
     if (!ctx.force && t - lastGlobal < 0.7) return null;
-    const text = pickLine(id, situation, ctx); if (!text) return null;
-    ped.sayT = t; lastGlobal = t;
-    lineLog.push({ t: Math.round(t), who: id.name, voice: id.voice, situation, text }); if (lineLog.length > 200) lineLog.shift();
+    const text = pickLine(id, situation, ctx);
+    if (!text) return null;
+    ped.sayT = t;
+    lastGlobal = t;
+    lineLog.push({ t: Math.round(t), who: id.name, voice: id.voice, situation, text });
+    if (lineLog.length > 200) lineLog.shift();
     bubble(ped, text);
-    try { game.emit?.('pedLine', { ped, text, situation, voice: id.voice, name: id.name }); } catch (e) { /* */ }
+    try {
+      game.emit?.('pedLine', { ped, text, situation, voice: id.voice, name: id.name });
+    } catch (e) {
+      /* */
+    }
     return text;
   }
   function bubble(ped, text, ms = 0) {
@@ -160,98 +348,216 @@ export async function initV2(game) {
         bubbles.splice(i, 1);
       }
     }
-    while (bubbles.length >= 5) { const b = bubbles.shift(); b.el.remove(); }
+    while (bubbles.length >= 5) {
+      const b = bubbles.shift();
+      b.el.remove();
+    }
     const el = document.createElement('div');
-    el.style.cssText = 'position:absolute;left:0;top:0;max-width:240px;padding:5px 9px;border-radius:10px;background:rgba(250,248,242,0.93);color:#1d1d1f;box-shadow:0 2px 8px rgba(0,0,0,0.25);transform:translate(-50%,-100%);white-space:normal;text-align:center;opacity:0;transition:opacity .2s';
+    el.style.cssText =
+      'position:absolute;left:0;top:0;max-width:240px;padding:5px 9px;border-radius:10px;background:rgba(250,248,242,0.93);color:#1d1d1f;box-shadow:0 2px 8px rgba(0,0,0,0.25);transform:translate(-50%,-100%);white-space:normal;text-align:center;opacity:0;transition:opacity .2s';
     el.textContent = text;
-    layer.appendChild(el); requestAnimationFrame(() => { el.style.opacity = '1'; });
+    layer.appendChild(el);
+    requestAnimationFrame(() => {
+      el.style.opacity = '1';
+    });
     if (ped.isPlayer) el.style.background = 'rgba(255,214,120,0.95)';
     bubbles.push({ el, ped, until: t + (ms ? ms / 1000 : 2.2 + text.length * 0.045) });
   }
   function voiceLine(ped, kind) {
-    const m = { greet: 'greet', drunk: 'greet', apologise: 'bumped', insult: 'bumped', argue: 'bumped', scream: ped.lastSrc === 'crash' ? 'crash' : 'gunfire' };
+    const m = {
+      greet: 'greet',
+      drunk: 'greet',
+      apologise: 'bumped',
+      insult: 'bumped',
+      argue: 'bumped',
+      scream: ped.lastSrc === 'crash' ? 'crash' : 'gunfire',
+    };
     if (m[kind]) say(ped, m[kind], { force: kind !== 'greet' });
   }
   const _bh = new THREE.Vector3();
   // a speaker standing in a bush (breakable 'bush' boxes) is hidden by its leaves
-  function inBush(h) { try { const B = game.breakables; if (!B?.near) return false; for (const r of B.near(h.x, h.z, 2)) if (r.kind === 'bush' && Math.hypot(r.x - h.x, r.z - h.z) < (r.r || 0.6) && h.y < (r.y || 0) + (r.hy || 0.6) * 2 + 0.2) return true; } catch (e) { /* */ } return false; }
+  function inBush(h) {
+    try {
+      const B = game.breakables;
+      if (!B?.near) return false;
+      for (const r of B.near(h.x, h.z, 2))
+        if (
+          r.kind === 'bush' &&
+          Math.hypot(r.x - h.x, r.z - h.z) < (r.r || 0.6) &&
+          h.y < (r.y || 0) + (r.hy || 0.6) * 2 + 0.2
+        )
+          return true;
+    } catch (e) {
+      /* */
+    }
+    return false;
+  }
   function updateBubbles() {
-    const cam = game.camera; if (!cam) return;
-    const W = window.innerWidth, H = window.innerHeight, t = now();
+    const cam = game.camera;
+    if (!cam) return;
+    const W = window.innerWidth,
+      H = window.innerHeight,
+      t = now();
     for (let i = bubbles.length - 1; i >= 0; i--) {
-      const b = bubbles[i]; const p = b.ped;
-      if (t > b.until || !p.active || p.dead) { b.el.remove(); bubbles.splice(i, 1); continue; }
+      const b = bubbles[i];
+      const p = b.ped;
+      if (t > b.until || !p.active || p.dead) {
+        b.el.remove();
+        bubbles.splice(i, 1);
+        continue;
+      }
       // QA: a bubble floated over a bush with nobody visible: only a speaker who is shown, in view and not behind
       // the static world (walls, dumpsters, props with colliders) or inside a bush gets a bubble (re-checked 4x a second)
       if (!p.isPlayer) {
-        if ((p.root && p.root.visible === false) || (p.char === null)) { b.el.style.display = 'none'; continue; }
+        if ((p.root && p.root.visible === false) || p.char === null) {
+          b.el.style.display = 'none';
+          continue;
+        }
         if (!(b.losT > t)) {
           b.losT = t + 0.25;
           const head = _bh.set(p.pos.x, p.pos.y + (p.look?.height || 1.75) - 0.1, p.pos.z);
           b.seen = hasLOS(game, cam.position, head) && !inBush(head);
         }
-        if (!b.seen) { b.el.style.display = 'none'; continue; }
+        if (!b.seen) {
+          b.el.style.display = 'none';
+          continue;
+        }
       }
       _hp.set(p.pos.x, p.pos.y + (p.look?.height || 1.75) + 0.32, p.pos.z).project(cam);
-      if (_hp.z > 1 || Math.abs(_hp.x) > 1.1 || Math.abs(_hp.y) > 1.1) { b.el.style.display = 'none'; continue; }
-      b.el.style.display = ''; b.el.style.left = ((_hp.x + 1) / 2 * W).toFixed(1) + 'px'; b.el.style.top = ((1 - _hp.y) / 2 * H).toFixed(1) + 'px';
+      if (_hp.z > 1 || Math.abs(_hp.x) > 1.1 || Math.abs(_hp.y) > 1.1) {
+        b.el.style.display = 'none';
+        continue;
+      }
+      b.el.style.display = '';
+      b.el.style.left = (((_hp.x + 1) / 2) * W).toFixed(1) + 'px';
+      b.el.style.top = (((1 - _hp.y) / 2) * H).toFixed(1) + 'px';
     }
   }
 
   // ---------------------------------------------------------------- awareness: honks, weapon out, car comments, weather, chat
-  function nearPeds(c, r) { const out = []; for (const p of peds.list) if (p.active && !p.dead && p.identity && p.state !== 'cop' && Math.hypot(p.pos.x - c.x, p.pos.z - c.z) < r) out.push(p); return out; }
+  function nearPeds(c, r) {
+    const out = [];
+    for (const p of peds.list)
+      if (
+        p.active &&
+        !p.dead &&
+        p.identity &&
+        p.state !== 'cop' &&
+        Math.hypot(p.pos.x - c.x, p.pos.z - c.z) < r
+      )
+        out.push(p);
+    return out;
+  }
   function honk(pos) {
     if (!pos) return;
     let spoke = 0;
     for (const p of nearPeds(pos, 16)) {
-      const T = p.identity.traits; p.lookUntil = now() + 2.5;
+      const T = p.identity.traits;
+      p.lookUntil = now() + 2.5;
       if (p.state === 'walk' || p.state === 'talk' || p.state === 'bench' || p.state === 'lean') {
-        if (T.temper > 0.66 && T.courage > 0.5) { p.state = 'argue'; p.argueT = 2.5 + T.temper * 2; p.shoveBack = false; }
-        else if (T.nerve < 0.3) { p.state = 'flee'; p.fleeT = 1.2; p.threat = { x: pos.x, z: pos.z }; p.scream = false; }
-        else if (p.nav?.cross) p.walkBoostT = 3;
+        if (T.temper > 0.66 && T.courage > 0.5) {
+          p.state = 'argue';
+          p.argueT = 2.5 + T.temper * 2;
+          p.shoveBack = false;
+        } else if (T.nerve < 0.3) {
+          p.state = 'flee';
+          p.fleeT = 1.2;
+          p.threat = { x: pos.x, z: pos.z };
+          p.scream = false;
+        } else if (p.nav?.cross) p.walkBoostT = 3;
       }
       if (spoke < 2 && say(p, 'honked', { force: true })) spoke++;
     }
   }
-  try { game.on?.('honk', (e) => honk(e?.position || e?.pos || game.player?.position)); game.on?.('horn', (e) => honk(e?.position || e?.pos || game.player?.position)); } catch (e) { /* */ }
+  try {
+    game.on?.('honk', (e) => honk(e?.position || e?.pos || game.player?.position));
+    game.on?.('horn', (e) => honk(e?.position || e?.pos || game.player?.position));
+  } catch (e) {
+    /* */
+  }
   let honkCd = 0;
   addEventListener('keydown', (e) => {
     if (e.code !== 'KeyH' || e.repeat || !game.player?.state?.inVehicle || now() < honkCd) return;
-    honkCd = now() + 0.6; honk(game.player.position);
+    honkCd = now() + 0.6;
+    honk(game.player.position);
   });
-  let senseT = 0, ambientT = 0, carT = 0;
+  let senseT = 0,
+    ambientT = 0,
+    carT = 0;
   function sense(dt) {
-    senseT -= dt; if (senseT > 0) return; senseT = 0.4;
-    const P = game.player; if (!P?.position) return;
-    const pp = P.position, inCar = !!P.state?.inVehicle;
+    senseT -= dt;
+    if (senseT > 0) return;
+    senseT = 0.4;
+    const P = game.player;
+    if (!P?.position) return;
+    const pp = P.position,
+      inCar = !!P.state?.inVehicle;
     // weapon out on foot: people who can see it react by courage
-    const armed = !inCar && P.weapon && !/fist|unarmed|none|phone/.test(String(P.weapon)) && (P.aiming || P.weaponDrawn !== false);
+    const armed =
+      !inCar &&
+      P.weapon &&
+      !/fist|unarmed|none|phone/.test(String(P.weapon)) &&
+      (P.aiming || P.weaponDrawn !== false);
     if (armed) {
-      const fx = Math.sin(P.heading || 0), fz = Math.cos(P.heading || 0);
+      const fx = Math.sin(P.heading || 0),
+        fz = Math.cos(P.heading || 0);
       for (const p of nearPeds(pp, 14)) {
-        if (p.sawWeapon || !['walk', 'talk', 'bench', 'lean', 'dance', 'garden'].includes(p.state)) continue;
-        const dx = pp.x - p.pos.x, dz = pp.z - p.pos.z, d = Math.hypot(dx, dz) || 1;
+        if (p.sawWeapon || !['walk', 'talk', 'bench', 'lean', 'dance', 'garden'].includes(p.state))
+          continue;
+        const dx = pp.x - p.pos.x,
+          dz = pp.z - p.pos.z,
+          d = Math.hypot(dx, dz) || 1;
         const facing = (Math.sin(p.heading) * dx + Math.cos(p.heading) * dz) / d;
         if (facing < -0.2 && d > 4) continue; // behind them
         p.sawWeapon = true;
-        if (P.aiming && facing > 0.3) try { peds.remember?.(p, 'threat'); } catch (e) { /* */ }   // r7-react: aimed at -> remembered
+        if (P.aiming && facing > 0.3)
+          try {
+            peds.remember?.(p, 'threat');
+          } catch (e) {
+            /* */
+          } // r7-react: aimed at -> remembered
         const r = chooseReaction(p.identity, { src: 'weapon', d, phone: true });
-        ((reactStats.weapon ||= {})[p.identity.traits.courage < 0.33 ? 'low' : p.identity.traits.courage < 0.66 ? 'mid' : 'high'] ||= {})[r] = 1 + (reactStats.weapon[p.identity.traits.courage < 0.33 ? 'low' : p.identity.traits.courage < 0.66 ? 'mid' : 'high'][r] || 0);
+        ((reactStats.weapon ||= {})[
+          p.identity.traits.courage < 0.33
+            ? 'low'
+            : p.identity.traits.courage < 0.66
+              ? 'mid'
+              : 'high'
+        ] ||= {})[r] =
+          1 +
+          (reactStats.weapon[
+            p.identity.traits.courage < 0.33
+              ? 'low'
+              : p.identity.traits.courage < 0.66
+                ? 'mid'
+                : 'high'
+          ][r] || 0);
         p.lastSrc = 'weapon';
-        if (r !== 'ignore') p.pending = { react: r, x: pp.x, z: pp.z, t: 0.2 + Math.random() * 0.5, src: 'weapon' };
+        if (r !== 'ignore')
+          p.pending = { react: r, x: pp.x, z: pp.z, t: 0.2 + Math.random() * 0.5, src: 'weapon' };
         say(p, 'weapon', { force: true });
       }
-      void fx; void fz;
+      void fx;
+      void fz;
     }
     // slow car next to people: comments on the car
     const v = P.vehicle || P.state?.vehicle;
     if (inCar && v && Math.abs(v.speedKmh || 0) < 18 && now() > carT) {
-      const cand = nearPeds(pp, 9).filter((p) => p.state === 'walk' || p.state === 'lean' || p.state === 'bench');
+      const cand = nearPeds(pp, 9).filter(
+        (p) => p.state === 'walk' || p.state === 'lean' || p.state === 'bench',
+      );
       if (cand.length) {
-        const p = cand[(Math.random() * cand.length) | 0]; const T = p.identity.traits;
+        const p = cand[(Math.random() * cand.length) | 0];
+        const T = p.identity.traits;
         const worn = (v.health ?? 1000) < 500 || (v.damage ?? 0) > 0.5;
-        const praise = !worn && (Math.random() < 0.35 + T.kindness * 0.4 - (p.identity.voice === 'snob' ? 0.4 : 0));
-        if (Math.random() < 0.25 + T.talk * 0.5 && say(p, praise ? 'carPraise' : 'carInsult', { car: v.def?.kind || v.def?.class || 'car' })) carT = now() + 14;
+        const praise =
+          !worn &&
+          Math.random() < 0.35 + T.kindness * 0.4 - (p.identity.voice === 'snob' ? 0.4 : 0);
+        if (
+          Math.random() < 0.25 + T.talk * 0.5 &&
+          say(p, praise ? 'carPraise' : 'carInsult', { car: v.def?.kind || v.def?.class || 'car' })
+        )
+          carT = now() + 14;
         else carT = now() + 4;
       }
     }
@@ -261,9 +567,12 @@ export async function initV2(game) {
       ambientT = 3 + Math.random() * 3;
       const near = nearPeds(game.camera?.position || pp, 26);
       const talkers = near.filter((p) => p.state === 'talk' && p.group);
-      if (talkers.length && Math.random() < 0.8) { const p = talkers[(Math.random() * talkers.length) | 0]; if (p.identity.traits.talk > 0.25) say(p, 'chat'); }
-      else if (near.length) {
-        const w = weather(), h = hour();
+      if (talkers.length && Math.random() < 0.8) {
+        const p = talkers[(Math.random() * talkers.length) | 0];
+        if (p.identity.traits.talk > 0.25) say(p, 'chat');
+      } else if (near.length) {
+        const w = weather(),
+          h = hour();
         const sit = /rain|storm|shower/.test(w) ? 'rain' : h >= 11 && h < 17 ? 'heat' : null;
         const p = near[(Math.random() * near.length) | 0];
         if (sit && Math.random() < 0.35) say(p, sit);
@@ -273,16 +582,34 @@ export async function initV2(game) {
 
   // ---------------------------------------------------------------- far tier: instanced crowd on the sidewalks
   const NAV = peds._nav || null;
-  const SPACE = NAV?.space || null;   // r6-walk: everybody on foot in one spatial hash (src/npc/walk.js)
+  const SPACE = NAV?.space || null; // r6-walk: everybody on foot in one spatial hash (src/npc/walk.js)
   let crowd = null;
   // the far tier wears the user's own people (src/npc/people/farCrowd.js: each person's LOD2 mesh, GPU-skinned by the
   // game's clips); '?farcrowd=old' = the procedural mannequin body (crowd.js) for A/B
   // user (Nov 17): every NPC is one of the user's models, repeats are fine -> on by default; '?farcrowd=old' = A/B
-  const FAR_PEOPLE = !(typeof location !== 'undefined' && /[?&](farcrowd=old|people=0|npc=legacy)/.test(location.search));
-  try { if (NAV) crowd = FAR_PEOPLE ? createPeopleCrowd(game, { max: 380 }) : createCrowd(game, { max: 380, castShadow: false }); } catch (e) { console.warn('[people] crowd', e); crowd = null; }
-  if (!crowd && NAV) { try { crowd = createCrowd(game, { max: 380, castShadow: false }); } catch (e) { crowd = null; } }
+  const FAR_PEOPLE = !(
+    typeof location !== 'undefined' &&
+    /[?&](farcrowd=old|people=0|npc=legacy)/.test(location.search)
+  );
+  try {
+    if (NAV)
+      crowd = FAR_PEOPLE
+        ? createPeopleCrowd(game, { max: 380 })
+        : createCrowd(game, { max: 380, castShadow: false });
+  } catch (e) {
+    console.warn('[people] crowd', e);
+    crowd = null;
+  }
+  if (!crowd && NAV) {
+    try {
+      crowd = createCrowd(game, { max: 380, castShadow: false });
+    } catch (e) {
+      crowd = null;
+    }
+  }
   const walkers = [];
-  let towelN = 0, lastTowelT = -1e9;
+  let towelN = 0,
+    lastTowelT = -1e9;
   // playtest: "too few people" -> 240 at full street density (was 170); people fade (dithered) instead of popping
   const crowdCfg = { target: 240, near: 30, far: 185, enabled: true, fadeRate: 2.0 };
   if (crowd) {
@@ -292,35 +619,96 @@ export async function initV2(game) {
   const signals = createSignals(game);
   const spots = createSpots(game);
   const governor = createGovernor(game);
-  crowdCfg.target = FAR_PEOPLE ? 200 : 300;   // real meshes cost more per person than the mannequin: a few less, still full streets
-  const lifeStats = { sit: 0, cafe: 0, group: 0, doorOut: 0, enteredShop: 0, signalWaits: 0, panics: 0, avoid: 0 };
+  crowdCfg.target = FAR_PEOPLE ? 200 : 300; // real meshes cost more per person than the mannequin: a few less, still full streets
+  const lifeStats = {
+    sit: 0,
+    cafe: 0,
+    group: 0,
+    doorOut: 0,
+    enteredShop: 0,
+    signalWaits: 0,
+    panics: 0,
+    avoid: 0,
+  };
   function districtWeight(x, z) {
     const zone = NAV ? NAV.zoneAt(x, z) : 'residential';
     const dk = districtKey(zoneKey(zone), districtAt(x, z));
     const h = hour();
     const night = h >= 21 || h < 3;
-    let k = { beach: 1.3, brickell: 1.3, downtown: 1.25, wynwood: 1.2, havana: 0.9, overtown: 0.7, haiti: 0.7, port: 0.5, keys: 0.6, airport: 0.5, rural: 0.15 }[dk] ?? 0.4;
+    let k =
+      {
+        beach: 1.3,
+        brickell: 1.3,
+        downtown: 1.25,
+        wynwood: 1.2,
+        havana: 0.9,
+        overtown: 0.7,
+        haiti: 0.7,
+        port: 0.5,
+        keys: 0.6,
+        airport: 0.5,
+        rural: 0.15,
+      }[dk] ?? 0.4;
     if (night && (zone === 'nightlife' || dk === 'wynwood' || dk === 'beach')) {
       k *= 1.35;
     }
     return k;
   }
   // r3-people: the renderer's own rain state (src/world/env/weather.v2.js: rain / wetness 0..1), the kind string as fallback
-  const rainy = () => { const w = game.weather; if (w && typeof w.rain === 'number') return w.rain > 0.12 || (w.wetness || 0) > 0.45; return /rain|storm|shower/.test(weather()); };
+  const rainy = () => {
+    const w = game.weather;
+    if (w && typeof w.rain === 'number') return w.rain > 0.12 || (w.wetness || 0) > 0.45;
+    return /rain|storm|shower/.test(weather());
+  };
   // far tier wears the user's people (src/npc/people/cast.js palettes: skin, top, bottom, hair, shoes, sleeve and leg cut)
   function farLook(L, pos, still = false, cand = null) {
     const base = crowdLook(L);
-    const cast = game.npc?.cast; if (!cast?.farPerson) return base;
+    const cast = game.npc?.cast;
+    if (!cast?.farPerson) return base;
     try {
-      const avoid = new Set(); for (const w of walkers) if (w.look?.personId && Math.abs(w.pos.x - pos.x) < 45 && Math.abs(w.pos.z - pos.z) < 45) avoid.add(w.look.personId);
-      const zn = NAV ? NAV.zoneAt(pos.x, pos.z) : 'residential'; const p = cast.farPerson(zn, pos, still && (zn === 'beach' || zn === 'water') ? 'sunbathe' : null, avoid, cand); const c = p?.cols; if (!c) return base;
-      L.personMeta = p; L.height = p.height * (0.97 + Math.random() * 0.06); L.gender = p.g; L.personId = p.id;
+      const avoid = new Set();
+      for (const w of walkers)
+        if (w.look?.personId && Math.abs(w.pos.x - pos.x) < 45 && Math.abs(w.pos.z - pos.z) < 45)
+          avoid.add(w.look.personId);
+      const zn = NAV ? NAV.zoneAt(pos.x, pos.z) : 'residential';
+      const p = cast.farPerson(
+        zn,
+        pos,
+        still && (zn === 'beach' || zn === 'water') ? 'sunbathe' : null,
+        avoid,
+        cand,
+      );
+      const c = p?.cols;
+      if (!c) return base;
+      L.personMeta = p;
+      L.height = p.height * (0.97 + Math.random() * 0.06);
+      L.gender = p.g;
+      L.personId = p.id;
       const f = p.g === 'f';
-      return { ...base, personId: p.id, gender: p.g, skin: c.skin ?? base.skin, top: c.top ?? base.top, bottom: c.bottom ?? base.bottom, hair: c.hair ?? base.hair, shoes: c.shoes ?? base.shoes,
-        sleeve: c.sleeve ?? base.sleeve, leg: c.leg ?? base.leg, hatKind: c.hat ? 1 : 0, hat: c.hat ? (c.hair ?? base.hat) : base.hat,
-        hairStyle: f ? (base.hairStyle >= 2 ? base.hairStyle : 3) : Math.min(1, base.hairStyle ?? 1), bust: f ? Math.max(0.6, base.bust || 0.8) : 0,
-        girth: p.build === 'heavy' ? 1.25 : f ? Math.min(base.girth ?? 1, 1.05) : base.girth };
-    } catch (e) { return base; }
+      return {
+        ...base,
+        personId: p.id,
+        gender: p.g,
+        skin: c.skin ?? base.skin,
+        top: c.top ?? base.top,
+        bottom: c.bottom ?? base.bottom,
+        hair: c.hair ?? base.hair,
+        shoes: c.shoes ?? base.shoes,
+        sleeve: c.sleeve ?? base.sleeve,
+        leg: c.leg ?? base.leg,
+        hatKind: c.hat ? 1 : 0,
+        hat: c.hat ? (c.hair ?? base.hat) : base.hat,
+        hairStyle: f
+          ? base.hairStyle >= 2
+            ? base.hairStyle
+            : 3
+          : Math.min(1, base.hairStyle ?? 1),
+        bust: f ? Math.max(0.6, base.bust || 0.8) : 0,
+        girth: p.build === 'heavy' ? 1.25 : f ? Math.min(base.girth ?? 1, 1.05) : base.girth,
+      };
+    } catch (e) {
+      return base;
+    }
   }
   function placeStill(w, spot, pose, cadence) {
     w.still = true;
@@ -355,7 +743,14 @@ export async function initV2(game) {
       _rayO.x = x;
       _rayO.y = hint + 3;
       _rayO.z = z;
-      const hit = W.castRay(new R.Ray(_rayO, _rayD), 8, true, R.QueryFilterFlags.EXCLUDE_DYNAMIC | (R.QueryFilterFlags.EXCLUDE_KINEMATIC || 0) | R.QueryFilterFlags.EXCLUDE_SENSORS);
+      const hit = W.castRay(
+        new R.Ray(_rayO, _rayD),
+        8,
+        true,
+        R.QueryFilterFlags.EXCLUDE_DYNAMIC |
+          (R.QueryFilterFlags.EXCLUDE_KINEMATIC || 0) |
+          R.QueryFilterFlags.EXCLUDE_SENSORS,
+      );
       if (hit && Number.isFinite(hit.timeOfImpact)) {
         const y = _rayO.y - hit.timeOfImpact;
         // trust the physics ground only when it is close to the navigation ground (not a roof or a pier above)
@@ -371,71 +766,178 @@ export async function initV2(game) {
   function spawnWalker(cam, beachy) {
     // denser near the viewer and in front of the camera (people behind you are never seen)
     game.camera.getWorldDirection(_fwd);
-    let pos = null, bestDot = -2;
-    const wet = rainy();   // r3-people: no sunbathers in the rain, far fewer people on the beach at all
+    let pos = null,
+      bestDot = -2;
+    const wet = rainy(); // r3-people: no sunbathers in the rain, far fewer people on the beach at all
     if (beachy && wet && Math.random() < 0.7) return false;
     const lounger = beachy && !wet && NAV.sandPoint && Math.random() < 0.6;
     const shoreWalker = beachy && NAV.sandPoint && !lounger && Math.random() < 0.6;
     for (let k = 0; k < 3; k++) {
-      const r = crowdCfg.near + 12 + Math.pow(Math.random(), 1.4) * (crowdCfg.far - crowdCfg.near - 25);
-      const q = lounger ? NAV.sandPoint(cam, r) : shoreWalker ? NAV.sandPoint(cam, r, true) : NAV.sidewalkNear(cam, r);
+      const r =
+        crowdCfg.near + 12 + Math.pow(Math.random(), 1.4) * (crowdCfg.far - crowdCfg.near - 25);
+      const q = lounger
+        ? NAV.sandPoint(cam, r)
+        : shoreWalker
+          ? NAV.sandPoint(cam, r, true)
+          : NAV.sidewalkNear(cam, r);
       if (!q) continue;
       if (NAV.spotOK && !lounger && !shoreWalker && !NAV.spotOK(q.x, q.z)) continue; // never on a carriageway, highway, bridge or deck, never in an open field
-      if (SPACE && SPACE.occupied(q.x, q.z, 0.9)) continue;   // r6-walk: never inside somebody
+      if (SPACE && SPACE.occupied(q.x, q.z, 0.9)) continue; // r6-walk: never inside somebody
       // r3-people (user, item 30): never appear in plain sight (the fade-in band at the far edge excepted)
-      if (NAV.inCamView && Math.hypot(q.x - cam.x, q.z - cam.z) < crowdCfg.far - 20 && NAV.inCamView(q.x, q.y || 0, q.z)) continue;
-      const dx = q.x - cam.x, dz = q.z - cam.z, dl = Math.hypot(dx, dz) || 1, dot = (dx * _fwd.x + dz * _fwd.z) / dl;
+      if (
+        NAV.inCamView &&
+        Math.hypot(q.x - cam.x, q.z - cam.z) < crowdCfg.far - 20 &&
+        NAV.inCamView(q.x, q.y || 0, q.z)
+      )
+        continue;
+      const dx = q.x - cam.x,
+        dz = q.z - cam.z,
+        dl = Math.hypot(dx, dz) || 1,
+        dot = (dx * _fwd.x + dz * _fwd.z) / dl;
       // far away: prefer in front (where people are seen); closer: prefer behind or beside the camera, so nobody
       // appears in plain sight
       const score = dl > 110 ? dot : -dot;
-      if (score > bestDot) { bestDot = score; pos = q; }
+      if (score > bestDot) {
+        bestDot = score;
+        pos = q;
+      }
     }
     if (!pos) return false;
-    const d = Math.hypot(pos.x - cam.x, pos.z - cam.z); if (d < crowdCfg.near + 6) return false;
-    const zone = NAV.zoneAt(pos.x, pos.z); if (zone === 'water') return false;
-    const bodies = loadedBodies(); if (!bodies.length) return false;
-    const h = hour(), zk = zoneKey(zone), district = districtAt(pos.x, pos.z);
+    const d = Math.hypot(pos.x - cam.x, pos.z - cam.z);
+    if (d < crowdCfg.near + 6) return false;
+    const zone = NAV.zoneAt(pos.x, pos.z);
+    if (zone === 'water') return false;
+    const bodies = loadedBodies();
+    if (!bodies.length) return false;
+    const h = hour(),
+      zk = zoneKey(zone),
+      district = districtAt(pos.x, pos.z);
     const pick = personForPlace({ zone: zk, district, hour: h });
-    const L = makeLook(pick.id, { zone: zk, hour: h, weather: weather(), activity: 'walk', onShift: /^work/.test(pick.act.act), noCarry: true }, bodies, null, 0);
-    if (!L) { audit.lookFailed++; return false; }
-    const i = crowd.alloc(); if (i < 0) return false;
-    const w = { i, pos: new THREE.Vector3(pos.x, pos.y || 0, pos.z), nav: null, heading: Math.random() * 6.28, id: pick.id, look: L, speed: L.gait.speed, gy: NAV.groundAt(pos.x, pos.z, pos.y || 0), phase: Math.random() * 6.28, still: lounger, fade: 0, leaving: false, ampJit: 0.92 + Math.random() * 0.16, v: 0 };
+    const L = makeLook(
+      pick.id,
+      {
+        zone: zk,
+        hour: h,
+        weather: weather(),
+        activity: 'walk',
+        onShift: /^work/.test(pick.act.act),
+        noCarry: true,
+      },
+      bodies,
+      null,
+      0,
+    );
+    if (!L) {
+      audit.lookFailed++;
+      return false;
+    }
+    const i = crowd.alloc();
+    if (i < 0) return false;
+    const w = {
+      i,
+      pos: new THREE.Vector3(pos.x, pos.y || 0, pos.z),
+      nav: null,
+      heading: Math.random() * 6.28,
+      id: pick.id,
+      look: L,
+      speed: L.gait.speed,
+      gy: NAV.groundAt(pos.x, pos.z, pos.y || 0),
+      phase: Math.random() * 6.28,
+      still: lounger,
+      fade: 0,
+      leaving: false,
+      ampJit: 0.92 + Math.random() * 0.16,
+      v: 0,
+    };
     crowd.setFade(i, 0);
     const FL = farLook(L, w.pos, w.still);
     // r3-people: every far person is one of the user's people and never one already used within ~45 m (no twins in a group)
-    if (FAR_PEOPLE && game.npc?.cast?.farPerson && !FL.personId) { crowd.release(i); return false; }
+    if (FAR_PEOPLE && game.npc?.cast?.farPerson && !FL.personId) {
+      crowd.release(i);
+      return false;
+    }
     crowd.setLook(i, FL);
-    if (lounger) { // beach crowd: lying, sitting, standing around, talking, playing
+    if (lounger) {
+      // beach crowd: lying, sitting, standing around, talking, playing
       w.lounger = true;
       // sit on the surface that is really there (physics ground), so neither the person nor the towel hovers (playtest P4)
       w.gy = surfaceY(w.pos.x, w.pos.z, w.gy);
-      const LP = [POSE.lie, POSE.lie, POSE.lieFront, POSE.sitGround, POSE.sitGround, POSE.lounge, POSE.stand, POSE.talk, POSE.talk, POSE.phone, POSE.sip]; // no volleyball players
+      const LP = [
+        POSE.lie,
+        POSE.lie,
+        POSE.lieFront,
+        POSE.sitGround,
+        POSE.sitGround,
+        POSE.lounge,
+        POSE.stand,
+        POSE.talk,
+        POSE.talk,
+        POSE.phone,
+        POSE.sip,
+      ]; // no volleyball players
       const pose = LP[(Math.random() * LP.length) | 0];
-      w.pose = pose; crowd.setPose(i, pose, pose === POSE.talk || pose === POSE.volley ? 2.2 : 1, w.phase, 1);
-      crowd.setTransform(i, w.pos.x, w.gy, w.pos.z, w.heading, L.height, pose === POSE.lie || pose === POSE.lieFront ? 1.5 : 1);
-      if ((pose === POSE.lie || pose === POSE.lieFront || pose === POSE.sitGround || pose === POSE.lounge) && towelN < 60) {
+      w.pose = pose;
+      crowd.setPose(i, pose, pose === POSE.talk || pose === POSE.volley ? 2.2 : 1, w.phase, 1);
+      crowd.setTransform(
+        i,
+        w.pos.x,
+        w.gy,
+        w.pos.z,
+        w.heading,
+        L.height,
+        pose === POSE.lie || pose === POSE.lieFront ? 1.5 : 1,
+      );
+      if (
+        (pose === POSE.lie ||
+          pose === POSE.lieFront ||
+          pose === POSE.sitGround ||
+          pose === POSE.lounge) &&
+        towelN < 60
+      ) {
         // a towel under people lying or sitting on the sand
         // r7-towels: the same draped terry towel as the near people (src/npc/beachTowel.js), on the real sand
         // (one draped towel per ~frame: a beach crowd spawning at once falls back to the simple prop for the rest)
-        const sd = (i * 7919 + walkers.length) >>> 0, gy0 = w.gy, tnow = performance.now();
+        const sd = (i * 7919 + walkers.length) >>> 0,
+          gy0 = w.gy,
+          tnow = performance.now();
         let towel;
-        if (tnow - lastTowelT > 14) { lastTowelT = tnow; towel = makeTowel(w.pos.x, w.pos.z, w.heading, TOWEL_PAL[sd % TOWEL_PAL.length], (x, z) => NAV.groundAt(x, z, gy0 + 1), sd); }
-        else { towel = PR.beachTowel(sd); towel.position.set(w.pos.x, w.gy + 0.012, w.pos.z); towel.rotation.y = w.heading; towel.receiveShadow = true; }
+        if (tnow - lastTowelT > 14) {
+          lastTowelT = tnow;
+          towel = makeTowel(
+            w.pos.x,
+            w.pos.z,
+            w.heading,
+            TOWEL_PAL[sd % TOWEL_PAL.length],
+            (x, z) => NAV.groundAt(x, z, gy0 + 1),
+            sd,
+          );
+        } else {
+          towel = PR.beachTowel(sd);
+          towel.position.set(w.pos.x, w.gy + 0.012, w.pos.z);
+          towel.rotation.y = w.heading;
+          towel.receiveShadow = true;
+        }
         game.scene.add(towel);
         w.towel = towel;
         towelN++;
       }
-    } else if (shoreWalker) { // walking the waterline
+    } else if (shoreWalker) {
+      // walking the waterline
       w.shore = true;
-      let bestH = 0, bestS = -1;
+      let bestH = 0,
+        bestS = -1;
       for (let a = 0; a < 8; a++) {
         const h2 = (a / 8) * Math.PI * 2;
         let sc = 0;
         for (const dd of [6, 12, 18]) {
-          const x2 = w.pos.x + Math.sin(h2) * dd, z2 = w.pos.z + Math.cos(h2) * dd;
+          const x2 = w.pos.x + Math.sin(h2) * dd,
+            z2 = w.pos.z + Math.cos(h2) * dd;
           if (NAV.zoneAt(x2, z2) === 'beach' && !game.city?.isWater?.(x2, z2)) sc++;
         }
-        if (sc > bestS) { bestS = sc; bestH = h2; }
+        if (sc > bestS) {
+          bestS = sc;
+          bestH = h2;
+        }
       }
       w.heading = bestH;
       w.speed = Math.min(1.3, w.speed);
@@ -475,7 +977,12 @@ export async function initV2(game) {
         }
       }
       if (!w.still) {
-        w.nav = NAV.navFromPos(w); if (!w.nav) { spots.free(w.spotKey); crowd.release(i); return false; }
+        w.nav = NAV.navFromPos(w);
+        if (!w.nav) {
+          spots.free(w.spotKey);
+          crowd.release(i);
+          return false;
+        }
         if (act === 'exercise' && Math.random() < 0.6) {
           w.jog = true;
           w.speed = 2.6 + Math.random() * 0.6;
@@ -483,14 +990,30 @@ export async function initV2(game) {
           w.speed = Math.min(2.0, w.speed * 1.3);
         }
         // r6-walk: where this walker is going (a shop door a few blocks away), its own pace, now and then a companion
-        if (!w.jog && (act === 'errands' || act === 'stroll' || act === 'lunch' || act === 'dinner')) { const dd = spots.door(pos.x, pos.z, 30, 150); if (dd) w.nav.dest = dd; }
-        w.baseSpeed = w.speed; w.v = w.speed;
-        if (!w.jog && !wet && !w.exitT && Math.random() < 0.16) spawnBuddy(w, zk, district, h, bodies);
+        if (
+          !w.jog &&
+          (act === 'errands' || act === 'stroll' || act === 'lunch' || act === 'dinner')
+        ) {
+          const dd = spots.door(pos.x, pos.z, 30, 150);
+          if (dd) w.nav.dest = dd;
+        }
+        w.baseSpeed = w.speed;
+        w.v = w.speed;
+        if (!w.jog && !wet && !w.exitT && Math.random() < 0.16)
+          spawnBuddy(w, zk, district, h, bodies);
         const g1 = gaitFor(w);
-        crowd.setPose(i, w.jog ? POSE.run : POSE.walk, w.jog ? g1.cadence * 0.62 : g1.cadence, w.phase, w.jog ? 0.75 : g1.amp);
+        crowd.setPose(
+          i,
+          w.jog ? POSE.run : POSE.walk,
+          w.jog ? g1.cadence * 0.62 : g1.cadence,
+          w.phase,
+          w.jog ? 0.75 : g1.amp,
+        );
       }
     }
-    walkers.push(w); audit.crowdSpawned++; record('crowd|' + L.sig, pick.id.id);
+    walkers.push(w);
+    audit.crowdSpawned++;
+    record('crowd|' + L.sig, pick.id.id);
     return true;
   }
   /** r6-walk: a companion who walks beside a walker at the same pace (a couple) */
@@ -498,22 +1021,63 @@ export async function initV2(game) {
   function spawnBuddy(w, zk, district, h, bodies) {
     try {
       const pick = personForPlace({ zone: zk, district, hour: h });
-      const L = makeLook(pick.id, { zone: zk, hour: h, weather: weather(), activity: 'walk', noCarry: true }, bodies, null, 1);
+      const L = makeLook(
+        pick.id,
+        { zone: zk, hour: h, weather: weather(), activity: 'walk', noCarry: true },
+        bodies,
+        null,
+        1,
+      );
       if (!L) return false;
-      const i = crowd.alloc(); if (i < 0) return false;
-      const os = -w.nav.hand, hd = w.heading;
-      const b = { i, pos: new THREE.Vector3(w.pos.x + Math.cos(hd) * os * 0.74, w.pos.y, w.pos.z - Math.sin(hd) * os * 0.74), nav: null, heading: hd, id: pick.id, look: L, speed: w.speed, gy: w.gy, phase: Math.random() * 6.28, still: false, fade: 0, leaving: false, ampJit: 0.92 + Math.random() * 0.16, v: w.speed, buddy: w };
+      const i = crowd.alloc();
+      if (i < 0) return false;
+      const os = -w.nav.hand,
+        hd = w.heading;
+      const b = {
+        i,
+        pos: new THREE.Vector3(
+          w.pos.x + Math.cos(hd) * os * 0.74,
+          w.pos.y,
+          w.pos.z - Math.sin(hd) * os * 0.74,
+        ),
+        nav: null,
+        heading: hd,
+        id: pick.id,
+        look: L,
+        speed: w.speed,
+        gy: w.gy,
+        phase: Math.random() * 6.28,
+        still: false,
+        fade: 0,
+        leaving: false,
+        ampJit: 0.92 + Math.random() * 0.16,
+        v: w.speed,
+        buddy: w,
+      };
       crowd.setFade(i, 0);
       const FL = farLook(L, b.pos, false);
-      if (FAR_PEOPLE && game.npc?.cast?.farPerson && !FL.personId) { crowd.release(i); return false; }
+      if (FAR_PEOPLE && game.npc?.cast?.farPerson && !FL.personId) {
+        crowd.release(i);
+        return false;
+      }
       crowd.setLook(i, FL);
-      w.group = b.group = 'g' + (groupN++);
-      w.nav.lane = Math.min(w.nav.lane ?? 0.3, 0.3); w.nav.laneMax = 0.35; w.nav.laneG = w.nav.lane;
-      const g = gaitFor(b); crowd.setPose(i, POSE.walk, g.cadence, b.phase, g.amp); b.poseK = 'walk'; b.poseV = b.v;
+      w.group = b.group = 'g' + groupN++;
+      w.nav.lane = Math.min(w.nav.lane ?? 0.3, 0.3);
+      w.nav.laneMax = 0.35;
+      w.nav.laneG = w.nav.lane;
+      const g = gaitFor(b);
+      crowd.setPose(i, POSE.walk, g.cadence, b.phase, g.amp);
+      b.poseK = 'walk';
+      b.poseV = b.v;
       crowd.setTransform(i, b.pos.x, b.gy, b.pos.z, b.heading, L.height);
-      walkers.push(b); audit.crowdSpawned++; record('crowd|' + L.sig, pick.id.id); lifeStats.couples = (lifeStats.couples || 0) + 1;
+      walkers.push(b);
+      audit.crowdSpawned++;
+      record('crowd|' + L.sig, pick.id.id);
+      lifeStats.couples = (lifeStats.couples || 0) + 1;
       return true;
-    } catch (e) { return false; }
+    } catch (e) {
+      return false;
+    }
   }
   /** a small group talking on the sidewalk in front of a shop (2-4 people in a ring) */
   function spawnGroup(cam) {
@@ -523,7 +1087,11 @@ export async function initV2(game) {
       return 0;
     }
     const g = spots.group(q.x, q.z, 0, 30);
-    if (!g || Math.hypot(g.x - cam.x, g.z - cam.z) < crowdCfg.near + 6 || (NAV.spotOK && !NAV.spotOK(g.x, g.z))) {
+    if (
+      !g ||
+      Math.hypot(g.x - cam.x, g.z - cam.z) < crowdCfg.near + 6 ||
+      (NAV.spotOK && !NAV.spotOK(g.x, g.z))
+    ) {
       return 0;
     }
     spots.take(g.key);
@@ -536,13 +1104,23 @@ export async function initV2(game) {
     const h = hour();
     const night = h >= 21 || h < 3;
     // r7-groups: one theme per group (friends, seniors, workers, teens, family, business, night out); every member fits the first
-    const theme = pickTheme(zone, night, h), TH = GROUP_THEMES[theme];
+    const theme = pickTheme(zone, night, h),
+      TH = GROUP_THEMES[theme];
     g.n = Math.max(TH.n[0], Math.min(TH.n[1], g.n));
-    let made = 0, lead = null;
+    let made = 0,
+      lead = null;
     for (let m = 0; m < g.n; m++) {
-      const L0 = lead, slot = made, cand = L0 ? (p) => groupMate(theme, L0, p, slot) : TH.lead;
+      const L0 = lead,
+        slot = made,
+        cand = L0 ? (p) => groupMate(theme, L0, p, slot) : TH.lead;
       const pick = personForPlace({ zone: zk, district: districtAt(g.x, g.z), hour: h });
-      const L = makeLook(pick.id, { zone: zk, hour: h, weather: weather(), activity: 'talk', noCarry: true }, bodies, null, m);
+      const L = makeLook(
+        pick.id,
+        { zone: zk, hour: h, weather: weather(), activity: 'talk', noCarry: true },
+        bodies,
+        null,
+        m,
+      );
       if (!L) {
         continue;
       }
@@ -554,15 +1132,47 @@ export async function initV2(game) {
       const rad = (g.n <= 2 ? 0.62 : g.n === 3 ? 0.85 : 1.0) + Math.random() * 0.14 - 0.06;
       const x = g.x + Math.sin(a) * rad;
       const z = g.z + Math.cos(a) * rad;
-      if (walkGround(game, x, z) === 'road') { crowd.release(i); continue; }
-      const w = { i, pos: new THREE.Vector3(x, g.y, z), nav: null, heading: a + Math.PI, id: pick.id, look: L, speed: L.gait.speed, gy: g.y, phase: Math.random() * 6.28, still: true, fade: 0, leaving: false, ampJit: 1, groupKey: m === 0 ? g.key : null };
+      if (walkGround(game, x, z) === 'road') {
+        crowd.release(i);
+        continue;
+      }
+      const w = {
+        i,
+        pos: new THREE.Vector3(x, g.y, z),
+        nav: null,
+        heading: a + Math.PI,
+        id: pick.id,
+        look: L,
+        speed: L.gait.speed,
+        gy: g.y,
+        phase: Math.random() * 6.28,
+        still: true,
+        fade: 0,
+        leaving: false,
+        ampJit: 1,
+        groupKey: m === 0 ? g.key : null,
+      };
       crowd.setFade(i, 0);
       const FL = farLook(L, w.pos, w.still, cand);
-      if (game.npc?.cast?.farPerson && !FL.personId) { crowd.release(i); continue; }   // nobody of this group's kind loaded yet
+      if (game.npc?.cast?.farPerson && !FL.personId) {
+        crowd.release(i);
+        continue;
+      } // nobody of this group's kind loaded yet
       if (!lead) lead = L.personMeta || { years: 32, age: 'adult', look: 'casual' };
       crowd.setLook(i, FL);
       const roll = Math.random();
-      const pose = night && roll < 0.3 ? POSE.dance : roll < 0.62 ? POSE.talk : roll < 0.74 ? POSE.argue : roll < 0.86 ? POSE.sip : roll < 0.94 ? POSE.phone : POSE.film;
+      const pose =
+        night && roll < 0.3
+          ? POSE.dance
+          : roll < 0.62
+            ? POSE.talk
+            : roll < 0.74
+              ? POSE.argue
+              : roll < 0.86
+                ? POSE.sip
+                : roll < 0.94
+                  ? POSE.phone
+                  : POSE.film;
       w.pose = pose;
       crowd.setPose(i, pose, pose === POSE.dance ? 3 : 2.2, w.phase, 1);
       crowd.setTransform(i, x, g.y, z, w.heading, L.height);
@@ -616,12 +1226,15 @@ export async function initV2(game) {
         crowdPanic(o.x, o.z, 90);
       }
     });
-  } catch (e) { /* */ }
+  } catch (e) {
+    /* */
+  }
   // ---- avoidance grid (fixed arrays, no per-frame allocation)
   const GRID = 4096;
   const gHead = new Int32Array(GRID);
   const gNext = new Int32Array(1024);
-  const gCell = (x, z) => ((((Math.floor(x / 2.5) * 73856093) ^ (Math.floor(z / 2.5) * 19349663)) >>> 0) & (GRID - 1));
+  const gCell = (x, z) =>
+    (((Math.floor(x / 2.5) * 73856093) ^ (Math.floor(z / 2.5) * 19349663)) >>> 0) & (GRID - 1);
   function buildGrid() {
     gHead.fill(-1);
     const n = Math.min(walkers.length, gNext.length);
@@ -678,7 +1291,9 @@ export async function initV2(game) {
         crowd.setPose(w.i, Math.random() < 0.5 ? POSE.panic : POSE.run, 11, null, 1);
       }
       if (w.nav && w.threat) {
-        const away = (w.pos.x - w.threat.x) * Math.sin(w.heading) + (w.pos.z - w.threat.z) * Math.cos(w.heading);
+        const away =
+          (w.pos.x - w.threat.x) * Math.sin(w.heading) +
+          (w.pos.z - w.threat.z) * Math.cos(w.heading);
         if (away < 0 && !w.nav.cross) {
           w.nav.dir *= -1;
         }
@@ -713,7 +1328,8 @@ export async function initV2(game) {
         return true;
       }
       const hd = Math.atan2(dx, dz);
-      w.heading += Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, dt * 5);
+      w.heading +=
+        Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, dt * 5);
       w.pos.x += (dx / d) * w.speed * dt;
       w.pos.z += (dz / d) * w.speed * dt;
       crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
@@ -722,7 +1338,7 @@ export async function initV2(game) {
     const nc = w.nav?.cross;
     // walk signal: wait at the corner (standing, some on the phone) until the walk phase
     if (nc && nc.node !== undefined && !w.jog) {
-      if (((nc.sig || 0) - dt) <= 0) {
+      if ((nc.sig || 0) - dt <= 0) {
         nc.sig = 0.5;
         const ws = signals.walkState(nc.node, nc.x - w.pos.x, nc.z - w.pos.z);
         if (!ws || ws.walk) {
@@ -733,7 +1349,9 @@ export async function initV2(game) {
             crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp);
           }
         } else if (!w.waiting) {
-          w.waiting = true; w.v = 0; w.poseK = null;
+          w.waiting = true;
+          w.v = 0;
+          w.poseK = null;
           lifeStats.signalWaits++;
           crowd.setPose(w.i, Math.random() < 0.3 ? POSE.phone : POSE.stand, 1, null, 1);
         }
@@ -745,18 +1363,42 @@ export async function initV2(game) {
       }
     }
     // errands: now and then step into a shop the walker is passing
-    if ((w.act === 'errands' || w.act === 'stroll') && ((crowdFrame + n) % 90) === 0 && Math.random() < 0.25) {
+    if (
+      (w.act === 'errands' || w.act === 'stroll') &&
+      (crowdFrame + n) % 90 === 0 &&
+      Math.random() < 0.25
+    ) {
       const dr = spots.door(w.pos.x, w.pos.z, 0, 7);
-      if (dr && !w.buddy && !w.group && !w.nav?.path && walkGround(game, (dr.x + w.pos.x) / 2, (dr.z + w.pos.z) / 2) !== 'road' && walkGround(game, dr.x, dr.z) !== 'road') {
+      if (
+        dr &&
+        !w.buddy &&
+        !w.group &&
+        !w.nav?.path &&
+        walkGround(game, (dr.x + w.pos.x) / 2, (dr.z + w.pos.z) / 2) !== 'road' &&
+        walkGround(game, dr.x, dr.z) !== 'road'
+      ) {
         w.goal = dr;
         return true;
       }
     }
     // arrived at the door it was walking to: go in
     const dst = w.nav?.dest;
-    if (dst && !w.nav.path && ((crowdFrame + n) % 30) === 0 && Math.hypot(dst.x - w.pos.x, dst.z - w.pos.z) < 8) {
+    if (
+      dst &&
+      !w.nav.path &&
+      (crowdFrame + n) % 30 === 0 &&
+      Math.hypot(dst.x - w.pos.x, dst.z - w.pos.z) < 8
+    ) {
       w.nav.dest = null;
-      if (!w.buddy && !w.group && walkGround(game, (dst.x + w.pos.x) / 2, (dst.z + w.pos.z) / 2) !== 'road' && walkGround(game, dst.x, dst.z) !== 'road') { w.goal = dst; return true; }
+      if (
+        !w.buddy &&
+        !w.group &&
+        walkGround(game, (dst.x + w.pos.x) / 2, (dst.z + w.pos.z) / 2) !== 'road' &&
+        walkGround(game, dst.x, dst.z) !== 'road'
+      ) {
+        w.goal = dst;
+        return true;
+      }
     }
     // (avoidance: the shared spatial hash in updateCrowd, src/npc/walk.js)
     if (!(w.panicT > 0)) w.curSpeed = w.baseSpeed ?? w.speed;
@@ -771,7 +1413,8 @@ export async function initV2(game) {
   }
   function updateCrowd(dt) {
     if (!crowd || !NAV) return;
-    const cam = game.camera?.position; if (!cam) return;
+    const cam = game.camera?.position;
+    if (!cam) return;
     game.camera.updateMatrixWorld();
     _pm.multiplyMatrices(game.camera.projectionMatrix, game.camera.matrixWorldInverse);
     _frus.setFromProjectionMatrix(_pm);
@@ -781,8 +1424,17 @@ export async function initV2(game) {
     // a frame-rate dip no longer wipes out most of the crowd at once (that read as mass pop-out)
     void fps;
     const gk = governor.update(dt);
-    const want = !crowdCfg.enabled ? 0 : Math.round(crowdCfg.target * clamp(dens / 0.6, 0.08, 1.15) * clamp(districtWeight(cam.x, cam.z), 0.15, 1.6) * gk);
-    const camZone = NAV.zoneAt(cam.x, cam.z), beachy = camZone === 'beach' || camZone === 'water' || /beach/i.test(districtAt(cam.x, cam.z));
+    const want = !crowdCfg.enabled
+      ? 0
+      : Math.round(
+          crowdCfg.target *
+            clamp(dens / 0.6, 0.08, 1.15) *
+            clamp(districtWeight(cam.x, cam.z), 0.15, 1.6) *
+            gk,
+        );
+    const camZone = NAV.zoneAt(cam.x, cam.z),
+      beachy =
+        camZone === 'beach' || camZone === 'water' || /beach/i.test(districtAt(cam.x, cam.z));
     let staying = 0;
     for (const w of walkers) {
       if (!w.leaving) {
@@ -809,7 +1461,10 @@ export async function initV2(game) {
       const seen = inViewXZ(w.pos.x, w.gy + 1, w.pos.z);
       // rain: people on the sand pack up and leave (out of view, or once they are not close)
       if (!w.leaving && w.lounger && wetNow && (!seen || d > 35)) w.leaving = true;
-      if (!w.leaving && ((tooNear && !seen) || d > crowdCfg.far + 10 || (excess > 0 && !(d < 60 && seen)))) {
+      if (
+        !w.leaving &&
+        ((tooNear && !seen) || d > crowdCfg.far + 10 || (excess > 0 && !(d < 60 && seen)))
+      ) {
         if (excess > 0) {
           excess--;
         }
@@ -817,34 +1472,71 @@ export async function initV2(game) {
       }
       const fadeTo = w.leaving ? 0 : 1;
       if (w.fade !== fadeTo) {
-        w.fade = fadeTo > w.fade ? Math.min(1, w.fade + dt * crowdCfg.fadeRate) : Math.max(0, w.fade - dt * crowdCfg.fadeRate);
+        w.fade =
+          fadeTo > w.fade
+            ? Math.min(1, w.fade + dt * crowdCfg.fadeRate)
+            : Math.max(0, w.fade - dt * crowdCfg.fadeRate);
         crowd.setFade(w.i, w.fade);
       }
       if (w.leaving && w.fade <= 0) {
         spots.free(w.spotKey);
         spots.free(w.groupKey);
-        crowd.release(w.i); w.gone = true;
-        if (w.towel) { game.scene.remove(w.towel); w.towel.traverse((o) => { if (o.isMesh) o.geometry?.dispose?.(); }); towelN--; }
+        crowd.release(w.i);
+        w.gone = true;
+        if (w.towel) {
+          game.scene.remove(w.towel);
+          w.towel.traverse((o) => {
+            if (o.isMesh) o.geometry?.dispose?.();
+          });
+          towelN--;
+        }
         walkers.splice(n, 1);
         continue;
       }
       if (w.still) continue;
       // r2-perf: walkers beyond 60 m step at half rate (the GPU animation is time-based; 30 Hz positions are invisible there)
       let sdt = dt;
-      if (d > 60) { if (((crowdFrame + w.i) & 1) === 1) { w._acc = (w._acc || 0) + dt; continue; } sdt = dt + (w._acc || 0); w._acc = 0; } else if (w._acc) { sdt = dt + w._acc; w._acc = 0; }
+      if (d > 60) {
+        if (((crowdFrame + w.i) & 1) === 1) {
+          w._acc = (w._acc || 0) + dt;
+          continue;
+        }
+        sdt = dt + (w._acc || 0);
+        w._acc = 0;
+      } else if (w._acc) {
+        sdt = dt + w._acc;
+        w._acc = 0;
+      }
       if (lifeStep(w, n, sdt)) continue;
       if (w.shore) {
         let sv = w.speed;
-        if (SPACE && w.ag) { const st = SPACE.steer(w.ag, w.pos.x, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), w.v || 0); sv *= st.slow; w.heading -= st.side * sdt * 0.7; }
+        if (SPACE && w.ag) {
+          const st = SPACE.steer(
+            w.ag,
+            w.pos.x,
+            w.pos.z,
+            Math.sin(w.heading),
+            Math.cos(w.heading),
+            w.v || 0,
+          );
+          sv *= st.slow;
+          w.heading -= st.side * sdt * 0.7;
+        }
         w.v = (w.v ?? sv) + (sv - (w.v ?? sv)) * Math.min(1, sdt * 3);
-        if (Math.abs(w.v - (w.poseV ?? w.speed)) > 0.06) { w.poseV = w.v; const g = gaitFor(w, Math.max(0.05, w.v)); crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp); }
+        if (Math.abs(w.v - (w.poseV ?? w.speed)) > 0.06) {
+          w.poseV = w.v;
+          const g = gaitFor(w, Math.max(0.05, w.v));
+          crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp);
+        }
         w.pos.x += Math.sin(w.heading) * w.v * sdt;
         w.pos.z += Math.cos(w.heading) * w.v * sdt;
         w.turnT = (w.turnT || 0) - sdt;
         if (w.turnT <= 0) {
           w.turnT = 1;
-          const ax = w.pos.x + Math.sin(w.heading) * 3, az = w.pos.z + Math.cos(w.heading) * 3;
-          if (game.city?.isWater?.(ax, az) || NAV.zoneAt(ax, az) !== 'beach') w.heading += Math.PI * (0.8 + Math.random() * 0.4);
+          const ax = w.pos.x + Math.sin(w.heading) * 3,
+            az = w.pos.z + Math.cos(w.heading) * 3;
+          if (game.city?.isWater?.(ax, az) || NAV.zoneAt(ax, az) !== 'beach')
+            w.heading += Math.PI * (0.8 + Math.random() * 0.4);
           w.gy = NAV.groundAt(w.pos.x, w.pos.z, w.gy);
         }
         crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
@@ -856,42 +1548,120 @@ export async function initV2(game) {
         // companions beside their leader, and a walk cycle that follows the real speed (no sliding feet)
         const calm = !w.jog && !(w.panicT > 0);
         const base = w.curSpeed ?? w.speed;
-        let tgt = base * (calm ? 1 + 0.07 * Math.sin(tNow * 0.21 + w.phase) : 1) * (calm && w.nav?.cross ? 1.25 : 1);
+        let tgt =
+          base *
+          (calm ? 1 + 0.07 * Math.sin(tNow * 0.21 + w.phase) : 1) *
+          (calm && w.nav?.cross ? 1.25 : 1);
         if (w.buddy) {
           const Ld = w.buddy;
-          if (Ld.gone || Ld.leaving || Ld.still || Ld.goal || Ld.panicT > 0 || !Ld.nav || Math.hypot(Ld.pos.x - w.pos.x, Ld.pos.z - w.pos.z) > 9) {
-            w.buddy = null; w.group = 0; Ld.group = 0; if (Ld.nav) Ld.nav.laneMax = 1;
-            w.nav = NAV.navFromPos(w); if (!w.nav) { w.leaving = true; continue; }
+          if (
+            Ld.gone ||
+            Ld.leaving ||
+            Ld.still ||
+            Ld.goal ||
+            Ld.panicT > 0 ||
+            !Ld.nav ||
+            Math.hypot(Ld.pos.x - w.pos.x, Ld.pos.z - w.pos.z) > 9
+          ) {
+            w.buddy = null;
+            w.group = 0;
+            Ld.group = 0;
+            if (Ld.nav) Ld.nav.laneMax = 1;
+            w.nav = NAV.navFromPos(w);
+            if (!w.nav) {
+              w.leaving = true;
+              continue;
+            }
           } else {
-            const ah = (Ld.pos.x - w.pos.x) * Math.sin(Ld.heading) + (Ld.pos.z - w.pos.z) * Math.cos(Ld.heading);
+            const ah =
+              (Ld.pos.x - w.pos.x) * Math.sin(Ld.heading) +
+              (Ld.pos.z - w.pos.z) * Math.cos(Ld.heading);
             tgt = Math.max(0, (Ld.v || 0) * (1 + clamp(ah * 0.5, -0.3, 0.4)));
           }
-        } else if (w.pauseT > 0) { w.pauseT -= sdt; tgt = 0; }
-        else if (calm && !w.group && !w.nav?.path && Math.random() < sdt / 55) { w.pauseT = 3 + Math.random() * 6; w.pausePose = Math.random() < 0.6 ? POSE.phone : POSE.stand; }
+        } else if (w.pauseT > 0) {
+          w.pauseT -= sdt;
+          tgt = 0;
+        } else if (calm && !w.group && !w.nav?.path && Math.random() < sdt / 55) {
+          w.pauseT = 3 + Math.random() * 6;
+          w.pausePose = Math.random() < 0.6 ? POSE.phone : POSE.stand;
+        }
         if (SPACE && w.ag) {
-          const st = SPACE.steer(w.ag, w.pos.x, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), w.v || 0);
-          const cyS = w.nav && !w.buddy ? carYield(w, w.nav, w.pos.x, w.pos.z, sdt) : 0; if (cyS) tgt *= w._cySlow;
-          if (w.nav) w.nav.steer = cyS || st.side || ((w.v || 0) > 0.2 && Math.abs(w.pos.x - cam.x) < 70 && Math.abs(w.pos.z - cam.z) < 70 ? obstacleSteer(game, w, w.pos.x, w.gy, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), sdt) : 0);   // r7-walk: around trunks / poles
+          const st = SPACE.steer(
+            w.ag,
+            w.pos.x,
+            w.pos.z,
+            Math.sin(w.heading),
+            Math.cos(w.heading),
+            w.v || 0,
+          );
+          const cyS = w.nav && !w.buddy ? carYield(w, w.nav, w.pos.x, w.pos.z, sdt) : 0;
+          if (cyS) tgt *= w._cySlow;
+          if (w.nav)
+            w.nav.steer =
+              cyS ||
+              st.side ||
+              ((w.v || 0) > 0.2 && Math.abs(w.pos.x - cam.x) < 70 && Math.abs(w.pos.z - cam.z) < 70
+                ? obstacleSteer(
+                    game,
+                    w,
+                    w.pos.x,
+                    w.gy,
+                    w.pos.z,
+                    Math.sin(w.heading),
+                    Math.cos(w.heading),
+                    sdt,
+                  )
+                : 0); // r7-walk: around trunks / poles
           tgt *= st.slow;
-          if (st.block) { w.v = 0; w.blockT = (w.blockT || 0) + sdt; if (w.blockT > 4 && w.nav && !w.nav.path && !w.buddy) { w.nav.dir *= -1; w.nav.sbE = null; w.blockT = 0; } } else w.blockT = 0;
+          if (st.block) {
+            w.v = 0;
+            w.blockT = (w.blockT || 0) + sdt;
+            if (w.blockT > 4 && w.nav && !w.nav.path && !w.buddy) {
+              w.nav.dir *= -1;
+              w.nav.sbE = null;
+              w.blockT = 0;
+            }
+          } else w.blockT = 0;
         }
         const v0 = w.v ?? base;
         w.v = v0 + (tgt - v0) * Math.min(1, sdt * (tgt < v0 ? 4 : 1.8));
         if (calm) {
-          if (w.v < 0.16) { if (w.poseK !== 'idle') { w.poseK = 'idle'; crowd.setPose(w.i, w.pauseT > 0 ? w.pausePose : POSE.stand, 1, null, 1); } }
-          else if (w.poseK !== 'walk' || Math.abs(w.v - w.poseV) > 0.06) { w.poseK = 'walk'; w.poseV = w.v; const g = gaitFor(w, w.v); crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp); }
+          if (w.v < 0.16) {
+            if (w.poseK !== 'idle') {
+              w.poseK = 'idle';
+              crowd.setPose(w.i, w.pauseT > 0 ? w.pausePose : POSE.stand, 1, null, 1);
+            }
+          } else if (w.poseK !== 'walk' || Math.abs(w.v - w.poseV) > 0.06) {
+            w.poseK = 'walk';
+            w.poseV = w.v;
+            const g = gaitFor(w, w.v);
+            crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp);
+          }
         } else w.poseK = null;
         let hd;
         if (w.buddy) {
-          const Ld = w.buddy, h = Ld.heading, os = Ld.nav ? -Ld.nav.hand : 1;
+          const Ld = w.buddy,
+            h = Ld.heading,
+            os = Ld.nav ? -Ld.nav.hand : 1;
           const wide = Ld.nav.path || !NAV.laneRoom || NAV.laneRoom(Ld.nav) > 0.7;
-          const tx = wide ? Ld.pos.x + Math.cos(h) * os * 0.74 : Ld.pos.x - Math.sin(h) * 0.9, tz = wide ? Ld.pos.z - Math.sin(h) * os * 0.74 : Ld.pos.z - Math.cos(h) * 0.9;
-          const dx = tx - w.pos.x, dz = tz - w.pos.z, d = Math.hypot(dx, dz), k = d > 1e-4 ? Math.min(d * Math.min(1, sdt * 2.5), 1.2 * sdt) / d : 0;
-          w.pos.x += Math.sin(h) * w.v * sdt + dx * k; w.pos.z += Math.cos(h) * w.v * sdt + dz * k;
+          const tx = wide ? Ld.pos.x + Math.cos(h) * os * 0.74 : Ld.pos.x - Math.sin(h) * 0.9,
+            tz = wide ? Ld.pos.z - Math.sin(h) * os * 0.74 : Ld.pos.z - Math.cos(h) * 0.9;
+          const dx = tx - w.pos.x,
+            dz = tz - w.pos.z,
+            d = Math.hypot(dx, dz),
+            k = d > 1e-4 ? Math.min(d * Math.min(1, sdt * 2.5), 1.2 * sdt) / d : 0;
+          w.pos.x += Math.sin(h) * w.v * sdt + dx * k;
+          w.pos.z += Math.cos(h) * w.v * sdt + dz * k;
           hd = h;
         } else hd = NAV.navStep(w, sdt, w.v);
-        w.heading += Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, sdt * 5);
-      } catch (e) { w.gone = true; crowd.release(w.i); walkers.splice(n, 1); continue; }
+        w.heading +=
+          Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, sdt * 5);
+      } catch (e) {
+        w.gone = true;
+        crowd.release(w.i);
+        walkers.splice(n, 1);
+        continue;
+      }
       if (((crowdFrame + n) & 7) === 0) w.gy = NAV.groundAt(w.pos.x, w.pos.z, w.gy);
       crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
     }
@@ -902,100 +1672,356 @@ export async function initV2(game) {
   const barPeople = [];
   let barT = 0;
   function populateBar() {
-    const bar = game.keysBar; if (!bar?.anchors || !peds.spawnAt) return;
-    const list = bar.anchors.staff.concat(bar.anchors.patrons.filter((a) => !/^(dance|chat|rail[01])/.test(a.id || '')));
+    const bar = game.keysBar;
+    if (!bar?.anchors || !peds.spawnAt) return;
+    const list = bar.anchors.staff.concat(
+      bar.anchors.patrons.filter((a) => !/^(dance|chat|rail[01])/.test(a.id || '')),
+    );
     for (const a of list) {
-      const p = peds.spawnAt(new THREE.Vector3(a.pos[0], a.pos[1], a.pos[2]), { heading: a.heading });
+      const p = peds.spawnAt(new THREE.Vector3(a.pos[0], a.pos[1], a.pos[2]), {
+        heading: a.heading,
+      });
       if (!p) continue;
       const pose = String(a.pose || '');
-      p.nav = null; p.target = null; p.heading = a.heading || 0; p.pinned = 1e9; p.venue = 'keys_bar'; p.barAnchor = a;
-      p.pos.set(a.pos[0], a.pos[1], a.pos[2]); p.groundY = a.pos[1];
-      if (/sit|stool|chair|booth|bench/.test(pose)) { p.state = 'bench'; p.act = 'bench'; p.idleStyle = 'sitBench'; }
-      else if (a.role) { p.state = 'lean'; p.act = 'lean'; p.idleStyle = a.role === 'bartender' ? 'talk' : null; }
-      else { p.state = 'talk'; p.act = 'talk'; p.idleStyle = /drink/.test(pose) ? 'phone' : 'talk'; p.styleT = 1e9; }
+      p.nav = null;
+      p.target = null;
+      p.heading = a.heading || 0;
+      p.pinned = 1e9;
+      p.venue = 'keys_bar';
+      p.barAnchor = a;
+      p.pos.set(a.pos[0], a.pos[1], a.pos[2]);
+      p.groundY = a.pos[1];
+      if (/sit|stool|chair|booth|bench/.test(pose)) {
+        p.state = 'bench';
+        p.act = 'bench';
+        p.idleStyle = 'sitBench';
+      } else if (a.role) {
+        p.state = 'lean';
+        p.act = 'lean';
+        p.idleStyle = a.role === 'bartender' ? 'talk' : null;
+      } else {
+        p.state = 'talk';
+        p.act = 'talk';
+        p.idleStyle = /drink/.test(pose) ? 'phone' : 'talk';
+        p.styleT = 1e9;
+      }
       p.stateT = 1e9;
       p.collider?.setEnabled(false);
       barPeople.push(p);
     }
   }
   function updateBar(dt) {
-    barT -= dt; if (barT > 0) return; barT = 2;
-    const bar = game.keysBar, P = game.player?.position; if (!bar?.position || !P) return;
+    barT -= dt;
+    if (barT > 0) return;
+    barT = 2;
+    const bar = game.keysBar,
+      P = game.player?.position;
+    if (!bar?.position || !P) return;
     const d = P.distanceTo(bar.position);
     const alive = barPeople.filter((p) => p.active && p.venue === 'keys_bar').length;
-    if (d < 150 && alive < 3) { barPeople.length = 0; populateBar(); }
+    if (d < 150 && alive < 3) {
+      barPeople.length = 0;
+      populateBar();
+    }
   }
-  try { game.on?.('keysBar:ready', () => { barT = 0; }); } catch (e) { /* */ }
+  try {
+    game.on?.('keysBar:ready', () => {
+      barT = 0;
+    });
+  } catch (e) {
+    /* */
+  }
 
   // ---------------------------------------------------------------- per-frame
   game.updaters?.push?.((dt) => {
-    try { sense(dt); } catch (e) { /* never break the frame */ }
-    try { updateCrowd(Math.min(dt, 0.1)); } catch (e) { console.warn('[people] crowd', e); }
-    try { walkAuditStep(dt); } catch (e) { /* */ }
-    try { updateBubbles(); } catch (e) { /* */ }
-    try { updateBar(dt); } catch (e) { console.warn('[people] bar', e); }
-    try { game.people?.talk?.update(dt); } catch (e) { console.warn('[people] talk', e); }
-    try { for (const p of peds.list) if (p.active && p.applied && p.root?.visible && p.applied.props.length) settleHanging(p.applied, p.root); } catch (e) { /* */ }
+    try {
+      sense(dt);
+    } catch (e) {
+      /* never break the frame */
+    }
+    try {
+      updateCrowd(Math.min(dt, 0.1));
+    } catch (e) {
+      console.warn('[people] crowd', e);
+    }
+    try {
+      walkAuditStep(dt);
+    } catch (e) {
+      /* */
+    }
+    try {
+      updateBubbles();
+    } catch (e) {
+      /* */
+    }
+    try {
+      updateBar(dt);
+    } catch (e) {
+      console.warn('[people] bar', e);
+    }
+    try {
+      game.people?.talk?.update(dt);
+    } catch (e) {
+      console.warn('[people] talk', e);
+    }
+    try {
+      for (const p of peds.list)
+        if (p.active && p.applied && p.root?.visible && p.applied.props.length)
+          settleHanging(p.applied, p.root);
+    } catch (e) {
+      /* */
+    }
     for (const [p] of roster) if (!p.active) roster.delete(p);
   });
 
   // ---------------------------------------------------------------- r6-walk audit: where walkers spend their time
   // game.people.walkAudit.start() ... .stop() -> share of walking time on carriageways outside crossings, in open fields
   // away from paths, and overlapping pairs (closer than 0.5 m, not walking together) per second
-  const WA = { on: false, f: 0, acc: 0, T: 0, road: 0, cross: 0, field: 0, n: 0, maxN: 0, samples: 0, pairs: 0, secs: 0, bad: [] };
+  const WA = {
+    on: false,
+    f: 0,
+    acc: 0,
+    T: 0,
+    road: 0,
+    cross: 0,
+    field: 0,
+    n: 0,
+    maxN: 0,
+    samples: 0,
+    pairs: 0,
+    secs: 0,
+    bad: [],
+  };
   function walkAuditStep(dt) {
     if (!WA.on) return;
-    WA.acc += dt; WA.secs += dt; if ((++WA.f & 3) !== 0) return;
-    const d = WA.acc; WA.acc = 0; let n = 0;
+    WA.acc += dt;
+    WA.secs += dt;
+    if ((++WA.f & 3) !== 0) return;
+    const d = WA.acc;
+    WA.acc = 0;
+    let n = 0;
     const one = (x, z, nav, tier, mode) => {
-      n++; WA.T += d;
+      n++;
+      WA.T += d;
       const g = walkGround(game, x, z);
-      if (g === 'road') { if (nav?.cross) WA.cross += d; else { WA.road += d; if (WA.bad.length < 40 && Math.random() < 0.1) WA.bad.push({ k: 'road', tier, mode, x: Math.round(x), z: Math.round(z), kind: nav?.edge?.kind, w: nav?.edge?.width, sw: nav?.edge?.sidewalk, off: nav?.offNow && Math.round(nav.offNow * 10) / 10, path: !!nav?.path }); } }
-      else if (g === 'field') { WA.field += d; if (WA.bad.length < 40 && Math.random() < 0.1) WA.bad.push({ k: 'field', tier, mode, x: Math.round(x), z: Math.round(z), kind: nav?.edge?.kind, path: !!nav?.path }); }
+      if (g === 'road') {
+        if (nav?.cross) WA.cross += d;
+        else {
+          WA.road += d;
+          if (WA.bad.length < 40 && Math.random() < 0.1)
+            WA.bad.push({
+              k: 'road',
+              tier,
+              mode,
+              x: Math.round(x),
+              z: Math.round(z),
+              kind: nav?.edge?.kind,
+              w: nav?.edge?.width,
+              sw: nav?.edge?.sidewalk,
+              off: nav?.offNow && Math.round(nav.offNow * 10) / 10,
+              path: !!nav?.path,
+            });
+        }
+      } else if (g === 'field') {
+        WA.field += d;
+        if (WA.bad.length < 40 && Math.random() < 0.1)
+          WA.bad.push({
+            k: 'field',
+            tier,
+            mode,
+            x: Math.round(x),
+            z: Math.round(z),
+            kind: nav?.edge?.kind,
+            path: !!nav?.path,
+          });
+      }
     };
-    for (const w of walkers) { if (w.still || w.leaving || w.lounger) continue; one(w.pos.x, w.pos.z, w.buddy ? w.buddy.nav : w.nav, 'crowd', w.shore ? 'shore' : w.buddy ? 'buddy' : w.goal ? 'goal' : w.exitT > 0 ? 'exit' : 'nav'); }
-    for (const p of peds.list) { if (!p.active || p.dead || p.state !== 'walk' || p.venue) continue; one(p.pos.x, p.pos.z, p.follow ? p.follow.nav : p.nav, 'near', p.follow ? 'follow' : p.nav ? 'nav' : p.act); }
-    WA.n += n; WA.maxN = Math.max(WA.maxN, n); WA.samples++;
+    for (const w of walkers) {
+      if (w.still || w.leaving || w.lounger) continue;
+      one(
+        w.pos.x,
+        w.pos.z,
+        w.buddy ? w.buddy.nav : w.nav,
+        'crowd',
+        w.shore ? 'shore' : w.buddy ? 'buddy' : w.goal ? 'goal' : w.exitT > 0 ? 'exit' : 'nav',
+      );
+    }
+    for (const p of peds.list) {
+      if (!p.active || p.dead || p.state !== 'walk' || p.venue) continue;
+      one(
+        p.pos.x,
+        p.pos.z,
+        p.follow ? p.follow.nav : p.nav,
+        'near',
+        p.follow ? 'follow' : p.nav ? 'nav' : p.act,
+      );
+    }
+    WA.n += n;
+    WA.maxN = Math.max(WA.maxN, n);
+    WA.samples++;
     if (SPACE) WA.pairs += SPACE.overlaps(0.5);
   }
   const walkAudit = {
-    start() { Object.assign(WA, { on: true, f: 0, acc: 0, T: 0, road: 0, cross: 0, field: 0, n: 0, maxN: 0, samples: 0, pairs: 0, secs: 0, bad: [] }); },
+    start() {
+      Object.assign(WA, {
+        on: true,
+        f: 0,
+        acc: 0,
+        T: 0,
+        road: 0,
+        cross: 0,
+        field: 0,
+        n: 0,
+        maxN: 0,
+        samples: 0,
+        pairs: 0,
+        secs: 0,
+        bad: [],
+      });
+    },
     stop() {
-      WA.on = false; const pc = (v) => Math.round((v / Math.max(WA.T, 1e-6)) * 10000) / 100;
-      return { seconds: Math.round(WA.secs * 10) / 10, walkersAvg: Math.round(WA.n / Math.max(1, WA.samples)), walkersMax: WA.maxN, roadPct: pc(WA.road), crossingPct: pc(WA.cross), fieldPct: pc(WA.field),
-        overlapPairsAvg: Math.round((WA.pairs / Math.max(1, WA.samples)) * 1000) / 1000, bad: WA.bad };
+      WA.on = false;
+      const pc = (v) => Math.round((v / Math.max(WA.T, 1e-6)) * 10000) / 100;
+      return {
+        seconds: Math.round(WA.secs * 10) / 10,
+        walkersAvg: Math.round(WA.n / Math.max(1, WA.samples)),
+        walkersMax: WA.maxN,
+        roadPct: pc(WA.road),
+        crossingPct: pc(WA.cross),
+        fieldPct: pc(WA.field),
+        overlapPairsAvg: Math.round((WA.pairs / Math.max(1, WA.samples)) * 1000) / 1000,
+        bad: WA.bad,
+      };
     },
   };
   // ---------------------------------------------------------------- API
   game.people = {
     walkAudit,
-    dress, undress, react, callDone, say, voiceLine, honk, bubble,
-    barPeople: () => barPeople.filter((p) => p.active).map((p) => ({ name: p.identity?.name, job: p.identity?.job, state: p.state, anchor: p.barAnchor?.id })),
-    densityFor: (x, z) => streetDensity(zoneKey(NAV?.zoneAt?.(x, z) || 'residential'), districtAt(x, z), hour()),
+    dress,
+    undress,
+    react,
+    callDone,
+    say,
+    voiceLine,
+    honk,
+    bubble,
+    barPeople: () =>
+      barPeople
+        .filter((p) => p.active)
+        .map((p) => ({
+          name: p.identity?.name,
+          job: p.identity?.job,
+          state: p.state,
+          anchor: p.barAnchor?.id,
+        })),
+    densityFor: (x, z) =>
+      streetDensity(zoneKey(NAV?.zoneAt?.(x, z) || 'residential'), districtAt(x, z), hour()),
     sample: (zone, district, h) => sampleSchedule(zone, district, h),
-    audit: () => ({ spawned: audit.spawned, crowdSpawned: audit.crowdSpawned, total: audit.spawned + audit.crowdSpawned, distinct: audit.sigs.size, dup: audit.dup, dupInView: audit.dupInView, lookFailed: audit.lookFailed, applyFailed: audit.applyFailed, dupList: audit.dupList.slice(), look: lookAudit(), bodies: { ...bodyStatus, loaded: loadedBodies().length } }),
+    audit: () => ({
+      spawned: audit.spawned,
+      crowdSpawned: audit.crowdSpawned,
+      total: audit.spawned + audit.crowdSpawned,
+      distinct: audit.sigs.size,
+      dup: audit.dup,
+      dupInView: audit.dupInView,
+      lookFailed: audit.lookFailed,
+      applyFailed: audit.applyFailed,
+      dupList: audit.dupList.slice(),
+      look: lookAudit(),
+      bodies: { ...bodyStatus, loaded: loadedBodies().length },
+    }),
     reactStats: () => JSON.parse(JSON.stringify(reactStats)),
-    resetReactStats: () => { for (const k in reactStats) delete reactStats[k]; },
+    resetReactStats: () => {
+      for (const k in reactStats) delete reactStats[k];
+    },
     witnesses: () => witnessLog.slice(),
-    lines: () => lineLog.slice(), lineCount,
-    roster: () => [...roster.values()].map((id) => ({ name: id.name, age: id.age, job: id.job, home: id.districtKey, voice: id.voice, traits: Object.fromEntries(Object.entries(id.traits).map(([k, v]) => [k, Math.round(v * 100) / 100])) })),
-    life: { stats: () => ({ ...lifeStats }), governor: () => ({ k: governor.k, avgMs: governor.avgMs }), panic: crowdPanic, walkState: signals.walkState },
-    crowd: { cfg: crowdCfg, get impl() { return crowd; },
+    lines: () => lineLog.slice(),
+    lineCount,
+    roster: () =>
+      [...roster.values()].map((id) => ({
+        name: id.name,
+        age: id.age,
+        job: id.job,
+        home: id.districtKey,
+        voice: id.voice,
+        traits: Object.fromEntries(
+          Object.entries(id.traits).map(([k, v]) => [k, Math.round(v * 100) / 100]),
+        ),
+      })),
+    life: {
+      stats: () => ({ ...lifeStats }),
+      governor: () => ({ k: governor.k, avgMs: governor.avgMs }),
+      panic: crowdPanic,
+      walkState: signals.walkState,
+    },
+    crowd: {
+      cfg: crowdCfg,
+      get impl() {
+        return crowd;
+      },
       // user (Nov 18): cars drove straight through crowd-tier people. hitAt removes the crowd walker inside the disk at once and
       // returns where it stood, so the car code can put a full person there and knock it down (vehicles.js hitPeds)
-      hitAt(x, z, r = 1.2) { for (let n = walkers.length - 1; n >= 0; n--) { const w = walkers[n]; if (Math.hypot(w.pos.x - x, w.pos.z - z) > r) continue;
-        try { spots.free(w.spotKey); spots.free(w.groupKey); crowd.release(w.i); if (w.towel) { game.scene.remove(w.towel); w.towel.traverse((o) => { if (o.isMesh) o.geometry?.dispose?.(); }); towelN--; } } catch (e) { /* */ }
-        w.gone = true; walkers.splice(n, 1); return { x: w.pos.x, y: w.gy ?? 0, z: w.pos.z, heading: w.heading || 0 }; } return null; }, get count() { return walkers.length; }, get list() { return walkers; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]), persons: () => walkers.map((w) => [w.look?.personId || null, w.pos.x, w.pos.z, !!w.lounger, !!w.leaving]) },
+      hitAt(x, z, r = 1.2) {
+        for (let n = walkers.length - 1; n >= 0; n--) {
+          const w = walkers[n];
+          if (Math.hypot(w.pos.x - x, w.pos.z - z) > r) continue;
+          try {
+            spots.free(w.spotKey);
+            spots.free(w.groupKey);
+            crowd.release(w.i);
+            if (w.towel) {
+              game.scene.remove(w.towel);
+              w.towel.traverse((o) => {
+                if (o.isMesh) o.geometry?.dispose?.();
+              });
+              towelN--;
+            }
+          } catch (e) {
+            /* */
+          }
+          w.gone = true;
+          walkers.splice(n, 1);
+          return { x: w.pos.x, y: w.gy ?? 0, z: w.pos.z, heading: w.heading || 0 };
+        }
+        return null;
+      },
+      get count() {
+        return walkers.length;
+      },
+      get list() {
+        return walkers;
+      },
+      get tris() {
+        return crowd?.tris || 0;
+      },
+      positions: () => walkers.map((w) => [w.pos.x, w.pos.z]),
+      persons: () =>
+        walkers.map((w) => [w.look?.personId || null, w.pos.x, w.pos.z, !!w.lounger, !!w.leaving]),
+    },
     sigList: () => [...audit.sigs.keys()],
-    inView() { // people inside the camera frustum (near tier + crowd tier)
-      const cam = game.camera; if (!cam) return null; cam.updateMatrixWorld();
-      const fr = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
-      const v = new THREE.Vector3(); let near = 0, far = 0;
-      for (const p of peds.list) if (p.active && p.root?.visible && fr.containsPoint(v.set(p.pos.x, p.pos.y + 1, p.pos.z))) near++;
+    inView() {
+      // people inside the camera frustum (near tier + crowd tier)
+      const cam = game.camera;
+      if (!cam) return null;
+      cam.updateMatrixWorld();
+      const fr = new THREE.Frustum().setFromProjectionMatrix(
+        new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse),
+      );
+      const v = new THREE.Vector3();
+      let near = 0,
+        far = 0;
+      for (const p of peds.list)
+        if (p.active && p.root?.visible && fr.containsPoint(v.set(p.pos.x, p.pos.y + 1, p.pos.z)))
+          near++;
       for (const w of walkers) if (fr.containsPoint(v.set(w.pos.x, w.gy + 1, w.pos.z))) far++;
       return { near, far, total: near + far };
     },
-    activityAt, districtKey,
+    activityAt,
+    districtKey,
   };
-  try { game.people.talk = createTalk(game, game.people); } catch (e) { console.warn('[people] talk', e); }
+  try {
+    game.people.talk = createTalk(game, game.people);
+  } catch (e) {
+    console.warn('[people] talk', e);
+  }
 }

@@ -6,10 +6,19 @@
 // Views are in Nico's house local frame (house:) or world coordinates (world:). Add more in VIEWS below.
 import fs from 'node:fs';
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
-const a = process.argv.slice(2), o = {};
-for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
-const TAG = o.tag || 'run', D = 'docs/v2/shots/render', W = +(o.w || 1600), H = +(o.h || 900);
-fs.mkdirSync(D, { recursive: true }); fs.mkdirSync('docs/v2/reports', { recursive: true });
+const a = process.argv.slice(2),
+  o = {};
+for (let i = 0; i < a.length; i++)
+  if (a[i].startsWith('--')) {
+    const k = a[i].slice(2);
+    o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true;
+  }
+const TAG = o.tag || 'run',
+  D = 'docs/v2/shots/render',
+  W = +(o.w || 1600),
+  H = +(o.h || 900);
+fs.mkdirSync(D, { recursive: true });
+fs.mkdirSync('docs/v2/reports', { recursive: true });
 // eye / target relative to the player spawn (sp), or in the house group frame (house)
 const VIEWS = {
   spawn_fwd: { rel: 'player', eye: [0, 1.7, 0], look: 'fwd' },
@@ -30,11 +39,17 @@ await withBrowser({ width: W, height: H, maxSeconds: +(o.max || 900) }, async (b
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   await startGame(b);
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = ${+(o.hour || 11)}; game.lookAEInstant = true; const st = document.createElement('style'); st.textContent = '#ps-hud,#hud,#minimap,#radar,.ps-toast,[class*=toast],[class*=notif]{display:none!important}'; document.head.appendChild(st); return 1; })()`);
+  await b.eval(
+    `(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = ${+(o.hour || 11)}; game.lookAEInstant = true; const st = document.createElement('style'); st.textContent = '#ps-hud,#hud,#minimap,#radar,.ps-toast,[class*=toast],[class*=notif]{display:none!important}'; document.head.appendChild(st); return 1; })()`,
+  );
   await b.eval(fs.readFileSync('tools/v2/render/zfight.page.js', 'utf8'));
   await b.sleep(8000);
   for (const v of views) {
-    const V = VIEWS[v]; if (!V) { console.log('unknown view', v); continue; }
+    const V = VIEWS[v];
+    if (!V) {
+      console.log('unknown view', v);
+      continue;
+    }
     const placed = await b.eval(`(() => { const T = game.THREE, V = ${JSON.stringify(V)}; let E, L;
       if (V.rel === 'house') { const g = game.nicoHouse?.group; if (!g) return 'no house'; g.updateMatrixWorld(true);
         const bb = new T.Box3(); g.traverse((m) => { if (m.isMesh && m.name && /house|wall|siding|body/i.test(m.name)) bb.expandByObject(m); }); if (bb.isEmpty()) bb.setFromObject(g);
@@ -48,16 +63,25 @@ await withBrowser({ width: W, height: H, maxSeconds: +(o.max || 900) }, async (b
         L = V.look === 'down45' ? new T.Vector3(P.x + Math.sin(h) * 8, P.y, P.z + Math.cos(h) * 8) : new T.Vector3(P.x + Math.sin(h) * 20, P.y + 1.5, P.z + Math.cos(h) * 20); }
       window.__zfE = E.toArray(); window.__zfL = L.toArray();
       game.cameraOverride = (dt, c) => { c.position.fromArray(window.__zfE); c.lookAt(...window.__zfL); return true; }; return 'ok'; })()`);
-    if (placed !== 'ok') { console.log(v, placed); continue; }
-    for (let i = 0; i < 30; i++) { if ((await b.eval('(game.city?.streamer?.pending?.() ?? 0)')) < 3) break; await b.sleep(1000); }
+    if (placed !== 'ok') {
+      console.log(v, placed);
+      continue;
+    }
+    for (let i = 0; i < 30; i++) {
+      if ((await b.eval('(game.city?.streamer?.pending?.() ?? 0)')) < 3) break;
+      await b.sleep(1000);
+    }
     await b.sleep(2500);
     await b.screenshot(`${D}/zf_${TAG}_${v}_shot.jpg`, { format: 'jpeg', quality: 80 });
-    const r = JSON.parse(await b.eval(`window.__zf({ scale: ${+(o.scale || 0.5)} }).then((x) => JSON.stringify(x))`));
+    const r = JSON.parse(
+      await b.eval(`window.__zf({ scale: ${+(o.scale || 0.5)} }).then((x) => JSON.stringify(x))`),
+    );
     if (r.overlay) save(`${D}/zf_${TAG}_${v}.png`, r.overlay);
     delete r.overlay;
     rep.views[v] = r;
     console.log(`${v}: flagged ${r.flagged} px (${r.pct}%)`);
-    for (const p of r.pairs.slice(0, 12)) console.log(`   ${String(p.px).padStart(6)}  ${p.a}  <->  ${p.b}  @${p.at}`);
+    for (const p of r.pairs.slice(0, 12))
+      console.log(`   ${String(p.px).padStart(6)}  ${p.a}  <->  ${p.b}  @${p.at}`);
   }
   if (b.errors.length) rep.errors = [...new Set(b.errors)].slice(0, 15);
 });
