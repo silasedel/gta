@@ -264,7 +264,8 @@ export const P8 = {
   annex: { x0: 2.45, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.4, deckY: 2.75, door: -6.2, win: -4.5 },
   // under-house slab (C: cracked concrete pad) and the hoop on the middle beam, backboard facing SE (+Z), shot toward the bay (-Z)
   pad: { x0: -6.9, x1: 2.2, z0: -10.8, z1: -1.4 },
-  hoop: { x: 7.25, z: -10.4 }, // r10: on the annex's NW wall (z = its face) at the foot of the back stair
+  // r12: a freestanding pole hoop beside the foot of the back stair, backboard facing -X down the lawn strip on the bay side
+  hoop: { x: 8.0, z: -13.2 },
   // interior (clear spaces at floor level): front door in the middle of the SW gable -> short hall, bath LEFT (NW), bedroom RIGHT (SE),
   // then the open kitchen (SE wall) / living room (sofa on the NW wall, TV facing it, slider in the NE gable)
   hall: { x0: -6.5, x1: -2.6, z0: -7.75, z1: -6.25 },
@@ -401,7 +402,7 @@ function houseBlock8(sx, sz, pad = 0) {
     ) ||
     inR({ x0: P.walk.x0 - 0.2, x1: 1.3, z0: -3.6, z1: -1.9 }, x, z, pad) || // the main stair along the SE face
     inR({ x0: 7.8, x1: 12.6, z0: -12.7, z1: -11.1 }, x, z, pad) || // the lower deck's stair (r10: NW side)
-    inR({ x0: 5.5, x1: 9.0, z0: -12.0, z1: -10.3 }, x, z, pad) || // r10: the hoop and its shooting spot
+    inR({ x0: 1.8, x1: 8.4, z0: -14.6, z1: -11.0 }, x, z, pad) || // r12: the hoop and its shooting area
     inR(P.pad, x, z, pad)
   );
 }

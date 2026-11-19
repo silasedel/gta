@@ -320,11 +320,19 @@ export function carpentry(ctx, Fr, Bt, r) {
         0,
         ry,
       );
-    if (o.col !== false)
-      Fr.col.box(x + (dx * len) / 2, 0.7, z + (dz * len) / 2, len, 1.4, 0.08, {
-        ry,
-        tag: 'lattice',
-      });
+    // r12 (collider audit): the collider's top follows the lattice's sloped top (it was a flat 1.4 m box: an invisible wall
+    // over the low end under flight 2, so that lattice had none at all and the player walked into it)
+    if (o.col !== false) {
+      const Hc = 3,
+        tilt = Math.atan2(yB - yA, len),
+        yc = (yA + yB) / 2 - (Hc / 2) * Math.cos(tilt);
+      Fr.col.boxQ(
+        [x + (dx * len) / 2, yc, z + (dz * len) / 2],
+        [Math.hypot(len, yB - yA) / 2, Hc / 2, 0.04],
+        new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, tilt, 'YXZ')),
+        { tag: 'lattice' },
+      );
+    }
   };
   return { railRun, flight, lattice };
 }

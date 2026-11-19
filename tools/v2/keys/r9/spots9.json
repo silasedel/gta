@@ -323,7 +323,8 @@
    -6.5,
    4.6,
    -7.0
-  ]
+  ],
+  "eval": "const it = game.nicoHouse.house.interact.find((i) => i.id === 'door_front'); if (it && !game.__nhDoorOpen) { it.use({}); game.__nhDoorOpen = 1; }"
  },
  "DOOROUT": {
   "ref": null,
@@ -350,7 +351,8 @@
    -6.5,
    4.6,
    -7.0
-  ]
+  ],
+  "eval": "const it = game.nicoHouse.house.interact.find((i) => i.id === 'door_front'); if (it && !game.__nhDoorOpen) { it.use({}); game.__nhDoorOpen = 1; }"
  },
  "CANAL": {
   "ref": null,

@@ -763,8 +763,9 @@ export function build(ctx) {
     }
     // the gym: bench with its loaded rack, plywood platform with a loose bar on its rubber mat, the plate tree, mats and kettlebells (SE half)
     {
-      const bx = 11.62,
-        bz = -6.05;
+      // r12 (user): the bench goes in the deck's corner (canal rail / SE end)
+      const bx = 11.72,
+        bz = -3.62;
       glb(kit, 'weight_bench.glb', {
         parent: DG,
         pos: [bx, y0, bz],
@@ -808,7 +809,7 @@ export function build(ctx) {
     }
     glb(kit, 'yoga_mat.glb', {
       parent: DG,
-      pos: [11.95, y0 + 0.004, -3.45],
+      pos: [11.95, y0 + 0.004, -6.05], // r12 (user): a little to the left (seen from the slider), where the bench stood
       ry: 0,
       mat: (m) => {
         m.color.setRGB(0.36, 0.62, 0.48);
@@ -818,8 +819,8 @@ export function build(ctx) {
       },
     }); // the green mat (E / 19)
     for (const [kx, kz, ks] of [
-      [11.4, -2.95, 1],
-      [11.42, -3.35, 0.8],
+      [11.25, -5.35, 1],
+      [11.27, -5.75, 0.8],
     ]) {
       lathe(
         D,
@@ -841,16 +842,17 @@ export function build(ctx) {
         { color: BLK },
       );
     }
-    // the gas grill against the NW rail by the canal, the red / white cooler, a rope coil
+    // the gas grill against the NW rail (r12, user: off the stair head, which is at the rail's canal end), the red / white
+    // cooler, a rope coil
     {
-      const gx = 11.7,
-        gz = -10.55;
+      const gx = 10.3,
+        gz = -10.75;
       glb(kit, 'gas_grill.glb', { parent: DG, pos: [gx, y0, gz], ry: Math.PI, mat: aging(0.8) });
       Fr.col.box(gx, y0 + 0.5, gz, 1.05, 1.0, 0.62, { tag: 'prop' });
     }
-    box(PL, 0.62, 0.36, 0.42, 9.7, y0 + 0.18, -10.75, { color: 0xb5332a, bevel: 0.03 });
-    box(PL, 0.64, 0.06, 0.44, 9.7, y0 + 0.39, -10.75, { color: 0xeeeeea, bevel: 0.02 });
-    Fr.col.box(9.7, y0 + 0.2, -10.75, 0.62, 0.42, 0.42, { tag: 'prop' });
+    box(PL, 0.62, 0.36, 0.42, 9.25, y0 + 0.18, -10.75, { color: 0xb5332a, bevel: 0.03 });
+    box(PL, 0.64, 0.06, 0.44, 9.25, y0 + 0.39, -10.75, { color: 0xeeeeea, bevel: 0.02 });
+    Fr.col.box(9.25, y0 + 0.2, -10.75, 0.62, 0.42, 0.42, { tag: 'prop' });
     {
       const pts = [];
       for (let k = 0; k < 90; k++) {
@@ -858,9 +860,9 @@ export function build(ctx) {
           a = t * 6.283 * 5,
           rr = 0.06 + t * 0.16;
         pts.push([
-          10.45 + Math.cos(a) * rr,
+          12.05 + Math.cos(a) * rr,
           y0 + 0.015 + (k % 18) * 0.0008,
-          -10.8 + Math.sin(a) * rr,
+          -9.75 + Math.sin(a) * rr,
         ]);
       }
       D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.012, {

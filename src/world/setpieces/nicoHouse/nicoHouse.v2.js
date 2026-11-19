@@ -580,6 +580,12 @@ export async function initV2(game) {
     parked,
     carSpots: CAR_SPOTS,
     stairs,
+    // collider audit (tools/v2/keys/r21/probe_cols.js): the fixed body and the descriptor behind each Rapier collider
+    body,
+    colliderDesc: (rc) => {
+      for (const [c, st] of live) if (st.rc === rc) return c;
+      return null;
+    },
   };
   if (R4) {
     game.nicoHouse.r4site = house.r4site;

@@ -383,7 +383,7 @@ export function build(ctx) {
     // lattice under the stair, on its outer side (B / D): under flight 1 (between the corner post and the landing) and under flight 2
     const zo = lz1 + 0.12;
     lattice(Bd.x0 + 0.08, zo, [1, 0], nA - Bd.x0 - 0.16, F - 0.55, yL - 0.42);
-    lattice(nB + 0.08, zo, [1, 0], f2.total - 0.55, yL - 0.5, 0.36, { col: false });
+    lattice(nB + 0.08, zo, [1, 0], f2.total - 0.55, yL - 0.5, 0.36);
   }
   // ---- steps from the upper strip down to the lower deck (NE edge, NW end): 4 risers, between the strip's rails ----
   {
@@ -1073,6 +1073,17 @@ export function build(ctx) {
         tag: 'door',
         id: 'door_front',
       });
+    // r12 (user: the front door opens INTO the house): the open leaf has its own collider, swung 1.5 rad into the hall about
+    // the hinge; the closed one goes while the leaf is away from the frame, the open one comes once it is nearly open
+    const OPEN = 1.5,
+      ao = W.ry + OPEN,
+      [ox, oz] = [hx + (Math.cos(ao) * w) / 2, hz - (Math.sin(ao) * w) / 2],
+      clO = Fr.col.box(ox, o.y0 + h / 2, oz, w, h, 0.06, {
+        ry: ao,
+        tag: 'door',
+        id: 'door_front_open',
+        enabled: false,
+      });
     const d = { open: false, a: 0 };
     Fr.interact({
       id: 'door_front',
@@ -1084,13 +1095,14 @@ export function build(ctx) {
         d.open = !d.open;
       },
     });
-    // opens inward (the hinge on the u0 jamb, the leaf swings into the hall)
+    // opens inward: the hinge on the u0 jamb at the wall's inner face; +a turns the leaf's free edge to -n (inside, the hall)
     ctx.updaters.push((dt) => {
-      const tgt = d.open ? -1.5 : 0;
+      const tgt = d.open ? OPEN : 0;
       if (Math.abs(d.a - tgt) < 1e-3) return;
       d.a += Math.sign(tgt - d.a) * Math.min(Math.abs(tgt - d.a), dt * 2.4);
       g.rotation.y = W.ry + d.a;
       cl.enabled = Math.abs(d.a) < 0.2;
+      clO.enabled = Math.abs(d.a - OPEN) < 0.2;
     });
     const [lx, lz] = W.pt(o.u1 + 0.3, BT + 0.08);
     lathe(
@@ -1493,52 +1505,66 @@ export function build(ctx) {
     ctx.r8service = { x: mx, y: my1 - 0.05, z: mz };
   }
 
-  // ================= the hoop (r10, playtest Nov 19: "on the face at the bottom of those stairs", not in the middle under the house) =================
-  // mounted on the annex's NW wall beside the foot of the back stair, backboard facing NW (-Z) over the lawn toward the bay; a backyard
-  // height (rim ~2.75 m: the upper deck's joists are right above it)
+  // ================= the hoop (r12, user Nov 19 eve: "add it back to the right part, kinda at the bottom of the stairs") =================
+  // a freestanding driveway hoop on a steel pole beside the foot of the back stair, the backboard facing -X down the open lawn
+  // between the house and the bay wall (the shooting area, kept clear of plants and props in plan4 houseBlock8). The wall-mounted
+  // one of r10 sat under the upper deck's joists, half hidden behind a post, with its shooting spot past the bay wall once the
+  // house was turned.
   {
     const H = P.hoop,
-      wz = H.z,
-      bz = wz - 0.32,
-      yB = 2.85,
-      BBm = mat.paint({ peel: 'a', fade: 0.5, gloss: 0.6, scale: 0.5 });
-    box(BBm, 1.1, 0.72, 0.035, H.x, yB, bz, { color: 0xe8e5dc, wear: 0.45 });
-    for (const [dx, dy, sx, sy] of [
-      [0, 0.17, 0.56, 0.05],
-      [0, -0.06, 0.56, 0.05],
-      [-0.255, 0.055, 0.05, 0.28],
-      [0.255, 0.055, 0.05, 0.28],
+      yB = 3.05, // backboard center (rim at 3.05 m, regulation)
+      bx = H.x - 0.62, // backboard face (-X side of the pole's arm)
+      BBm = mat.paint({ peel: 'a', fade: 0.4, gloss: 0.6, scale: 0.5 });
+    // pole (galvanized, slight lean), its base plate and the gooseneck arm out to the board
+    D.cyl(STEEL, 0.055, 0.06, yB + 0.35, M(H.x, (yB + 0.35) / 2, H.z), {
+      color: 0x9a9c98,
+      seg: 14,
+    });
+    box(STEEL, 0.36, 0.03, 0.36, H.x, 0.015, H.z, { color: 0x6f716c });
+    for (const dy of [0.25, -0.12])
+      box(STEEL, H.x - bx - 0.05, 0.05, 0.05, (H.x + bx) / 2, yB + dy, H.z, { color: 0x8c8e8a });
+    box(
+      STEEL,
+      0.05,
+      0.42,
+      0.05,
+      (H.x + bx) / 2 - 0.1,
+      yB + 0.06,
+      H.z,
+      { color: 0x8c8e8a },
+      0,
+      0,
+      0.6,
+    );
+    // backboard (weathered white), the black shooter's square and border
+    box(BBm, 0.035, 0.76, 1.12, bx, yB + 0.17, H.z, { color: 0xe8e5dc, wear: 0.45 });
+    for (const [dy, dz, sy, sz] of [
+      [0.2, 0, 0.05, 0.58],
+      [-0.04, 0, 0.05, 0.58],
+      [0.08, -0.265, 0.29, 0.05],
+      [0.08, 0.265, 0.29, 0.05],
     ])
-      box(mat.plastic(), sx, sy, 0.006, H.x + dx, yB - 0.12 + dy, bz - 0.021, {
+      box(mat.plastic(), 0.006, sy, sz, bx - 0.021, yB + dy, H.z + dz, {
         color: 0x262626,
         bevel: 0.001,
       });
-    // 2x4 frame from the wall: two uprights screwed to the boards, two arms out to the backboard
-    for (const s of [-1, 1]) {
-      box(mat.wood(), 0.09, 1.3, 0.05, H.x + s * 0.38, 2.25, wz - 0.045, {
-        grain: 1,
-        color: 0x7d6e5c,
-        wear: 0.7,
-      });
-      box(STEEL, 0.05, 0.05, 0.3, H.x + s * 0.38, yB + 0.15, wz - 0.19, { color: 0x6c6a64 });
-      box(STEEL, 0.05, 0.05, 0.36, H.x + s * 0.38, yB - 0.22, wz - 0.17, { color: 0x6c6a64 }, 0.5);
-    }
-    const rimY = yB - 0.36 + 0.13,
-      rimZ = bz - 0.25;
+    // rim (orange), its bracket, and the net
+    const rimY = yB,
+      rimX = bx - 0.26;
     D.geo(
       mat.metalPaint(),
       new THREE.TorusGeometry(0.23, 0.009, 8, 32),
-      M(H.x, rimY, rimZ, Math.PI / 2, 0, 0),
+      M(rimX, rimY, H.z, Math.PI / 2, 0, 0),
       { color: 0xd2531f },
     );
-    box(MP, 0.12, 0.1, 0.03, H.x, rimY - 0.03, bz - 0.03, { color: 0xd2531f });
+    box(MP, 0.06, 0.1, 0.14, bx - 0.04, rimY - 0.03, H.z, { color: 0xd2531f });
     for (let k = 0; k < 12; k++) {
       const a1 = (k / 12) * 6.283,
         a2 = a1 + 0.5,
         pts = [
-          [H.x + Math.cos(a1) * 0.22, rimY, rimZ + Math.sin(a1) * 0.22],
-          [H.x + Math.cos(a2) * 0.17, rimY - 0.2, rimZ + Math.sin(a2) * 0.17],
-          [H.x + Math.cos(a1 + 1.0) * 0.13, rimY - 0.4, rimZ + Math.sin(a1 + 1.0) * 0.13],
+          [rimX + Math.cos(a1) * 0.22, rimY, H.z + Math.sin(a1) * 0.22],
+          [rimX + Math.cos(a2) * 0.17, rimY - 0.2, H.z + Math.sin(a2) * 0.17],
+          [rimX + Math.cos(a1 + 1.0) * 0.13, rimY - 0.4, H.z + Math.sin(a1 + 1.0) * 0.13],
         ];
       D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.004, {
         seg: 4,
@@ -1546,9 +1572,11 @@ export function build(ctx) {
         steps: 10,
       });
     }
-    Fr.col.box(H.x, yB, bz, 1.1, 0.72, 0.06, { tag: 'prop' });
-    Fr.anchor('hoop', H.x, 0, wz - 4.2, Math.PI);
-    Fr.anchor('hoopRim', H.x, rimY, rimZ, Math.PI);
+    Fr.col.cyl(H.x, (yB + 0.35) / 2, H.z, 0.07, yB + 0.35, { tag: 'pole' });
+    Fr.col.box(bx, yB + 0.17, H.z, 0.06, 0.76, 1.12, { tag: 'prop' });
+    // shooting spot 4 m out on the lawn, facing the rim (+X)
+    Fr.anchor('hoop', rimX - 4.0, 0, H.z, Math.PI / 2);
+    Fr.anchor('hoopRim', rimX, rimY, H.z, Math.PI / 2);
   }
 
   // ================= anchors, interior visibility, camera occluder =================
