@@ -59,8 +59,15 @@ D2. Sync: player movement and animation, vehicles (driver authority), relevant i
 D3. Proximity voice: WebRTC audio between peers, signaled over the existing WebSocket; each remote voice runs through a
     Web Audio panner at the speaker's position, with rolloff by distance (full within ~5 m, silent past ~60 m). Mic mute
     (key and HUD icon), voice volume slider, push-to-talk option. Mic permission prompt handled in Electron.
-Open question for the user: over-the-internet play needs either port forwarding on the host or a relay or signaling server
-on the internet. LAN and direct-IP work without one.
+**Decided (user, Nov 19): over the internet.** Design:
+- Deploy the existing `server/` (Node + ws) to a free cloud host (Fly.io, Render or Railway; one small always-on instance with
+  WebSocket support). The user or friend creates that account and runs the deploy; the AI prepares the Dockerfile or config and
+  the steps. The server URL lives in one config entry (`server/README.md` plus a game setting), so it can change.
+- Host = create a room on that server and get a short room code; Join = enter the code. Game state relays through the
+  server (it's already authoritative), so no port forwarding is needed.
+- Voice: WebRTC peer-to-peer with public STUN, signaled through the server; if P2P fails (strict NAT), fall back to sending
+  Opus voice frames through the server WebSocket. A TURN server is optional later.
+- Use TLS (`wss://`), keep a room cap (e.g. 8 players), and add simple rate limits on the server.
 
 ## Phase E: the bigger systems (later, in pieces, both accounts)
 New police system and AI, smart NPCs (schedules, reactions, memory), stores (buy and sell UI), more missions and the casino heist
@@ -77,7 +84,7 @@ New police system and AI, smart NPCs (schedules, reactions, memory), stores (buy
 "Southline repo (GitHub silasedel/gta-v2), branch from `main` as `mp-voice`. Read `docs/v2/CONVENTIONS.md` (code style
 section 0) and `docs/v2/plan/STORY_START_PLAN.md` Phase D. A multiplayer server and client already exist (`server/`,
 `src/net/`; read their headers): extend them, don't rewrite them. Build D1–D3: a Host or Join menu, spawn into the world, synced
-movement and vehicles and interactions, and WebRTC proximity voice with distance falloff, mute and volume. Test with two app
+movement and vehicles and interactions, and WebRTC proximity voice with distance falloff, mute and volume. Play is OVER THE INTERNET: deploy the existing server to a free cloud host (Fly.io, Render or Railway) with wss, use room codes for host and join, voice P2P with STUN and fall back to relaying voice through the server (see Phase D "Decided"). Prepare the deploy config and write step-by-step instructions for the human to create the hosting account and deploy. Test with two app
 windows on one Mac (`npm run server` plus two clients). Keep frame cost near zero when not in a session. Commit often,
 readable code, push the branch and open a PR to `main`."
 
