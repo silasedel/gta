@@ -35,7 +35,7 @@ export function createMoss(game, G) {
           float ph = o.x * 0.37 + o.z * 0.23; transformed.x += sin(uGlT * 1.3 + ph) * 0.06 * hang * hang; transformed.z += cos(uGlT * 1.1 + ph * 1.7) * 0.05 * hang * hang; }`);
   };
   mat.customProgramCacheKey = () => 'gl7-moss';
-  new THREE.TextureLoader().load(BASE + 'assets/models/everglades/moss_clump.png', (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; mat.map = t; mat.needsUpdate = true; });
+  new THREE.TextureLoader().load(BASE + 'assets/models/everglades/moss_clump.png', (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; /* W4: crisp at grazing angles */ mat.map = t; mat.needsUpdate = true; });
   const mesh = new THREE.InstancedMesh(geo, mat, MAX); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.name = 'gl7Moss';
   game.scene.add(mesh);
   const stats = { trees: 0, curtains: 0 };

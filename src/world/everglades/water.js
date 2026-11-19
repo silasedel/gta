@@ -17,7 +17,7 @@ export function createSwampWater(game, G) {
   const nt = game.env?.ocean?.uniforms?.tNormal?.value || null;
   let nmap = null; if (nt) { nmap = nt.clone(); nmap.wrapS = nmap.wrapT = THREE.RepeatWrapping; nmap.repeat.set(1 / 7, 1 / 7); nmap.needsUpdate = true; }
   const uT = { value: 0 };
-  const mat = new THREE.MeshStandardMaterial({ name: 'gl7SwampFilm', color: 0x16110a, roughness: 0.05, metalness: 0, transparent: true, depthWrite: false, vertexColors: true,
+  const mat = new THREE.MeshStandardMaterial({ name: 'gl7SwampFilm', color: 0x24170a, roughness: 0.05, metalness: 0, transparent: true, depthWrite: false, vertexColors: true,
     normalMap: nmap, normalScale: new THREE.Vector2(0.12, 0.12), envMapIntensity: 1.0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uGlT = uT;
@@ -42,7 +42,11 @@ export function createSwampWater(game, G) {
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\nnormal = normalize(mix(normal, normalize(vNormal), glScum));')
       .replace('#include <dithering_fragment>', `#include <dithering_fragment>
         { float ndv = clamp(dot(normalize(vNormal), normalize(vViewPosition)), 0.0, 1.0); float fr = pow(1.0 - ndv, 5.0);
-          float a = mix(0.9, 0.97, fr); a = mix(a, 1.0, glScum);
+          // W4 (Nov 19 playtest: "Everglades crisp, water clarity"): clear tannin water. The bank shallows (vColor.r) let
+          // the bed show through tea-tinted, the open sloughs stay dark; grazing views and scum stay opaque.
+          float clearA = mix(0.9, 0.78, smoothstep(0.3, 0.9, bank));
+          float a = mix(clearA, 0.97, fr);
+          a = mix(a, 1.0, glScum);
           a *= 1.0 - smoothstep(${(R - 70).toFixed(1)}, ${(R - 10).toFixed(1)}, length(vViewPosition));
           gl_FragColor.a = a * vColor.a; }`);
   };

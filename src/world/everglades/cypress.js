@@ -29,7 +29,7 @@ function sprayTexture() {
     g.strokeStyle = `rgb(${col[0] | 0},${col[1] | 0},${col[2] | 0})`; g.lineWidth = 1.3;
     for (let s = 3; s < L; s += 2.4) { const px = x0 + ca * s, py = y0 + sa * s, nl = 4 + 5 * Math.sin((s / L) * Math.PI); for (const sd of [-1, 1]) { const na = a + sd * (1.1 + r() * 0.25); g.beginPath(); g.moveTo(px, py); g.lineTo(px + Math.cos(na) * nl, py + Math.sin(na) * nl); g.stroke(); } }
   }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; /* W4: crisp at grazing angles */ return t;
 }
 
 function treeGeo(seed, far) {
@@ -93,7 +93,7 @@ export function createCypress(game, G) {
     mlods[li] = partsOf(sc).map((p) => {
       let m = matCache.get(p.material.name);
       if (!m) { m = p.material.clone(); const bark = /bark/i.test(m.name); m.transparent = false; m.depthWrite = true; m.alphaTest = bark ? 0 : 0.5; m.side = bark ? THREE.FrontSide : THREE.DoubleSide;
-        m.roughness = bark ? 0.95 : 0.8; m.metalness = 0; if (m.map) m.map.anisotropy = 4; if (/needle/i.test(m.name)) { m.color.setRGB(1.05, 1.08, 0.95); sway(m); if (m.map) { folMat.map = m.map; folMat.needsUpdate = true; } } else if (/mousse/i.test(m.name)) { m.color.setRGB(1.1, 1.1, 1.05); sway(m); } matCache.set(p.material.name, m); }
+        m.roughness = bark ? 0.95 : 0.8; m.metalness = 0; if (m.map) m.map.anisotropy = 16; if (/needle/i.test(m.name)) { m.color.setRGB(1.05, 1.08, 0.95); sway(m); if (m.map) { folMat.map = m.map; folMat.needsUpdate = true; } } else if (/mousse/i.test(m.name)) { m.color.setRGB(1.1, 1.1, 1.05); sway(m); } matCache.set(p.material.name, m); }
       const g = p.geometry.clone(); g.applyMatrix4(p.matrix);
       const im = new THREE.InstancedMesh(g, m, MAX); im.count = 0; im.frustumCulled = false; im.castShadow = li === 0; im.receiveShadow = true; im.name = 'gl7CypModel' + li + '_' + m.name; scene.add(im);
       if (/needle/i.test(m.name)) im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX * 3).fill(1), 3);
