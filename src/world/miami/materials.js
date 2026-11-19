@@ -280,10 +280,10 @@ export async function createMaterials(renderer) {
     const prevG = M.grass.onBeforeCompile;
     M.grass.onBeforeCompile = (sh) => {
       sh.vertexShader = 'varying vec2 vGW;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n  vGW = (modelMatrix * vec4(transformed, 1.0)).xz;');
-      sh.fragmentShader = 'varying vec2 vGW;\nfloat gN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); float a = fract(sin(dot(i, vec2(127.1,311.7)))*43758.5), b = fract(sin(dot(i+vec2(1,0), vec2(127.1,311.7)))*43758.5), c = fract(sin(dot(i+vec2(0,1), vec2(127.1,311.7)))*43758.5), d = fract(sin(dot(i+vec2(1,1), vec2(127.1,311.7)))*43758.5); return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-        float gn = gN(vGW * 0.035) * 0.6 + gN(vGW * 0.13) * 0.3 + gN(vGW * 0.6) * 0.1;
+      sh.fragmentShader = 'varying vec2 vGW;\nfloat mgGrassN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); float a = fract(sin(dot(i, vec2(127.1,311.7)))*43758.5), b = fract(sin(dot(i+vec2(1,0), vec2(127.1,311.7)))*43758.5), c = fract(sin(dot(i+vec2(0,1), vec2(127.1,311.7)))*43758.5), d = fract(sin(dot(i+vec2(1,1), vec2(127.1,311.7)))*43758.5); return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+        float gn = mgGrassN(vGW * 0.035) * 0.6 + mgGrassN(vGW * 0.13) * 0.3 + mgGrassN(vGW * 0.6) * 0.1;
         diffuseColor.rgb *= mix(vec3(0.78, 0.92, 0.62), vec3(1.12, 1.06, 0.82), smoothstep(0.25, 0.8, gn));
-        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.25, 1.1, 0.75), smoothstep(0.72, 0.9, gN(vGW * 0.09 + 17.0)) * 0.6);`);
+        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.25, 1.1, 0.75), smoothstep(0.72, 0.9, mgGrassN(vGW * 0.09 + 17.0)) * 0.6);`);
       if (prevG) prevG(sh);
     };
   }
