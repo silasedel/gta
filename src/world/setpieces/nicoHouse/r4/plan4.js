@@ -8,7 +8,7 @@
 // ?nh=r3 = the round-3 house (old parts) for A/B.
 export const R4 = typeof location === 'undefined' || !/[?&]nh=r3\b/.test(location.search);
 // r8 (docs/v2/plan/nico_house/r8/SPEC.md): the diagonal house, the 6 m canal, the angled dock, the new interior (parts r8_*). ?nh8=0 = r7.
-export const R8 = R4 && typeof location !== 'undefined' && /[?&]nh8=1\b/.test(location.search);
+export const R8 = R4 && !(typeof location !== 'undefined' && /[?&]nh8=0\b/.test(location.search));
 export const STREET_H = 0.4239;   // layout.json nico_house heading (nicoHouse.v2.js re-derives theta from the live layout)
 export const YAW = 0.72;   // must match nicoHouse.v2.js HOUSE_YAW
 const c = Math.cos(YAW), s = Math.sin(YAW);
