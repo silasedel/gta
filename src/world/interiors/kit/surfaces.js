@@ -78,7 +78,7 @@ export const SURFACES = {
 function normalMap(hc, S, k) { // Sobel on the height canvas (wrapping) -> tangent-space normal map
   const src = hc.getContext('2d').getImageData(0, 0, S, S).data, out = cv(S), o = out.getContext('2d'), img = o.createImageData(S, S), d = img.data;
   const h = (x, y) => src[(((y + S) % S) * S + ((x + S) % S)) * 4];
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const dx = (h(x + 1, y) - h(x - 1, y)) * k / 255, dy = (h(x, y + 1) - h(x, y - 1)) * k / 255, l = 1 / Math.hypot(dx, dy, 1), i = (y * S + x) * 4; d[i] = (-dx * l * 0.5 + 0.5) * 255; d[i + 1] = (dy * l * 0.5 + 0.5) * 255; d[i + 2] = (l * 0.5 + 0.5) * 255; d[i + 3] = 255; }
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const dx = (h(x + 1, y) - h(x - 1, y)) * k / 255, dy = (h(x, y + 1) - h(x, y - 1)) * k / 255, l = 1 / Math.sqrt(dx * dx + dy * dy + 1), i = (y * S + x) * 4; d[i] = (-dx * l * 0.5 + 0.5) * 255; d[i + 1] = (dy * l * 0.5 + 0.5) * 255; d[i + 2] = (l * 0.5 + 0.5) * 255; d[i + 3] = 255; }
   o.putImageData(img, 0, 0); return out;
 }
 const TEX = new Map();
@@ -102,6 +102,7 @@ export function surfaceTextures(name, o = {}) {
   const wear = Math.round(clamp(o.wear ?? 0.3) * 2) / 2, key = `${name}|${col3(o.c)}|${col3(o.c2)}|${col3(o.c3)}|${wear}`;
   let t = TEX.get(key); if (t) return t;
   const S = o.size || def.size || 256, A = cv(S), H = cv(S), G = cv(S), R = rng(key);
+  H.getContext('2d', { willReadFrequently: true }); // perf: CPU-backed, so normalMap()'s getImageData is not a GPU readback (86 ms a second downtown)
   def.draw(A.getContext('2d'), H.getContext('2d'), G.getContext('2d'), S, R, { ...o, wear });
   if (!INT_ART_OFF && ROLLED.has(name)) rollerFinish(A.getContext('2d'), G.getContext('2d'), S, R); // r2-art: paint-roller lanes + stipple, so walls are not one flat layer
   const mk = (c, srgb) => { const x = new THREE.CanvasTexture(c); x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = 8; if (srgb) x.colorSpace = THREE.SRGBColorSpace; return x; };

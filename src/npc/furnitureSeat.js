@@ -21,7 +21,9 @@ function nearMeshes(scene, c, r) {
     if (!(o.isMesh || o.isInstancedMesh) || o.isSkinnedMesh || isPerson(o)) return;
     const g = o.geometry; if (!g) return; if (!g.boundingSphere) g.computeBoundingSphere(); if (!g.boundingSphere) return;
     sph.copy(g.boundingSphere).applyMatrix4(o.matrixWorld);
-    if (o.isInstancedMesh) { out.push(o); return; }
+    // perf: an instanced mesh is cast only when its instances' bounds reach the seat (every instanced mesh in the scene was
+    // ray-tested per probe: 200-680 ms a second on the beach); bounds cached until the instance count changes
+    if (o.isInstancedMesh) { if (o._fsN !== o.count || !o.boundingSphere) { o.computeBoundingSphere(); o._fsN = o.count; } sph.copy(o.boundingSphere).applyMatrix4(o.matrixWorld); }
     if (sph.center.distanceTo(c) < sph.radius + r) out.push(o);
   });
   return out;
@@ -32,8 +34,10 @@ function castY(meshes, x, y, z, far) {
   try { const h = _rc.intersectObjects(meshes, false).find((i) => !i.object.material?.transparent); return h ? h.point.y : null; } finally { for (const [mt, sd] of sides) mt.side = sd; }
 }
 /** probe a seat at the sitter's spot (world): { cushion, backZ (local, from the spot), front, armL, armR } or null */
+let probeFrame = -1;
+const probeKey = (pos, heading) => Math.round(pos.x * 4) + ',' + Math.round(pos.z * 4) + ',' + Math.round(heading * 10);
 export function probeFurniture(scene, pos, heading, floorY) {
-  const key = Math.round(pos.x * 4) + ',' + Math.round(pos.z * 4) + ',' + Math.round(heading * 10);
+  const key = probeKey(pos, heading);
   if (PROBES.has(key)) return PROBES.get(key);
   const fx = Math.sin(heading), fz = Math.cos(heading), lx = Math.cos(heading), lz = -Math.sin(heading);
   const meshes = nearMeshes(scene, pos, 1.6);
@@ -84,6 +88,10 @@ export function sitOnFurniture(game, ped, dt) {
   const ch = ped.char; if (!ch?.root) return;
   let F = ped._furn;
   if (!F) {
+    // perf: at most one new seat probe per frame (a crowd spawning on benches probed dozens in one frame)
+    const fk = game.clock?.elapsed ?? 0;
+    if (probeFrame === fk && !PROBES.has(probeKey(ped.spot?.pos || ped.pos, ped.heading))) return;
+    probeFrame = fk;
     F = ped._furn = { ok: false };
     const floor = ped.groundY ?? ped.pos.y;
     const pr = probeFurniture(game.scene, ped.spot?.pos || ped.pos, ped.heading, floor);
