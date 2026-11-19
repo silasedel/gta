@@ -163,6 +163,10 @@ Write code the way shipped game codebases read, not dense one-liners:
 - `src/render/detailCull.v2.js`: objects under ~1.6 px are not drawn; small far objects skip shadows. Set
   `userData.noDetailCull = true` to opt out.
 - Merge static meshes per material (`src/render/staticBatch.js` helper); instanced props; one mesh per material per tile.
+- City draw calls (Nov 19): the streamed tiles' opaque non-casting meshes are drawn from shared BatchedMeshes per material
+  (`src/world/miami/tileBatch.js`, ~24 tiles per batch, `?tilebatch=0` = old); the originals stay in the tile (raycasts) and
+  read invisible only while the scene renders. Prop pools with nothing in view are hidden (`?poolhide=0`). A tile material
+  that needs per-object state must set `userData.noTileBatch`. Measure: `node tools/v2/perf/drawcalls.mjs`.
 - Dynamic shadow map (cars, people): every frame whenever a car near the player moves, half rate only for scenes of
   walkers (`game.dynShadowHalfRate`: unset = auto, `true` = always half, `false` = always full). A stale map shows as a
   shadow that jumps every other frame.
