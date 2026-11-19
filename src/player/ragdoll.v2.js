@@ -79,6 +79,22 @@ export async function initV2(game) {
     P.script = { lock: true, ragdoll: true, fixed() {}, anim: { speed: 0, grounded: true, getUp: face } };
   }
 
+  // fastest of the pelvis and chest bodies (m/s)
+  function coreSpeed(rd) {
+    let v = 0;
+    for (const key of ['pelvis', 'chest']) {
+      const body = rd?.byKey?.[key]?.body;
+      if (!body) continue;
+      try {
+        const lv = body.linvel();
+        v = Math.max(v, Math.hypot(lv.x, lv.y, lv.z));
+      } catch (e) {
+        /* body already removed */
+      }
+    }
+    return v;
+  }
+
   // capsule follows the pelvis while ragdolled (after every other fixed hook, so a car knock-back does not fight it)
   game.fixedHooks.push(function playerRagdollFixed() {
     if (S.phase !== 'rag' || !S.rd) return;
@@ -98,10 +114,12 @@ export async function initV2(game) {
       } else if (OLD_GETUP) { if (S.rd?.recovered || sys.readyToGetUp(S.rd) || S.t > 7) getUp(); }
       else {
         // calm = the pelvis and chest have (nearly) stopped; limbs may still settle
-        const rd = S.rd, pv = rd?.byKey?.pelvis?.body, cv = rd?.byKey?.chest?.body;
-        let v = 0; try { if (pv) { const a = pv.linvel(); v = Math.hypot(a.x, a.y, a.z); } if (cv) { const b2 = cv.linvel(); v = Math.max(v, Math.hypot(b2.x, b2.y, b2.z)); } } catch (e) { v = 0; }
-        S.calm = rd?.frozen || v < CALM_V ? S.calm + dt : Math.max(0, S.calm - dt * 2);
-        if (rd?.recovered || (S.calm >= S.hold && S.t > 0.7) || S.t > MAX_DOWN) getUp();
+        const rd = S.rd;
+        const v = coreSpeed(rd);
+        if (rd?.frozen || v < CALM_V) S.calm += dt;
+        else S.calm = Math.max(0, S.calm - dt * 2);
+        const settled = S.calm >= S.hold && S.t > 0.7;
+        if (rd?.recovered || settled || S.t > MAX_DOWN) getUp();
       }
       return;
     }

@@ -43,12 +43,17 @@ export function preloadNicoTripo() {
 
 // one hero material: albedo + tangent-space normal + matte roughness (G of the ORM map), no metal. Wetness darkens and
 // glosses it; the wardrobe region mask (R = shirt, G = pants, B = shoes) lets outfits recolor the baked clothes.
+// W5 (Nov 19, user: "the lighting on the character still looks off"): the scanned albedo has its shadows baked in (pants
+// p5 ~1 % linear: folds near black even in full sun), and on top of the scene's own shadowing that crushed the folds and
+// the form-shadow side. NICO_LIGHT: a soft toe lift of the darkest baked values (only below ~10 % linear; mid-tones and
+// highlights untouched), the people's normal strength (0.8) and a touch more sky fill (0.95). ?nicolight=0 = old.
+const NICO_LIGHT = !(typeof location !== 'undefined' && /[?&]nicolight=0\b/.test(location.search));
 function makeMaterial(tex) {
   const m = new THREE.MeshStandardMaterial({
     // normalScale.y = -1: glTF UVs (flipY false) on a mesh without tangents (three's derivative tangent frame), the same
     // flip GLTFLoader applies; +1 lit every fold and seam upside down
-    name: 'nicoTripo', map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(1, -1),
-    roughnessMap: tex.orm, roughness: 1, metalness: 0, envMapIntensity: 0.85,
+    name: 'nicoTripo', map: tex.map, normalMap: tex.normalMap, normalScale: NICO_LIGHT ? new THREE.Vector2(0.8, -0.8) : new THREE.Vector2(1, -1),
+    roughnessMap: tex.orm, roughness: 1, metalness: 0, envMapIntensity: NICO_LIGHT ? 0.95 : 0.85,
   });
   const u = {
     uWet: { value: 0 },
@@ -56,7 +61,7 @@ function makeMaterial(tex) {
     uMask: { value: tex.mask },
   };
   m.userData.u = u;
-  m.customProgramCacheKey = () => 'nicoTripo' + (tex.mask ? 'M' : '');
+  m.customProgramCacheKey = () => 'nicoTripo' + (tex.mask ? 'M' : '') + (NICO_LIGHT ? 'L' : '');
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.fragmentShader = sh.fragmentShader
@@ -73,6 +78,7 @@ ${tex.mask ? `{
     diffuseColor.rgb = mix(diffuseColor.rgb, tinted, k);
   }
 }` : ''}
+${NICO_LIGHT ? 'diffuseColor.rgb += max(vec3(0.0), 0.022 - diffuseColor.rgb * 0.22);' : ''}
 diffuseColor.rgb *= 1.0 - 0.28 * uWet;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 roughnessFactor = mix(roughnessFactor, roughnessFactor * 0.55, uWet);`);
