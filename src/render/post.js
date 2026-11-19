@@ -17,6 +17,8 @@ import {
 import { WEATHER_U } from './wetSurfaces.js';
 import { LOOK_OFF } from '../world/env/fogChunks.js';
 import { LOOK_U, LOOK_V, LOOK_W, LOOK3_DEFAULT } from './look3.js';
+import { SunRaysPass } from './sunRays.js';
+import { applyCine } from './cine.js';
 
 // Pipeline (HDR linear until OutputPass, display-referred after):
 // Render -> [GTAO half-res, ultra only] -> contact AO (depth only, one pass) -> UnrealBloom -> Output (ACES + sRGB) -> SMAA -> Grade (to screen)
@@ -1555,6 +1557,12 @@ export function createPost(game) {
   ae.waitN = 0;
   composer.addPass(aePass);
 
+  // cinematic sun shafts (src/render/sunRays.js): screen-space, quarter resolution, read by the grade pass (tRays).
+  // After the AE pass, so a shaft never changes the exposure. Strength set per frame by cine.js; off = skipped.
+  const sunRays = new SunRaysPass(() => sceneDepth);
+  sunRays.enabled = false;
+  composer.addPass(sunRays);
+
   const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.32, 0.55, 0.92);
   composer.addPass(bloom);
 
@@ -1603,7 +1611,7 @@ export function createPost(game) {
   );
   // ShaderPass clones uniforms: arrays -> use vectors for safety
   gu.uRes.value = new THREE.Vector2(W * pr, H * pr);
-  for (const k of ['uLift', 'uGamma', 'uGain', 'uShadowTint', 'uHighTint', 'uSunColor'])
+  for (const k of ['uLift', 'uGamma', 'uGain', 'uShadowTint', 'uHighTint', 'uSunColor', 'uRaysCol'])
     gu[k].value = new THREE.Vector3().fromArray(gu[k].value);
   gu.uSunPos.value = new THREE.Vector2(0.5, 0.5);
 
@@ -1806,6 +1814,7 @@ export function createPost(game) {
     taa,
     ssr,
     shafts,
+    sunRays,
     get renderScale() {
       return renderScale;
     },
@@ -2185,6 +2194,16 @@ export function createPost(game) {
         gu._vigBase +
         Math.max(0, 0.35 + 0.55 * (game.deathFade || 0) - gu._vigBase) *
           Math.min(1, (game.deathFade || 0) * 4);
+      // cinematic look (src/render/cine.js): golden hours, filmic grade, bloom, haze floor, sun shafts (game.lookCine)
+      applyCine({
+        game,
+        gu,
+        bloom,
+        sunRays,
+        sunOn,
+        sunPos: gu.uSunPos.value,
+        exposure: renderer.toneMappingExposure,
+      });
       // look track: cap HDR before bloom (believable sparkle, not a glare disc on wet sand or water at low sun)
       sanitize.uniforms.uMax.value = LOOK_OFF ? 48.0 : 10.0;
       gu.uTime.value = time;

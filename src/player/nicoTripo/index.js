@@ -172,7 +172,7 @@ function updateHeroLight(u, env) {
   const outdoor = 1 - (env.indoor || 0);
   const direct = THREE.MathUtils.clamp((sun.intensity * Math.max(0, env.sunDir.y)) / 2.5, 0, 1);
   u.uFill.value = 1.12 + 0.33 * (1 - direct * outdoor);
-  const k = 0.14 * (env.dayFactor ?? 1) * outdoor * sun.intensity;
+  const k = 0.22 * (env.dayFactor ?? 1) * outdoor * sun.intensity;
   u.uRim.value.setRGB(sun.color.r * k, sun.color.g * k, sun.color.b * k);
   u.uRimDir.value.copy(env.sunDir);
 }

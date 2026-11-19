@@ -106,6 +106,7 @@ export function patchFogChunks() {
           ? ''
           : `#ifdef PS_LOOKU
 			if ( fogDensity < 0.002 ) fogDen = min( fogDen, uLookV.x > 0.0 ? uLookV.x : 0.00019 ); // look3 (src/render/look3.js, ?look3): cap per hour
+			if ( fogDensity < 0.002 ) fogDen = max( fogDen, uLookV.y ); // cinematic haze floor (src/render/cine.js): golden-hour humid air
 			#else
 			if ( fogDensity < 0.002 ) fogDen = min( fogDen, 0.00019 );
 			#endif`

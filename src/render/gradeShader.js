@@ -31,6 +31,9 @@ export const GradeShader = {
     tLut: { value: null },
     uLutMix: { value: 0 },
     uChromaKnee: { value: 0 }, // r2-look: soft chroma roll-off above ~0.4 (bougainvillea, lawn greens read neon)
+    // cinematic sun shafts (sunRays.js, quarter resolution): sun hue x strength; 0 = off
+    tRays: { value: null },
+    uRaysCol: { value: [0, 0, 0] },
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -40,6 +43,8 @@ export const GradeShader = {
     uniform sampler2D tLut;
     uniform float uLutMix;
     uniform float uChromaKnee;
+    uniform sampler2D tRays;
+    uniform vec3 uRaysCol;
     vec3 lutS( vec3 c ) {
       c = clamp( c, 0.0, 1.0 );
       float b = c.b * 31.0, b0 = floor( b ), b1 = min( b0 + 1.0, 31.0 );
@@ -159,6 +164,12 @@ export const GradeShader = {
         }
         acc /= 20.0;
         col += uSunColor * acc * uRays * exp( -dl * 1.6 ) * 1.0;
+      }
+
+      // cinematic sun shafts (sunRays.js): screen blend, so they glow through haze without clipping the sky
+      if ( uRaysCol.r + uRaysCol.g + uRaysCol.b > 0.001 ) {
+        vec3 ray = uRaysCol * texture2D( tRays, uv ).r;
+        col = 1.0 - ( 1.0 - clamp( col, 0.0, 1.0 ) ) * ( 1.0 - clamp( ray, 0.0, 1.0 ) );
       }
 
       // underwater: absorb reds, blue-green murk, caustic shimmer

@@ -184,6 +184,12 @@ Write code the way shipped game codebases read, not dense one-liners:
 - Round-2 look A/B in one session: `game.lookR2 = false` restores the overnight look3. Knobs: `game.lookCloudShadows`
   (ground cloud shadows), `game.lookShafts` (volumetric sun shafts; auto at low sun), `game.lookShadeAmb` /
   `game.lookShadeBounce` (sky cut / bounce in cast shadows), `game.lookExpR2`, `game.lookAOR2`, `game.lookHazeR2`.
+- **Cinematic look (Nov 19).** `src/render/cine.js` nudges the grade, bloom and haze every frame: golden hours by the
+  clock (6-9, 17-20), filmic saturation / S-curve, vignette, a golden-hour haze floor (`LOOK_V.y`, read in fogChunks.js)
+  and screen-space sun shafts (`src/render/sunRays.js`, quarter resolution, added in the grade via `tRays`). A/B:
+  `game.lookCine = false` or `?cine=0`; tunables `game.cine`. Hero (Nico / Mari) material: no ground-wetness patch
+  (`NO_WET`), its own satin wet look, a sky / bounce fill that rises when the sun is weak, a backlit sun rim
+  (`src/player/nicoTripo/index.js`, `?herolight=0` = old).
 - The sky's cumulus field is world-anchored (`env.cloudBase` m); post.js repeats `cloudShape()` for the cloud-shadow
   map: change both together.
 

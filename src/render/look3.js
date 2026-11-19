@@ -18,8 +18,8 @@ export const LOOK3_ENABLED = !(
 );
 export const LOOK3_DEFAULT = LOOK3_ENABLED;
 export const LOOK_U = new Float32Array([0, LOOK3_DEFAULT ? 1 : 0, 0.022, 1.6]);
-// LOOK_V (fog): x = aerial-perspective density cap for clear weather (0 = the old fixed cap), y = haze color pull
-// toward the warm sun side, z = 1 while post.js renders the main scene (ambient share -> alpha), w = debug view. Shared with every fogged built-in material (and ShaderMaterials that merge
+// LOOK_V (fog): x = aerial-perspective density cap for clear weather (0 = the old fixed cap), y = haze density
+// floor (cine.js: golden-hour haze, 1/m), z = 1 while post.js renders the main scene (ambient share -> alpha), w = debug view. Shared with every fogged built-in material (and ShaderMaterials that merge
 // UniformsLib.fog after this module loaded).
 export const LOOK_V = new Float32Array([0, 0, 0, 0]);
 // LOOK_W (r2-look): x = how much of the sky / env light a point in the sun's cast shadow loses (0..1, by day), yzw = the
