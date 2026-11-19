@@ -182,6 +182,25 @@ export function createRunner(game, story) {
         ctx.track(ped, () => release(ped));
         return ped;
       },
+      // a boat from game.boatSystem ('console' motorboat, 'skiff', 'racer', 'cruiser', 'jetski', 'police')
+      spawnBoat(name, key, at, opts = {}) {
+        const p = resolveAt(at);
+        const b = game.boatSystem?.spawn?.(key, { x: p.x, z: p.z }, p.heading || 0, opts);
+        if (!b) return null;
+        ctx.h[name] = b;
+        ctx.track(b, () => removeBoat(b), { keepOnPass: opts.keepOnPass ?? true });
+        return b;
+      },
+      // an aircraft from game.air ('floatplane', 'prop', 'bizjet'); y defaults to the sea for a floatplane
+      spawnAircraft(name, type, at, opts = {}) {
+        const p = resolveAt(at);
+        const y = p.y ?? game.city?.seaLevel ?? -0.12;
+        const a = game.air?.spawn?.(type, { x: p.x, y, z: p.z }, p.heading || 0, opts);
+        if (!a) return null;
+        ctx.h[name] = a;
+        ctx.track(a, () => game.air?.remove?.(a), { keepOnPass: opts.keepOnPass ?? true });
+        return a;
+      },
       // a mission prop (src/story/props.js, public/assets/models/mission/manifest.json) on the ground at `at`
       async spawnProp(name, id, at, opts = {}) {
         const p = resolveAt(at);
@@ -203,7 +222,7 @@ export function createRunner(game, story) {
       },
       async cutscene(csDef, opts = {}) {
         const cs = typeof csDef === 'function' ? csDef(ctx) : csDef;
-        const r = await story.playCutscene(cs, opts);
+        const r = await story.playCutscene(cs, { handles: ctx.h, ...opts });
         // the scene's vehicles and kept actors become mission handles (cleaned up like the rest)
         for (const [name, v] of Object.entries(r.vehicles || {})) {
           ctx.h[name] = v;
@@ -232,6 +251,11 @@ export function createRunner(game, story) {
       }
     };
     return ctx;
+  }
+
+  function removeBoat(b) {
+    if (P.state?.inVehicle && P.state.vehicle === b) game.exitVehicle?.();
+    game.boatSystem?.remove?.(b);
   }
 
   function removeVehicle(v) {

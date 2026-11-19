@@ -106,12 +106,14 @@ export function createCutscenes(game) {
       return [pp.x, pp.y + 1.6, pp.z];
     }
     const [kind, id] = name.split(':');
-    if (kind === 'actor' && cs.actors[id]) {
-      const r = cs.actors[id].root.position;
+    // the scene's own actors first, then the running mission's handles (opts.handles)
+    const actor = kind === 'actor' && (cs.actors[id] || cs.handles[id]);
+    if (actor?.root) {
+      const r = actor.root.position;
       return [r.x, r.y + 1.62, r.z];
     }
-    if (kind === 'vehicle' && cs.vehicles[id]) {
-      const v = cs.vehicles[id];
+    const v = kind === 'vehicle' && (cs.vehicles[id] || cs.handles[id]);
+    if (v) {
       const t = v.body?.translation?.() || v.mesh?.position || { x: 0, y: 0, z: 0 };
       return [t.x, t.y + 1.2, t.z];
     }
@@ -242,6 +244,7 @@ export function createCutscenes(game) {
       game,
       frame: makeFrame(def),
       actors: {},
+      handles: opts.handles || {},
       vehicles: {},
       props: {},
       t: 0,

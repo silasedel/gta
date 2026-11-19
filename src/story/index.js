@@ -27,6 +27,7 @@ export function createStory(game) {
   const params = new URLSearchParams(location.search);
   const state = createStoryState();
   const story = {
+    game,
     state,
     intro: INTRO_MISSIONS,
     test: params.get('storytest') === '1',
