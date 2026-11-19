@@ -188,7 +188,7 @@ export async function initV2(game) {
         for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m); mw.multiplyMatrices(o.matrixWorld, m); v.setFromMatrixPosition(mw); if ((v.x - x) ** 2 + (v.z - z) ** 2 > r * r) continue;
           const key = ud.vegKey + ':' + Math.round(v.x * 10) + ',' + Math.round(v.z * 10); if (seen.has(key)) continue; seen.add(key);
           const bx = (o.matrixWorld.elements[0] * m.elements[12] + o.matrixWorld.elements[4] * m.elements[13] + o.matrixWorld.elements[8] * m.elements[14] + o.matrixWorld.elements[12]), bz = (o.matrixWorld.elements[2] * m.elements[12] + o.matrixWorld.elements[6] * m.elements[13] + o.matrixWorld.elements[10] * m.elements[14] + o.matrixWorld.elements[14]);
-          const vh = vegHash(bx, bz), sc = Math.hypot(mw.elements[0], mw.elements[1], mw.elements[2]);
+          const vh = vegHash(bx, bz), sc = Math.hypot(mw.elements[0], mw.elements[1], mw.elements[2]); if (sc < 1e-3) continue; // dropped by the ground pass (vegGround.v2.js)
           const pts = md.trunk.map(([px, py, pz, pr]) => { const q = vegTrunkPoint(px, py, pz, vh, md.trunkShape, md.trunkLean); const w = new THREE.Vector3(q[0], q[1], q[2]).applyMatrix4(mw); return [w.x, w.y, w.z, pr * sc]; });
           const segs = []; for (let k = 0; k + 1 < pts.length; k++) segs.push([pts[k][0], pts[k][1], pts[k][2], pts[k + 1][0], pts[k + 1][1], pts[k + 1][2], (pts[k][3] + pts[k + 1][3]) / 2]);
           const e = { key, kind: ud.vegKey, palm: ud.vegCls === 'palm', segs }; if (/mangrove/.test(ud.vegKey)) e.roots = [v.x, v.z, 1.6 * sc]; out.push(e); } });
@@ -198,6 +198,7 @@ export async function initV2(game) {
     groups: GROUPS, library: VEG_LIB,
     stats() { return fields.map((f) => f.stats()); },
     clearAt, clearStats,
+    _fields: fields, // vegGround.v2.js
   };
   game.updaters.push((dt) => {
     try {
@@ -212,7 +213,7 @@ export async function initV2(game) {
       if (!nicoStreet && game.nicoHouse?.toWorld && game.city?.flora?.models && game.camera && !/[?&]nicostreet=0\b/.test(location.search) && game.nicoHouse.toWorld(new THREE.Vector3()).distanceTo(game.camera.position) < 300 && (nsWait += dt || 0) > 3) { nicoStreet = 1; /* planted once the camera has been near for 3 s (house and neighbor colliders streamed in) */ try { nicoStreet = plantNicoStreet(game) || 1; game.vegetation.nicoStreet = nicoStreet; nsWait = 0; } catch (e) { console.warn('[vegetation] nico street', e); } }
       else if (nicoStreet && nicoStreet.pending?.length && (nsWait += dt || 0) > 2) { nsWait = 0; try { plantNicoStreet(game, nicoStreet); } catch (e) { nicoStreet.pending = []; } } // retry the spots still streaming in // (r2-veg) the mock-up street around Nico's lot
       if (game.camera) { setVegCamera(game.camera); for (const f of fields) f.update(game.camera); }
-      if (collars === null && game.city?.terrain) collars = createCollars(game, (x, z) => game.vegetation.groundAt(x, z)) || 0; if (collars) collars.update(dt, game.camera);
+      if (collars === null && game.city?.terrain) { collars = createCollars(game, (x, z) => game.vegetation.groundAt(x, z)) || 0; game.vegetation.collars = collars; } if (collars) collars.update(dt, game.camera);
       if (yards === null && game.city?.terrain && cs) yards = createLotPlanting(game) || 0; if (yards) { yards.update(dt, game.camera); game.vegetation.yards = yards; } /* (r2-veg) lush Keys yards */ // (r2-veg) soil / litter collar at every near trunk
       // countryside streamer (synthetic land): created once the city terrain exists; ?veg2=0 keeps the old per-tile flora
       const C = game.city;

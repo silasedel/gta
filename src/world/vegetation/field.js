@@ -107,5 +107,5 @@ export function createVegField(renderer, kind, items, opts = {}) {
     return { kind, items: items.length, instancesPerLOD: counts.slice(), drawCalls: draws, tris, lodTris, trisPerPlant: variants.map((v) => v.tris), dist: [d0, d1, d2] };
   }
   function dispose() { for (const V of variants) for (const p of V.parts) { p.im.dispose(); } group.clear(); }
-  return { group, update, stats, dispose, variants };
+  return { group, update, stats, dispose, variants, items, mats4 }; // items / mats4: vegGround.v2.js grounds or drops items in place (then update.dirtyView)
 }

@@ -580,7 +580,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   function dispose() { group.removeFromParent(); for (const P of protos) for (const L of P.lods) for (const s of L.slots) s.im.dispose(); cells.clear(); if (active === api) active = null; }
   const initMs = performance.now() - t0;
   function nearestTree(x, z, kind = null) { let best = null, bd = Infinity; for (const c of cells.values()) for (const [pi, L] of c.lists) { const k = protos[pi].key.split('#')[0]; if (!TREE_KINDS[k] || (kind && k !== kind)) continue; for (let i = 0; i < L.n; i++) { const d = (L.m[i * 16 + 12] - x) ** 2 + (L.m[i * 16 + 14] - z) ** 2; if (d < bd) { bd = d; best = { kind: k, x: L.m[i * 16 + 12], y: L.m[i * 16 + 13], z: L.m[i * 16 + 14] }; } } } return best; }
-  function treesNear(x, z, r) { const out = []; for (const c of cells.values()) { if (Math.abs(c.cx - x) > r + CELLS || Math.abs(c.cz - z) > r + CELLS) continue; for (const [pi, L] of c.lists) { const k = protos[pi].key.split('#')[0]; if (!TREE_KINDS[k]) continue; for (let i = 0; i < L.n; i++) { const o = i * 16, tx = L.m[o + 12], tz = L.m[o + 14]; if ((tx - x) ** 2 + (tz - z) ** 2 > r * r) continue; out.push({ kind: k, palm: !!TREE_KINDS[k].palm, x: tx, y: L.m[o + 13], z: tz, s: Math.hypot(L.m[o], L.m[o + 1], L.m[o + 2]) }); } } } return out; }
+  function treesNear(x, z, r) { const out = []; for (const c of cells.values()) { if (Math.abs(c.cx - x) > r + CELLS || Math.abs(c.cz - z) > r + CELLS) continue; for (const [pi, L] of c.lists) { const k = protos[pi].key.split('#')[0]; if (!TREE_KINDS[k]) continue; for (let i = 0; i < L.n; i++) { const o = i * 16, tx = L.m[o + 12], tz = L.m[o + 14]; if ((tx - x) ** 2 + (tz - z) ** 2 > r * r || (L.m[o] === 0 && L.m[o + 1] === 0 && L.m[o + 2] === 0)) continue; out.push({ kind: k, palm: !!TREE_KINDS[k].palm, x: tx, y: L.m[o + 13], z: tz, s: Math.hypot(L.m[o], L.m[o + 1], L.m[o + 2]) }); } } } return out; }
   function rejectArea(b) { // a new blocked area (game.vegetation.block): regenerate the cells it touches
     const x0 = b.r !== undefined ? b.x - b.r : b.x0, x1 = b.r !== undefined ? b.x + b.r : b.x1, z0 = b.r !== undefined ? b.z - b.r : b.z0, z1 = b.r !== undefined ? b.z + b.r : b.z1;
     for (const c of cells.values()) if (c.x0 < x1 + 4 && c.x0 + CELLS > x0 - 4 && c.z0 < z1 + 4 && c.z0 + CELLS > z0 - 4) { c.lists.clear(); c.lv.t = c.lv.s = c.lv.g = 0; c.grid = null; dirty = true; }
@@ -590,7 +590,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     for (const [pi, L] of c.lists) { const P = protos[pi]; if (!P.key.startsWith('rock')) continue; const geo = P.lods[0]?.slots[0]?.geo; if (!geo) continue;
       for (let i = 0; i < L.n; i++) { const o = i * 16, rx = L.m[o + 12], rz = L.m[o + 14]; if ((rx - x) ** 2 + (rz - z) ** 2 > r * r) continue; const s = Math.hypot(L.m[o], L.m[o + 1], L.m[o + 2]); if (s < minS) continue;
         out.push({ key: c.k + ':' + pi + ':' + i, x: rx, y: L.m[o + 13], z: rz, s, m: L.m.slice(o, o + 16), pos: geo.attributes.position.array }); } } } return out; }
-  const api = { group, update, stats, dispose, reject, rejectArea, protos, nearestTree, treesNear, rocksNear, biomeAt: (x, z) => BKEYS[biomeOf(ctx, x, z) - 1] || null };
+  const api = { group, update, stats, dispose, reject, rejectArea, protos, nearestTree, treesNear, rocksNear, cells, touch() { dirty = true; }, /* vegGround.v2.js: ground-truth pass edits the sealed lists in place */ biomeAt: (x, z) => BKEYS[biomeOf(ctx, x, z) - 1] || null };
   active = api;
   return api;
 }
