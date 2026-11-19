@@ -382,6 +382,8 @@ function evenPacing(game) {
   function pump(now) {
     scheduled = false;
     // on a 120 Hz panel ticks come every 8.3 ms: fire every second tick (present at 16.7 ms)
+    // the setting can change (and settings load after this module): follow it on every tick
+    pace.on = pace.hz >= 90 && game.settings?.fpsLimit !== 0 && game.settings?.fpsLimit !== 120 && game.settings?.evenPacing !== false;
     if (pace.on && now - lastFire < 12.5) {
       pace.skipped++;
       scheduled = true;

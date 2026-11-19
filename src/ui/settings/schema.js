@@ -47,7 +47,7 @@ export const SCHEMA = [
       { key: 'fov', label: 'Field of view', type: 'range', min: 50, max: 100, step: 1, default: 62, fmt: (v) => Math.round(v) + '°', owner: 'ui' },
       { key: 'cameraShake', label: 'Camera shake', type: 'range', min: 0, max: 1, step: 0.05, default: 1, fmt: pct, owner: 'lead' },
       { key: 'fullscreen', label: 'Fullscreen', type: 'toggle', default: false, owner: 'ui', volatile: true },
-      { key: 'fpsLimit', label: 'Frame rate limit', type: 'choice', default: 0, owner: 'ui', options: [C(30, '30'), C(60, '60'), C(120, '120'), C(0, 'Unlimited')], desc: '30 holds an even frame rate on mid-range machines (r2-perf).' },
+      { key: 'fpsLimit', label: 'Frame rate limit', type: 'choice', default: 60, owner: 'ui', options: [C(30, '30'), C(60, '60'), C(120, '120'), C(0, 'Unlimited')], desc: '30 holds an even frame rate on mid-range machines (r2-perf).' },
       { key: 'showFps', label: 'Show frame rate', type: 'toggle', default: false, owner: 'ui' },
     ] },
   ] },
