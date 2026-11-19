@@ -628,6 +628,9 @@ function mooredSkiff(game, g, a) {
         boat = bs.spawn('skiff', { x: a.pos.x, z: a.pos.z }, a.heading, {
           color: 0xf3f2ee,
           name: "Nico's skiff",
+          // r12 (user: the reference's open skiff, no T-top): a fixed build of the Baywright 21 with no top, a cooler aboard and a
+          // dark swoosh on the white hull (src/vehicles/boats/models/cc.js rolls these from the seed)
+          seed: 2,
         });
       } catch (e) {
         console.warn('[nicoHouse] skiff', e);
