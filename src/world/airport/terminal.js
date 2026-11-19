@@ -5,7 +5,7 @@
 // Local frame: group at the terminal center, rotation.y = heading, local +z = airside (apron), -z = landside (curb),
 // x along the building. Colliders: one fixed body (floor, walls with door gaps, roof, counters, seat rows).
 import * as THREE from 'three';
-import { loadModel, loadCollision, addTrimesh } from './models.js';
+import { loadModel } from './models.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const FLOOR = 0.15;
@@ -74,7 +74,7 @@ export async function buildTerminal(ap, { group, ground, world, RAPIER, game }) 
   if (big) {
     const hall = await loadModel('airport/terminal_hall');
     if (hall) { const h = hall.clone(true); h.rotation.y = Math.PI / 2; h.scale.setScalar(Math.min(1, (D - 2) / 51.4)); h.position.set(0, FLOOR, 0); root.add(h);
-      const col = await loadCollision('airport/terminal_hall_col'); if (col) root.userData.hallCol = { col, scale: h.scale.x }; }
+      /* no collision mesh for the hall furniture (perf): the shell, checkpoint and seat rows collide */ }
   } else {
     // regional: a row of check-in counters with a wall behind, bag scales, a backlit brand wall
     for (let i = 0; i < 4; i++) { const x = -9 + i * 4.5; box(3.6, 1.05, 0.9, x, FLOOR + 0.52, -2, wood); box(0.6, 0.3, 0.7, x + 1.2, FLOOR + 0.15, -3.2, darkSteel, false); }
@@ -146,7 +146,6 @@ export async function buildTerminal(ap, { group, ground, world, RAPIER, game }) 
   // ---- colliders
   const body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(T.x, gy, T.z).setRotation(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), T.heading)));
   for (const [x, y, z, hx, hy, hz] of boxes) world.createCollider(RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z), body);
-  if (root.userData.hallCol) { const { col, scale } = root.userData.hallCol; addTrimesh(world, RAPIER, body, { vertices: rotY(col.vertices, Math.PI / 2, scale, FLOOR), indices: col.indices }, 0, 0, 0, 0, 1); }
   const doorCols = doors.map((d) => world.createCollider(RAPIER.ColliderDesc.cuboid(DW / 2, 1.5, 0.08).setTranslation(d.x, FLOOR + 1.5, -D / 2), body));
   // ---- interior test: inside the shell (local box)
   const inside = (x, z, pad = 0) => { const [lx, lz] = toLocal(x, z); return Math.abs(lx) < L / 2 + pad && Math.abs(lz) < D / 2 + pad; };

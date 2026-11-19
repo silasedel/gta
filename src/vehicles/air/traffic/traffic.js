@@ -147,7 +147,7 @@ export function createTraffic(game, airports) {
     const st = pick(free), dir = runwayDir(A), id = flightNo(A, st.type), ac = await makeAircraft(st.type, id.op); if (!ac) return null;
     const T = TYPES[st.type], F = A.F, td = dir > 0 ? 330 : F.L - 330;
     const f = { A, ac, st, phase: 'final', t: 0, dir, td, x: 0, z: 0, y: 0, h: Math.atan2(F.ux * dir, F.uz * dir), pitch: 0.03, roll: 0, v: T.vApp, dist: 7000, id, from: pick(DEST[A.ap.id]), engines: 0.4 };
-    st.busy = f; flights.push(f); A.busyUntil = Infinity; return f;
+    st.busy = f; flights.push(f); return f;   // the runway is reserved only once it is on a 3 km final (below)
   }
   function place(f) {
     const g = f.ac.g; g.position.set(f.x, f.y, f.z); g.rotation.set(0, 0, 0); g.rotateY(f.h); g.rotateX(-f.pitch); g.rotateZ(f.roll);
@@ -176,7 +176,7 @@ export function createTraffic(game, airports) {
       }
       case 'taxiOut': case 'taxiIn': {
         const P = f.route.taxi, rem = P.L - f.d; samplePath(P, f.d, _s);
-        let want = 9 - Math.min(6, _s.turn * 9); if (rem < 60) want = Math.min(want, 2 + rem / 12);
+        let want = 12 - Math.min(9, _s.turn * 12); if (rem < 60) want = Math.min(want, 2 + rem / 12);
         // hold short of the runway while it is busy (departures)
         if (f.phase === 'taxiOut' && rem < 70 && (A.busyUntil > now() || A.rwUser && A.rwUser !== f)) want = Math.min(want, Math.max(0, (rem - 62) * 0.4));
         // keep 70 m behind another taxiing aircraft
@@ -212,18 +212,19 @@ export function createTraffic(game, airports) {
         f.x = tdP[0] - F.ux * dir * f.dist; f.z = tdP[1] - F.uz * dir * f.dist;
         const gyT = ground(tdP[0], tdP[1]); f.y = gyT + Math.max(0, f.dist) * Math.tan(0.0524) + 0.4; f.pitch = 0.035; f.engines = 0.45;
         if (A.rwUser && A.rwUser !== f && f.dist < 2600 && !f.goAround) { /* a departure is still on the runway: it will be gone by the time we arrive (it lined up first) */ }
+        if (f.dist < 3000 && !f.locked) { f.locked = true; A.busyUntil = Infinity; }   // departures hold short from here on
         if (f.dist < 2400 && !A.rwUser) A.rwUser = f;
-        if (f.y - gyT < 14) { f.phase = 'flare'; f.t = 0; f.vy = -f.v * Math.tan(0.0524); }
+        if (f.y - gyT < 9) { f.phase = 'flare'; f.t = 0; f.vy = -f.v * Math.tan(0.0524); }
         break;
       }
       case 'flare': {
-        f.vy = lerp(f.vy, -0.6, dt * 1.2); f.y += f.vy * dt; f.pitch = lerp(f.pitch, 0.085, dt * 1.5); f.v -= 0.6 * dt;
+        f.vy = lerp(f.vy, -1.1, dt * 2.0); f.y += f.vy * dt; { const sRun = (F.s(f.x, f.z) - f.td) * f.dir; if (sRun > 220) f.y = Math.min(f.y, gy + 0.01); }   // never float past the touchdown zone f.pitch = lerp(f.pitch, 0.085, dt * 1.5); f.v -= 0.6 * dt;
         f.x += Math.sin(f.h) * f.v * dt; f.z += Math.cos(f.h) * f.v * dt;
         if (f.y <= gy + 0.02) { f.y = gy; f.phase = 'rollout'; f.t = 0; f.engines = 0.8; game.emit?.('aircraft:aiTouchdown', { flight: f.id.code, x: f.x, z: f.z }); }
         break;
       }
       case 'rollout': {
-        f.pitch = Math.max(0, f.pitch - dt * 0.06); f.v = Math.max(13, f.v - 2.6 * dt); f.y = gy; f.engines = f.t < 12 ? 0.9 : 0.4;
+        f.pitch = Math.max(0, f.pitch - dt * 0.06); f.v = Math.max(13, f.v - 3.1 * dt); f.y = gy; f.engines = f.t < 12 ? 0.9 : 0.4;
         f.x += Math.sin(f.h) * f.v * dt; f.z += Math.cos(f.h) * f.v * dt;
         const s = F.s(f.x, f.z);
         if (f.v <= 13.5) { const p = arrPath(A, f, s); f.route = p; f.phase = 'taxiIn'; f.d = 0; f.t = 0; f.vacating = true; }

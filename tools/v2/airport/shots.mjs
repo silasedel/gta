@@ -44,7 +44,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 1100) }, as
     for (const [i, w] of [[0, 300], [1, 500], [2, 500], [3, 450], [4, 500]]) { await b.sleep(w); await b.screenshot(`${D}/climb_${i}.jpg`); }
     console.log('climb shots'); await b.sleep(2000); await b.eval('game.cameraOverride = null; 1');
   }
-  if (o.js) console.log('JS', await b.eval(fs.readFileSync(o.js, 'utf8')));
+  if (o.js) console.log('JS', await b.eval(fs.readFileSync(o.js, 'utf8'), 400000));
   if (o.board) {   // walk-in boarding at gate 1: pay, the cut to the take-off, arrival at the other airport, then shots there
     await b.eval(`game.cameraOverride = null; (game.wallet?.earn?.(1000, { memo: 'test' }), 1)`);
     const r = await b.eval(`(async () => { const A = game.airport.list.find((a) => a.id === '${AP}'); const g = A.parts.terminal.gates[0]; game.teleport(g.podium.x, undefined, g.podium.z, 0); await new Promise((r) => setTimeout(r, 2500));

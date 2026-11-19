@@ -151,6 +151,9 @@ export async function initV2(game) {
     const t = game.clock?.elapsed ?? 0;
     if (t - lastStream > 0.5) { lastStream = t;
       for (const A of list) { const d = Math.hypot(pp.x - A.cx, pp.z - A.cz); if (A.state === 'idle' && d < BUILD_R) build(A).catch((e) => { console.warn('[airport] build', e); A.state = 'failed'; }); if (A.group) { const vis = d < HIDE_R; if (A.group.visible !== vis) A.group.visible = vis; } } }
+    // far from both airports (and no flight with the player aboard): nothing else runs
+    let near = false; for (const A of list) if (Math.abs(pp.x - A.cx) < HIDE_R + 1500 && Math.abs(pp.z - A.cz) < HIDE_R + 1500) near = true;
+    if (!near && !boarding.active) { if (sec.inside) security(dt); return; }
     const cam = game.camera;
     for (const A of list) {
       if (A.state !== 'live' || !A.group.visible) continue;

@@ -111,10 +111,13 @@ export function buildFence(opts) {
     const post = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), boothMat); post.position.set(a.x + Math.sin(a.along) * a.len * 0.47, ay + 0.55, a.z + Math.cos(a.along) * a.len * 0.47); group.add(post);
   }
   // colliders: a thin wall per span, 2.6 m high (the barbed arms count)
-  for (const sp of spans) {
-    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(sp.bx - sp.ax, sp.bz - sp.az));
-    world.createCollider(RAPIER.ColliderDesc.cuboid(0.06, 1.3, sp.len / 2 + 0.05).setTranslation((sp.ax + sp.bx) / 2, sp.y + 1.3, (sp.az + sp.bz) / 2).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }), body);
-  }
+  // created 150 per frame (about 2 ms), not all at once in the middle of play
+  { let i = 0; const qq = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+    const chunk = () => { const end = Math.min(spans.length, i + 150);
+      for (; i < end; i++) { const sp = spans[i]; qq.setFromAxisAngle(up, Math.atan2(sp.bx - sp.ax, sp.bz - sp.az));
+        try { world.createCollider(RAPIER.ColliderDesc.cuboid(0.06, 1.3, sp.len / 2 + 0.05).setTranslation((sp.ax + sp.bx) / 2, sp.y + 1.3, (sp.az + sp.bz) / 2).setRotation({ x: qq.x, y: qq.y, z: qq.z, w: qq.w }), body); } catch (e) { /* */ } }
+      if (i < spans.length) requestAnimationFrame(chunk); };
+    chunk(); }
   // nearest fence span to a point: { x, z (closest point), nx, nz (outward), y, d, gate }
   function nearest(x, z, maxD = 3) {
     let best = null, bd = maxD;

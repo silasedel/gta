@@ -3,7 +3,8 @@
 // (yellow / black location and direction signs, red runway holding-position signs) and airside ground equipment
 // (baggage carts in trains, catering trucks, tugs) around the stands. Colliders from each model's collision mesh.
 import * as THREE from 'three';
-import { loadModel, loadCollision, addTrimesh } from './models.js';
+import { loadModel } from './models.js';
+const BOX = new Map();
 import { frame, along, polyLen } from './geom.js';
 
 const LOD_FAR = { 'buildings/control_tower': 'buildings/control_tower_lod1', 'buildings/hangar_arch': 'buildings/hangar_arch_lod1', 'buildings/hangar_quonset': 'buildings/hangar_quonset_lod1' };
@@ -14,7 +15,14 @@ async function place(path, x, y, z, heading, { group, world, RAPIER, body, col =
   const o = src.clone(true); o.position.set(x, y, z); o.rotation.y = heading; if (scale !== 1) o.scale.setScalar(scale); group.add(o);
   let far = null;
   if (LOD_FAR[path]) { const fs = await loadModel(LOD_FAR[path]); if (fs) { far = fs.clone(true); far.position.copy(o.position); far.rotation.y = heading; far.scale.copy(o.scale); far.visible = false; group.add(far); lods?.push({ near: o, far, x, z, d: path.includes('tower') ? 900 : 450 }); } }
-  if (col) { const c = await loadCollision(path + '_col'); if (c) addTrimesh(world, RAPIER, body, c, x, y, z, heading, scale); }
+  if (col) {   // one box from the model's bounds (perf lead, Nov 19: no big trimeshes built during play); jet bridges leave room to walk under
+    let bb = BOX.get(path); if (!bb) { bb = new THREE.Box3().setFromObject(src); BOX.set(path, bb); }
+    const y0 = path.includes('jet_bridge') ? Math.max(bb.min.y, 3.0) : bb.min.y, hx = (bb.max.x - bb.min.x) / 2 * scale, hy = (bb.max.y - y0) / 2 * scale, hz = (bb.max.z - bb.min.z) / 2 * scale;
+    const cx = (bb.max.x + bb.min.x) / 2 * scale, cy = (bb.max.y + y0) / 2 * scale, cz = (bb.max.z + bb.min.z) / 2 * scale, c = Math.cos(heading), sn = Math.sin(heading);
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), heading);
+    try { world.createCollider(RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x + cx * c + cz * sn, y + cy, z - cx * sn + cz * c).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }), body); } catch (e) { /* */ }
+  }
+  await new Promise((r) => requestAnimationFrame(() => r()));   // spread the placements over frames
   return o;
 }
 
