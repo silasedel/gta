@@ -170,10 +170,11 @@ export function initV2(game) {
   });
   function endDrive() {
     try { if (drive.kin === true) { drive.v.body.setBodyType(game.RAPIER.RigidBodyType.Dynamic, true); drive.v.body.setLinvel({ x: 0, y: 0, z: 0 }, true); } } catch (e) { /* */ }
+    try { if (drive.v) drive.v.benchSpeed = undefined; } catch (e) { /* */ }
     try { game.exitVehicle?.(); } catch (e) { /* */ }
     drive = null;
   }
-  game.updaters.push(function benchDriveClock(dt) { if (drive) drive.s += dt * drive.speed; });
+  game.updaters.push(function benchDriveClock(dt) { if (drive) { drive.s += dt * drive.speed; if (drive.v) drive.v.benchSpeed = drive.speed; } });
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const pending = () => { try { return game.city?.streamer?.pending?.() ?? 99; } catch (e) { return 0; } };

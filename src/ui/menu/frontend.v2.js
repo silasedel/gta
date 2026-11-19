@@ -406,12 +406,12 @@ function createLoading(game, ctx, kind, from = 2) {
     async waitWorld(x, z) {
       const t0 = performance.now(), st = game.city?.streamer;
       try { ls.place(game.city?.districtAt?.(x, z) || ''); } catch (e) { /* */ }
-      const R = 220, ts = st?.tileSize || 200, expected = Math.max(4, Math.ceil((Math.PI * R * R) / (ts * ts)));
+      const R = 320, ts = st?.tileSize || 200, expected = Math.max(4, Math.ceil((Math.PI * R * R) / (ts * ts)));
       for (;;) {
         const el2 = performance.now() - t0;
         let ready = 0, seen = 0;
         if (st) for (const t of st.tiles.values()) { const d = Math.hypot(t.cx - x, t.cz - z); if (d < R) { seen++; if (t.col && t.near) ready++; } }
-        const around = st?.readyAround ? st.readyAround(x, z, 220) : true;
+        const around = st?.readyAround ? st.readyAround(x, z, 320) : true;
         const frac = around ? 1 : ready / Math.max(expected, seen);
         const pend = st?.pending?.() ?? 0;
         ls.set(Math.min(around ? 100 : 92, 8 + frac * 80 + (pend < 3 ? 8 : 0) + Math.min(4, el2 / 500)), around ? 'Ready' : pend > 0 ? `Streaming the streets (${pend} left)` : 'Building colliders');

@@ -73,6 +73,7 @@ async function safe(name, fn, fallback) {
   try { return await fn(); } catch (e) { console.error(`[${name}] failed`, e); return fallback; } finally { lpEnd(name); BOOT.stages.push([name, Math.round(t), Math.round(performance.now() - t)]); }
 }
 
+const FIXSTEP = !(typeof location !== 'undefined' && /[?&]fixstep=0\b/.test(location.search)); // Nov 19: fixed-step physics + interpolated player car while driving
 const PHYS_CAP = !(typeof location !== 'undefined' && /[?&]physcap=0\b/.test(location.search)); // r2-perf: physics sub-step cap, on (A/B: ?physcap=0 or game.physCap = false; spawn step 14.6 -> 9.0 ms, frame 99.9 -> 89.5 ms in-session)
 
 async function boot() {
@@ -183,6 +184,7 @@ async function boot() {
   let lastMouseTime = 0;
   // locomotion feel state
   const L = {
+    fixP: new THREE.Vector3(), fixQ: new THREE.Quaternion(), fixQ2: new THREE.Quaternion(), fixOn: false, physAcc: 0, fixV: null,
     blockT: 0, speedF: 0, animSpeed: 0, turnInPlace: false, wasAir: false, airVy: 0,
     swimming: false, depth: 0, groundY: 0, rippleT: 0, strideAcc: 0, lastCharStep: -10,
     bobPhase: 0, visY: null, tilt: 0, swimBlend: 0, enterSplashT: 0,
@@ -1093,10 +1095,26 @@ async function boot() {
       // perf (Nov 19): at most 2 sub-steps (real time down to 30 fps); the third sub-step of a slow frame cost ~4 ms of Rapier
       // and kept the next frame slow (in-app benchmark). game.physMaxSteps overrides.
       const MAXS = game.physMaxSteps ?? 2;
-      const steps = PCAP ? Math.min(MAXS, Math.max(1, Math.ceil(simDt / (1 / 60)))) : Math.max(1, Math.ceil(simDt / (1 / 60)));
-      const h = PCAP ? Math.min(1 / 60, simDt / steps) : simDt / steps;
+      // Nov 19 (driving judder, ?fixstep=0 = old): while driving, physics runs fixed 1/60 s steps from a time accumulator and
+      // the player's car is drawn between the last two steps (below, after vehicles.update). Variable sub-steps (h jumped
+      // between ~8 and 16.7 ms with the frame time) made the suspension springs and the car pose jiggle against the camera.
+      const fixCar = FIXSTEP && P.state.inVehicle && P.state.vehicle?.body && !P.state.vehicle.isBoat && !P.state.vehicle.isAircraft;
+      let steps, h;
+      if (fixCar) {
+        const H = 1 / 60;
+        if (!L.fixOn) { L.fixOn = true; L.physAcc = H; L.fixV = null; }
+        L.physAcc += simDt;
+        steps = Math.floor(L.physAcc / H + 1e-6);
+        if (steps > MAXS) { steps = MAXS; L.physAcc = MAXS * H; }
+        L.physAcc -= steps * H; h = H;
+      } else {
+        L.fixOn = false;
+        steps = PCAP ? Math.min(MAXS, Math.max(1, Math.ceil(simDt / (1 / 60)))) : Math.max(1, Math.ceil(simDt / (1 / 60)));
+        h = PCAP ? Math.min(1 / 60, simDt / steps) : simDt / steps;
+      }
       world.timestep = h;
       if (!game.physicsDead) for (let i = 0; i < steps; i++) {
+        if (fixCar) { const b = P.state.vehicle.body, t = b.translation(), r = b.rotation(); L.fixV = P.state.vehicle; L.fixP.set(t.x, t.y, t.z); L.fixQ.set(r.x, r.y, r.z, r.w); }
         // Streaming/despawn code adds & removes colliders between steps; refresh the query BVH so
         // vehicle wheel rays, character controllers and camera rays never touch stale handles.
         if (!PCAP || i === 0) try { world.updateSceneQueries(); } catch (e) { /* older builds */ }
@@ -1159,6 +1177,14 @@ async function boot() {
       } catch (e) { console.error('[player visual]', e); }
       for (const u of game.updaters) { const t1 = performance.now(); try { u(simDt); } catch (e) { console.error(e); } tm('upd:' + (u.name || 'anon#' + game.updaters.indexOf(u)), t1); }
       { const t1 = performance.now(); try { game.vehicles.update?.(simDt); } catch (e) { console.error(e); } tm('vehicles', t1); }
+      // fixed-step driving: draw the player's car between the pose before the last step and the current one
+      if (L.fixOn && L.fixV && L.fixV === P.state.vehicle && L.fixV.mesh) {
+        const v = L.fixV, b = v.body, t = b.translation(), r = b.rotation(), a = Math.min(1, Math.max(0, L.physAcc * 60));
+        v.mesh.position.x += (L.fixP.x - t.x) * (1 - a); v.mesh.position.y += (L.fixP.y - t.y) * (1 - a); v.mesh.position.z += (L.fixP.z - t.z) * (1 - a);
+        L.fixQ2.set(r.x, r.y, r.z, r.w); v.mesh.quaternion.copy(L.fixQ).slerp(L.fixQ2, a);
+        P.position.copy(v.mesh.position);
+        { const q = v.mesh.quaternion, fx = 2 * (q.x * q.z + q.w * q.y), fz = 1 - 2 * (q.x * q.x + q.y * q.y); P.heading = Math.atan2(fx, fz); }
+      }
       { const t1 = performance.now(); try { game.peds.update?.(simDt); } catch (e) { console.error(e); } tm('peds', t1); }
       { const t1 = performance.now(); try { game.interiors.update?.(simDt); } catch (e) { console.error(e); } tm('interiors', t1); }
       { const t1 = performance.now(); try { game.gameplay.update?.(dt); } catch (e) { console.error(e); } tm('gameplay', t1); }

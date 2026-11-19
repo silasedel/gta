@@ -1813,7 +1813,7 @@ export async function createVehicles(game) {
       // tires dig ~3.5 cm into loose sand (visual only; the sand is opaque and depth-tested, so the buried part is hidden)
       v.mesh.position.set(t.x, t.y - (v.soft > 0.01 && !v.inWater ? 0.035 * v.soft : 0), t.z);
       v.mesh.quaternion.set(r.x, r.y, r.z, r.w);
-      v.speedKmh = Math.abs(v.speed) * 3.6;
+      v.speedKmh = Math.abs(v.benchSpeed ?? v.speed) * 3.6;   // benchSpeed: the benchmark route drives the car kinematically (no wheel speed)
       { const lv = v.body.linvel(); v.velocity.set(lv.x, lv.y, lv.z); }
       if (game.camera) {
         const cd = game.camera.position.distanceTo(v.mesh.position);

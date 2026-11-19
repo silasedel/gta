@@ -258,8 +258,12 @@ export async function initV2(game) {
   function areaReady(x, z) {
     const C = city(), st = C?.streamer;
     const col = C?.collidersReadyAt ? C.collidersReadyAt(x, z) : st?.collidersReadyAt ? st.collidersReadyAt(x, z) : true;
-    const near = st?.readyAround ? st.readyAround(x, z, 120) : true;
-    return !!col && !!near;
+    // Nov 19 (user: buildings visibly loaded in close in front of him after a teleport): the veil stays until the full
+    // building ring (near builds within 320 m) is in and the job queue has drained, so nothing pops in at arm's length
+    const near = st?.readyAround ? st.readyAround(x, z, 320) : true;
+    if (!near && performance.now() - (areaReady.t0 || 0) < 15000) return false;
+    const q = st?.pending ? st.pending() : 0;
+    return !!col && (q <= 4 || performance.now() - (areaReady.t0 || 0) > 15000);
   }
   // the physics ground under a point: a ray down from a little above the drawn ground (static colliders only, so the car,
   // the player and peds never count). Returns the hit height or null while that collider is not built yet.
@@ -312,7 +316,7 @@ export async function initV2(game) {
     let releaseP = null, car = null;
     if (dest.car && v && game.vehicles?.placeVehicle) { car = holdCar(v, dest); car.put(); }
     else { try { game.teleport(dest.x, dest.y + 0.05, dest.z); } catch (e) { /* */ } releaseP = holdPlayer({ x: dest.x, y: dest.y + 0.05, z: dest.z }); }
-    const t0 = performance.now();
+    const t0 = performance.now(); areaReady.t0 = t0;
     let ok = false, hitY = null;
     while (performance.now() - t0 < 30000) {
       await sleep(100);

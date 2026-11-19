@@ -403,8 +403,15 @@ export function createAudio(game) {
     if (!pos || !Number.isFinite(pos.x + (pos.y ?? 1) + pos.z)) return;
     if (p.positionX) { p.positionX.value = pos.x; p.positionY.value = pos.y ?? 1; p.positionZ.value = pos.z; } else p.setPosition(pos.x, pos.y ?? 1, pos.z);
   }
+  // perf (Nov 19): the interiors scan cost ~0.8 ms a frame (every shop's isInside, every frame); 5 times a second is enough
+  let indoorAt = -1, indoorV = false;
   const isIndoor = () => {
     if ((game.env?.indoor || 0) > 0.5) return true;
+    const nowS = performance.now();
+    if (nowS - indoorAt < 200) return indoorV;
+    indoorAt = nowS; indoorV = isIndoorScan(); return indoorV;
+  };
+  const isIndoorScan = () => {
     const pp = game.player?.position; if (!pp) return false;
     try { return (game.interiors?.list || []).some((s) => s.isInside?.(pp)); } catch (e) { return false; }
   };
