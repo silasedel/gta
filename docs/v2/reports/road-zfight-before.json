@@ -1,0 +1,103 @@
+{
+ "tag": "before",
+ "sites": [
+  {
+   "at": [
+    -975,
+    5260
+   ],
+   "views": {
+    "near": {
+     "flagged": 219,
+     "ground": 0,
+     "pairs": []
+    },
+    "graze": {
+     "flagged": 7,
+     "ground": 0,
+     "pairs": []
+    },
+    "high": {
+     "flagged": 2085,
+     "ground": 205,
+     "pairs": [
+      "55 tile-near--5,26<miami-city [M.parking po-2/-4] <-> tile-near--5,26<miami-city [M.sidewalk po-2/-4]",
+      "40 terrain-lod<chunk-mid--2,7<miami-city [terrain-lod po2/8] <-> ocean [PortSolanaOcean po2/6]",
+      "35 terrain-lod<chunk-mid--2,6<miami-city [terrain-lod po2/8] <-> ocean [PortSolanaOcean po2/6]",
+      "16 tile-near--5,26<miami-city [roadLane po-2/-6] <-> tile-near--5,26<miami-city [M.sidewalk po-2/-4]",
+      "15 terrain<tile-near--5,26<miami-city [terrain] <-> ocean [PortSolanaOcean po2/6]",
+      "14 ocean [PortSolanaOcean po2/6] <-> terrain<tile-near--5,25<miami-city [terrain]",
+      "9 terrain-lod<chunk-mid--3,5<miami-city [terrain-lod po2/8] <-> ocean [PortSolanaOcean po2/6]",
+      "8 tile-near--5,26<miami-city [roadLane po-2/-6] <-> tile-near--5,26<miami-city [roadLines po-2/-9]"
+     ]
+    }
+   }
+  },
+  {
+   "at": [
+    -762,
+    5126
+   ],
+   "views": {
+    "near": {
+     "flagged": 47,
+     "ground": 0,
+     "pairs": []
+    },
+    "graze": {
+     "flagged": 54,
+     "ground": 0,
+     "pairs": []
+    },
+    "high": {
+     "flagged": 991,
+     "ground": 284,
+     "pairs": [
+      "37 ocean [PortSolanaOcean po2/6] <-> terrain-lod<chunk-mid--1,6<miami-city [terrain-lod po2/8]",
+      "34 miami-land-base<miami-city [land-base po1/2] <-> ocean [PortSolanaOcean po2/6]",
+      "30 ocean [PortSolanaOcean po2/6] <-> terrain-lod<chunk-mid--1,5<miami-city [terrain-lod po2/8]",
+      "29 tile-near--4,26<miami-city [roadLane po-2/-6] <-> tile-near--4,26<miami-city [M.sidewalk po-2/-4]",
+      "16 miami-land-base<miami-city [land-base po1/2] <-> terrain-lod<chunk-far--6,0<miami-city [terrain-lod po2/8]",
+      "15 tile-near--5,26<miami-city [M.sidewalk po-2/-4] <-> tile-near--4,26<miami-city [M.sidewalk po-2/-4]",
+      "15 miami-land-base<miami-city [land-base po1/2] <-> terrain-lod<chunk-far--4,0<miami-city [terrain-lod po2/8]",
+      "14 tile-near--5,26<miami-city [roadLane po-2/-6] <-> tile-near--5,26<miami-city [M.sidewalk po-2/-4]"
+     ]
+    }
+   }
+  },
+  {
+   "at": [
+    -1114,
+    5467
+   ],
+   "views": {
+    "near": {
+     "flagged": 30,
+     "ground": 0,
+     "pairs": []
+    },
+    "graze": {
+     "flagged": 18,
+     "ground": 0,
+     "pairs": []
+    },
+    "high": {
+     "flagged": 1316,
+     "ground": 366,
+     "pairs": [
+      "216 terrain-lod<chunk-mid--2,6<miami-city [terrain-lod po2/8] <-> ocean [PortSolanaOcean po2/6]",
+      "45 tile-near--6,27<miami-city [roadLane po-2/-6] <-> tile-near--6,27<miami-city [M.sidewalk po-2/-4]",
+      "16 ocean [PortSolanaOcean po2/6] <-> terrain-lod<chunk-mid--2,5<miami-city [terrain-lod po2/8]",
+      "15 ocean [PortSolanaOcean po2/6] <-> terrain-lod<chunk-mid--1,6<miami-city [terrain-lod po2/8]",
+      "14 lamp-pools [ShaderMaterial po-2/-2] <-> tile-near--6,27<miami-city [M.sidewalk po-2/-4]",
+      "13 tile-near--5,26<miami-city [M.parking po-2/-4] <-> tile-near--5,26<miami-city [M.sidewalk po-2/-4]",
+      "12 tile-near--6,26<miami-city [M.parking po-2/-4] <-> tile-near--6,27<miami-city [M.parking po-2/-4]",
+      "8 tile-near--7,28<miami-city [M.sidewalk po-2/-4] <-> tile-near--6,28<miami-city [M.sidewalk po-2/-4]"
+     ]
+    }
+   }
+  }
+ ],
+ "total": 4767,
+ "totalGround": 855
+}

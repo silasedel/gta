@@ -11,11 +11,14 @@ import * as THREE from 'three';
 import { makeVegMaterial } from './materials.js';
 import { grassCardMap, clumpCard, bladeCards, stripCard } from './grasscards.js';
 import { gmVeg } from '../ground/surfaceMask.js';
+import { ladder } from '../ground/depthLadder.js';
 
 const ON = typeof location === 'undefined' || !/[?&]vegcollar=0\b/.test(location.search);
 const GRASS = typeof location === 'undefined' || !/[?&]basegrass=0\b/.test(location.search);
 const MAX = 700, R = 70, R_GRASS = 46, MAXG = 5200;
 const HARD = /asphalt|sidewalk|concrete|pavers|tile|building|pier|wood|deck|parking|plaza|promenade/;
+const PITG = typeof location === 'undefined' || !/[?&]pitgrass=0\b/.test(location.search); // W4: grass tufts through the tree grates of paved palms / trees
+const PIT_OK = /sidewalk|concrete|pavers|tile|plaza|promenade|paved/; // paving with a tree pit (not roads, buildings, decks)
 
 function collarTexture() {
   const S = 128, cv = document.createElement('canvas'); cv.width = cv.height = S; const g = cv.getContext('2d'), im = g.createImageData(S, S), D = im.data;
@@ -43,6 +46,7 @@ export function createCollars(game, groundAt) {
   if (!ON || typeof document === 'undefined') return null;
   const geo = new THREE.PlaneGeometry(2, 2); geo.rotateX(-Math.PI / 2);
   const mat = new THREE.MeshStandardMaterial({ map: collarTexture(), transparent: true, depthWrite: false, roughness: 0.96, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+  ladder(mat, 'overSidewalk'); // W4 ground ladder (was -4: tied with the sidewalk)
   const im = new THREE.InstancedMesh(geo, mat, MAX); im.count = 0; im.frustumCulled = false; im.receiveShadow = true; im.castShadow = false; im.name = 'vegCollars'; im.renderOrder = -1;
   game.scene.add(im);
   // ---- 3D base grass ----
@@ -53,6 +57,10 @@ export function createCollars(game, groundAt) {
     const protos = [clumpCard(3, { h: 0.42 }).leaf, bladeCards(5, { n: 9, r: 0.13, h: 0.36, w: 0.028 }).leaf, stripCard(7, { h: 0.24, w: 0.5 }).leaf, clumpCard(11, { h: 0.3 }).leaf];
     const meshes = protos.map((g, k) => { const m = new THREE.InstancedMesh(g, gm.mat, MAXG); m.count = 0; m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true; m.name = 'vegBaseGrass' + k; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXG * 3), 3); game.scene.add(m); return m; });
+    if (PITG) { // W4: pit grass: one extra draw. No ground mask on this material (the mask clears grass from paving; these grow out of the pit)
+      const pm = makeVegMaterial('leaf', { map: grassCardMap(game.renderer), lean: 0.02, sway: 0.03, wear: 0.1, transl: 0.65, alphaTest: 0.4, tint: 0.8, fade: [0, 0, 30, 38] });
+      const m = new THREE.InstancedMesh(clumpCard(13, { h: 0.3 }).leaf, pm.mat, MAXG >> 2); m.count = 0; m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true; m.name = 'vegPitGrass'; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array((MAXG >> 2) * 3), 3); game.scene.add(m); meshes.push(m); }
     G = { meshes, cache: new Map() };
   }
   const down = (x, y0, z, len) => { const f = game.vegGround?.down; return f ? f(x, y0, z, len) : NaN; };
@@ -61,7 +69,13 @@ export function createCollars(game, groundAt) {
   // clumps of one trunk (world-stable, cached): Float32Array [proto, x, y, z, ry, sx, sy, r, g, b] * n, or null while physics streams in
   function trunkGrass(x, y, z, s, palm) {
     const k = Math.round(x * 4) + ',' + Math.round(z * 4); let e = G.cache.get(k); if (e !== undefined) return e;
-    const sf = surf(x, z); if (HARD.test(sf) || isW(x, z)) { G.cache.set(k, (e = new Float32Array(0))); return e; }
+    const sf = surf(x, z); if (isW(x, z)) { G.cache.set(k, (e = new Float32Array(0))); return e; }
+    if (HARD.test(sf)) { if (!PITG || !PIT_OK.test(sf)) { G.cache.set(k, (e = new Float32Array(0))); return e; }
+      const g0 = down(x, y + 1.2, z, 2.6); if (!Number.isFinite(g0)) return null; const out = [], n = 9 + ((hsh(x, z, 1) * 5) | 0), pk = G.meshes.length - 1;
+      for (let i = 0; i < n; i++) { const a = (i / n) * 6.283 + hsh(x, z, i) * 0.7, rr = (palm ? 0.2 : 0.26) + 0.4 * Math.pow(hsh(z, x, i + 3), 1.4), px = x + Math.cos(a) * rr, pz = z + Math.sin(a) * rr;
+        const h = (0.55 + 0.6 * hsh(px, pz, 4)) * (rr < 0.4 ? 1 : 0.7), v = 0.78 + 0.3 * hsh(px, pz, 8), dr = 0.25 + 0.35 * hsh(px, pz, 10);
+        out.push(pk, px, g0 + 0.01, pz, hsh(px, pz, 2) * 6.283, 0.55 + 0.3 * hsh(pz, px, 5), h, v * (0.78 + 0.32 * dr), v * (0.95 - 0.08 * dr), v * (0.62 + 0.1 * dr)); }
+      e = new Float32Array(out); G.cache.set(k, e); return e; }
     const g0 = down(x, y + 1.2, z, 2.6); if (!Number.isFinite(g0)) return null;
     const sandy = /sand|beach|shell/.test(sf), dry = sandy ? 0.85 : 0.25 + 0.3 * hsh(x, z, 9);
     const r0 = (palm ? 0.22 : 0.3) * Math.max(0.7, s), r1 = (palm ? 1.05 : 1.35) * Math.min(1.5, Math.max(0.8, s)), n = Math.round((sandy ? 6 : 15) * Math.min(1.4, Math.max(0.8, s)));
@@ -95,7 +109,7 @@ export function createCollars(game, groundAt) {
     im.count = n; im.instanceMatrix.needsUpdate = true;
     if (G) { const cnt = G.meshes.map(() => 0); retry = false; let nt = 0;
       for (const [x, z, s, d2, y, palm] of list) { if (d2 > R_GRASS * R_GRASS) break; const c = trunkGrass(x, y, z, s, palm); if (!c) { retry = true; continue; } if (c.length) nt++;
-        for (let i = 0; i < c.length; i += 10) { const k = c[i], M = G.meshes[k]; if (cnt[k] >= MAXG) continue; e.set(0, c[i + 4], 0); q.setFromEuler(e); sc.set(c[i + 5], c[i + 6], c[i + 5]); out.compose(p.set(c[i + 1], c[i + 2], c[i + 3]), q, sc);
+        for (let i = 0; i < c.length; i += 10) { const k = c[i], M = G.meshes[k]; if (cnt[k] >= M.instanceMatrix.count) continue; e.set(0, c[i + 4], 0); q.setFromEuler(e); sc.set(c[i + 5], c[i + 6], c[i + 5]); out.compose(p.set(c[i + 1], c[i + 2], c[i + 3]), q, sc);
           M.setMatrixAt(cnt[k], out); M.instanceColor.setXYZ(cnt[k], c[i + 7], c[i + 8], c[i + 9]); cnt[k]++; } }
       G.meshes.forEach((M, k) => { M.count = cnt[k]; M.visible = cnt[k] > 0; M.instanceMatrix.needsUpdate = true; M.instanceColor.needsUpdate = true; });
       stats.trunks = nt; stats.clumps = cnt.reduce((a, b) => a + b, 0); }

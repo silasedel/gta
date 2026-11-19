@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { LOOK_OFF } from './fogChunks.js';
+import { ladder } from '../ground/depthLadder.js';
 
 // Clustered street-lamp lighting for every lit built-in material (Standard / Physical / Lambert / Phong / Toon).
 //  - Lamps are registered in world space (env.lamps.add / addMany, or Object3D.userData.psLamps).
@@ -202,6 +203,7 @@ export function createLampSystem(game) {
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
   });
+  ladder(poolMat, 'markings'); // W4 ground ladder: light pools sit over every road / sidewalk layer (was -2: tied with the paving)
   const pools = new THREE.InstancedMesh(poolGeo, poolMat, poolMax);
   pools.count = 0; pools.frustumCulled = false; pools.renderOrder = 3; pools.name = 'lamp-pools';
   scene.add(pools);

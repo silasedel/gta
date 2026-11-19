@@ -52,6 +52,15 @@ import { attachRoadChannel, setRoad, applyRoadChannel } from '../surfaces/roadCh
 const TB_YIELD = !(typeof location !== 'undefined' && /[?&]tbyield=0\b/.test(location.search));
 const PROPS_SINK = !(typeof location !== 'undefined' && /[?&]propsink=0\b/.test(location.search)); // r2-perf: props-only road pass for the collider job // r2-perf: time-based yields in the building loops
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
+import { ladder, LADDER_ON } from '../ground/depthLadder.js'; // W4: one strict ground depth ladder (y stack + polygonOffset rungs)
+const VEGLOD = !(typeof location !== 'undefined' && /[?&]veglod=0\b/.test(location.search)); // W4 longer palm / tree LOD bands (?veglod=0 = old)
+const IMP_MAX = VEGLOD ? 580 : 480; // impostors cover the whole near-tile ring (tiles stay near to ~430 m from their centre)
+// W4 far vegetation cache (?farveg=0 = off): a near tile's impostor instances stay in the city-wide pools after the tile drops back to
+// its mid / far mesh (which has no plants), out to FAR_MAX; they leave when the tile's near build returns or the camera is far away.
+// Before, every palm and tree beyond the near ring simply did not exist, so they all popped in at the ring edge.
+const BLD_SLIVER = !(typeof location !== 'undefined' && /[?&]bldsliver=0\b/.test(location.search));
+const FARVEG = !(typeof location !== 'undefined' && /[?&]farveg=0\b/.test(location.search)), FAR_MAX = 1300;
+const SH_Y = LADDER_ON ? 0.058 : 0.05; // W4: shoulders sit between the junction fill (0.055) and the decals (0.062), matching their ladder rung
 const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under the sand areas (0.01), not 2 mm (z-fight)
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
 
@@ -215,7 +224,7 @@ export function createTileBuilder(ctx) {
   }
   const leafG = cardBush(0), flowerG = cardBush(0.5);
   // street palm LODs (vegetation track): full detail < 48 m, simplified 40-165 m, baked impostor cards 150-480 m; dithered cross-fades
-  const PL = { b0: 40, e0: 48, b1: 150, e1: 165 }, palmLod = [];
+  const PL = VEGLOD ? { b0: 44, e0: 54, b1: 178, e1: 196 } : { b0: 40, e0: 48, b1: 150, e1: 165 }, palmLod = []; // W4 (Nov 19: palms pop in late at low quality): full mesh to 54 m, simplified to 196 m (the triangle budget holds: impostors take more of the ring), impostor to IMP_MAX, far cache beyond
   try {
     const mk = (f, fade) => { const b = makeVegMaterial('bark', { fade, lean: 0.006, sway: 0.0035 }), l = makeVegMaterial('leaf', { fade, lean: 0.006, sway: 0.0035 }); return { bark: b, leaf: l }; };
     const m0 = mk(0, [0, 0, PL.b0, PL.e0]), m1 = mk(1, [PL.b0, PL.e0, PL.b1, PL.e1]), ren = ctx.renderer || globalThis.game?.renderer;
@@ -223,8 +232,8 @@ export function createTileBuilder(ctx) {
       const a = pg.args, g1 = palmGeometry(a[0], a[1], a[2], pr, { ...a[3], lod: 1 }); // same seed -> same palm, fewer triangles
       pg.trunk.userData.lodMax = pg.fronds.userData.lodMax = PL.e0; g1.trunk.userData.lodMin = g1.fronds.userData.lodMin = PL.b0; g1.trunk.userData.lodMax = g1.fronds.userData.lodMax = PL.e1;
       const L = { g0: pg, g1, m0, m1, imp: null };
-      if (ren) { try { const im = bakeImpostor(ren, 'street_palm', v, { bark: pg.trunk, leaf: pg.fronds }, makeVegMaterial('bark').mat, makeVegMaterial('leaf').mat); im.geometry.userData.lodMin = PL.b1; im.geometry.userData.lodMax = 480; L.imp = { geo: im.geometry, mat: makeVegMaterial('imp', { map: im.texture, fade: [PL.b1, PL.e1, 0, 0], alphaTest: 0.5, transl: 0.5 }) }; } catch (e) { console.warn('[vegetation] palm impostor bake failed', e); } }
-      if (!L.imp) g1.trunk.userData.lodMax = g1.fronds.userData.lodMax = 480;
+      if (ren) { try { const im = bakeImpostor(ren, 'street_palm', v, { bark: pg.trunk, leaf: pg.fronds }, makeVegMaterial('bark').mat, makeVegMaterial('leaf').mat); im.geometry.userData.lodMin = PL.b1; im.geometry.userData.lodMax = IMP_MAX; L.imp = { geo: im.geometry, mat: makeVegMaterial('imp', { map: im.texture, fade: [PL.b1, PL.e1, 0, 0], alphaTest: 0.5, transl: 0.5 }) }; } catch (e) { console.warn('[vegetation] palm impostor bake failed', e); } }
+      if (!L.imp) g1.trunk.userData.lodMax = g1.fronds.userData.lodMax = IMP_MAX;
       palmLod.push(L);
     });
   } catch (e) { console.warn('[vegetation] palm LODs unavailable', e); palmLod.length = 0; }
@@ -234,8 +243,8 @@ export function createTileBuilder(ctx) {
   // built on first use (a tile that plants that model), so unused models cost nothing
   function modelPalmOf(k, paved = false) { const ck = paved ? k + '|p' : k; if (ck in modelPalm) return modelPalm[ck]; const md = flora?.models?.[k]; if (!md) return null; /* (r2-veg) not loaded yet: no cache, a later tile retries (the 1.2 MB fan palms arrive after the first tiles) */ modelPalm[ck] = null; // paved: root flare clamped to the trunk (sidewalk palms come out of a grate)
     try { const L = md.materials([0, 0, PL.b0, PL.e0], [PL.b0, PL.e0, PL.b1, PL.e1], [PL.b1, PL.e1, 0, 0], paved ? { paved: true } : undefined), nearG = new Set(L.near.map((q) => q.geo));
-      for (const q of L.near) q.geo.userData.lodMax = PL.e0; L.mid = L.mid.filter((q) => !nearG.has(q.geo)); for (const q of L.mid) { q.geo.userData.lodMin = PL.b0; q.geo.userData.lodMax = L.imp ? PL.e1 : 480; }
-      if (L.imp) { L.imp.geo.userData.lodMin = PL.b1; L.imp.geo.userData.lodMax = 480; }
+      for (const q of L.near) q.geo.userData.lodMax = PL.e0; L.mid = L.mid.filter((q) => !nearG.has(q.geo)); for (const q of L.mid) { q.geo.userData.lodMin = PL.b0; q.geo.userData.lodMax = L.imp ? PL.e1 : IMP_MAX; }
+      if (L.imp) { L.imp.geo.userData.lodMin = PL.b1; L.imp.geo.userData.lodMax = IMP_MAX; }
       for (const q of [...L.near, ...L.mid, ...(L.imp ? [L.imp] : [])]) greenMats.push(q.mat); return (modelPalm[ck] = L); } catch (e) { console.warn('[vegetation] model palm unavailable', k, e); return null; } }
   modelPalmOf('royal_palm'); modelPalmOf('coconut_palm'); // shared programs compile with the city materials
   const PALM_MODELS = { royal: ['royal_palm'], coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], date: ['tropical_palm', 'fanpalm_cal1'], queen: ['tropical_palm'], fan: ['fanpalm_rob1', 'fanpalm_cal1'] /* two models in the city: each palm model costs its parts' draws per tile (4 models: ~200 extra draws at Ocean Drive) */, sabal: ['sabal_palm', 'weathered_b', 'sabal_palm', 'weathered_a', 'weathered_b'] };
@@ -272,14 +281,14 @@ export function createTileBuilder(ctx) {
     const vs = palmProc[sp] || palmProc.coconut || [0]; return vs[(hp * 997 | 0) % vs.length];
   }
   // street trees: near mesh (dithered out 60-76 m) -> impostor baked from the same mesh (to 480 m), like the countryside trees
-  const TB = { b0: 60, e0: 76 }, treeLod = {}, crownR = {};
+  const TB = VEGLOD ? { b0: 66, e0: 80 } : { b0: 60, e0: 76 }, treeLod = {}, crownR = {}; // W4: street trees keep their mesh to 80 m (the impostor took over at 60 m)
   function treeLodOf(sp, v) {
     const key = sp + '#' + v; if (key in treeLod) return treeLod[key]; treeLod[key] = null;
     const g = flora?.VT?.[sp]?.[v]; if (!g) return null;
     try { const ren = ctx.renderer || globalThis.game?.renderer, b = makeVegMaterial('bark', { fade: [0, 0, TB.b0, TB.e0], lean: 0.006, sway: 0.0035 }), l = makeVegMaterial('leaf', { fade: [0, 0, TB.b0, TB.e0], lean: 0.006, sway: 0.0035 });
       const L = { g, b, l, imp: null }; g.bark.userData.lodMax = g.leaf.userData.lodMax = TB.e0 + 2;
-      if (ren) { const im = bakeImpostor(ren, 'street_tree_' + sp, v, g, null, null, 256); im.geometry.userData.lodMin = TB.b0; im.geometry.userData.lodMax = 480; L.imp = { geo: im.geometry, mat: makeVegMaterial('imp', { map: im.texture, fade: [TB.b0, TB.e0, 0, 0], lean: 0.006, sway: 0.0035, alphaTest: 0.5, transl: 0.5 }) }; }
-      if (!L.imp) g.bark.userData.lodMax = g.leaf.userData.lodMax = 480;
+      if (ren) { const im = bakeImpostor(ren, 'street_tree_' + sp, v, g, null, null, 256); im.geometry.userData.lodMin = TB.b0; im.geometry.userData.lodMax = IMP_MAX; L.imp = { geo: im.geometry, mat: makeVegMaterial('imp', { map: im.texture, fade: [TB.b0, TB.e0, 0, 0], lean: 0.006, sway: 0.0035, alphaTest: 0.5, transl: 0.5 }) }; }
+      if (!L.imp) g.bark.userData.lodMax = g.leaf.userData.lodMax = IMP_MAX;
       return (treeLod[key] = L); } catch (e) { console.warn('[vegetation] street tree LOD failed', sp, e); return null; }
   }
   function treeCrownR(sp) { // horizontal crown radius of a species' street-tree meshes at scale 1
@@ -298,7 +307,7 @@ export function createTileBuilder(ctx) {
   }
   // (greenery, overnight) the user's library trees and shrubs (species.js) through the global pools: full mesh near, the converted
   // LOD1 mesh in the middle, baked impostor far (trees); per-instance mirror / twist / bend / crown spread / color jitter in the shader
-  const LIB_B = { tree: [[0, 0, 50, 62], [50, 62, 150, 170], [150, 170, 0, 0], 480], shrub: [[0, 0, 40, 52], [40, 52, 105, 135], null, 138] }, libL = {};
+  const LIB_B = { tree: VEGLOD ? [[0, 0, 52, 62], [52, 62, 178, 196], [178, 196, 0, 0], IMP_MAX] : [[0, 0, 50, 62], [50, 62, 150, 170], [150, 170, 0, 0], 480], shrub: [[0, 0, 40, 52], [40, 52, 105, 135], null, 138] }, libL = {};
   function libLodOf(key, cls) {
     if (key in libL) return libL[key]; libL[key] = null; const md = flora?.models?.[key]; if (!md) return null;
     try { const B = LIB_B[cls] || LIB_B.tree, L = md.materials(B[0], B[1], B[2]), nearG = new Set(L.near.map((q) => q.geo));
@@ -346,12 +355,23 @@ export function createTileBuilder(ctx) {
   const bulbG = new THREE.SphereGeometry(0.07, 6, 4);
   // (greenery, overnight) tree grate: 1.5 m cast-iron square, four frame bars, ring of slotted bars around a 0.5 m opening, dark
   // mulch bed below; flush with the sidewalk (2-4 mm), its own iron / soil colors (the old grate showed as flat colored squares)
-  const grateG = (() => { const parts = [[new THREE.CylinderGeometry(0.72, 0.72, 0.012, 20), m4(0, 0.002, 0), 0x2a2119]];
+  // W4 (Nov 19: grates at city palms look flat): a real pit. Light granite edging (4 cm proud of the paving, chamfered by a second
+  // narrower course), the iron plate with 2.5 cm deep radial bars and frame, the soil / mulch mound rising in the opening round the
+  // trunk; grass tufts grow through it (vegetation/collar.js pit grass). ?pit2=0 = old flat grate.
+  const PIT2 = !(typeof location !== 'undefined' && /[?&]pit2=0\b/.test(location.search));
+  const grateG = PIT2 ? (() => { const parts = [[new THREE.CylinderGeometry(0.7, 0.7, 0.012, 24), m4(0, 0.004, 0), 0x2a2119]];
+    for (const [x, z, w, d] of [[0, 0.79, 1.7, 0.12], [0, -0.79, 1.7, 0.12], [0.79, 0, 0.12, 1.46], [-0.79, 0, 0.12, 1.46]]) { parts.push([BOXG, m4(x, 0.02, z, 0, w, 0.04, d), 0x8f8a80]); parts.push([BOXG, m4(x * 1.0, 0.043, z * 1.0, 0, w === 1.7 ? w - 0.03 : 0.09, 0.008, d === 1.46 ? d - 0.03 : 0.09), 0x9c978c]); } // granite edging + chamfer course
+    for (const [x, z, w, d] of [[0, 0.7, 1.4, 0.06], [0, -0.7, 1.4, 0.06], [0.7, 0, 0.06, 1.4], [-0.7, 0, 0.06, 1.4]]) parts.push([BOXG, m4(x, 0.016, z, 0, w, 0.03, d), 0x343434]); // iron frame
+    for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2, r = 0.5; parts.push([BOXG, m4(Math.cos(a) * r, 0.014, Math.sin(a) * r, -a, 0.36, 0.026, 0.03), 0x3a3836]); } // radial bars
+    for (const r of [0.3, 0.66]) for (let k = 0; k < 18; k++) { const a = (k + 0.5) / 18 * Math.PI * 2; parts.push([BOXG, m4(Math.cos(a) * r, 0.016, Math.sin(a) * r, Math.PI / 2 - a, 2 * Math.PI * r / 18 + 0.01, 0.03, 0.04), 0x303030]); } // rings
+    parts.push([new THREE.CylinderGeometry(0.08, 0.3, 0.07, 14, 1), m4(0, 0.035, 0), 0x3b2a1c]); // soil / mulch mound in the opening
+    for (let k = 0; k < 10; k++) { const a = k * 2.4, r = 0.12 + (k % 3) * 0.06; parts.push([BOXG, m4(Math.cos(a) * r, 0.062, Math.sin(a) * r, a, 0.06, 0.012, 0.03), k % 2 ? 0x5a4127 : 0x6b5a3a]); } // bark chips
+    return mergeParts(parts); })() : (() => { const parts = [[new THREE.CylinderGeometry(0.72, 0.72, 0.012, 20), m4(0, 0.002, 0), 0x2a2119]];
     for (const [x, z, w, d] of [[0, 0.71, 1.5, 0.08], [0, -0.71, 1.5, 0.08], [0.71, 0, 0.08, 1.5], [-0.71, 0, 0.08, 1.5]]) parts.push([BOXG, m4(x, 0.008, z, 0, w, 0.016, d), 0x343434]);
     for (let k = 0; k < 20; k++) { const a = k / 20 * Math.PI * 2, r = 0.47; parts.push([BOXG, m4(Math.cos(a) * r, 0.008, Math.sin(a) * r, -a, 0.42, 0.014, 0.035), 0x3a3836]); }
     for (const r of [0.27, 0.68]) for (let k = 0; k < 16; k++) { const a = (k + 0.5) / 16 * Math.PI * 2; parts.push([BOXG, m4(Math.cos(a) * r, 0.009, Math.sin(a) * r, Math.PI / 2 - a, 2 * Math.PI * r / 16 + 0.01, 0.016, 0.04), 0x303030]); }
     return mergeParts(parts); })();
-  const grateMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, color: new THREE.Color(1.7, 1.7, 1.7) }); grateMat.name = 'tree-grate'; grateMat.polygonOffset = true; grateMat.polygonOffsetFactor = -1; grateMat.polygonOffsetUnits = -2; // r8 z-fight sweep: flush with the sidewalk panels // r2-roads / r2-art: cast iron as a dielectric (metal 0, L 0.05-0.1, rough 0.75-0.85)
+  const grateMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, color: new THREE.Color(1.7, 1.7, 1.7) }); grateMat.name = 'tree-grate'; grateMat.polygonOffset = true; grateMat.polygonOffsetFactor = -1; grateMat.polygonOffsetUnits = -2; ladder(grateMat, 'overSidewalk'); // r8 z-fight sweep: flush with the sidewalk panels // r2-roads / r2-art: cast iron as a dielectric (metal 0, L 0.05-0.1, rough 0.75-0.85)
   const boatMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.1 });
   if (M.timeU) boatMat.onBeforeCompile = (sh) => {
     sh.uniforms.uBoatTime = M.timeU;
@@ -399,6 +419,7 @@ export function createTileBuilder(ctx) {
   const cullStats = { pools: 0, src: 0, drawn: 0, ms: 0 };
   function cullPools(cam, force = false) {
     if (!cam) return cullStats;
+    if (FARVEG) farEvict(cam);
     cam.getWorldDirection(_cd); let anyDirty = force; for (const p of pools.values()) if (p.dirty) { anyDirty = true; break; }
     if (!anyDirty && cam.position.distanceToSquared(_cullPos) < 2.25 && _cd.dot(_cullDir) > 0.9985) return cullStats;
     const t0 = performance.now(); _cullPos.copy(cam.position); _cullDir.copy(_cd);
@@ -452,10 +473,20 @@ export function createTileBuilder(ctx) {
     h.idx.length = 0; p.dirty = true;
   }
   function poolSetMatrix(p, i, m) { p.src.set(m.elements, i * 16); p.dirty = true; }
+  const farGeoms = new Map(), farCache = new Map(); // impostor geometry -> far twin (same buffers, lodMax FAR_MAX); tile key -> { x, z, h: [handles] }
+  function farGeom(g) { let f = farGeoms.get(g); if (f) return f; f = new THREE.BufferGeometry(); for (const k in g.attributes) f.setAttribute(k, g.attributes[k]); f.setIndex(g.index);
+    if (!g.boundingSphere) g.computeBoundingSphere(); f.boundingSphere = g.boundingSphere.clone(); f.userData.lodMin = g.userData.lodMin; f.userData.lodMax = FAR_MAX; f.userData.farVeg = true; farGeoms.set(g, f); return f; }
+  function farKeep(group) { const t = group.userData.tile, L = group.userData.farVeg; if (!t || !L || !L.length) return; farDrop(t);
+    farCache.set(t.tx + ',' + t.tz, { x: t.cx, z: t.cz, h: L.map(([g, m, items]) => poolAdd(getPool(farGeom(g), m, false, false, null), items)) }); }
+  function farDrop(t) { const k = t.tx + ',' + t.tz, e = farCache.get(k); if (!e) return; for (const h of e.h) poolRemove(h); farCache.delete(k); }
+  let _farT = 0;
+  function farEvict(cam) { const now = performance.now(); if (now - _farT < 2000 || !farCache.size) return; _farT = now; const R = (FAR_MAX + 300) ** 2;
+    for (const [k, e] of farCache) if ((e.x - cam.position.x) ** 2 + (e.z - cam.position.z) ** 2 > R) { for (const h of e.h) poolRemove(h); farCache.delete(k); } }
   function inst(group, geom, mat, items, { cast = false, colors = false, depth = null } = {}) {
     if (!items.length) return null;
     const p = getPool(geom, mat, colors, cast, depth);
     (group.userData.handles ||= []).push(poolAdd(p, items));
+    if (FARVEG && !cast && !colors && geom.userData.lodMin > 0 && geom.userData.lodMax >= 400) (group.userData.farVeg ||= []).push([geom, mat, items]); // W4: impostor -> far cache on dispose
     return p.mesh;
   }
   const meshOf = (batch, mat, { cast = true, receive = true } = {}) => { if (batch.empty) return null; const m = batch.build(mat, { cast, receive }); m.matrixAutoUpdate = false; m.updateMatrix(); return m; };
@@ -1109,6 +1140,10 @@ export function createTileBuilder(ctx) {
     }
     out = all.filter((b, i) => !drop.has(i) && !(inCasino(b.cx ?? b.rings[0][0][0], b.cz ?? b.rings[0][0][1]) || b.rings[0].some(([x, z]) => inCasino(x, z)))); for (const i of drop) all[i]._dropped = true; for (let i = 0; i < all.length; i++) if (overlap.has(i)) all[i]._overlap = true;
     for (let i = 0; i < all.length; i++) all[i]._bb = bbs[i];
+    // W4 (Nov 19 playtest: "a brick store a few feet thick, glitched"): OSM slivers (a wall, sign or fence drawn as a building, or a
+    // shop footprint cut down to a strip) under 2.6 m across drew as a full storefront shell a metre or two deep with its walls
+    // flickering into each other, plus a solid collider. Dropped everywhere (near, mid / far and colliders read this list). ?bldsliver=0 = old
+    if (BLD_SLIVER) out = out.filter((b) => { if (b.kind === 'terminal' || !b.rings || !b.rings[0] || b.rings[0].length < 3) return true; const f = frameOf(b.rings[0]); if (f.W >= 2.6 || (b.h || 0) < 2.2) return true; b._dropped = true; placeStats.bldSliver = (placeStats.bldSliver || 0) + 1; return false; });
     { // a drivable street running through a footprint (porte-cochere, terminal drive-through or OSM misalignment): lift the
       // building over a 5 m passage when it is tall enough, otherwise drop it; never a wall across a traffic lane
       const G = 10, grid = new Map(), T = provider.tileSize; let any = false;
@@ -1537,7 +1572,7 @@ export function createTileBuilder(ctx) {
     let prev = null;
     for (let s = a; ; s = Math.min(b, s + 2)) {
       const q = sampleAt(fr, s), w = (sandy ? 1.3 : 0.95) + hash(Math.floor(s / 2) * 7 + eid * 13 + (side > 0 ? 5 : 0)) * (sandy ? 0.7 : 0.5) + 0.2 * Math.sin(s * 0.37 + eid);
-      const inn = [q.x + q.nx * side * (hw - 0.3), 0.05, q.z + q.nz * side * (hw - 0.3), s / EDGE_U, 0], out = [q.x + q.nx * side * (hw + w), 0.05, q.z + q.nz * side * (hw + w), s / EDGE_U, 0.452];
+      const inn = [q.x + q.nx * side * (hw - 0.3), SH_Y, q.z + q.nz * side * (hw - 0.3), s / EDGE_U, 0], out = [q.x + q.nx * side * (hw + w), SH_Y, q.z + q.nz * side * (hw + w), s / EDGE_U, 0.452];
       if (prev) quadUV(B.shoulder, [prev[0], prev[1], out, inn], _sc); prev = [inn, out]; if (s >= b) break;
     }
   }
@@ -1546,7 +1581,7 @@ export function createTileBuilder(ctx) {
     let acc = 0, prev = null;
     for (let k = 0; k < c.arc.length; k++) { const p = c.arc[k], dx = c.O[0] - p[0], dz = c.O[1] - p[1], d = Math.hypot(dx, dz) || 1, w = Math.min(d * 0.8, (sandy ? 1.5 : 1.1) + hash(Math.floor(p[0] * 3) * 31 + Math.floor(p[1] * 3)) * 0.4);
       if (k) acc += Math.hypot(p[0] - c.arc[k - 1][0], p[1] - c.arc[k - 1][1]);
-      const inn = [p[0] - dx / d * 0.3, 0.05, p[1] - dz / d * 0.3, acc / EDGE_U, 0], out = [p[0] + dx / d * w, 0.05, p[1] + dz / d * w, acc / EDGE_U, 0.452];
+      const inn = [p[0] - dx / d * 0.3, SH_Y, p[1] - dz / d * 0.3, acc / EDGE_U, 0], out = [p[0] + dx / d * w, SH_Y, p[1] + dz / d * w, acc / EDGE_U, 0.452];
       if (prev) quadUV(B.shoulder, [prev[0], prev[1], out, inn], _sc); prev = [inn, out]; }
   }
   // ---- job 4: road decals (atlas from the user's road-detail scans, tools/v2/roads): cracks, tar-sealed cracks, potholes, patches,
@@ -3513,6 +3548,7 @@ export function createTileBuilder(ctx) {
     if (flora && props.tree.length) { const by = {}; for (const it of props.tree) if (!it.cs) (by[it.sp] ||= []).push(it);
       for (const sp in by) { if (vegTrees(group, sp, by[sp])) continue; const TG = flora.T[sp] || flora.T.oak; inst(group, TG.trunk, flora.barkMat, by[sp], { cast: true }); inst(group, TG.crown, flora.leaf, by[sp], { colors: true, cast: true, depth: flora.leafDepth }); if (sp === 'citrus') inst(group, flora.T.citrusFruit, flora.fruitMat, by[sp]); } }
     t.props = props; group.userData.tile = t; if (onProps) onProps(t, props, true);
+    if (FARVEG) farDrop(t); // W4: the tile's own plants are back
     // real lamp light: the GRAPHICS clustered-lamp system discovers per-tile lamp lists (removed when the tile group leaves the scene)
     group.userData.psLamps = props.lamp.map((l) => { const sc = l.s || 1, ry = l.ry || 0, H = SK ? lampHeadAt(l) : { r: 2.25, y: 7.0 }; return { x: l.x + Math.sin(ry) * H.r * sc, y: (l.y || 0) + H.y * sc, z: l.z + Math.cos(ry) * H.r * sc, gy: l.y || 0 }; }).concat(SK ? upoleLampsOf(props.upole) : []);
     root.add(group);
@@ -3646,7 +3682,7 @@ export function createTileBuilder(ctx) {
       for (let i = 0, n = b.p.length / 3; i < n; i++) { const kk = 0.85 + vn(b.p[i * 3] * 0.004, b.p[i * 3 + 2] * 0.004) * 0.3; b.c[i * 3] = 0.36 * kk; b.c[i * 3 + 1] = 0.4 * kk; b.c[i * 3 + 2] = 0.27 * kk; }
     }
     const group = new THREE.Group(); group.name = 'miami-land-base';
-    let lbMat = M.far; if (GM_ON) { lbMat = M.far.clone(); lbMat.onBeforeCompile = M.far.onBeforeCompile; if (M.far.customProgramCacheKey) lbMat.customProgramCacheKey = M.far.customProgramCacheKey; lbMat.polygonOffset = true; lbMat.polygonOffsetFactor = 1; lbMat.polygonOffsetUnits = 2; lbMat.name = 'land-base'; lbMat.metalness = 0; lbMat.roughness = 0.92; } // ground pass: the base sits 3 cm under the terrain; pushed back in depth so it never z-fights with the terrain far away
+    let lbMat = M.far; if (GM_ON) { lbMat = M.far.clone(); lbMat.onBeforeCompile = M.far.onBeforeCompile; if (M.far.customProgramCacheKey) lbMat.customProgramCacheKey = M.far.customProgramCacheKey; lbMat.polygonOffset = true; lbMat.polygonOffsetFactor = LADDER_ON ? 2.5 : 1; lbMat.polygonOffsetUnits = LADDER_ON ? 11 : 2; /* W4 ladder: always behind the coarse terrain LOD (2 / 8) too, not only the near terrain */ lbMat.name = 'land-base'; lbMat.metalness = 0; lbMat.roughness = 0.92; } // ground pass: the base sits 3 cm under the terrain; pushed back in depth so it never z-fights with the terrain far away
     const m = meshOf(b, lbMat, { cast: false });
     if (m) { const pa = m.geometry.attributes.position.array, nv = m.geometry.attributes.position.count, at = new Float32Array(nv * 2), TS = provider.tileSize || 200;
       at.fill(-1e6);
@@ -3945,8 +3981,9 @@ export function createTileBuilder(ctx) {
     for (const e of moorings.values()) if (e.h && (group.userData.handles || []).includes(e.h)) e.h = null;
     if (group.userData.tile && onProps && group.userData.tile.props) onProps(group.userData.tile, group.userData.tile.props, false);
     if (group.userData.tile) occupancy.removeOwner('tile:' + group.userData.tile.tx + ',' + group.userData.tile.tz);
+    if (FARVEG) farKeep(group); // W4: impostors stay drawn from the far cache
     for (const h of group.userData.handles || []) poolRemove(h);
-    group.userData.handles = null;
+    group.userData.handles = null; group.userData.farVeg = null;
     group.traverse((o) => { if (o.isMesh && !o.isInstancedMesh) { o.geometry.dispose(); if (o.userData.ownedMaterial) { o.userData.ownedMaterial.userData.ownedTexture?.dispose(); o.userData.ownedMaterial.dispose(); } } });
     root.remove(group);
   }

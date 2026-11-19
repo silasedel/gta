@@ -1,0 +1,29 @@
+{
+ "tag": "new2",
+ "q": "",
+ "at": [
+  0,
+  1760
+ ],
+ "street": {
+  "ms": 116,
+  "calls": 582,
+  "tris": 4406219,
+  "vegInst": 3479,
+  "farInst": 0
+ },
+ "street2": {
+  "ms": 67.1,
+  "calls": 527,
+  "tris": 4558013,
+  "vegInst": 3934,
+  "farInst": 0
+ },
+ "lookback": {
+  "ms": 57.6,
+  "calls": 756,
+  "tris": 7107344,
+  "vegInst": 1870,
+  "farInst": 1160
+ }
+}

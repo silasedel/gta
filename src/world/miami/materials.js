@@ -14,6 +14,7 @@ import { makeDecalMaterial } from '../ground/decalMaterial.js';
 import { patchRoadEdges, patchFillEdges } from '../ground/groundEdge.js';
 import { patchRecipeGround } from '../ground/groundMaterial.js';
 import { patchCitySurfaces } from '../surfaces/surfaceShaders.js';
+import { ladder, LADDER_ON } from '../ground/depthLadder.js';
 
 function warehouseFacade(renderer) {
   // corrugated metal with a high window band and roller doors; tile = 24m x 12m
@@ -231,6 +232,7 @@ export async function createMaterials(renderer) {
     if (M.sand.userData.isSand) M.dune = makeSandMaterial(THREE, { base: (import.meta.env && import.meta.env.BASE_URL) || '/', tint: 0xc9b591, tile: 1.3, shells: 0.3, litter: 0.05, damp: 0.1, ripples: 0.9, marks: 0.1 }); // ground-continuity: dunes match the beach
   }
   for (const [mat, u] of [[M.land, -1], [M.sand, -2], [M.grass, -3], [M.wood, -4], [M.parking, -4], [M.sidewalk, -4], [M.promenade, -4], [M.panels, -4], [M.asphalt, -6], [M.junction, -7], [M.markings, -9]]) if (mat) zOff(mat, u);
+  if (LADDER_ON) for (const k of ['sand', 'grass', 'wood', 'parking', 'sidewalk', 'promenade', 'panels', 'asphalt', 'junction', 'markings']) ladder(M[k], k); // W4: one strict ground ladder (ground/depthLadder.js)
   { // world-space (triplanar) surface detail for street props: galvanized / painted metal, wood grain, concrete, corrugated steel
     const mkTex = (draw, n = 256) => { const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'); draw(x, n, rng(n + draw.length)); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; };
     const noise = (x, n, r, k, a) => { for (let i = 0; i < k; i++) { const v = (r() * 255) | 0; x.fillStyle = `rgba(${v},${v},${v},${a})`; x.fillRect(r() * n, r() * n, 1 + r() * 3, 1 + r() * 3); } };
@@ -314,13 +316,16 @@ export async function createMaterials(renderer) {
       for (const m of [M.asphalt, M.junction]) { full(m, sRoad, undefined, 7 / 3.2); m.normalScale.set(0.7, 0.7); m.color.setScalar(0.56); m.userData.mipBias = 0.35; } // calm texture: no extra blur needed
       full(M.sidewalk, sWalk, 1.2, 2.5 / 3); M.sidewalk.normalScale.set(0.8, 0.8); M.sidewalk.userData.job4 = true; // world uv 2.5 m -> 3 m per scan tile (1.5 m panels)
       if (M.panels) { full(M.panels, sPave, 1.3, 6 / 2.4); M.panels.normalScale.set(0.8, 0.8); } // downtown pavers, 2.4 m per scan tile
-      if (M.parking) try { const sCon = await loadRoadSet(renderer, 'concrete'); full(M.parking, sCon, 1.25, 1.5); M.parking.normalScale.set(0.9, 0.9); } catch (e) { console.warn('[miami] concrete set', e); } // ground pass: the user's poured concrete (Concrete 3) for lots / aprons, 4 m per tile
-      M.dirtRoad = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }); full(M.dirtRoad, sDirt, 1.1); zOff(M.dirtRoad, -6); // unpaved tracks (surface 'dirt')
+      // W4 (Nov 19 playtest: "concrete slabs with dots placed broadly"): the Concrete 3 scan has a grid of form-tie holes 30 cm apart,
+      // and every lot, apron and driveway used it, so it read as tactile warning pads everywhere. Lots keep the plain poured concrete set
+      // (sConc, above); the yellow pads stay only at the curb ramps of real crosswalks. ?lotdots=1 = old.
+      if (M.parking && typeof location !== 'undefined' && /[?&]lotdots=1\b/.test(location.search)) try { const sCon = await loadRoadSet(renderer, 'concrete'); full(M.parking, sCon, 1.25, 1.5); M.parking.normalScale.set(0.9, 0.9); } catch (e) { console.warn('[miami] concrete set', e); } // ground pass: the user's poured concrete (Concrete 3) for lots / aprons, 4 m per tile
+      M.dirtRoad = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }); full(M.dirtRoad, sDirt, 1.1); zOff(M.dirtRoad, -6); ladder(M.dirtRoad, 'dirtRoad'); // unpaved tracks (surface 'dirt')
       // paint: strip uv (u across the line inside an atlas column, v along the line), the scan's own wear / chips / grain
-      M.lines = new THREE.MeshStandardMaterial({ map: sLine.map, normalMap: sLine.normalMap, roughnessMap: sLine.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.lines, -9); M.lines.name = "roadLines";
+      M.lines = new THREE.MeshStandardMaterial({ map: sLine.map, normalMap: sLine.normalMap, roughnessMap: sLine.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.lines, -9); ladder(M.lines, 'lines'); M.lines.name = "roadLines";
       // shoulders: the scan's crumbling asphalt-to-dust edge; its dark pixels are cut out, so asphalt shows through the crumbs and the
       // jagged outer edge breaks up into the verge (no hard strip edge)
-      M.shoulder = new THREE.MeshStandardMaterial({ map: sEdge.map, normalMap: sEdge.normalMap, roughnessMap: sEdge.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.shoulder, -7);
+      M.shoulder = new THREE.MeshStandardMaterial({ map: sEdge.map, normalMap: sEdge.normalMap, roughnessMap: sEdge.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.shoulder, -7); ladder(M.shoulder, 'shoulder');
       M.shoulder.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  { vec4 eT = texture2D( map, vMapUv ); if ( dot( eT.rgb, vec3( 0.3333 ) ) < 0.045 || vMapUv.y > 0.452 ) discard; }'); };
       M.shoulder.customProgramCacheKey = () => 'job4-shoulder';
       // road decals (cracks, potholes, patches, manholes, storm drains, oil, turn arrows): one atlas baked from the user's road-detail
@@ -328,7 +333,7 @@ export async function createMaterials(renderer) {
       // asphalt with a polygon offset (no z-fight), one merged mesh per tile
       const png = async (n, srgb) => { const r = await fetch(`${import.meta.env?.BASE_URL ?? '/'}assets/textures/roads/decals_${n}.png`); if (!r.ok) throw new Error('decals ' + n); const t = new THREE.Texture(await createImageBitmap(await r.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' })); t.flipY = false; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy()); t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true; return t; };
       const [dC, dN, dA] = await Promise.all([png('col', true), png('nrm', false), png('arm', false)]);
-      M.roadDecals = makeDecalMaterial(THREE, M.asphalt, { col: dC, nrm: dN, arm: dA }); // ground pass: decals drawn from the road's own asphalt (ground/decalMaterial.js)
+      M.roadDecals = makeDecalMaterial(THREE, M.asphalt, { col: dC, nrm: dN, arm: dA }); ladder(M.roadDecals, 'decal'); // ground pass: decals drawn from the road's own asphalt (ground/decalMaterial.js)
     } catch (e) { console.warn('[miami] road textures', e); }
     M.trunk.map = sBark.map; M.trunk.normalMap = sBark.normalMap; M.trunk.roughnessMap = sBark.arm; M.trunk.roughness = 1; M.trunk.color.setScalar(1.6);
     M.royalTrunk.map = sConc.map; M.royalTrunk.normalMap = sConc.normalMap; M.royalTrunk.roughnessMap = sConc.arm; M.royalTrunk.color.setScalar(1.7);

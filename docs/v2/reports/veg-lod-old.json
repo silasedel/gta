@@ -1,0 +1,29 @@
+{
+ "tag": "old",
+ "q": "&veglod=0&farveg=0",
+ "at": [
+  0,
+  1760
+ ],
+ "street": {
+  "ms": 65,
+  "calls": 532,
+  "tris": 4001419,
+  "vegInst": 3222,
+  "farInst": 0
+ },
+ "street2": {
+  "ms": 60.4,
+  "calls": 538,
+  "tris": 4452607,
+  "vegInst": 3646,
+  "farInst": 0
+ },
+ "lookback": {
+  "ms": 56.7,
+  "calls": 662,
+  "tris": 7015230,
+  "vegInst": 1782,
+  "farInst": 0
+ }
+}

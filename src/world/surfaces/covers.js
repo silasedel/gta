@@ -10,6 +10,7 @@
 // Only on curbed (sewered) streets and town / city zones: no covers on rural roads, Keys lanes, dirt roads or decks.
 // Stations are fixed to the graph edge, so every tile split gives the same covers. `?covers=0` = the old decal covers (A/B).
 import * as THREE from 'three';
+import { ladder } from '../ground/depthLadder.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -42,7 +43,7 @@ const ready = COVERS_OFF ? Promise.resolve(null) : (async () => {
       g.userData.lodMax = f === 'valve' ? 70 : 130; // flush and small: never drawn far away (the asphalt decal ring stays)
       const m = mat.clone(); m.name = 'cover-' + f;
       if (m.map) m.map.anisotropy = 8;
-      m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; // never z-fights with the asphalt it sits in
+      m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; ladder(m, 'cover'); // never z-fights with the asphalt it sits in (W4: ground ladder rung over asphalt / junction / shoulder)
       if (m.metalness > 0.55) m.metalness = 0.55; // cast iron reads near-black without a street reflection probe
       m.roughness = Math.max(m.roughness ?? 0.6, f === 'inlet' ? 0.5 : 0.55);
       m.userData.cover = true;

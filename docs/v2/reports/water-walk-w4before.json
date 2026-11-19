@@ -1,0 +1,398 @@
+{
+ "tag": "w4before",
+ "at": [
+  2332,
+  -660
+ ],
+ "samples": [
+  {
+   "t": 0,
+   "x": 2332,
+   "y": 0.17,
+   "z": -660,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 1.6,
+   "x": 2331.8,
+   "y": 0.17,
+   "z": -659.3,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 2.5,
+   "x": 2331.8,
+   "y": 0.17,
+   "z": -658,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 3.2,
+   "x": 2331.9,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 4.4,
+   "x": 2332.2,
+   "y": 0.17,
+   "z": -656.8,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 6.1,
+   "x": 2332.2,
+   "y": 0.17,
+   "z": -656.8,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 7.3,
+   "x": 2332.1,
+   "y": 0.17,
+   "z": -656.8,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 7.9,
+   "x": 2332.1,
+   "y": 0.17,
+   "z": -656.8,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 8.5,
+   "x": 2332.1,
+   "y": 0.17,
+   "z": -656.8,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 9.2,
+   "x": 2332.1,
+   "y": 0.17,
+   "z": -656.8,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 10,
+   "x": 2332.2,
+   "y": 0.17,
+   "z": -656.8,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 10.5,
+   "x": 2332.2,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 11.3,
+   "x": 2332.6,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 11.7,
+   "x": 2333,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 12.2,
+   "x": 2333.8,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 12.8,
+   "x": 2334,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 13.3,
+   "x": 2334,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 13.7,
+   "x": 2334,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 14.2,
+   "x": 2333.9,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  },
+  {
+   "t": 14.7,
+   "x": 2333.9,
+   "y": 0.17,
+   "z": -656.9,
+   "water": false,
+   "ground": 0.15,
+   "seabed": 0,
+   "surf": "concrete",
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0.17,
+    "handle": 2.3405613583527e-311,
+    "name": null,
+    "kind": null
+   }
+  }
+ ],
+ "shots": [
+  "docs/v2/shots/water-walk/w4before_0.jpg",
+  "docs/v2/shots/water-walk/w4before_1.jpg",
+  "docs/v2/shots/water-walk/w4before_2.jpg",
+  "docs/v2/shots/water-walk/w4before_3.jpg",
+  "docs/v2/shots/water-walk/w4before_4.jpg"
+ ],
+ "errors": [],
+ "waterWalk": 0
+}
