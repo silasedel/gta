@@ -4,6 +4,7 @@ import { Batch, orient, wallStrip, parapet, palmGeometry, capPoly } from '../cit
 import { rng } from '../city/tex.js';
 import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { makeVegMaterial } from '../vegetation/materials.js';
+const TREEPITS3 = typeof location !== 'undefined' && /[?&]treepits=3\b/.test(location.search);
 import { grassCardMap, weedCard, clumpCard } from '../vegetation/grasscards.js';
 import { bakeImpostor } from '../vegetation/field.js';
 import { meshGround } from '../vegetation/ground.js';
@@ -1888,8 +1889,10 @@ export function createTileBuilder(ctx) {
               const x = A.x + (Bf.x - A.x) * t, z = A.z + (Bf.z - A.z) * t, nx = A.nx, nz = A.nz, o = side * (hw + 0.6);
               if ((!props.realLamps || (!/beach|nightlife/.test(zR) && !(tile.lamps || []).some((l) => Math.abs(l.x - x) < 20 && Math.abs(l.z - z) < 20))) && okFoot(x + nx * o, z + nz * o) && !(SK && nearCrossing(x + nx * o, z + nz * o, 0.2))) { /* mapped lamps cover their own stretch; fill the unmapped gaps */ props.lamp.push({ x: x + nx * o, y: CURB, z: z + nz * o, ry: Math.atan2(-nx * side, -nz * side) });
                 props.pool.push({ x: x + nx * side * (hw - 1.2), y: 0.05, z: z + nz * side * (hw - 1.2), s: 1.35 }); }
-              if (dense && props.palmZone(x, z) && okFoot(x + nx * side * (hw + 1.4), z + nz * side * (hw + 1.4))) props.palm.push({ x: x + nx * side * (hw + 1.4) - (Bf.x - A.x) / (Bf.s - A.s || 1) * 6, y: CURB, pit: 1, z: z + nz * side * (hw + 1.4) - (Bf.z - A.z) / (Bf.s - A.s || 1) * 6, ry: hash(i * 13 + s) * 6, s: 0.9 });
-              if (dense && !/beach|nightlife/.test(zR) && props.palmZone(x, z) && /primary|secondary|tertiary|residential/.test(r.kind)) { // curbside tree pit halfway between lamps (shade tree / palm in a grate), unless a mapped tree stands there
+              // user (Nov 19): a tree grate every ~20 ft. Three palms per lamp bay (one 6 m before the lamp, one 12 m after and a
+              // curbside pit on top of that one) put a grate every ~8 m; now one palm in a grate halfway between lamps. ?treepits=3 = old
+              if (TREEPITS3 && dense && props.palmZone(x, z) && okFoot(x + nx * side * (hw + 1.4), z + nz * side * (hw + 1.4))) props.palm.push({ x: x + nx * side * (hw + 1.4) - (Bf.x - A.x) / (Bf.s - A.s || 1) * 6, y: CURB, pit: 1, z: z + nz * side * (hw + 1.4) - (Bf.z - A.z) / (Bf.s - A.s || 1) * 6, ry: hash(i * 13 + s) * 6, s: 0.9 });
+              if (TREEPITS3 && dense && !/beach|nightlife/.test(zR) && props.palmZone(x, z) && /primary|secondary|tertiary|residential/.test(r.kind)) { // curbside tree pit halfway between lamps (shade tree / palm in a grate), unless a mapped tree stands there
                 const q3 = sampleAt(fr, s + lampSp / 2), o3 = side * (hw + 0.95), x3 = q3.x + q3.nx * o3, z3 = q3.z + q3.nz * o3;
                 if (s + lampSp / 2 < b2 - 5 && okFoot(x3, z3) && !(tile.trees || []).some(([tx2, tz2]) => Math.abs(tx2 - x3) < 8 && Math.abs(tz2 - z3) < 8)) props.palm.push({ x: x3, y: CURB, pit: 1, z: z3, ry: hash(((x3 * 13) | 0) + ((z3 * 7) | 0)) * 6, s: 0.8 + hash(((x3 * 3) | 0) + 11) * 0.3 }); }
               if (props.palmZone(x, z) && !(props.realTrees && tile.trees.some(([tx2, tz2]) => Math.abs(tx2 - x) < 14 && Math.abs(tz2 - z) < 14)) && okFoot(x + nx * side * (hw + 1.4), z + nz * side * (hw + 1.4))) props.palm.push({ x: x + nx * side * (hw + 1.4) + (Bf.x - A.x) / (Bf.s - A.s || 1) * 12, y: CURB, pit: 1, z: z + nz * side * (hw + 1.4) + (Bf.z - A.z) / (Bf.s - A.s || 1) * 12, ry: hash(i * 7 + s) * 6, s: 0.85 + hash(i + s) * 0.35 });

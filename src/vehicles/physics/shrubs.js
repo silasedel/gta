@@ -4,6 +4,7 @@
 // wrapped to include them, so the existing slowdown applies: the player drops to ~45 % speed inside and cannot sprint through;
 // cars are dragged as in flower beds. Shrubs taller than 1.5 m also get a solid core (a capsule of 55 % of the crown radius)
 // that blocks like a hedge.
+const SHRUB_CORES = typeof location !== 'undefined' && /[?&]shrubcore=1\b/.test(location.search);
 export function installShrubs(game) {
   const { RAPIER, world } = game;
   const P = (game.physics ||= {});
@@ -40,8 +41,10 @@ export function installShrubs(game) {
       }
     });
     for (const k of zones.keys()) if (!want.has(k)) { const zn = zones.get(k); if (Math.hypot(zn.x - pp.x, zn.z - pp.z) > 60 || Math.hypot(zn.x - pp.x, zn.z - pp.z) < 45) { zones.delete(k); const c = cores.get(k); if (c) { try { world.removeRigidBody(c); } catch (e) { /* */ } cores.delete(k); } } }
-    // hedge cores for the big ones
+    // hedge cores for the big ones. User (Nov 19): bushes stopped the player dead and the camera pushed into his face
+    // (QA: Nico's yard bougainvillea). Foliage is walk-through now (the soft slowdown above stays); ?shrubcore=1 = old
     let made = 0;
+    if (!SHRUB_CORES) return rebuildGrid();
     for (const [k, zn] of zones) {
       if (zn.h <= 1.5 || cores.has(k) || made > 30) continue;
       try { const rr = Math.max(0.2, zn.r / 0.75 * 0.55), hh = Math.max(0.3, zn.h * 0.45);
