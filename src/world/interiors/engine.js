@@ -138,7 +138,7 @@ export function createEngine(game, opts = {}) {
     const passing = !(game.intFastOld ?? INT_FAST_OLD) && fastS.v > 12 && !current; // game.intFastOld = true: old behavior (A/B)
     if (!passing) for (const s of nearList) { if (s.dist > 160) break; if (!s.built && !s.warmQ) prewarm(s); }
     for (const s of wanted) { if (!s.built) { if (!pending && !passing && modelsReady() && hasShell(s)) pending = { s, it: buildInterior(game, s, s.def) }; } else if (!s.built.visible) show(s); }
-    if (pending && !passing) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const r = pending.it.next(); if (r.done) { pending.s.built = r.value; scene.add(r.value.group); precompile(r.value); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
+    if (pending && !passing) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const t1 = performance.now(), r = pending.it.next(), d1 = performance.now() - t1, pr = pending.s._buildProf; if (pr && d1 > (pr.worst || 0)) { pr.worst = Math.round(d1); pr.worstAfter = pr.last; } if (r.done) { pending.s.built = r.value; scene.add(r.value.group); precompile(r.value); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
     const sky = updateSky(hour);
     let hidden = 0;
     for (const s of list) { const b = s.built; if (!b) continue; if (!nearList.includes(s)) s.dist = Math.hypot(pp.x - s.center.x, pp.z - s.center.z);
