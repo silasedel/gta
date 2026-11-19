@@ -546,7 +546,7 @@ export async function createPeds(game) {
     ped.tough = Math.random() < ped.P.fight;
     // r6-walk: everybody has their own pace, about 1.1-1.5 m/s (office people at the brisk end, beach strollers slower)
     ped.walkSpeed = act === 'jog' ? rand(2.6, 3.2) : Math.max(1.0, Math.min(1.58, (zone === 'business' || zone === 'downtown' ? rand(1.3, 1.52) : zone === 'beach' ? rand(1.0, 1.25) : rand(1.1, 1.5)) * ped.P.walk));
-    ped.follow = null; ped.pairId = 0; ped.lookDest = null; ped.lostT = 0; ped.blockT = 0;
+    ped.reserved = false; ped.pinned = 0; ped.follow = null; ped.pairId = 0; ped.lookDest = null; ped.lostT = 0; ped.blockT = 0;
     ped.call = Math.random() < ped.P.call;
     ped.greeted = false; ped.lookT = 0; ped.argueT = 0;
     ped.char.setPersonality?.(ped.personality);
@@ -958,7 +958,9 @@ export async function createPeds(game) {
   }
   function spawnAt(pos, o = {}) {
     let p = list.find((q) => !q.active) || null;
-    if (!p) { let bd = -1; const pp = playerPos(); for (const q of list) { const dd = q.pos.distanceTo(pp); if (dd > bd && q.state !== 'fight' && q.state !== 'cop') { bd = dd; p = q; } } if (p) despawn(p); }
+    // r7 (activities agent): the recycler never takes a pinned / reserved person (scripted people placed by other
+    // systems: bar regulars, the yacht bouncer, job targets, clerks); with nobody free to take the pool grows instead
+    if (!p) { let bd = -1; const pp = playerPos(); for (const q of list) { if (q.pinned > 0 || q.reserved) continue; const dd = q.pos.distanceTo(pp); if (dd > bd && q.state !== 'fight' && q.state !== 'cop') { bd = dd; p = q; } } if (p) despawn(p); }
     if (!p) p = newPed();
     const zone = o.state === 'cop' ? 'cop' : (o.outfit || zoneAt(pos.x, pos.z));
     if (!activate(p, new THREE.Vector3(pos.x, pos.y ?? groundAt(pos.x, pos.z), pos.z), zone, 'walk', { outfit: o.state === 'cop' ? 'cop' : o.outfit, gender: o.gender, y: pos.y, force: true, personality: o.personality })) return null;
@@ -967,7 +969,8 @@ export async function createPeds(game) {
     else if (o.state === 'fight') { p.state = 'fight'; p.stateT = 15; p.hitCd = 1; p.guard = true; }
     else if (o.state === 'cop') { p.state = 'cop'; p.isCop = true; p.tough = true; p.hitCd = 1; p.char.restyle?.('cop'); }
     if (o.dog && !p.dog) { p.dog = makeDog(); p.dog.pos.copy(p.pos); p.dog.prev?.copy(p.pos); } // a walker with a dog (tests / scripted scenes)
-    p.pinned = 20; // spawned by gameplay: don't recycle immediately
+    p.pinned = o.pin || o.reserved ? 1e9 : 20; // spawned by gameplay: don't recycle immediately (o.pin / o.reserved: never)
+    p.reserved = !!o.reserved;
     return p;
   }
   try {
@@ -1225,7 +1228,7 @@ export async function createPeds(game) {
       const dPlayer = Math.hypot(dpx, dpz);
       if (ped.pinned > 0) ped.pinned -= dt;
       // despawn far away / on unloading tiles / long-dead
-      if (ped.despawnNow || (dPlayer > DESPAWN && !(ped.pinned > 0)) || (ped.dead && (ped.deadT += dt) > 25 && dPlayer > 40)) { ped.despawnNow = false; despawn(ped); continue; }
+      if (ped.despawnNow || (dPlayer > DESPAWN && !(ped.pinned > 0) && !ped.reserved) || (ped.dead && (ped.deadT += dt) > 25 && dPlayer > 40)) { ped.despawnNow = false; despawn(ped); continue; }
       // nobody strolls on an elevated road deck (playtest): a walker standing well above the street-level ground is
       // removed (checked about twice a second per person, out of view first)
       if (((frameN + ped.id) % 30) === 0 && ped.nav && !ped.dead && ped.state === 'walk') {

@@ -6,7 +6,7 @@
 // returning face from looking stamped. People load lazily (places around the player first), at most one at a time in
 // idle time, and are unloaded again when unused (LRU, CAP loaded at once).
 import * as THREE from 'three';
-import { loadPeopleIndex, loadPerson, getPerson, loadedPeople, isLoadingPerson, personMaterial, hiRes, unloadPerson } from './lib.js';
+import { loadPeopleIndex, loadPerson, getPerson, loadedPeople, isLoadingPerson, personMaterial, hiRes, unloadPerson, setHiRenderer } from './lib.js';
 import { createNpc, LOD_CFG, SHADOW_PROXY } from '../arch/character.js';
 import { FAR_IN_USE } from './farCrowd.js';
 import { areaType, lookOf, lookWeight, isPublicZone, DISTRICT_AREA, NEUTRAL } from './casting.js';
@@ -52,6 +52,7 @@ export function placesFor(zone, act, ctx = {}) {
     case 'club': case 'guest': case 'dj': return ['nightlife', 'tourist'];
     case 'hotel': case 'maid': case 'bellhop': return ['hotel_staff'];
     case 'gang': return ['gang', 'rough'];
+    case 'rough': case 'hobo': case 'homeless': return ['rough'];
     case 'hospital': case 'nurse': case 'paramedic': return ['medic'];
     case 'fire_station': case 'firefighter': return ['fire'];
     case 'garage': case 'mechanic': return ['work', 'industrial'];
@@ -207,6 +208,15 @@ export async function createCast(game) {
     if (!b && lc && !opts.act && poolSize(places, lc) < 4) b = pick(places, pos, { ...opts, lc, cand: gc ? (p) => neutral(p) && gc(p) : neutral });
     // a person the game needs right now (a mission victim, a shop owner): the best loaded civilian when none of this
     // place is in yet (never police / lifeguards; never a twin within 60 m)
+    // r7 (activities agent: "gang / rough / security requests return tourists"): a job / venue role is never filled by an
+    // anybody: the role's own people (twins allowed beyond 60 m), else for street roles a street / gang look, else nobody
+    // this frame (its people are queued to load first)
+    if (!b && opts.force && !isPublicZone(zone)) {
+      b = anyCivilianOf(pos, opts, (p) => has(p, places));
+      if (!b && /^(gang|rough|hobo|homeless)$/.test(zone)) b = anyCivilianOf(pos, opts, (p) => lookOf(p) === 'gang' || lookOf(p) === 'street');
+      if (!b) { wantPlaces(places, 8, true, null); pump(); }
+      return b ? make(b, opts) : null;
+    }
     if (!b && opts.force) b = anyCivilian(pos, { ...opts, lc: lc || lookCtx(pos, 'casual') });
     return b ? make(b, opts) : null;
   }
@@ -294,16 +304,20 @@ export async function createCast(game) {
   // full-detail people (LOD0) get the 2K albedo; the three nearest within 9 m get the full 4K albedo + 2K normal
   const hiOn = new Map();   // id -> { lv, t }
   let hiT = 0;
+  setHiRenderer(game.renderer);
   game.updaters?.push?.((dt) => {
     hiT -= dt; if (hiT > 0) return; hiT = 0.4;
     const t = now(); const cam = game.camera?.position; const lv = new Map(); const near = [];
     for (const c of live) {
       if (!c.root.visible || !c.root.parent || c.lodLevel !== 0) continue;
       lv.set(c.npcArch, Math.max(lv.get(c.npcArch) || 0, 1));
-      if (cam) { const d = at(c).distanceTo(cam); if (d < 9) near.push([d, c.npcArch]); }
+      if (cam) { const d = at(c).distanceTo(cam); if (d < 6) near.push([d, c.npcArch]); }
     }
-    near.sort((x, y) => x[0] - y[0]); for (const [, id] of near.slice(0, 3)) lv.set(id, 2);
-    for (const [id, l] of lv) { const cur = hiOn.get(id); if (!cur || cur.lv < l || (cur.lv > l && t - cur.t > 4)) { const b = getPerson(id); if (b) hiRes(b, l); hiOn.set(id, { lv: l, t }); } else if (cur.lv === l) cur.t = t; }
+    // r7: the full 4K set only for the nearest two within 6 m (it was three within 9 m), and at most ONE upgrade per tick
+    // (each upgrade uploads a 2K / 4K texture: several at once on walking into a shop cost 150-700 ms frames)
+    near.sort((x, y) => x[0] - y[0]); for (const [, id] of near.slice(0, 2)) lv.set(id, 2);
+    let up = 0;
+    for (const [id, l] of lv) { const cur = hiOn.get(id); const upg = !cur || cur.lv < l; if (upg && up >= 1) continue; if (upg || (cur.lv > l && t - cur.t > 4)) { const b = getPerson(id); if (b) hiRes(b, l); hiOn.set(id, { lv: l, t }); if (upg) up++; } else if (cur.lv === l) cur.t = t; }
     for (const [id, cur] of hiOn) if (!lv.has(id) && t - cur.t > 6) { const b = getPerson(id); if (b) hiRes(b, 0); hiOn.delete(id); }
   });
 

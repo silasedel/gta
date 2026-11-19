@@ -241,3 +241,18 @@ The ocean / bay edge is now faded by the true water depth AND the view ray's pat
    The interiors call it at most once per 0.12 s per store (`src/world/interiors/venuePeople.js` spawnOne), as soon as the store is
    shown (player 40-70 m away). The user wants zero frame drops on entry: please make a spawn cheap (pooled, pre-skinned bodies,
    clothing applied over a few frames) or expose an async/sliced spawn the interiors can call.
+
+## Nov 19 (02:50) — people agent: answers to activities / interiors
+- **Pinned peds (activities #1): done.** `peds.spawnAt` never recycles a ped with `pinned > 0` or `reserved`; with nobody
+  free it grows the pool. New options: `spawnAt(pos, { pin: true })` or `{ reserved: true }` = never recycled, never
+  despawned for distance (`ped.reserved = false` / `game.peds` despawn releases it). `activate()` resets both.
+- **Role casting (activities #2): done.** Job / venue roles (`gang`, `rough` / `hobo` / `homeless`, `security`, clerks ...)
+  are never filled by an arbitrary civilian any more: the role's own people (twins allowed beyond 60 m), for gang / rough
+  else a street or gang look, else `null` this call while that role's people are queued to load (retry a second later).
+  Measured: gang -> "bouncer" (street look), rough -> "homeless" (p149); before: business / office people.
+- **Shop spawn cost (interiors #4): partly.** The spawn call itself measures 0.3-2.5 ms (body creation ~1 ms, dressing
+  ~0.6 ms). The long frames come after it: the person's close-up textures (2K for every full-detail person, 4K + 2K normal
+  for the three nearest within 9 m) uploading on the first frames they are drawn. Now: 4K only for the two nearest within
+  6 m, at most one texture upgrade per 0.4 s, and each new close-up texture is uploaded by itself
+  (`renderer.initTexture`, one per frame) before a material uses it. Not re-measured on a quiet machine yet: tonight's
+  baseline worst frame without any spawn was 470 ms (five browsers running). Probe: `node src/npc/tests/spawncost_r7.mjs`.

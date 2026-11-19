@@ -167,6 +167,10 @@ export function personMaterial(base, variant = 0) {
 }
 /** close-up texture level for a person: 0 = 1K albedo / 512 normal (crowd), 1 = 2K albedo, 2 = full 4K albedo + 2K normal */
 const HI = { 1: { a: '_a2.webp' }, 2: { a: '_a4.webp', n: '_n2.webp' } };
+// r7 (interiors agent: 165 ms frames on walk-in): a new close-up texture is uploaded on its own (renderer.initTexture)
+// before any material shows it, so the upload is not added to the first frame that draws the person
+let HI_R = null;
+export function setHiRenderer(r) { HI_R = r || null; }
 export async function hiRes(base, level) {
   level = level === true ? 1 : level === false ? 0 : (level | 0);
   if (!base.meta.a2) level = 0;
@@ -181,6 +185,8 @@ export async function hiRes(base, level) {
   if (level >= 1) a = (await get(HI[level].a, true)) || (level === 2 ? await get(HI[1].a, true) : null) || tex.a;
   if (level === 2) n = (await get(HI[2].n, false)) || tex.n;
   if (base.hiWant !== level || !bases.has(base.id)) return false;      // superseded while loading
+  if (HI_R) { for (const t of [a, n]) if (t && !t.userData.up) { try { HI_R.initTexture(t); } catch (e) { /* */ } t.userData.up = true; await new Promise((r) => requestAnimationFrame(r)); } }
+  if (base.hiWant !== level || !bases.has(base.id)) return false;
   for (const [k, m] of _mats) if (k.startsWith(base.id + ':') && (m.map !== a || m.normalMap !== n)) { const re = !!m.normalMap !== !!n; m.map = a; m.normalMap = n; if (re) m.needsUpdate = true; }
   // release levels not in use
   for (const key of Object.keys(tex.hi)) {
