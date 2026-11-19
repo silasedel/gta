@@ -1477,9 +1477,9 @@ export async function createVehicles(game) {
   const NICO_CARS = [
     // Nico's main car (ute1, mock-ups docs/v2/plan/nico_car): the yellow coupe-utility in the drive, where the gray truck9 stood.
     // The orange-red hood band / hockey stick / flank band is cut into the model (tools/v2/cars/ute1), so no shader stripe boxes.
-    // On the r4 truck anchor it rolled onto the palm or tipped over (uneven ground, plants): free = the physics picks the nearest
-    // clear, level car spot to the anchor (findCarSpot) instead of the exact anchor.
-    { key: 'ute1', drive: true, free: true, local: (typeof location !== 'undefined' && /[?&]nh=r3\b/.test(location.search)) ? [-12.4, 8.4] : [-5.26, 2.05], heading: (typeof location !== 'undefined' && /[?&]nh=r3\b/.test(location.search)) ? 2.35 : -0.72,
+    // Parked on the open sandy pad in front of the stairs / lattice (house frame, after the r10 10 deg turn), nose to the street
+    // (+Z), >= 2.5 m from trunks, plants and structures, open driver side (the r4 truck anchor now lands in the planting).
+    { key: 'ute1', local: [-1.3, 7.5], heading: 0,
       ...NICO_UTE_SCHEME, color: 0xf4a40a, wear: { dirt: 0.03, rust: 0, fade: 0, dirtColor: 'sand' }, stripe: null, tint: 0 },
     // the old faded powder-blue muscle coupe: solid single-stage enamel, chalky sun fade on the top surfaces, rust at the sills and arches, salt crust, flat chrome, dusty glass, whitewalls
     { key: 'coupe4', local: [-18.8, 5.5], heading: 1.03, color: 0x7a9198, finish: 'solid', old: true, wear: { dirt: 0.3, rust: 0.32, fade: 0.6, age: 0.9, dirtColor: 'salt' } }, // the 1970 two-door muscle coupe, sun-faded powder blue (user model)
@@ -1499,8 +1499,11 @@ export async function createVehicles(game) {
       try { await placeStatic(k, { x: p.x, z: p.z, heading: h + h0 }); } catch (e) { /* optional */ }
     }
     for (const c of NICO_CARS) {
-      const ta = c.drive && NH.house?.anchors?.truckR4, p = NH.toWorld(ta ? ta.pos.clone().setY(0) : new THREE.Vector3(c.local[0], 0, c.local[1]));   // r4-house: the drive spot follows the rebuilt house
-      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: (ta ? ta.heading : c.heading) + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, interior: c.interior, ride: c.ride, old: c.old, tint: c.tint, keepSpot: !c.free }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
+      const ta = c.drive && NH.house?.anchors?.truckR4, q = ta ? ta.pos.clone() : new THREE.Vector3(c.local[0], 0, c.local[1]);   // r4-house: the drive spot follows the rebuilt house
+      // the yard ground collider (house part 05) stands 0.6-0.9 m above the city terrain that spawnParked's groundY reads: spawned at
+      // the terrain height the car started inside the yard collider and was thrown out (tipped, flown off) or pushed through it
+      q.y = NH.house?.yardY ? NH.house.yardY(q.x, q.z) : 0; const p = NH.toWorld(q);
+      try { const v = await spawnParked(c.key, { x: p.x, y: p.y + 0.02, z: p.z, heading: (ta ? ta.heading : c.heading) + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, interior: c.interior, ride: c.ride, old: c.old, tint: c.tint, keepSpot: true }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
     // the old van rusting on the lot across the lane (user r8: the 2.8k-tri graffiti van read very low-res): the HD boxy passenger
