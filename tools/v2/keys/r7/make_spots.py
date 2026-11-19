@@ -18,7 +18,7 @@ S = {
   'sTop':       (None, (0, 90, -5), (0, 0, -5.01), 60, 12),
   's06_living': ('r4/06_living_room', (-0.9, 5.3, -8.8), (-4.0, 3.95, -4.8), 70, 10),
   # r7b: the user's MAIN views. Game north in the lot frame S is (0.411, -0.911) (layout heading 0.424): 14 and 15 look exactly north
-  's14_north':  ('r4/14_MAIN_looking_north_low', (-17.5, 0.9, 10.8), (-9.3, 4.6, -7.4), 64, 11),
+  's14_north':  ('r4/14_MAIN_looking_north_low', (-14.6, 1.0, 7.4), (-7.2, 4.6, -8.8), 68, 11),
   's11_drive':  ('MAIN11', (-6.0, 1.7, 9.0), (-1.9, 2.6, -0.1), 64, 11),
   's12_night':  ('r4/12_gta6_reference_night_driveway', (-6.0, 1.7, 9.0), (-1.9, 2.6, -0.1), 64, 21.5),
   's13_under':  ('r4/13_under_house_hoop_annex', (1.2, 1.6, 1.0), (-2.3, 1.9, -8.3), 66, 10),

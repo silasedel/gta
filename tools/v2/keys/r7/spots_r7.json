@@ -203,8 +203,8 @@
    1
   ],
   "tod": 11,
-  "fov": 64,
-  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-17.5,0.9,10.8),l=W(-9.3,4.6,-7.4);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=64;cam.updateProjectionMatrix();return true;};",
+  "fov": 68,
+  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-14.6,1.0,7.4),l=W(-7.2,4.6,-8.8);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=68;cam.updateProjectionMatrix();return true;};",
   "ref": "r4/14_MAIN_looking_north_low"
  },
  "s11_drive": {
