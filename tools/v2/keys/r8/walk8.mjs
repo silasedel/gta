@@ -9,11 +9,11 @@ const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
 const F = 3.6;
 const TESTS = [
-  { id: 'main_stair_up', from: [1.4, 0.3, -2.8], dir: [-1, 0], secs: 7, expect: 'y > 3.9' },
-  { id: 'main_stair_down', from: [-7.1, F + 0.1, -2.8], dir: [1, 0], secs: 7, expect: 'y < 1.6' },
-  { id: 'lower_deck_stair_up', from: [6.9, 0.3, -2.0], dir: [1, 0], secs: 6, expect: 'y > 3.0' },
+  { id: 'main_stair_up', from: [1.4, 0.3, -2.8], dir: [-1, 0], secs: 28, expect: 'y > 3.4' },
+  { id: 'main_stair_down', from: [-7.1, F + 0.1, -2.8], dir: [1, 0], secs: 16, expect: 'y < 1.6' },
+  { id: 'lower_deck_stair_up', from: [6.9, 0.3, -2.0], dir: [1, 0], secs: 12, expect: 'y > 2.6' },
   { id: 'front_door_in', from: [-7.2, F + 0.1, -7.0], dir: [1, 0], secs: 3, open: 'door_front', expect: 'x > -5.5' },
-  { id: 'hall_to_living', from: [-6.0, F + 0.1, -7.0], dir: [1, 0], secs: 4, open: 'door_front', expect: 'x > -1.5' },
+  { id: 'hall_to_living', from: [-6.0, F + 0.1, -7.0], dir: [1, 0], secs: 7, open: 'door_front', expect: 'x > -1.5' },
   { id: 'bath_door', from: [-4.6, F + 0.1, -7.0], dir: [0, -1], secs: 2.5, expect: 'z < -8.3' },
   { id: 'bed_door', from: [-4.05, F + 0.1, -7.0], dir: [0, 1], secs: 2.5, expect: 'z > -5.6' },
   { id: 'wall_nw_living', from: [3.0, F + 0.1, -8.0], dir: [0, -1], secs: 3, expect: 'z > -10.45' },

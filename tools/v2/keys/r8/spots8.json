@@ -24,9 +24,9 @@
  "B": {
   "ref": "r8/B_front_low_facing_N.webp",
   "eye": [
-   -1.0,
+   2.5,
    0.9,
-   13.5
+   15
   ],
   "hdg": 0,
   "pitch": 9,

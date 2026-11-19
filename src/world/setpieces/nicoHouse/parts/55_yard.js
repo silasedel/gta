@@ -8,7 +8,7 @@
 // Colliders follow the visible shapes (planter, bins, poles, signs, dumpster, rocks, pallets, chairs).
 import { PLANTER, BINS, STOPS, POLES, WIRES, WIRE_ENDS, DUMPSTER, ROCKS, DEBRIS, PUDDLES, TRACKS, LITTER, CAR_SPOTS, CORNER_PUDDLE, STICKS } from '../yard.data.js';
 import { loadKeysModels } from '../models.js';
-import { R4, toS, plantClear } from '../r4/plan4.js';
+import { R4, R8, toS, plantClear } from '../r4/plan4.js';
 // r7: nothing of the yard dressing inside the r4 house footprint, its stairs or the canal (the house is square to the lot since r7)
 const r4Blocked = (x, z, pad = 0.4) => R4 && plantClear(...toS(x, z), pad);
 import { breakables } from '../../../miami/breakables.js';
@@ -59,7 +59,8 @@ export function build(ctx) {
   // ======================================================================= galvanized can (own model) for BINS with can: 'galv'
   // r2-keys (Nov 17 pm): the user's galvanized can with lid (Trash Can 7 -> keys/galv_can.glb); the hand-built can is the fallback
   const LIBGALV = true;
-  for (const b of BINS) if (b.can === 'galv' && LIBGALV) { const gy = yG(b.x, b.z); (ctx.libProps ||= []).push(['galv_can', M(b.x, gy, b.z, 0, (b.h || 0) + b.x * 1.7, 0)]); col.cyl(b.x, 0.38 + gy, b.z, 0.28, 0.76, { tag: 'bin' }); }
+  const DYNBINS = R8 && !!ctx.opts.game?.world;   // r8 (SPEC: hitting a bin must not explode it into blocks): real rigid-body bins
+  for (const b of BINS) if (b.can === 'galv' && LIBGALV && !DYNBINS) { const gy = yG(b.x, b.z); (ctx.libProps ||= []).push(['galv_can', M(b.x, gy, b.z, 0, (b.h || 0) + b.x * 1.7, 0)]); col.cyl(b.x, 0.38 + gy, b.z, 0.28, 0.76, { tag: 'bin' }); }
   for (const b of BINS) if (b.can === 'galv' && !LIBGALV) {
     const x = b.x, z = b.z, gy = yG(x, z), M = (x2, y2, z2, ...a) => kit.M(x2, y2 + gy, z2, ...a); D.geo(ST, new THREE.CylinderGeometry(0.27, 0.24, 0.72, 18, 3, true), M(x, 0.37, z), { color: 0xa4a7a1, wear: 0.6 });
     for (const y of [0.16, 0.38, 0.6]) D.geo(ST, new THREE.TorusGeometry(0.255 + y * 0.03, 0.009, 4, 24), M(x, y, z, PI / 2, 0, 0), { color: 0x9a9d97 });
@@ -284,7 +285,7 @@ export function build(ctx) {
   // ======================================================================= library models: bins, dumpster, rocks, STOP signs
   // colliders now (the house's collider list is read right after the build), visuals when the models arrive
   // curb carts: breakable (a car above ~15 km/h knocks one over; src/world/miami/breakables.js), static box otherwise
-  const BRK = breakables.enabled; if (!BRK) for (const b of BINS) if (b.piece) col.box(b.x, 0.56 + yG(b.x, b.z), b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
+  const BRK = breakables.enabled && !DYNBINS; if (!BRK && !DYNBINS) for (const b of BINS) if (b.piece) col.box(b.x, 0.56 + yG(b.x, b.z), b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
   { const d = DUMPSTER, sy = d.sy ?? 1; col.box(DP.x, 3.37 * d.scale * sy / 2 + DP.y, DP.z, 3.26 * d.scale, 3.37 * d.scale * sy, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
   // user (Nov 18): "there shouldn't be rocks in the road". The yard rocks were laid out for the old lot; on the new Keys lot
@@ -296,7 +297,8 @@ export function build(ctx) {
   const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole', 'coolers', 'patio_chair', 'window_ac', 'galv_can', 'mailbox_post', 'wicker_chair']);
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysYard');
-    for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, yG(b.x, b.z), b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
+    if (!DYNBINS) for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, yG(b.x, b.z), b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
+    if (DYNBINS) dynamicBins(ctx, lib, yG);
     for (const m of POLE_M) I.add('utility_pole', 'dock', m);
     for (const [k, m] of [...LIBP, ...(ctx.libProps || [])]) I.add(k, 'dock', m);
     { const d = DUMPSTER; I.add('rolloff', 'dock', M(DP.x, DP.y, DP.z, 0, d.heading, 0, d.scale, d.scale * (d.sy ?? 1), d.scale), { tint: d.tint }); }
@@ -329,4 +331,41 @@ export function build(ctx) {
     inst(SK.signs.stop, bases.map((b) => kit.mulM(b, M(-sc.x, 2.33, -sc.z + pc.d * 2.4 / 2 + 0.012))));
     ctx.groups.site.add(g);
   })());
+}
+
+// r8 (SPEC r8, physics): Nico's yard bins are real rigid bodies: a car or a shove tips them over, they roll and come to rest, and a bin
+// that falls over spills its bags and litter once (no shattering into blocks). Each bin: the library piece as its own mesh (tinted),
+// one dynamic Rapier body (a cuboid for the carts, a cylinder for the galvanized cans, ~10 kg), sleeping until something hits it;
+// the mesh follows the body while it is awake.
+function dynamicBins(ctx, lib, yG) {
+  const { THREE, kit } = ctx, game = ctx.opts.game, RAPIER = game.RAPIER, world = game.world, M = kit.M, r = kit.rng(5151);
+  const list = [];
+  for (const b of BINS) {
+    const piece = b.piece ? lib.piece('bins', b.piece) : b.can === 'galv' ? lib.piece('galv_can', 'dock') : null; if (!piece) continue;
+    const g = new THREE.Group(); g.name = 'r8bin';
+    for (const q of piece.parts) { let m = q.material; if (b.tint) { m = m.clone(); m.color.multiply(new THREE.Color(...b.tint)); } const mesh = new THREE.Mesh(q.geometry, m); mesh.castShadow = true; mesh.receiveShadow = true; mesh.raycast = () => {}; mesh.rotation.y = b.piece ? Math.PI / 2 : 0; g.add(mesh); }
+    list.push({ b, g, cart: !!b.piece });
+  }
+  let placed = false;
+  ctx.updaters.push(() => {
+    if (!placed) { placed = true; ctx.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromRotationMatrix(ctx.group.matrixWorld, 'YXZ').y;
+      for (const it of list) { const { b } = it, p = new THREE.Vector3(b.x, yG(b.x, b.z) + 0.01, b.z).applyMatrix4(ctx.group.matrixWorld), h = (b.h || 0) + (b.piece ? 0 : b.x * 1.7) + yaw, q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), h);
+        const body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(p.x, p.y, p.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }).setLinearDamping(0.35).setAngularDamping(0.6).setCanSleep(true).setCcdEnabled(false));
+        const cd = it.cart ? RAPIER.ColliderDesc.cuboid(0.3, 0.56, 0.31).setTranslation(0, 0.56, 0) : RAPIER.ColliderDesc.cylinder(0.38, 0.28).setTranslation(0, 0.38, 0);
+        world.createCollider(cd.setDensity(it.cart ? 24 : 30).setFriction(0.7).setRestitution(0.08), body); body.sleep();
+        it.body = body; it.g.position.copy(p); it.g.quaternion.copy(q); game.scene.add(it.g); }
+      return; }
+    for (const it of list) { const body = it.body; if (!body || body.isSleeping()) continue;
+      const t = body.translation(), q = body.rotation(); it.g.position.set(t.x, t.y, t.z); it.g.quaternion.set(q.x, q.y, q.z, q.w);
+      if (!it.spilled) { const up = new THREE.Vector3(0, 1, 0).applyQuaternion(it.g.quaternion); if (up.y < 0.45) { it.spilled = true; spill(it); } }
+      if (t.y < -50) { world.removeRigidBody(body); it.body = null; game.scene.remove(it.g); } }
+  });
+  // the spill: two or three black bags and paper / can litter on the ground in front of the bin's mouth (static: no physics cost)
+  const BAG = new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 0.35, metalness: 0 }), LIT = new THREE.MeshStandardMaterial({ color: 0xd9d4c4, roughness: 0.9 });
+  function spill(it) { const grp = new THREE.Group(), up = new THREE.Vector3(0, 1, 0).applyQuaternion(it.g.quaternion); up.y = 0; if (up.lengthSq() < 1e-4) up.set(1, 0, 0); up.normalize();
+    const base = it.g.position.clone(), gy = game.city?.groundHeightAt?.(base.x, base.z);
+    for (let k = 0; k < 3; k++) { const d = 0.7 + k * 0.35 + r() * 0.2, s = 0.22 + r() * 0.08, m = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), BAG); m.scale.set(s * 1.2, s * 0.8, s); m.position.copy(base).addScaledVector(up, d); m.position.x += (r() - 0.5) * 0.4; m.position.z += (r() - 0.5) * 0.4; m.position.y = (Number.isFinite(gy) ? Math.max(gy, base.y - 0.3) : base.y) + s * 0.7; m.castShadow = true; grp.add(m); }
+    for (let k = 0; k < 10; k++) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.12 + r() * 0.1, 0.006, 0.1 + r() * 0.1), LIT); m.position.copy(base).addScaledVector(up, 0.6 + r() * 1.6); m.position.x += (r() - 0.5) * 1.2; m.position.z += (r() - 0.5) * 1.2; m.position.y = (Number.isFinite(gy) ? Math.max(gy, base.y - 0.3) : base.y) + 0.01; m.rotation.y = r() * 6; grp.add(m); }
+    grp.name = 'r8binSpill'; game.scene.add(grp); }
+  void M;
 }
