@@ -19,6 +19,7 @@ export const LADDER = {
   parking: [-4, -1.25],
   wood: [-5, -1.5],
   sidewalk: [-7, -1.75], promenade: [-7, -1.75], panels: [-7, -1.75],
+  paving2: [-8, -1.875],     // a dressing pavement laid over the sidewalk slab (brickellRow), under the grates / pools below
   overSidewalk: [-9, -2],    // tree grates, mulch collars, lamp light pools, flush covers on a sidewalk
   dirtRoad: [-9, -2],
   asphalt: [-11, -2.25],

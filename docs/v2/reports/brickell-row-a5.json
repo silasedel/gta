@@ -1,0 +1,49 @@
+{
+ "tag": "a5",
+ "shots": [
+  "docs/v2/shots/brickell-row/a5_street_15.5.jpg",
+  "docs/v2/shots/brickell-row/a5_median_15.5.jpg",
+  "docs/v2/shots/brickell-row/a5_street_21.jpg",
+  "docs/v2/shots/brickell-row/a5_median_21.jpg"
+ ],
+ "spot": {
+  "x": 96.8308521282276,
+  "z": 1643.2676707032135,
+  "dx": -0.3700879891500237,
+  "dz": 0.9289967062842,
+  "len": 157.93470764160156,
+  "mx": 105.84212017918435,
+  "mz": 1646.8575241979688
+ },
+ "row": {
+  "edges": [
+   2603,
+   2630,
+   2648,
+   2651,
+   2679
+  ],
+  "palms": 27,
+  "fronts": 21,
+  "valets": [
+   {
+    "x": 119.3,
+    "z": 1636.2
+   },
+   {
+    "x": 139.1,
+    "z": 1590.4
+   }
+  ],
+  "medianLen": 244,
+  "colliders": 130,
+  "pavingCells": 4264
+ },
+ "frame": {
+  "med": 35.4,
+  "p90": 61.7,
+  "calls": 727,
+  "tris": 4654855
+ },
+ "errors": []
+}
