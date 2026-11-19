@@ -131,6 +131,53 @@ function interiorGeo(g, color, own) {
   n.boundingSphere = g.boundingSphere; n.boundingBox = g.boundingBox; n.userData = { ...g.userData };
   own.push(n); return n;
 }
+// W2 (Nov 19 playtest: "interiors plain white, no texture" on the track 911-like car, black "diamonds" along the cowl): several
+// sources put dash, seats, door cards and the cowl under the windshield in the paint slot, so they took the body color (white
+// car = white cabin) and the paint shader's clear coat.  Paint triangles enclosed by the shell on all axes (cabinTest: inside in
+// x and z, under the roof or glass) move to the trim slot as charcoal leather / plastic before the slots are prepared.
+// ?cabsplit=0 = old.
+const NO_CABSPLIT = typeof location !== 'undefined' && /[?&]cabsplit=0\b/.test(location.search);
+const CABIN_RGB = [0.034, 0.031, 0.029], CABIN_ROUGH = 0.62;
+function cabinPaintToTrim(P, inCab) {
+  const g = P.paint, pos = g.getAttribute('position'), I = g.index ? g.index.array : null, nt = (I ? I.length : pos.count) / 3;
+  // only between the windshield base and the end of the rear window (the glass footprint): a rear wing or a roof rack over
+  // the deck must not turn the engine cover into cabin
+  if (!P.glass) return;
+  P.glass.computeBoundingBox(); const gb = P.glass.boundingBox, z0 = gb.min.z - 0.05, z1 = gb.max.z + 0.05;
+  const vin = new Uint8Array(pos.count);
+  for (let i = 0; i < pos.count; i++) { const z = pos.getZ(i); vin[i] = z > z0 && z < z1 && inCab(pos.getX(i), pos.getY(i), z) ? 1 : 0; }
+  const keep = [], move = [];
+  for (let t = 0; t < nt; t++) {
+    const a = I ? I[t * 3] : t * 3, b = I ? I[t * 3 + 1] : t * 3 + 1, c = I ? I[t * 3 + 2] : t * 3 + 2;
+    (vin[a] && vin[b] && vin[c] ? move : keep).push(a, b, c);
+  }
+  if (move.length < 90 || keep.length < 6000) return;   // nothing to move, or the test misread the shell: leave it
+  const sub = (list) => {
+    const remap = new Int32Array(pos.count).fill(-1), order = [];
+    for (const v of list) if (remap[v] < 0) { remap[v] = order.length; order.push(v); }
+    const o = new THREE.BufferGeometry();
+    for (const name in g.attributes) {
+      const A = g.attributes[name], n = A.itemSize, src = A.array, dst = new src.constructor(order.length * n);
+      for (let i = 0; i < order.length; i++) for (let k = 0; k < n; k++) dst[i * n + k] = src[order[i] * n + k];
+      o.setAttribute(name, new THREE.BufferAttribute(dst, n, A.normalized));
+    }
+    const idx = order.length > 65535 ? new Uint32Array(list.length) : new Uint16Array(list.length);
+    for (let i = 0; i < list.length; i++) idx[i] = remap[list[i]];
+    o.setIndex(new THREE.BufferAttribute(idx, 1)); o.userData = { ...g.userData };
+    return o;
+  };
+  const inner = sub(move), T = P.trim;
+  // the moved part takes the trim slot's attribute layout (color RGBA = albedo + packed roughness / metal)
+  const tc = T?.getAttribute('color'), n4 = tc ? tc.itemSize : 4, n = inner.getAttribute('position').count;
+  const col = new THREE.BufferAttribute(tc ? new tc.array.constructor(n * n4) : new Float32Array(n * 4), n4, tc ? tc.normalized : false);
+  for (let i = 0; i < n; i++) { col.setXYZ(i, CABIN_RGB[0], CABIN_RGB[1], CABIN_RGB[2]); if (n4 > 3) col.setW(i, CABIN_ROUGH * 0.49); }
+  inner.setAttribute('color', col);
+  if (T) for (const name in T.attributes) if (!inner.getAttribute(name)) { const A = T.attributes[name]; inner.setAttribute(name, new THREE.BufferAttribute(new A.array.constructor(n * A.itemSize), A.itemSize, A.normalized)); }
+  for (const name of Object.keys(inner.attributes)) if (T && !T.getAttribute(name)) inner.deleteAttribute(name);
+  P.paint = sub(keep); g.dispose();
+  P.trim = T ? mergeSafe([T, inner]) : inner;
+  P.trim.userData.cabinFromPaint = move.length / 3;
+}
 function prepTrim(g, inCab = null) {
   const { rgb, a } = col4(g), n = a.length, rm = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) { const [r, m] = unpackRM(a[i]); rm[i * 2] = r; rm[i * 2 + 1] = m; calibrate(rgb, rm, i); }
@@ -430,6 +477,7 @@ export function loadCarModel(key) {
       lv.push((() => {
       const P = parts['body' + l] || {};
       let inCab = null; if (R3CAR && l < 2) { try { inCab = cabinTest(P); } catch (e) { inCab = null; } }
+      if (inCab && P.paint && !NO_CABSPLIT) { try { cabinPaintToTrim(P, inCab); } catch (e) { console.warn('[cars] cabin split', key, e); } }
       const tex = Object.keys(P).filter((k) => /^T_/.test(k)).map((k) => ({ geo: prepTrim(P[k]), mat: texMats[k] }));
       return { paint: P.paint ? prepPaint(P.paint, l) : null, trim: P.trim ? prepTrim(P.trim, inCab) : null, glass: P.glass ? prepGlass(P.glass) : null, lamp: P.lamp ? prepLamp(P.lamp, inCab) : null, tex };
       })());

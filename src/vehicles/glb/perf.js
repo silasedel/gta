@@ -34,11 +34,11 @@ export const PERF = {
   conv1: { t100: 8.5, vmax: 190, mass: 1450, drive: 'rwd' },
   coupe4: { t100: 6.0, vmax: 210, mass: 1700, drive: 'rwd' },
   coupe5: { t100: 7.8, vmax: 195, mass: 1300, drive: 'rwd' },
-  // sports: 911 Carrera S (rear engine, sharp), C8 convertible (mid engine)
-  coupe3: { t100: 3.6, vmax: 308, mass: 1515, drive: 'rwd', grip: 3.0, steer: 0.58, rollK: 0.55, comY: 0.42, antiRoll: 7, brakeK: 1.1, powerSlide: 0, eng: 'f6t', voice: 'flat6' },
+  // sports: M4-like twin-turbo six coupe, C8-like mid-engine convertible
+  coupe3: { t100: 3.9, vmax: 290, mass: 1725, drive: 'rwd', grip: 2.85, steer: 0.57, rollK: 0.65, comY: 0.44, antiRoll: 6.5, brakeK: 1.1, powerSlide: 0.12, eng: 'v6t' },
   conv2: { t100: 3.0, vmax: 312, mass: 1680, drive: 'rwd', grip: 3.0, steer: 0.55, rollK: 0.55, comY: 0.42, brakeK: 1.3, eng: 'v8' },
-  // super / hyper: Huracan-like V10, 911 GT3 RS-like, Chiron-like, Countach-like
-  super3: { t100: 2.9, vmax: 325, mass: 1430, drive: 'awd', brakeK: 1.0 },
+  // super / hyper: 488-like twin-turbo V8 (rwd), 911 GT3 RS-like (rear engine, sharp), Chiron-like, Countach-like
+  super3: { t100: 3.0, vmax: 330, mass: 1475, drive: 'rwd', grip: 3.1, powerSlide: 0.1, brakeK: 1.0, eng: 'v8f', voice: 'v10' },
   super4: { t100: 3.2, vmax: 296, mass: 1450, drive: 'rwd', grip: 3.3, steer: 0.56, downforce: 2.4, brakeK: 1.1, powerSlide: 0, eng: 'f6', voice: 'flat6' },
   super5: { t100: 2.4, vmax: 420, mass: 1995, drive: 'awd', brakeK: 1.4 },
   super6: { t100: 4.9, vmax: 295, mass: 1490, drive: 'rwd', grip: 2.6, downforce: 1.1, brakeK: 1.0 },
@@ -74,6 +74,7 @@ export const PERF = {
 export const EXTRA_ENGINES = {
   f6: { engine: 'flat6', cylinders: 6, aspiration: 'na', exhaust: 'race', maxRpm: 9000, idleRpm: 950, gears: [3.75, 2.38, 1.72, 1.34, 1.11, 0.96, 0.84], final: 4.97 },
   f6t: { engine: 'flat6', cylinders: 6, aspiration: 'twin-turbo', exhaust: 'sporty', maxRpm: 7500, idleRpm: 850, gears: [3.91, 2.29, 1.58, 1.18, 0.94, 0.79, 0.62, 0.5], final: 3.62 },
+  v8f: { engine: 'v8', cylinders: 8, aspiration: 'twin-turbo', exhaust: 'race', maxRpm: 8000, idleRpm: 950, gears: [3.08, 2.19, 1.63, 1.29, 1.03, 0.84, 0.69], final: 4.44 },
   v8tt: { engine: 'v8', cylinders: 8, aspiration: 'twin-turbo', exhaust: 'loud', maxRpm: 6500, idleRpm: 650, gears: [4.38, 2.86, 1.92, 1.37, 1.0, 0.82, 0.73, 0.6], final: 3.27 },
 };
 

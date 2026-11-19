@@ -6,7 +6,7 @@
 //   fleet.look(key, look, r)  -> adjust a rolled look (US color mix, no lower two-tone, model palettes)
 //   fleet.build(key, look)    -> car object (glbCar.buildGlbCar) or null when not loaded
 import { loadCarModel, isCarLoaded, buildGlbCar, glbStats } from './glbCar.js';
-import { FLEET, FLEET_BY_KEY, specFor, modelFor, zoneMix, fileKey, pickUsColor, pickUsPaint, PAINT_BIAS } from './fleet.js';
+import { FLEET, FLEET_BY_KEY, specFor, modelFor, zoneMix, luxuryAt, fileKey, pickUsColor, pickUsPaint, PAINT_BIAS } from './fleet.js';
 import { rng, hashSeed } from '../model/rng.js';
 import { LAZY, afterReady } from '../../core/loadMode.js';
 import { EXTRA_ENGINES, solveEngineForce } from './perf.js';
@@ -59,6 +59,7 @@ export async function initFleet(cat, opts = {}) {
     const e = FLEET_BY_KEY[k];
     const pool = e.rare ? 'rare' : e.parkedOnly ? 'beater' : e.cls;
     (pools[pool] ||= []).push(k);
+    if (e.rare && e.lux) (pools[e.cls] ||= []).push(k);   // hand-placed exotics also join their class pool (luxury districts weight it)
   }
   const procPools = {};
   for (const cls in pools) { procPools[cls] = CLASSES[cls] ? CLASSES[cls].slice() : []; CLASSES[cls] = pools[cls].slice(); }
@@ -118,7 +119,9 @@ export async function initFleet(cat, opts = {}) {
     const r = rng(hashSeed(key, (L.seed >>> 0) ^ 0x51a7));
     // every everyday model rolls the US paint table (models with a 'pal' only shift its weights); fixed-livery / rare models
     // keep their own palette.  Loud colors stay ~2 %, never a model's factory default.
-    if (e.palette) L.color = t.palette[(r() * t.palette.length) | 0];
+    // exotics seen in district traffic roll a supercar palette (the hand-placed one keeps its factory color: placements pass it)
+    if (e.lux && e.cls !== 'suv') { const X = [0xb3121b, 0xffc21a, 0xff5a1f, 0x101214, 0xeeeeea, 0xa9aeb4, 0x1d3f8f, 0x2f8f3a, 0x5a6470, 0x8fbf2a]; L.color = X[(r() * X.length) | 0]; }
+    else if (e.palette) L.color = t.palette[(r() * t.palette.length) | 0];
     else { const p = pickUsPaint(r, PAINT_BIAS[e.pal] || null); L.color = p.color; if (!L.finish || !e.rare) L.finish = p.finish; }
     // no lower-body two-tone on library models; black roofs on a few modern cars only
     if (L.twoTone && (L.twoTone.y != null || t.classic || t.convertible || e.service || e.police || r() < 0.6)) L.twoTone = null;
@@ -134,5 +137,5 @@ export async function initFleet(cat, opts = {}) {
     if (!t?.glb || !loadedIn(key)) return null;
     return buildGlbCar(fileKey(key), L, t, MODELS[key]);
   }
-  return { keys, pools, procPools, pick, resolve, look, build, done, zoneMix, isGlb: (k) => !!CAR_TYPES[k]?.glb, loaded: (k) => loadedIn(k), stats: glbStats, FLEET_BY_KEY };
+  return { keys, pools, procPools, pick, resolve, look, build, done, zoneMix, luxuryAt, isGlb: (k) => !!CAR_TYPES[k]?.glb, loaded: (k) => loadedIn(k), stats: glbStats, FLEET_BY_KEY };
 }

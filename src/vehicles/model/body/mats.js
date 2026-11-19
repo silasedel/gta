@@ -103,7 +103,11 @@ let _trim = null, _trimWorn = null;
 export function trimMaterial(o = {}) {
   if (o.worn) return (_trimWorn ||= wornTrim());
   if (_trim) return _trim;
-  const m = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.6, metalness: 0, envMapIntensity: 1.25, side: THREE.DoubleSide });
+  // W2 (Nov 19 playtest: flickering layers / "diamonds" on bodies): seals, badges' plates, decal film and cowl panels lie on
+  // the paint within a millimeter or two; a small depth pull makes the trim win those ties at every range instead of
+  // alternating triangle by triangle (hidden under-skins 0-3 cm behind the paint are deleted by the converter)
+  const m = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.6, metalness: 0, envMapIntensity: 1.25, side: THREE.DoubleSide,
+    polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
   m.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\n' + TRIM_VERT)
@@ -203,7 +207,9 @@ export function glassMaterial(tint = 1, o = {}) {
   const P = TINTS[t];
   const m = new THREE.MeshPhysicalMaterial({ color: P.color, opacity: P.opacity, transparent: true, depthWrite: false, metalness: 0, roughness: 0.1,   // 0.06 put a hot sun blob on side glass (QA #17)
     // art guide: glass env <= 1.5 (2.6 painted a white sky sheet on every windshield)
-    clearcoat: 1, clearcoatRoughness: 0.07, envMapIntensity: 1.35, side: THREE.DoubleSide, specularIntensity: 0.8 });
+    clearcoat: 1, clearcoatRoughness: 0.07, envMapIntensity: 1.35, side: THREE.DoubleSide, specularIntensity: 0.8,
+    // the window wins its near-coplanar ties with cowl / seal trim (the black sawtooth "diamonds" along a windshield base)
+    polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
   linkEnv(m);
   const R3 = R3CAR;
   m.onBeforeCompile = (sh) => {

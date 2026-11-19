@@ -1303,15 +1303,17 @@ export async function createVehicles(game) {
     for (const k of ks) { r -= tierWeight(k, income); if (r <= 0) return k; }
     return ks[0];
   }
+  // luxury districts lift the model tier too (tierWeight), so the SUVs and sports cars there are the expensive ones
+  const luxInc = (inc, env) => (env.lux ? Math.max(inc, 0.62 + 0.33 * env.lux) : inc);
   function parkedTypeFor(pos) {
-    const inc = incomeFor(zoneAt(pos));
-    let k = pickModel(fleet ? fleet.zoneMix(zoneAt(pos), inc, true, envAt(pos)) : fleetMix(inc, true), inc);
+    const env = envAt(pos), inc = luxInc(env.income, env);
+    let k = pickModel(fleet ? fleet.zoneMix(env.zone, inc, true, env) : fleetMix(inc, true), inc);
     if (CAR_TYPES[k].police && CAR_TYPES[k].police !== 'hidden' && Math.random() < 0.7) k = 'sedan';
     return k;
   }
   function trafficTypeFor(pos) {
-    const inc = pos ? incomeFor(zoneAt(pos)) : 0.5;
-    let k = pickModel(fleet ? fleet.zoneMix(pos ? zoneAt(pos) : 'commercial', inc, false, pos ? envAt(pos) : {}) : fleetMix(inc), inc);
+    const env = pos ? envAt(pos) : {}, inc = pos ? luxInc(env.income, env) : 0.5;
+    let k = pickModel(fleet ? fleet.zoneMix(pos ? env.zone : 'commercial', inc, false, env) : fleetMix(inc), inc);
     if ((k === 'firetruck' || k === 'ambulance') && Math.random() < 0.6) k = 'atlas_box';
     if (CAR_TYPES[k].cls === 'super' && inc < 0.7 && Math.random() < 0.5) k = fromClass('sports');
     return k;
@@ -1324,7 +1326,8 @@ export async function createVehicles(game) {
     const zone = pos ? zoneAt(pos) : 'commercial';
     const salt = zone === 'keys' || zone === 'causeway' || (!!pos && pos.z > 4300);
     const rural = ['rural', 'farm', 'park', 'wetland', 'everglades'].includes(zone) || (!!pos && (pos.x < -3800 || pos.z < -3300 || (pos.z > 2900 && pos.z < 4300)));
-    return { zone, income: incomeFor(zone), salt, rural };
+    let lux = 0; if (pos && fleet?.luxuryAt) { try { lux = fleet.luxuryAt(city?.districtAt?.(pos.x, pos.z)); } catch (e) { lux = 0; } }
+    return { zone, income: incomeFor(zone), salt, rural, lux };
   }
   function rollUniqueLook(key, pos, seed, reg = liveReg, env = envAt(pos)) {
     let look = null;

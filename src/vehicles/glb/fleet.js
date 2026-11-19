@@ -85,12 +85,12 @@ c('conv1', 'Brava', 'Bayline 65', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { co
 c('coupe4', 'Brava', 'Regalia 454', 'muscle', 'classic', 5.03, 2, 'v8', 1970, { classic: true, parkedOnly: true });
 c('coupe5', 'Brava', 'Bayline Coupe', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { classic: true, pal: 'sport' });
 // rare: one of each on the map (placements.js), never random traffic
-c('conv2', 'Brava', 'Mako R Spyder', 'sports', 'sports', 4.63, 4, 'v8', 2022, { rare: true, convertible: true, palette: [0xeeeeea] });   // rare: one factory color
-c('super3', 'Vireo', 'Fulmine', 'super', 'super', 4.57, 5, 'v10', 2017, { rare: true, palette: [0xb3121b] });
-c('super4', 'Solano', 'Libeccio RS', 'super', 'super', 4.57, 5, 'v6t', 2023, { rare: true, palette: [0xa9aeb4] });
-c('super5', 'Vireo', 'Aeterna', 'super', 'hyper', 4.54, 5, 'w16', 2021, { rare: true, palette: [0x1d3f8f] });
-c('super6', 'Vireo', 'Sorpasso 84', 'super', 'super', 4.49, 5, 'v12', 1986, { rare: true, classic: true, palette: [0xb3121b] });
-c('suv7', 'Aurelia', 'Regalia X', 'suv', 'luxsuv', 5.34, 5, 'v12', 2021, { rare: true, palette: [0x301d08] });   // user: only its original color (the source model's dark chocolate brown)
+c('conv2', 'Brava', 'Mako R Spyder', 'sports', 'sports', 4.63, 4, 'v8', 2022, { rare: true, lux: true, convertible: true, palette: [0xeeeeea] });   // rare: one factory color
+c('super3', 'Vireo', 'Fulmine', 'super', 'super', 4.57, 5, 'v10', 2017, { rare: true, lux: true, palette: [0xb3121b] });
+c('super4', 'Solano', 'Libeccio RS', 'super', 'super', 4.57, 5, 'v6t', 2023, { rare: true, lux: true, palette: [0xa9aeb4] });
+c('super5', 'Vireo', 'Aeterna', 'super', 'hyper', 4.54, 5, 'w16', 2021, { rare: true, lux: true, palette: [0x1d3f8f] });
+c('super6', 'Vireo', 'Sorpasso 84', 'super', 'super', 4.49, 5, 'v12', 1986, { rare: true, lux: true, classic: true, palette: [0xb3121b] });
+c('suv7', 'Aurelia', 'Regalia X', 'suv', 'luxsuv', 5.34, 5, 'v12', 2021, { rare: true, lux: true, palette: [0x301d08] });   // user: only its original color (the source model's dark chocolate brown)
 // SUVs
 c('suv1', 'Aurelia', 'Bastion', 'suv', 'luxsuv', 4.87, 4.5, 'v8l', 2020, { pal: 'lux' });
 c('suv2', 'Ridgeback', 'Trailcat', 'suv', 'offroad', 4.88, 2.6, 'v6', 2021);
@@ -180,6 +180,16 @@ export function modelFor(e) {
   return { key: e.key, brand: e.brand, name: e.name, class: e.cls, engineProfile: PERF[e.key]?.eng || ENG[e.eng] || 'i4', voice: PERF[e.key]?.voice || null, tier: e.tier, year: e.year, rare: !!e.rare, parkedOnly: !!e.parkedOnly };
 }
 
+// luxury districts (user, Nov 19 playtest: "supercars and luxury cars should actually spawn"): 0..1 by district name
+// (city.districtAt), so Brickell / Miami Beach / Coral Gables streets show exotics, SUVs like the boxy luxury off-roader and
+// sports cars; downtown and the other rich areas a little less.
+const LUX_DISTRICTS = [[/brickell|miami beach|south beach|coral gables|star island|fisher island|bal harbour|indian creek|sunny isles|key biscayne/i, 1],
+  [/downtown|edgewater|coconut grove|design district|mid-?beach|north beach|surfside|venetian|bay harbor|deco/i, 0.6]];
+export function luxuryAt(district) {
+  if (!district) return 0;
+  for (const [re, k] of LUX_DISTRICTS) if (re.test(district)) return k;
+  return 0;
+}
 // zone fleets (class weights).  Industrial / port: trucks and vans; Keys and rural: pickups; rich zones: more SUVs and sports.
 export function zoneMix(zone, income = 0.5, parked = false, env = {}) {
   const rich = Math.max(0, income - 0.5) * 2, poor = Math.max(0, 0.5 - income) * 2;
@@ -189,5 +199,9 @@ export function zoneMix(zone, income = 0.5, parked = false, env = {}) {
   if (zone === 'keys' || env.salt || zone === 'rural' || zone === 'farm' || env.rural) { m.pickup = 26; m.suv += 6; m.taxi = 0; m.bus = 0; m.truck = parked ? 1 : 3; m.sports = 1; m.compact = 10; m.minivan += 2; }
   if (zone === 'downtown' || zone === 'business') { m.taxi = parked ? 0 : 11; m.van += 3; m.truck = parked ? 0.5 : 3; m.minivan = 4; }
   if (zone === 'beach' || zone === 'nightlife') { m.sports += 5; m.muscle += 2; m.taxi = parked ? 0 : 8; }
+  // exotics: a trace in any rich zone, a few percent of the cars in the luxury districts (~1 in 12 parked on Brickell / Ocean Drive)
+  const lux = env.lux ?? 0;
+  m.super = (parked ? 0.25 : 0.12) * rich + lux * (parked ? 6 : 3.5);
+  if (lux > 0) { m.sports += lux * 7; m.suv += lux * 10; m.compact *= 1 - 0.6 * lux; m.pickup *= 1 - 0.7 * lux; m.van *= 1 - 0.5 * lux; m.minivan *= 1 - 0.5 * lux; }
   return m;
 }
