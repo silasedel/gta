@@ -520,7 +520,24 @@ function warmStreamedShaders(game) {
   return true;
 }
 
+// ---- 5. Render track (Nov 18 garbage ranking: three.js Matrix4.toArray 255 MB in 100 s, called by setValueM4Array for
+// the shadow-matrix uniform arrays of every lit material, every draw). Its 16 element stores share one megamorphic store
+// site (plain arrays and Float32Arrays), and that path boxes each double into a fresh heap number. A typed target now
+// takes one TypedArray.set (no per-element stores, no garbage); plain arrays keep the original. ?m4fast=0 = off.
+function fastMatrixToArray() {
+  if (typeof location !== 'undefined' && /[?&]m4fast=0\b/.test(location.search)) return false;
+  const P = THREE.Matrix4.prototype; if (P._psFast) return true;
+  const orig = P.toArray;
+  P.toArray = function toArray(array = [], offset = 0) {
+    if (array.BYTES_PER_ELEMENT && array.length >= offset + 16) { array.set(this.elements, offset); return array; }
+    return orig.call(this, array, offset);
+  };
+  P._psFast = true;
+  return true;
+}
+
 export async function initV2(game) {
+  try { fastMatrixToArray(); } catch (e) { console.warn('[perfGuards] m4 toArray', e); }
   const done = {
     interiorsList: false,
     facadeBatch: false,

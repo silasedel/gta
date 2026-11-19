@@ -1864,7 +1864,11 @@ export function createAudio(game) {
         }
       }
       try { clubDJ()?.tick(dt); } catch (e) { if (!eng.djErr) { eng.djErr = true; console.warn('[audio] club dj', e); } }
-      try { updateMusic(dt, t, pp, indoor, night, bedState.zone, muted); } catch (e) { if (!eng.musErr) { eng.musErr = true; console.warn('[audio] music', e); } }
+      // render track (Nov 18 perf, 92 MB / 50 s of garbage): the music mix is rebuilt at 12 Hz, not every frame (its gains and
+      // filters glide with 0.3-0.5 s time constants; positions of moving radios update 12 times a second)
+      eng.musT = (eng.musT || 0) + dt;
+      if (eng.musT >= 1 / 12 || muted !== eng.musQ) { const mdt = eng.musT; eng.musT = 0; eng.musQ = muted;
+        try { updateMusic(mdt, t, pp, indoor, night, bedState.zone, muted); } catch (e) { if (!eng.musErr) { eng.musErr = true; console.warn('[audio] music', e); } } }
       // (legacy synth club loop disabled: real/generative venue music above)
       let shop = null, sd = 70;
       if (false)

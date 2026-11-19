@@ -18,6 +18,8 @@ const VIEWS = {
   shoreA: [[0, 2.5, 0], [-12, -0.5, -14]],
   shoreB: [[0, 2.5, 0], [12, -0.5, -14]],
   shoreC: [[0, 6, 0], [0, -1, -22]],
+  edge: [[0, 1.6, -5], [0, -0.3, -14]],
+  edgeL: [[-3, 1.4, -6], [-8, -0.3, -13]],
 };
 const views = (o.views || 'back,down,left,right,rear').split(',');
 await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 700) }, async (b) => {
@@ -37,6 +39,15 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     console.log('pole', pole);
     const q = JSON.parse(pole || 'null');
     if (q) { VIEWS.pole1 = { abs: [[q[0] + 3.5, q[1] + 1.7, q[2] + 2], [q[0], q[1] + 2.5, q[2]]] }; VIEWS.pole2 = { abs: [[q[0] - 4, q[1] + 2.5, q[2] - 3], [q[0], q[1] + 2, q[2]]] }; VIEWS.pole3 = { abs: [[q[0] + 1, q[1] + 6, q[2] - 5], [q[0], q[1] + 0.5, q[2]]] }; views.push('pole1', 'pole2', 'pole3'); }
+  }
+  // --shore: views of the nearest shoreline (march out from the player until city.isWater; camera inland looking at it)
+  if (o.shore) {
+    const sh = await b.eval(`(() => { const P = game.player.position, W = game.city.isWater; let best = null;
+      for (let k = 0; k < 32; k++) { const a = k / 32 * Math.PI * 2, dx = Math.cos(a), dz = Math.sin(a); for (let d = 2; d < 120; d += 1) { if (W(P.x + dx * d, P.z + dz * d)) { if (!best || d < best.d) best = { d, x: P.x + dx * d, z: P.z + dz * d, dx, dz }; break; } } }
+      if (!best) return 'null'; const gy = game.city.groundHeightAt?.(best.x - best.dx * 8, best.z - best.dz * 8) ?? 0;
+      return JSON.stringify({ e: [best.x - best.dx * 7, gy + 2.2, best.z - best.dz * 7], l: [best.x + best.dx * 4, -0.3, best.z + best.dz * 4], e2: [best.x - best.dx * 3 - best.dz * 5, gy + 1.5, best.z - best.dz * 3 + best.dx * 5], l2: [best.x + best.dz * 3, -0.2, best.z - best.dx * 3], e3: [best.x - best.dx * 14, gy + 7, best.z - best.dz * 14] }); })()`);
+    console.log('shore', sh); const S = JSON.parse(sh);
+    if (S) { VIEWS.sh1 = { abs: [S.e, S.l] }; VIEWS.sh2 = { abs: [S.e2, S.l2] }; VIEWS.sh3 = { abs: [S.e3, S.l] }; views.push('sh1', 'sh2', 'sh3'); }
   }
   for (const v of views) {
     const V = VIEWS[v]; if (!V) continue;

@@ -78,7 +78,17 @@ export function patchLampChunks() {
 					float psWin = 1.0 - pow( psD / psP.w, 4.0 ); psWin *= psWin;
 					directLight.color = psC.rgb * ( psC.w * psWin * psSpot / ( psD * psD + ${LOOK_OFF ? '16.0' : '9.0'} ) );
 					directLight.visible = true;
+					#ifdef STANDARD
+					// render track (Nov 18, user: "unrealistic bright edge on the light post"): a lamp is a ~0.35 m luminaire, not a
+					// point. Its highlight is widened like a sphere light (roughness + radius / distance, Karis), so metal poles, car
+					// paint and glass right under a lamp show a soft sheen instead of a razor-thin bright line along the edge.
+					float psR0 = material.roughness;
+					material.roughness = min( 1.0, psR0 + 0.35 / ( 2.0 * psD + 0.35 ) );
 					RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
+					material.roughness = psR0;
+					#else
+					RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
+					#endif
 				}
 			}
 		}
