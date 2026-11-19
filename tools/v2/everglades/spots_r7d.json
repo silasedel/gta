@@ -1,0 +1,164 @@
+{
+ "dome_noon": {
+  "eye": [
+   -2600,
+   30,
+   -1100
+  ],
+  "look": [
+   -2500,
+   0,
+   -1100
+  ],
+  "at": [
+   -2550,
+   -1150
+  ],
+  "tod": 11,
+  "post": "const cy = game.everglades.parts.cypress; const T = game.THREE; let best = null; const ts = cy.treesNear(s.at[0], s.at[1], 900); for (const t of ts) { const d = Math.hypot(t.x - s.at[0], t.z - s.at[1]); if (!best || d < best.d) best = { t, d }; } if (!best) return 'no tree'; const t = best.t, a = s.az || 0.7, D = s.dist || 34;\n const eye = new T.Vector3(t.x + Math.cos(a) * D, t.y + (s.eh || 2), t.z + Math.sin(a) * D), look = new T.Vector3(t.x, t.y + t.H * (s.lh || 0.45), t.z); game.teleport(eye.x, undefined, eye.z, 0);\n game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.lookAt(look); if (cam.fov !== 60) { cam.fov = 60; cam.updateProjectionMatrix(); } return true; }; window.__vegShotCam = [eye.toArray(), look.toArray()]; await new Promise((r) => setTimeout(r, 6000)); return { x: t.x, z: t.z, H: t.H, n: ts.length };",
+  "dist": 40,
+  "eh": 2,
+  "lh": 0.4
+ },
+ "dome_close": {
+  "eye": [
+   -2600,
+   30,
+   -1100
+  ],
+  "look": [
+   -2500,
+   0,
+   -1100
+  ],
+  "at": [
+   -2550,
+   -1150
+  ],
+  "tod": 15,
+  "post": "const cy = game.everglades.parts.cypress; const T = game.THREE; let best = null; const ts = cy.treesNear(s.at[0], s.at[1], 900); for (const t of ts) { const d = Math.hypot(t.x - s.at[0], t.z - s.at[1]); if (!best || d < best.d) best = { t, d }; } if (!best) return 'no tree'; const t = best.t, a = s.az || 0.7, D = s.dist || 34;\n const eye = new T.Vector3(t.x + Math.cos(a) * D, t.y + (s.eh || 2), t.z + Math.sin(a) * D), look = new T.Vector3(t.x, t.y + t.H * (s.lh || 0.45), t.z); game.teleport(eye.x, undefined, eye.z, 0);\n game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.lookAt(look); if (cam.fov !== 60) { cam.fov = 60; cam.updateProjectionMatrix(); } return true; }; window.__vegShotCam = [eye.toArray(), look.toArray()]; await new Promise((r) => setTimeout(r, 6000)); return { x: t.x, z: t.z, H: t.H, n: ts.length };",
+  "dist": 12,
+  "eh": 1.7,
+  "lh": 0.55,
+  "az": 2.2
+ },
+ "heron": {
+  "eye": [
+   -2450,
+   3,
+   -950
+  ],
+  "look": [
+   -2400,
+   0,
+   -950
+  ],
+  "at": [
+   -2450,
+   -950
+  ],
+  "tod": 10,
+  "post": "const W = game.everglades.parts.wildlife; const T = game.THREE; let best = null; for (const c of W.cells.values()) for (const g of (s.bird ? c.birds : c.gators)) { if (g.gone || (s.bird && g.egret) || (s.bird ? false : g.inWater !== !!s.wet)) continue; const d = Math.hypot(g.x - s.at[0], g.z - s.at[1]); if (!best || d < best.d) best = { g, d }; } if (!best) return 'none';\n const g = best.g, a = s.az || 0.8, D = s.dist || 7; const eye = new T.Vector3(g.x + Math.cos(a) * D, g.y + (s.eh || 1.6), g.z + Math.sin(a) * D), look = new T.Vector3(g.x, g.y + 0.3, g.z);\n game.cameraOverride = (dt, cam) => { cam.position.copy(eye); cam.lookAt(look); if (cam.fov !== 50) { cam.fov = 50; cam.updateProjectionMatrix(); } return true; }; window.__vegShotCam = [eye.toArray(), look.toArray()]; return { x: g.x, z: g.z, m: g.m };",
+  "bird": true,
+  "dist": 4,
+  "eh": 1.2
+ },
+ "tarp_ground": {
+  "eye": [
+   -2471.4,
+   1.7,
+   -1474.0
+  ],
+  "look": [
+   -2458.4,
+   2,
+   -1492.0
+  ],
+  "tod": 11,
+  "fov": 60
+ },
+ "south_bank_dawn": {
+  "eye": [
+   -2600.8,
+   1.7,
+   -441.8
+  ],
+  "look": [
+   -2588.8,
+   3,
+   -451.8
+  ],
+  "tod": 6.5,
+  "fov": 60
+ },
+ "west_airboat_noon": {
+  "eye": [
+   -2828.4,
+   1.4,
+   -956.3
+  ],
+  "look": [
+   -2858.2,
+   3,
+   -960.1
+  ],
+  "tod": 11.5,
+  "fov": 60
+ },
+ "south_aerial_noon": {
+  "eye": [
+   -2554.8,
+   45,
+   -517.8
+  ],
+  "look": [
+   -2594.8,
+   0,
+   -447.8
+  ],
+  "tod": 12.5,
+  "fov": 55
+ },
+ "slough_aerial": {
+  "eye": [
+   -2150,
+   80,
+   -700
+  ],
+  "look": [
+   -2450,
+   0,
+   -1050
+  ],
+  "tod": 10.5,
+  "fov": 60
+ },
+ "slough_airboat": {
+  "eye": [
+   -2350,
+   1.4,
+   -1050
+  ],
+  "look": [
+   -2450,
+   2,
+   -1000
+  ],
+  "tod": 9,
+  "fov": 62
+ },
+ "gus_dock_dawn": {
+  "eye": [
+   -1629.7,
+   1.9,
+   -913.0
+  ],
+  "look": [
+   -1638.0,
+   2.5,
+   -896.6
+  ],
+  "tod": 6.4,
+  "fov": 60
+ }
+}

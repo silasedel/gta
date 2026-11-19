@@ -6,7 +6,7 @@
 //  - levelAt(x, z) gives the same surface to the physics (airboats glide on it; anything else just gets wet feet)
 //  - drawn as tea-dark freshwater with sky reflection (Fresnel) and the ocean's ripple normals, streamed in 48 m chunks
 //    within ~300 m (the ground shader's wet patches carry the look farther out)
-// ?glades=0 turns it off.
+// ?glades=0 turns it off. r7b (everglades pass): thinner from above, browner, softer edges.
 import * as THREE from 'three';
 import { vnoise } from '../terrain/terrain.js';
 
@@ -46,7 +46,7 @@ export function createGladesWater(game, opts = {}) {
   // ---------- rendering
   const nt = game.env?.ocean?.uniforms?.tNormal?.value || null;
   let nmap = null; if (nt) { nmap = nt.clone(); nmap.wrapS = nmap.wrapT = THREE.RepeatWrapping; nmap.repeat.set(1 / 9, 1 / 9); nmap.needsUpdate = true; }
-  const mat = new THREE.MeshStandardMaterial({ name: 'gladesWater', color: 0x1d180d, roughness: 0.08, metalness: 0, transparent: true, depthWrite: false, vertexColors: true,
+  const mat = new THREE.MeshStandardMaterial({ name: 'gladesWater', color: 0x2b2416, roughness: 0.08, metalness: 0, transparent: true, depthWrite: false, vertexColors: true,
     normalMap: nmap, normalScale: new THREE.Vector2(0.22, 0.22), envMapIntensity: 0.9, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
   const uFade = { value: R - 50 };
   mat.onBeforeCompile = (sh) => {
@@ -54,7 +54,9 @@ export function createGladesWater(game, opts = {}) {
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uGwFade;')
       .replace('#include <dithering_fragment>', `#include <dithering_fragment>
         { float ndv = clamp(dot(normalize(vNormal), normalize(vViewPosition)), 0.0, 1.0); float fr = pow(1.0 - ndv, 4.0);
-          gl_FragColor.a = clamp(gl_FragColor.a + fr * 0.45 * step(0.02, vColor.a), 0.0, 1.0) * (1.0 - smoothstep(uGwFade, uGwFade + 50.0, length(vViewPosition))); }`);
+          // r7b (everglades): seen from above the sheet is a thin film over the sawgrass and peat (it read as black blotches
+          // from the air); at grazing angles it is the sky's reflection on the flooded prairie
+          gl_FragColor.a = clamp(gl_FragColor.a * mix(1.0, 0.38, smoothstep(0.35, 0.9, ndv)) + fr * 0.45 * step(0.02, vColor.a), 0.0, 1.0) * (1.0 - smoothstep(uGwFade, uGwFade + 50.0, length(vViewPosition))); }`);
   };
   mat.customProgramCacheKey = () => 'r2water-glades';
   const group = new THREE.Group(); group.name = 'gladesWater'; group.renderOrder = -4; game.scene.add(group);
@@ -65,7 +67,7 @@ export function createGladesWater(game, opts = {}) {
       for (let i = 0; i < n; i++) {
         const x = cx * CH + i * CELL, z = cz * CH + j * CELL, k = j * n + i, e = evalAt(x, z);
         let y, a = 0;
-        if (e) { const d = e[0] - e[1]; y = e[0]; a = ss(-0.005, 0.05, d) * (0.5 + 0.38 * e[2] + 0.12 * ss(0.05, 0.2, d)); if (a > 0.01) any = true; }
+        if (e) { const d = e[0] - e[1]; y = e[0]; a = ss(-0.01, 0.09, d) * (0.42 + 0.4 * e[2] + 0.12 * ss(0.05, 0.2, d)); if (a > 0.01) any = true; } // r7b: gentler edge ramp (no hard dark outlines)
         else { y = gh(x, z) - 0.05; }
         pos[k * 3] = x; pos[k * 3 + 1] = y; pos[k * 3 + 2] = z; col[k * 4] = 1; col[k * 4 + 1] = 1; col[k * 4 + 2] = 1; col[k * 4 + 3] = a;
       }

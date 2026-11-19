@@ -71,6 +71,14 @@ export function createWildlife(game, G) {
   const stand = { egret: new THREE.InstancedMesh(birdGeo('egret', false), birdMat, MAXB), heron: new THREE.InstancedMesh(birdGeo('heron', false), birdMat, MAXB) };
   const fly = { egret: new THREE.InstancedMesh(birdGeo('egret', true), flyMat, MAXF), heron: new THREE.InstancedMesh(birdGeo('heron', true), flyMat, MAXF) };
   for (const m of [...Object.values(stand), ...Object.values(fly)]) { m.count = 0; m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; group.add(m); }
+  // r7b: wading great blue herons from the user's download (heron_blue.glb, regraded slate blue-gray); the procedural one
+  // stands in until it loads
+  const HERON_YAW = 0; let heronParts = null;
+  loadModel('everglades/heron_blue.glb').then((sc) => { if (!sc) return;
+    heronParts = partsOf(sc).map((p) => { const g = p.geometry.clone(); g.applyMatrix4(p.matrix); g.applyMatrix4(new THREE.Matrix4().makeRotationY(HERON_YAW));
+      const m = p.material.clone(); m.color.setRGB(0.62, 0.7, 0.86); m.roughness = 0.75; m.metalness = 0;
+      const im = new THREE.InstancedMesh(g, m, MAXB); im.count = 0; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; im.name = 'gl7Heron'; group.add(im); return im; });
+    stand.heron.visible = false; dirty = true; });
 
   // ---------- population per cell (deterministic)
   const cells = new Map(); let dirty = false;
@@ -113,11 +121,12 @@ export function createWildlife(game, G) {
       }
       for (const b of c.birds) {
         if (b.gone) continue; const k = b.egret ? 'egret' : 'heron', i = sc[k]; if (i >= MAXB) continue;
-        _q.setFromAxisAngle(_p.set(0, 1, 0), b.h); _s.setScalar(b.s * (b.egret ? 1 : 1.25)); _p.set(b.x, b.y, b.z); _m.compose(_p, _q, _s); _m.toArray(stand[k].instanceMatrix.array, i * 16); sc[k]++;
+        _q.setFromAxisAngle(_p.set(0, 1, 0), b.h); _s.setScalar(b.s * (b.egret ? 1 : heronParts ? 1.0 : 1.25)); _p.set(b.x, b.y, b.z); _m.compose(_p, _q, _s); _m.toArray(stand[k].instanceMatrix.array, i * 16); if (!b.egret && heronParts) for (const im of heronParts) _m.toArray(im.instanceMatrix.array, i * 16); sc[k]++;
       }
     }
     gpools.forEach((pool, mi) => { if (!pool) return; for (const im of pool.parts) { im.count = cnt[mi]; im.instanceMatrix.needsUpdate = true; } });
     for (const k of ['egret', 'heron']) { stand[k].count = sc[k]; stand[k].instanceMatrix.needsUpdate = true; }
+    if (heronParts) for (const im of heronParts) { im.count = sc.heron; im.instanceMatrix.needsUpdate = true; }
     stats.gators = ng; stats.birds = sc.egret + sc.heron;
   }
   let scanT = 0, nearT = 0;

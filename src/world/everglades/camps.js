@@ -11,7 +11,7 @@
 // (game.vehicles.spawnParked) and drivable airboats (game.boatSystem.spawn). Built within ~650 m, dropped past ~950 m.
 import * as THREE from 'three';
 import { loadModel } from './models.js';
-import { dirtTexture, signTexture } from './textures.js';
+import { dirtTexture, signTexture, snagTexture } from './textures.js';
 import { staticBatch } from '../../render/staticBatch.js';
 
 // targets on the map (world x, z) and the kind of place wanted there; the finder looks for the best bank within ~260 m
@@ -83,6 +83,7 @@ export function createCamps(game, G) {
   const signMats = new Map();
   function sign(lines, opts) { const k = lines.join('|'); let m = signMats.get(k); if (!m) { m = new THREE.MeshStandardMaterial({ map: signTexture(lines, opts), roughness: 0.85 }); signMats.set(k, m); } return m; }
   const postMat = new THREE.MeshStandardMaterial({ color: 0x5d5246, roughness: 0.95 });
+  const skirtTex = snagTexture(); skirtTex.repeat.set(3, 0.35); const skirtMat = new THREE.MeshStandardMaterial({ name: 'gl7Skirt', map: skirtTex, color: 0x8a7a64, roughness: 0.95 });
   function signBoard(lines, opts, w = 2.4, h = 1.2) {
     const g = new THREE.Group(); const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.05), [postMat, postMat, postMat, postMat, sign(lines, opts), postMat]); b.position.y = 1.5 + h / 2; b.castShadow = true; g.add(b);
     for (const sx of [-w / 2 + 0.12, w / 2 - 0.12]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.3 + h, 0.12), postMat); p.position.set(sx, (2.3 + h) / 2 - 0.2, -0.06); p.castShadow = true; g.add(p); }
@@ -103,6 +104,10 @@ export function createCamps(game, G) {
       put('keys/fishing_gear.glb', 4.4, dW + 6, { y: SEA + 0.55, yaw: 1.4 });
       put('everglades/gas_can.glb', 2.2, dW - 2.5, { yaw: 0.6 }); put('everglades/gas_can.glb', 2.6, dW - 2.2, { yaw: 2.1 });
       put('keys/galv_can.glb', -0.5, dW - 8, {});
+      // r7b junk from the user's downloads (aged / rusted in tools/v2/everglades): drums, a wrecked car, mossy rocks on the bank
+      put('everglades/drum_rust.glb', 10.5, dW - 9, { yaw: 0.4 }); put('everglades/drum_blue.glb', 11.2, dW - 9.6, { yaw: 1.9 }); put('everglades/drum_rust.glb', 10.2, dW - 10.4, { yaw: 2.7, tip: true });
+      put('everglades/mossy_stone.glb', -9, dW + 0.6, { yaw: 1.1, s: 0.7, y0: -0.25 }); put('everglades/mossy_stone.glb', 9.5, dW + 0.2, { yaw: 2.4, s: 0.55, y0: -0.25 });
+      if (kind === 'stilt') put('everglades/junk_car.glb', -15, dW - 21, { yaw: 0.6, y0: -0.08 });
       if (kind === 'stilt') {
         put('everglades/fuel_tank.glb', 9, dW - 13, { yaw: 1.3, col: [1.6, 0.7, 0.55] });
         put('everglades/clothesline.glb', -14, dW - 14, { yaw: 0.2 });
@@ -114,7 +119,10 @@ export function createCamps(game, G) {
     } else if (kind === 'tarp') {
       put('buildings/tarp_shack.glb', -5, dW - 10, { yaw: Math.PI + 0.25, col: [3.2, 1.3, 2.6] });
       put('keys/rowboat.glb', 0, dW - 2.5, { yaw: 1.5, flip: true });
-      put('keys/skiff.glb', 7, dW - 14, { yaw: 0.5, y0: 0.35 });
+      put('everglades/rv_trailer.glb', 10, dW - 11, { yaw: Math.PI / 2 + 0.25, skirt: [3.3, 1.55, 0.62], col: [3.6, 1.6, 1.7] });
+      put('everglades/flatbed.glb', -13, dW - 15, { yaw: 0.35, sv: [1.6, 1, 0.75] }); put('keys/skiff.glb', -13, dW - 15, { yaw: 0.35, y0: 0.66 });
+      put('everglades/junk_car.glb', 15, dW - 23, { yaw: 2.2, y0: -0.08 });
+      put('everglades/drum_rust.glb', 4.2, dW - 13, { yaw: 0.2 }); put('everglades/drum_rust.glb', 4.9, dW - 13.5, { yaw: 1.2 }); put('everglades/drum_blue.glb', 4.4, dW - 14.2, { yaw: 2.2 });
       put('everglades/fuel_tank.glb', -13, dW - 4, { yaw: 0.2, col: [1.6, 0.7, 0.55] });
       put('keys/galv_can.glb', 1.5, dW - 11, {}); put('keys/galv_can.glb', 2.2, dW - 10.2, {});
       put('everglades/gas_can.glb', 2.8, dW - 9.4, { yaw: 1 });
@@ -131,6 +139,8 @@ export function createCamps(game, G) {
       put('everglades/gas_can.glb', 4.8, dW + 14, { y: SEA + 0.55 }); put('everglades/gas_can.glb', 5.1, dW + 14.4, { y: SEA + 0.55, yaw: 1 });
       put('everglades/fuel_tank.glb', 12, dW - 6, { yaw: 1.5, col: [1.6, 0.7, 0.55] });
       put('everglades/airboat_classic.glb', -1.8, dW + 15, { water: -0.12, yaw: -Math.PI / 2 + 0.1 });
+      put('everglades/drum_blue.glb', 13.5, dW - 4.6, { yaw: 0.5 }); put('everglades/drum_rust.glb', 14.1, dW - 5.3, { yaw: 1.5 });
+      put('everglades/mossy_stone.glb', -1, dW - 0.4, { yaw: 0.4, s: 0.6, y0: -0.25 });
       put('keys/lawn_chair.glb', 2.5, dW - 3, { yaw: 2.8 }); put('keys/lawn_chair.glb', 1.2, dW - 3.4, { yaw: 3.3 });
     }
     // --- dirt track to the road, yard
@@ -158,9 +168,14 @@ export function createCamps(game, G) {
       if (!src || s.state === 'dropped') return;
       const m = src.clone(true), [x, z] = W(s, it.lx, it.lz), yaw = s.heading + (it.yaw || 0);
       let y; if (it.deck !== undefined) y = it.deck; else if (it.water !== undefined) y = SEA + it.water; else if (it.y !== undefined) y = it.y; else y = G.ground(x, z) - 0.03 + (it.y0 || 0);
-      if (it.s) m.scale.setScalar(it.s);
-      if (it.flip) { m.rotation.set(Math.PI, yaw, 0, 'YXZ'); const b = src.userData.box; y += (b ? b.max.y - b.min.y : 0.5) * (it.s || 1); } else m.rotation.y = yaw;
+      if (it.s) m.scale.setScalar(it.s); if (it.sv) m.scale.set(...it.sv);
+      if (it.tip) { m.rotation.set(0, yaw, Math.PI / 2, 'YXZ'); y += 0.3; }
+      if (it.tip) { /* set above */ } else if (it.flip) { m.rotation.set(Math.PI, yaw, 0, 'YXZ'); const b = src.userData.box; y += (b ? b.max.y - b.min.y : 0.5) * (it.s || 1); } else m.rotation.y = yaw;
       m.position.set(x, y, z); grp.add(m);
+      if (it.skirt) { // weathered board skirting around a trailer's base (hides the wheels and the gap, like a lived-in single-wide)
+        const [hx, hz, hh] = it.skirt; for (const [px, pz, w, rot] of [[0, hz, hx * 2, 0], [0, -hz, hx * 2, 0], [hx, 0, hz * 2, Math.PI / 2], [-hx, 0, hz * 2, Math.PI / 2]]) {
+          const b = new THREE.Mesh(new THREE.BoxGeometry(w, hh, 0.04), skirtMat); const c = Math.cos(yaw), sn = Math.sin(yaw);
+          b.position.set(x + px * c + pz * sn, G.ground(x, z) + hh / 2 - 0.05, z - px * sn + pz * c); b.rotation.y = yaw + rot; b.castShadow = true; b.receiveShadow = true; grp.add(b); } }
       // colliders: a deck slab for piers / boathouse decks, a box for buildings and big props
       if (it.col && game.world && game.RAPIER) {
         const R = game.RAPIER, q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw); let hx, hy, hz, cy;

@@ -1,15 +1,18 @@
 // Everglades r7: cypress domes and strands. The signature Everglades silhouette: pond / bald cypress growing in round
 // "domes" in the wet prairie (tallest in the middle, low at the rim) and in long strands along the sloughs; tall, straight
 // pale trunks with a buttressed foot, cypress knees, open layered crowns of flat feathery sprays, Spanish moss
-// (moss.js hangs it from game.everglades.parts.cypress.treesNear). Procedural geometry (4 tree shapes x 2 LODs:
-// near < 230 m full sprays, far: fewer, bigger cards), instanced; dome / strand layout deterministic per 240 m cell,
-// streamed within ~1.1 km. Trunk colliders (a small pool of cylinders) follow the player within ~60 m.
+// (moss.js hangs extra curtains from game.everglades.parts.cypress.treesNear). r7b: the user's bald cypress download
+// (Models/_Inbox/bald-cypress.zip -> public/assets/models/everglades/bald_cypress.glb, needles regraded, its own moss clumps)
+// near < 240 m, its decimated copy (bald_cypress_lod1.glb) to 560 m, a procedural card tree beyond (4 shapes).
+// Instanced; dome / strand layout deterministic per 240 m cell, streamed within ~1.1 km. Trunk colliders (a small pool of
+// cylinders) follow the player within ~60 m.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { snagTexture } from './textures.js';
 import { hash2, vnoise } from './region.js';
+import { loadModel, partsOf } from './models.js';
 
-const CELL = 240, R = 1100, NEAR = 230, MAX = 2600, COLS = 48;
+const CELL = 240, R = 1100, NEAR = 240, MID = 560, MAX = 2600, COLS = 48, MODEL_H = 7.34;
 
 function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 
@@ -78,6 +81,25 @@ export function createCypress(game, G) {
     if (li) { w.castShadow = false; f.castShadow = false; } // far LOD: the far static shadow map is enough
     return { w, f };
   }));
+  // ---------- the user's model: LOD0 / LOD1 pools (one InstancedMesh per material)
+  const mlods = [null, null];
+  const sway = (m) => { m.onBeforeCompile = (sh) => { sh.uniforms.uGlT = uT; sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uGlT;')
+    .replace('#include <begin_vertex>', `#include <begin_vertex>
+      { float ph = instanceMatrix[3][0] * 0.13 + instanceMatrix[3][2] * 0.17; float hy = max(0.0, position.y - 1.5); transformed.x += sin(uGlT * 0.9 + ph + position.y) * 0.012 * hy; transformed.z += cos(uGlT * 0.7 + ph) * 0.009 * hy; }`); };
+    m.customProgramCacheKey = () => 'gl7-cyp-model-' + m.name; };
+  const matCache = new Map();
+  ['everglades/bald_cypress.glb', 'everglades/bald_cypress_lod1.glb'].forEach((f, li) => loadModel(f).then((sc) => {
+    if (!sc) return;
+    mlods[li] = partsOf(sc).map((p) => {
+      let m = matCache.get(p.material.name);
+      if (!m) { m = p.material.clone(); const bark = /bark/i.test(m.name); m.transparent = false; m.depthWrite = true; m.alphaTest = bark ? 0 : 0.5; m.side = bark ? THREE.FrontSide : THREE.DoubleSide;
+        m.roughness = bark ? 0.95 : 0.8; m.metalness = 0; if (m.map) m.map.anisotropy = 4; if (/needle/i.test(m.name)) { m.color.setRGB(1.05, 1.08, 0.95); sway(m); if (m.map) { folMat.map = m.map; folMat.needsUpdate = true; } } else if (/mousse/i.test(m.name)) { m.color.setRGB(1.1, 1.1, 1.05); sway(m); } matCache.set(p.material.name, m); }
+      const g = p.geometry.clone(); g.applyMatrix4(p.matrix);
+      const im = new THREE.InstancedMesh(g, m, MAX); im.count = 0; im.frustumCulled = false; im.castShadow = li === 0; im.receiveShadow = true; im.name = 'gl7CypModel' + li + '_' + m.name; scene.add(im);
+      if (/needle/i.test(m.name)) im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX * 3).fill(1), 3);
+      return im;
+    }); dirty = true;
+  }));
   // ---------- layout: domes (round, tallest in the middle) and strands (along sloughs)
   const cells = new Map(), all = [];
   function gen(ci, cj) {
@@ -106,20 +128,29 @@ export function createCypress(game, G) {
   function tree(x, z, H) {
     const v = hash2(x * 3.1, z * 1.7, 2), sh = (hash2(x, z, 7) * SH) | 0, rust = hash2(z, x, 8) < 0.07;
     const tint = rust ? [1.25, 0.72, 0.42] : [1.08 + v * 0.25, 1.18 + v * 0.12, 0.9 + v * 0.12];
-    return { x, z, y: G.ground(x, z) - 0.25, H, sh, h: hash2(x, z, 11) * 6.28, w: 0.9 + hash2(z, x, 12) * 0.25, tint };
+    const tint2 = rust ? [1.2, 0.8, 0.5] : [0.92 + v * 0.16, 0.96 + v * 0.08, 0.9 + v * 0.1];
+    return { x, z, y: G.ground(x, z) - 0.25, H, sh, h: hash2(x, z, 11) * 6.28, w: 0.8 + hash2(z, x, 12) * 0.35, tint, tint2 };
   }
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
   const stats = { trees: 0, near: 0, cells: 0 };
   let lastX = 1e9, lastZ = 1e9, dirty = false;
   function rebuild(cam) {
-    const cnt = lods.map(() => new Array(SH).fill(0)); all.length = 0; let nn = 0;
+    const cnt = lods.map(() => new Array(SH).fill(0)), mc = [0, 0]; all.length = 0; let nn = 0;
     for (const c of cells.values()) for (const t of c) {
-      all.push(t); const d = Math.hypot(t.x - cam.x, t.z - cam.z), li = d < NEAR ? 0 : 1, M = meshes[li][t.sh], i = cnt[li][t.sh]; if (i >= MAX) continue;
+      all.push(t); const d = Math.hypot(t.x - cam.x, t.z - cam.z), lv = d < NEAR ? 0 : d < MID ? 1 : 2;
+      if (lv < 2 && mlods[lv]) { // the user's model, uniform scale to the tree height
+        const i = mc[lv]; if (i >= MAX) continue; const k = t.H / MODEL_H;
+        _q.setFromAxisAngle(UP, t.h); _s.set(k * t.w, k, k * t.w); _p.set(t.x, t.y + 0.2, t.z); _m.compose(_p, _q, _s);
+        for (const im of mlods[lv]) { _m.toArray(im.instanceMatrix.array, i * 16); if (im.instanceColor) im.instanceColor.array.set(t.tint2, i * 3); }
+        mc[lv]++; if (!lv) nn++; continue;
+      }
+      const M = meshes[1][t.sh], i = cnt[1][t.sh]; if (i >= MAX) continue;
       _q.setFromAxisAngle(UP, t.h); _s.set(t.H * t.w, t.H, t.H * t.w); _p.set(t.x, t.y, t.z); _m.compose(_p, _q, _s);
-      _m.toArray(M.w.instanceMatrix.array, i * 16); _m.toArray(M.f.instanceMatrix.array, i * 16); M.f.instanceColor.array.set(t.tint, i * 3); cnt[li][t.sh]++; if (!li) nn++;
+      _m.toArray(M.w.instanceMatrix.array, i * 16); _m.toArray(M.f.instanceMatrix.array, i * 16); M.f.instanceColor.array.set(t.tint, i * 3); cnt[1][t.sh]++;
     }
     meshes.forEach((L, li) => L.forEach((M, i) => { M.w.count = M.f.count = cnt[li][i]; M.w.instanceMatrix.needsUpdate = M.f.instanceMatrix.needsUpdate = true; M.f.instanceColor.needsUpdate = true; }));
-    stats.trees = all.length; stats.near = nn; lastX = cam.x; lastZ = cam.z;
+    mlods.forEach((L, li) => { if (L) for (const im of L) { im.count = mc[li]; im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; } });
+    stats.trees = all.length; stats.near = nn; stats.mid = mc[1]; lastX = cam.x; lastZ = cam.z;
   }
   // ---------- trunk colliders near the player (a fixed pool moved around)
   const pool = []; let colT = 0;

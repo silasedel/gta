@@ -3,6 +3,8 @@
 // One InstancedMesh, refilled from the countryside trees (game.vegetation.countryside.treesNear) when the camera has moved.
 import * as THREE from 'three';
 import { mossTexture } from './textures.js';
+
+const BASE = (import.meta.env && import.meta.env.BASE_URL) || '/';
 import { hash2 } from './region.js';
 
 const R = 150, MAX = 9000;
@@ -22,7 +24,9 @@ export function createMoss(game, G) {
     const N = new Float32Array(P.length); for (let i = 0; i < N.length; i += 3) N[i + 1] = 1; geo.setAttribute('normal', new THREE.BufferAttribute(N, 3)); // lit like foliage from above
   }
   const uT = { value: 0 };
-  const mat = new THREE.MeshStandardMaterial({ name: 'gl7Moss', map: mossTexture(), color: 0xc4c7b2, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.95, metalness: 0 });
+  // r7b: the clump texture from the user's bald cypress download (public/assets/models/everglades/moss_clump.png); the
+  // procedural strands stand in until it loads
+  const mat = new THREE.MeshStandardMaterial({ name: 'gl7Moss', map: mossTexture(), color: 0xd8dacb, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.95, metalness: 0 });
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uGlT = uT;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uGlT;')
@@ -31,6 +35,7 @@ export function createMoss(game, G) {
           float ph = o.x * 0.37 + o.z * 0.23; transformed.x += sin(uGlT * 1.3 + ph) * 0.06 * hang * hang; transformed.z += cos(uGlT * 1.1 + ph * 1.7) * 0.05 * hang * hang; }`);
   };
   mat.customProgramCacheKey = () => 'gl7-moss';
+  new THREE.TextureLoader().load(BASE + 'assets/models/everglades/moss_clump.png', (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; mat.map = t; mat.needsUpdate = true; });
   const mesh = new THREE.InstancedMesh(geo, mat, MAX); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.name = 'gl7Moss';
   game.scene.add(mesh);
   const stats = { trees: 0, curtains: 0 };
@@ -43,7 +48,7 @@ export function createMoss(game, G) {
     // the glades' own cypress domes (cypress.js): moss on most of them, longer and lower in the old ones
     if (cy?.treesNear) for (const tr of cy.treesNear(cam.x, cam.z, R)) {
       const ix = Math.round(tr.x * 3), iz = Math.round(tr.z * 3); if (hash2(ix, iz, 2) < 0.25) continue;
-      const cnt = 3 + Math.floor(hash2(ix, iz, 1) * 9 * Math.min(1, tr.H / 20));
+      const cnt = 1 + Math.floor(hash2(ix, iz, 1) * 4 * Math.min(1, tr.H / 20)); // the model carries its own clumps
       for (let q = 0; q < cnt && n < MAX; q++) {
         const a = hash2(ix, iz, 10 + q) * 6.283, rr = tr.H * 0.13 * (0.3 + 0.7 * Math.sqrt(hash2(iz, ix, 30 + q))), hy = tr.H * (0.48 + 0.42 * hash2(ix + q, iz, 50));
         const len = (1.0 + hash2(q, ix, iz) * 2.2) * (0.6 + tr.H / 40), wid = 0.5 + hash2(iz, q, ix) * 0.5;
