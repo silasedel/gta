@@ -70,12 +70,12 @@ export function build(ctx) {
       // r7 (playtest item 6, mock-up 01): the drive reads as a clear compacted dirt-and-shell track: a crisper core, warmer and darker
       // than the pale shell around it, the ruts darker still
       const core = R4 ? Math.max(0, Math.min(1, (DRIVE.halfWidth + 0.25 - dd) / 0.9)) * (0.85 + 0.15 * nC) : 0;
-      if (core > 0) { const DIRT = [0.9, 0.85, 0.76]; for (let k = 0; k < 3; k++) c[k] *= 1 + (DIRT[k] - 1) * core; }
+      if (core > 0) { const DIRT = R8 ? [0.8, 0.74, 0.64] : [0.9, 0.85, 0.76]; for (let k = 0; k < 3; k++) c[k] *= 1 + (DIRT[k] - 1) * core; }
       const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9) + drive * Math.max(0, nC - 0.45) * 1.4; c = c.map((v, k) => v * (1 - 0.24 * Math.min(1, damp) * [1, 1.02, 1.06][k]));      // damp hollows (soft: one continuous floor, not patches)
       const grass = R4 ? Math.min(1, edge * 0.85 + 0.3 + 0.9 * Math.max(0, n - 0.1) + 0.45 * Math.max(0, nC - 0.5)) * (1 - core) * (1 - 0.7 * under)   // r7: patchy grass right up to the drive edges (01), the drive itself bare
         : Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));   // r7: patchy grass right up to the drive edges (01)
       c = [c[0] * (1 - 0.42 * grass), c[1] * (1 - 0.28 * grass), c[2] * (1 - 0.5 * grass)];   // matted gray-green grass
-      { const dm = segD(x, z, DRIVE.main), rut = Math.exp(-((dm - 0.85) ** 2) / 0.05); c = c.map((v) => v * (1 - 0.1 * rut)); }   // faint tire ruts
+      { const dm = segD(x, z, DRIVE.main), rut = Math.exp(-((dm - 0.85) ** 2) / 0.05); c = c.map((v) => v * (1 - (R8 ? 0.22 : 0.1) * rut)); }   // faint tire ruts
       { // toward the open edges and the asphalt the shell yard takes on the terrain's sand tone, so where the sheet dips under it
         // there is no pale-on-tan cut line
         const dE = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, (roadD(x, z) + 0.5) * 2.2) - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4, f = Math.max(0, Math.min(1, 1 - (dE - 0.5) / 5));
@@ -91,7 +91,7 @@ export function build(ctx) {
     if (R8) { const ix = g.index.array, keep = [], out = new Uint8Array(pa.count), W = P4.wallZ, Cn = P4.canal;
       // r8: the sheet stops at the bay bulkhead (H z = wallZ) and at the canal's walls; vertices past them snap onto the wall line, just
       // under the cap; the far side of the canal (the neighbor's land) and the bay are not the yard
-      for (let i = 0; i < pa.count; i++) { const [hx, hz] = StoH(...toS(pa.getX(i), pa.getZ(i))); out[i] = hz < W + 0.1 && hx < Cn.x0 + 0.05 ? 1 : inCanalH(hx, hz, 0.1) ? 2 : (hx > Cn.x1 - 0.1 && hz < Cn.z1 + 0.1) ? 3 : (hz < W + 0.1) ? 3 : 0; }
+      for (let i = 0; i < pa.count; i++) { const [hx, hz] = StoH(...toS(pa.getX(i), pa.getZ(i))); out[i] = hz < W + 0.1 ? 1 : inCanalH(hx, hz, 0.1) ? 2 : 0; }   /* r8: the neighbor's strip beyond the canal is sheeted too (built up behind its own bulkhead) until the world carries it */
       for (let t = 0; t < ix.length; t += 3) { const a = ix[t], b = ix[t + 1], d = ix[t + 2]; if (out[a] && out[b] && out[d]) continue; if (out[a] === 3 || out[b] === 3 || out[d] === 3) continue; keep.push(a, b, d); }
       for (let i = 0; i < pa.count; i++) { if (!out[i] || out[i] === 3) continue; let [hx, hz] = StoH(...toS(pa.getX(i), pa.getZ(i))); let ox = 0, ozz = 0;
         if (out[i] === 1) { hz = W + 0.1; ozz = 0.12; } else { const dl = hx - (Cn.x0 - 0.1), dr = Cn.x1 + 0.1 - hx, de = Cn.z1 + 0.1 - hz; if (de < dl && de < dr) { hz = Cn.z1 + 0.1; ozz = 0.12; } else if (dl < dr) { hx = Cn.x0 - 0.1; ox = -0.12; } else { hx = Cn.x1 + 0.1; ox = 0.12; } }
@@ -117,7 +117,7 @@ export function build(ctx) {
       for (let j = 0; j <= nX; j++) for (let i2 = 0; i2 <= nZ; i2++) { const x = hx0 + (hx1 - hx0) * j / nX, z = hz0 + (hz1 - hz0) * i2 / nZ; hs[j * (nZ + 1) + i2] = yardY(x, z) - (roadD(x, z) < 0.3 || x < x0 + 6 ? 0.06 : 0);
         // r7 (playtest item 8, Nico floated over the dock): beyond the bulkhead the collider drops to the sea bed (it stayed at the
         // lawn height over the water, ~0.4 m above the dock boards, where the drawn sheet had been clipped at the wall)
-        if (R8) { const [hx, hz] = StoH(...toS(x, z)); if ((hz < P4.wallZ + 0.05 && hx < P4.canal.x1 + 0.5) || inCanalH(hx, hz, -0.05)) hs[j * (nZ + 1) + i2] = sea - 3.0; } else if (R4) { const [sx, sz] = toS(x, z); if ((sz < P4.wallZ + 0.05 && sx > P4.wallX0 - 0.5 && sx < P4.wallX1 + 0.5) || (ctx.r7water && ctx.r7water(sx, sz))) hs[j * (nZ + 1) + i2] = sea - 3.0; } }
+        if (R8) { const [hx, hz] = StoH(...toS(x, z)); if (hz < P4.wallZ + 0.05 || inCanalH(hx, hz, -0.05)) hs[j * (nZ + 1) + i2] = sea - 3.0; } else if (R4) { const [sx, sz] = toS(x, z); if ((sz < P4.wallZ + 0.05 && sx > P4.wallX0 - 0.5 && sx < P4.wallX1 + 0.5) || (ctx.r7water && ctx.r7water(sx, sz))) hs[j * (nZ + 1) + i2] = sea - 3.0; } }
       ctx.colliders.push({ shape: 'hf', p: [(hx0 + hx1) / 2, 0, (hz0 + hz1) / 2], nrows: nZ, ncols: nX, heights: hs, scale: [hx1 - hx0, 1, hz1 - hz0], q: [0, 0, 0, 1], tag: 'ground', surface: 'gravel', enabled: true });
       col.box((hx0 + hx1) / 2, R4 ? sea - 4.6 : -1.6, (hz0 + hz1) / 2, hx1 - hx0, 2.6, hz1 - hz0, { tag: 'ground', surface: 'gravel' }); }   // r7: under the sea bed (it stood 0.15 m under the water surface off the bulkhead)   // backstop under it   // not over the open beach edges (the terrain carries those)
   }

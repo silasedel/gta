@@ -236,3 +236,8 @@ The ocean / bay edge is now faded by the true water depth AND the view ray's pat
    drop it from the yard; the pickup already follows `anchors.truckR4`.
 4. Apologies: from about 00:55 to 01:35 (Nov 19) `parts/05_site.js` had a syntax error (my edit) and Nico's house failed to load in
    every session (`[v2:...nicoHouse.v2.js] failed`). Fixed in 17254ea2; if a test of yours failed on that, please re-run it.
+4. **NPCs (`src/npc/**`, people agent): spawn cost inside shops.** `game.peds.spawnAt()` for a shop clerk or shopper took up to
+   165 ms in one frame on walk-in (measured with the interiors hitch profiler: `globalThis.__intProf.on = true`, entries `spawn`).
+   The interiors call it at most once per 0.12 s per store (`src/world/interiors/venuePeople.js` spawnOne), as soon as the store is
+   shown (player 40-70 m away). The user wants zero frame drops on entry: please make a spawn cheap (pooled, pre-skinned bodies,
+   clothing applied over a few frames) or expose an async/sliced spawn the interiors can call.

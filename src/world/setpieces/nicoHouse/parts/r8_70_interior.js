@@ -21,7 +21,7 @@ export function build(ctx) {
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => I.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
   const OLIVE = im.pbr('white_planks_clean', { rep: 1.2 }), WHITEP = im.paint({ peel: 'a', fade: 0.08, gloss: 0.6, scale: 0.6 });
   const FLOOR = im.pbr('white_planks_clean', { rep: 1.6, rough: 0.55 }), PLAST = im.plastic(), GLOSS = im.plasticGloss(), STEEL = im.steel(), CHROME = im.chrome();
-  kit.uIndirect.value = Math.max(kit.uIndirect.value, 0.62);
+  kit.uIndirect.value = Math.max(kit.uIndirect.value, 0.78);
   const Bd = P.body, x0 = Bd.x0 + T, x1 = Bd.x1 - T, z0 = Bd.z0 + T, z1 = Bd.z1 - T;
   const roofTop = (z) => P.yRidge - Math.abs(z - P.ridgeZ) * P.pitch, ceilY = (z) => roofTop(z) - 0.2;
   const HA = P.hall, BA = P.bath, BE = P.bed, KT = P.kitchen, xP = HA.x1;   // xP: the NE walls of the bath and the bedroom (the hall's mouth)
@@ -51,7 +51,7 @@ export function build(ctx) {
     const ops = (ctx.r4openings || []).filter((o) => o.wall === W && o.kind !== 'vent' && o.kind !== 'hatch'), L = W.L;
     const top = (u) => (W.gable ? ceilY(W.pt(u, 0)[1]) + 0.05 : yT + 0.12);
     const nB = Math.ceil((L - 2 * T) / 0.15);
-    for (let i = 0; i < nB; i++) { const u0 = T + i * (L - 2 * T) / nB, u1 = T + (i + 1) * (L - 2 * T) / nB, [bxw, bzw] = W.pt((u0 + u1) / 2, -T), tone = kitchenWall(bxw, bzw) ? kit.vary(0xcfccc2, r, 0.03) : kit.vary(0x8a8458, r, 0.07);
+    for (let i = 0; i < nB; i++) { const u0 = T + i * (L - 2 * T) / nB, u1 = T + (i + 1) * (L - 2 * T) / nB, [bxw, bzw] = W.pt((u0 + u1) / 2, -T), tone = kitchenWall(bxw, bzw) ? kit.vary(0xcfccc2, r, 0.03) : kit.vary(0xa29b6a, r, 0.07);
       for (const [s0, s1] of subtract(u0, u1, ops.map((o) => [o.u0 - 0.03, o.u1 + 0.03]), 0.004)) { const y0 = F + 0.02, t0 = top(s0), t1 = top(s1), a0 = W.pt(s0 + 0.001, -T), a1 = W.pt(s1 - 0.001, -T), b0 = W.pt(s1 - 0.001, -T + 0.018), b1 = W.pt(s0 + 0.001, -T + 0.018);
         hexa(I, OLIVE, [[a0[0], y0, a0[1]], [a1[0], y0, a1[1]], [b0[0], y0, b0[1]], [b1[0], y0, b1[1]], [a0[0], t0, a0[1]], [a1[0], t1, a1[1]], [b0[0], t1, b0[1]], [b1[0], t0, b1[1]]], { color: tone, wear: 0.15 }); }
       const um = (u0 + u1) / 2;

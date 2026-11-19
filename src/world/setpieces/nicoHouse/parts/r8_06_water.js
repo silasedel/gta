@@ -35,7 +35,7 @@ export function build(ctx) {
   // lined channel (walls, bed, water), which is redrawn after it
   let lidY = -9; if (Cn.on) for (let x = Cn.x0 - 0.5; x <= Cn.x1 + 0.51; x += 0.75) for (let z = P.wallZ - 0.5; z <= Cn.z1 + 0.51; z += 0.75) lidY = Math.max(lidY, ground(x, z) + 0.03, x < Cn.x0 + 0.1 || x > Cn.x1 - 0.1 ? yard(x, z) + 0.06 : -9);
   const inC = (x, z) => Cn.on && x > Cn.x0 - 0.8 && x < Cn.x1 + 0.8 && z > P.wallZ - 0.8 && z < Cn.z1 + 0.8;
-  const topAt = (x, z, far) => { const t = (far ? Math.max(ground(x, z), sea + 0.7) : yard(x, z)) + 0.06; return inC(x, z) ? Math.max(t, lidY) : t; };
+  const topAt = (x, z, far) => { const t = yard(x, z) + 0.06; void far; return inC(x, z) ? Math.max(t, lidY) : t; };
   // a run of bulkhead from (ax, az) to (bx, bz); n = unit normal toward the water; planks on the land side of the line
   const CI = kit.batch('r8canalIn');   // the canal's inside (drawn after the depth portal)
   const wallRun = (ax, az, bx, bz, nx, nz, o = {}) => { const L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, ry = Math.atan2(-uz, ux), at = (t, off) => [ax + ux * t - nx * off, az + uz * t - nz * off], pw = 0.235;

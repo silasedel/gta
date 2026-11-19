@@ -24,9 +24,9 @@
  "B": {
   "ref": "r8/B_front_low_facing_N.webp",
   "eye": [
-   1.5,
+   -1.0,
    0.9,
-   18
+   13.5
   ],
   "hdg": 0,
   "pitch": 9,
@@ -36,9 +36,9 @@
  "D": {
   "ref": "r8/D_driveway_head_height_facing_N.webp",
   "eye": [
-   4,
+   3.0,
    1.7,
-   16
+   12.5
   ],
   "hdg": 0,
   "pitch": 4,
@@ -48,9 +48,9 @@
  "A": {
   "ref": "r8/A_dock_from_water_facing_S.webp",
   "eye": [
-   -18.4,
+   -16.3,
    1.1,
-   -29.8
+   -22.0
   ],
   "hdg": 165,
   "pitch": 4,
@@ -120,12 +120,12 @@
  "K16": {
   "ref": "r4/16_MAIN_kitchen_wide_looking_south.webp",
   "eye": [
-   2.12,
-   5.7,
-   -4.95
+   3.54,
+   5.6,
+   -2.83
   ],
-  "hdg": 180,
-  "pitch": -18,
+  "hdg": 225,
+  "pitch": -15,
   "fov": 80,
   "tod": 10
  }
