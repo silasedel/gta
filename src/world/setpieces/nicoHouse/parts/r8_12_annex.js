@@ -165,7 +165,7 @@ export function build(ctx) {
         for (let k = 0; k < 5; k++) box(AW, 0.08, 0.75, 0.02, x - 0.18 + k * 0.09, P.F + 0.72, z + 0.32, { grain: 1, color: kit.vary(0x8a7a66, r, 0.06), wear: 0.6 }, -0.35, ry);
         for (const s of [-1, 1]) { box(AW, 0.1, 0.02, 0.7, x + s * 0.32, P.F + 0.58, z + 0.02, { grain: 2, color: kit.vary(0x7a6a58, r, 0.05), wear: 0.6 }, 0, ry); box(AW, 0.05, 0.58, 0.05, x + s * 0.32, P.F + 0.29, z - 0.28, { grain: 1, color: 0x6f604f }, 0, ry); box(AW, 0.05, 0.4, 0.05, x + s * 0.32, P.F + 0.2, z + 0.26, { grain: 1, color: 0x6f604f }, 0, ry); }
         Fr.col.box(x, P.F + 0.45, z, 0.75, 0.9, 0.85, { ry, tag: 'furniture' }); };
-      ac(7.7, -9.0, Math.PI / 2 + 0.2); ac(7.75, -7.9, Math.PI / 2 - 0.15); }
+      ac(7.7, -6.1, Math.PI / 2 + 0.2); ac(7.75, -4.9, Math.PI / 2 - 0.15); }
   }
   // ---------- the fluorescent tube under the house over the passage (C), string lights along the NW beam, downpipe and vines ----------
   { const tx = -1.0, tz = -5.4, ty = beamBot - 0.08, TUBE = mat.emissive(0xeaf4ff, 2.6, 'r8tube');

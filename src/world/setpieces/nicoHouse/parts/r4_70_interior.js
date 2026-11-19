@@ -320,29 +320,53 @@ export function build(ctx) {
     box(im.wood({ dark: true }), 0.04, 0.6, 0.8, x0 + 0.06, F + 0.32, -8.9, { color: 0x3a2a1c }, 0, 0, -0.1);
     LI.build(LG, { cast: false });
   }
+  // ================= r7f (MAIN mock-up 16): the hall mouth and the short hallway: a bead curtain in the doorway, orchids beside it, plants
+  // along the hall, a framed beach painting; a woven rug in the kitchen =================
+  { const BEAD = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.1, vertexColors: false }); BEAD.name = 'r7beads';
+    const bg = new THREE.SphereGeometry(0.009, 6, 4), xs = [], cols = [0x8a5a2c, 0xc79a52, 0x3f6e6a, 0xb5432e, 0xe8dcc0];
+    for (let x = -0.62; x <= 0.62; x += 0.045) for (let y = F + 2.02; y > F + 0.12; y -= 0.042) xs.push([x + Math.sin(y * 9 + x * 40) * 0.004, y, -5.6 + Math.sin(x * 30) * 0.01]);
+    const bm = new THREE.InstancedMesh(bg, BEAD, xs.length), col = new THREE.Color(); xs.forEach((p, k) => { bm.setMatrixAt(k, M(p[0], p[1], p[2])); bm.setColorAt(k, col.set(cols[(k * 7 + (k / 45 | 0)) % cols.length])); });
+    bm.name = 'r7_bead_curtain'; bm.raycast = () => {}; Fr.groups.int.add(bm);
+    box(im.wood(), 1.4, 0.05, 0.06, 0, F + 2.06, -5.6, { grain: 0, color: 0x6a4a2e });   // the curtain rod
+    const POT = im.paint({ peel: 'a', fade: 0.1, gloss: 0.6, scale: 0.5 }), LEAF = im.plastic();
+    const plant = (x, z, s2, flowers) => { lathe(I, POT, [[0.001, 0], [0.1 * s2, 0], [0.14 * s2, 0.24 * s2], [0.001, 0.22 * s2]], M(x, F, z), { color: 0xb5603a, seg: 16 });
+      for (let k = 0; k < 10; k++) { const a2 = k * 2.4, l = (0.35 + (k % 3) * 0.15) * s2; I.strut(LEAF, [x, F + 0.22 * s2, z], [x + Math.cos(a2) * l * 0.5, F + 0.22 * s2 + l, z + Math.sin(a2) * l * 0.5], 0.07 * s2, 0.005, { color: kit.vary(0x3f7a34, r, 0.15) }); }
+      if (flowers) for (let k = 0; k < 7; k++) I.geo(im.plastic(), new THREE.SphereGeometry(0.03, 8, 6), M(x + Math.cos(k) * 0.08, F + 0.55 * s2 + k * 0.035, z + Math.sin(k) * 0.08), { color: 0xd97cc0 }); };
+    plant(0.48, -5.85, 0.9, true); plant(-0.48, -4.0, 1.25, false); plant(-0.5, -4.75, 1.0, false);
+    const ART = im.art('r7beachart', 256, 192, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#9cc9e0'); gr.addColorStop(0.55, '#2f8fa0'); gr.addColorStop(0.62, '#e8d8b0'); gr.addColorStop(1, '#d8c08a'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.strokeStyle = '#3a5a2a'; g.lineWidth = 4; g.beginPath(); g.moveTo(190, 150); g.quadraticCurveTo(200, 80, 220, 40); g.stroke(); }, { rough: 0.8 });
+    box(im.wood(), 0.03, 0.5, 0.66, -0.68, F + 1.5, -4.6, { color: 0x6a4a2e }); box(ART, 0.006, 0.42, 0.58, -0.66, F + 1.5, -4.6, { color: 0xffffff, bevel: 0 });
+    const RUG = im.art('r7rug', 256, 256, (g, w, h) => { g.fillStyle = '#a88c5e'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 6) { g.fillStyle = (y / 6) % 4 < 2 ? 'rgba(80,60,35,0.35)' : 'rgba(220,200,150,0.25)'; g.fillRect(0, y, w, 3); } g.strokeStyle = '#6a5030'; g.lineWidth = 10; g.strokeRect(8, 8, w - 16, h - 16); }, { rough: 0.98 });
+    box(RUG, 1.7, 0.008, 1.1, (KT.x0 + KT.x1) / 2, F + 0.026, (KT.z0 + KT.z1) / 2 + 0.2, { color: 0xffffff, bevel: 0.002 }); }
   // ================= back room under renovation (07): stud walls, drywall, tape, fan, curtains, mattress =================
   { const BR = P.back, STUD = im.wood(), studC = 0xd2b98e, xw = BR.x0;
     // the stud wall along x = 4.1 (bare 2x4s at 16 in., plates, a header over the opening), drywall sheets half hung
     const open = [-8.75, -6.65];
-    box(STUD, 0.09, 0.04, z1 - z0, xw, F + 0.04, (z0 + z1) / 2 - 0.0, { grain: 2, color: studC, wear: 0.15 }); box(STUD, 0.09, 0.08, z1 - z0, xw, F + 2.5, (z0 + z1) / 2, { grain: 2, color: studC, wear: 0.15 });
-    for (let z = z0 + 0.04; z < z1 - 0.02; z += 0.406) { if (z > open[0] && z < open[1]) continue; box(STUD, 0.09, 2.42, 0.04, xw, F + 1.27, z, { grain: 1, color: kit.vary(studC, r, 0.06), wear: 0.15 }); }
-    box(STUD, 0.09, 0.2, open[1] - open[0] + 0.1, xw, F + 2.1, (open[0] + open[1]) / 2, { grain: 2, color: studC, wear: 0.15 });
-    const DW = im.paint({ peel: 'a', fade: 0, gloss: 0.9, scale: 0.4 });
-    box(DW, 0.013, 2.4, 1.22, xw - 0.052, F + 1.24, z1 - 0.62, { color: 0xe6e3dc, wear: 0 }); box(DW, 0.013, 1.2, 1.22, xw - 0.052, F + 1.84, z0 + 0.66, { color: 0xe6e3dc, wear: 0 });
-    for (const z of [z1 - 2.0, z1 - 2.05]) box(DW, 0.013, 2.4, 1.2, xw + 0.35 + (z - z1 + 2) * 2, F + 1.21, z, { color: 0xe9e6df, wear: 0 }, 0, 0, -0.12);
+    // r7f (MAIN mock-up 16): the back room is finished now: a pale gray-green wall along x = 4.1 with a wide wood-framed opening and two
+    // sliding glass-and-wood doors (one pushed open) into Nico's bedroom (bed, sisal rug, wicker chest, bamboo blind)
+    { const WALLP = im.paint({ peel: 'a', fade: 0.05, gloss: 0.85, scale: 0.5 }), PG = 0xc6cdbf, FRW = im.wood(), fw = 0x7a5636, hW = 2.55;
+      for (const [a, b] of [[z0, open[0]], [open[1], z1]]) box(WALLP, 0.1, hW, b - a, xw, F + hW / 2, (a + b) / 2, { color: PG, wear: 0.15 });
+      box(WALLP, 0.1, hW - 2.15, open[1] - open[0], xw, F + 2.15 + (hW - 2.15) / 2, (open[0] + open[1]) / 2, { color: PG, wear: 0.15 });
+      for (const zz of [open[0] - 0.05, open[1] + 0.05]) box(FRW, 0.16, 2.2, 0.1, xw, F + 1.1, zz, { grain: 1, color: fw, wear: 0.4 }); box(FRW, 0.16, 0.12, open[1] - open[0] + 0.2, xw, F + 2.19, (open[0] + open[1]) / 2, { grain: 2, color: fw, wear: 0.4 });
+      const door = (zc, dx) => { const dw = (open[1] - open[0]) / 2 + 0.04; for (const dz of [-dw / 2 + 0.04, dw / 2 - 0.04]) box(FRW, 0.04, 2.1, 0.08, xw + dx, F + 1.07, zc + dz, { grain: 1, color: 0x8c6743 });
+        for (const yy of [F + 0.06, F + 0.95, F + 2.08]) box(FRW, 0.04, yy === F + 0.95 ? 0.06 : 0.1, dw, xw + dx, yy, zc, { grain: 2, color: 0x8c6743 });
+        for (const [y0, y1] of [[F + 0.11, F + 0.92], [F + 0.98, F + 2.03]]) box(im.glass({ tint: 1 }), 0.006, y1 - y0, dw - 0.14, xw + dx, (y0 + y1) / 2, zc, { color: 0xffffff, bevel: 0 }); };
+      door(open[0] + (open[1] - open[0]) * 0.25, -0.07); door(open[0] + (open[1] - open[0]) * 0.25 + 0.05, 0.07);   // both leaves stacked to one side: the opening half open
+    }
     Fr.col.box(xw, F + 1.3, (z0 + open[0]) / 2, 0.12, 2.6, open[0] - z0, { tag: 'wall' }); Fr.col.box(xw, F + 1.3, (open[1] + z1) / 2, 0.12, 2.6, z1 - open[1], { tag: 'wall' });
-    // blue painter's tape on the floor along the stud line and around the opening (07)
-    for (const [sx, sz, x, z] of [[0.05, z1 - z0 - 0.2, xw - 0.18, (z0 + z1) / 2], [0.9, 0.05, xw - 0.6, open[0] - 0.05], [0.9, 0.05, xw - 0.6, open[1] + 0.05]]) box(im.matte(), sx, 0.002, sz, x, F + 0.021, z, { color: 0x2f52b8, bevel: 0 });
+    // (r7f: the renovation tape is gone with the stud wall)
     // standing fan (pedestal, cage, blades)
     { const fx = x1 - 0.45, fz = z0 + 0.7, BL = im.metalPaint(); lathe(I, BL, [[0.001, 0], [0.18, 0], [0.18, 0.03], [0.03, 0.05], [0.001, 0.05]], M(fx, F, fz), { color: 0x1c1c1c, seg: 24 });
       I.cyl(BL, 0.015, 0.015, 1.15, M(fx, F + 0.6, fz), { color: 0x1c1c1c, seg: 10 }); const hy = F + 1.25;
       for (let k = 0; k < 16; k++) { const a = k / 16 * PI; I.geo(BL, new THREE.TorusGeometry(0.22, 0.003, 4, 32, PI), M(fx - 0.06, hy, fz, 0, PI / 2 + 0.6, a), { color: 0x222222 }); }
       I.geo(BL, new THREE.TorusGeometry(0.22, 0.006, 6, 40), M(fx - 0.06, hy, fz, 0, PI / 2 + 0.6, 0), { color: 0x222222 }); box(BL, 0.12, 0.12, 0.14, fx + 0.02, hy, fz, { color: 0x1c1c1c, bevel: 0.03 }); }
     // Nico's mattress on a low pallet platform, sheets and a pillow (sleep), crate nightstand with the journal (save)
-    { const bx = x1 - 1.0, bz = z1 - 1.25, PAL = im.wood(); for (let k = 0; k < 7; k++) box(PAL, 1.5, 0.02, 0.1, bx, F + 0.14, bz - 0.95 + k * 0.31, { grain: 0, color: 0xb59b74, wear: 0.4 });
-      for (const dz of [-0.95, 0, 0.95]) box(PAL, 1.5, 0.1, 0.09, bx, F + 0.07, bz + dz, { grain: 0, color: 0xa88e68, wear: 0.4 });
-      box(im.fabric('waffle_pique_cotton', { rep: 0.3 }), 1.4, 0.2, 1.95, bx, F + 0.26, bz, { color: 0xe7e2d6, bevel: 0.06 }); box(im.fabric('cotton_jersey', { rep: 0.3 }), 1.42, 0.06, 1.2, bx, F + 0.37, bz + 0.35, { color: 0x6c7f8c, bevel: 0.03 }, 0.02);
-      box(im.fabric('cotton_jersey', { rep: 0.2 }), 0.6, 0.12, 0.38, bx + 0.25, F + 0.42, bz - 0.7, { color: 0xf0ede4, bevel: 0.05 });
+    { const bx = x1 - 1.0, bz = z1 - 1.25, PAL = im.wood();   // r7f (16): a plain wood bed frame with a headboard on a sisal rug, a wicker chest at its foot
+      box(PAL, 1.56, 0.22, 2.04, bx, F + 0.11, bz, { grain: 2, color: 0x7c5a3a, wear: 0.4, bevel: 0.01 }); box(PAL, 1.6, 0.9, 0.06, bx, F + 0.45, bz - 1.04, { grain: 0, color: 0x6e4f33, wear: 0.4, bevel: 0.01 });
+      { const SIS = im.art('r7sisal', 256, 256, (g, w, h) => { g.fillStyle = '#b89c6c'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 8) { g.fillStyle = ((x + y) / 4) % 2 ? 'rgba(90,70,40,0.25)' : 'rgba(230,210,160,0.2)'; g.fillRect(x + ((y / 4) % 2) * 4, y, 6, 3); } }, { rough: 0.98 });
+        box(SIS, 2.0, 0.008, 2.4, bx - 0.15, F + 0.004, bz + 0.2, { color: 0xffffff, bevel: 0.002 }); }
+      { const WK = im.pbr('tatami_mat', { rep: 0.25 }); box(WK, 0.85, 0.45, 0.42, bx - 0.05, F + 0.23, bz + 1.35, { color: 0x9c7a4c, bevel: 0.04 }); box(WK, 0.88, 0.05, 0.45, bx - 0.05, F + 0.47, bz + 1.35, { color: 0x8a6a40, bevel: 0.02 }); Fr.col.box(bx - 0.05, F + 0.25, bz + 1.35, 0.88, 0.5, 0.45, { tag: 'furniture' }); }
+      box(im.fabric('waffle_pique_cotton', { rep: 0.3 }), 1.4, 0.2, 1.95, bx, F + 0.32, bz, { color: 0xe7e2d6, bevel: 0.06 }); box(im.fabric('cotton_jersey', { rep: 0.3 }), 1.42, 0.06, 1.2, bx, F + 0.43, bz + 0.35, { color: 0x6c7f8c, bevel: 0.03 }, 0.02);
+      box(im.fabric('cotton_jersey', { rep: 0.2 }), 0.6, 0.12, 0.38, bx + 0.25, F + 0.48, bz - 0.7, { color: 0xf0ede4, bevel: 0.05 });
       Fr.col.box(bx, F + 0.2, bz, 1.5, 0.4, 2.0, { tag: 'furniture' });
       Fr.interact({ id: 'bed', kind: 'sleep', label: 'Sleep (8 hours)', radius: 1.6, pos: [bx, F + 0.6, bz], use: (env) => { env?.emit?.('sleep', { hours: 8, anchor: 'bed', source: 'nico_house' }); return true; } });
       Fr.anchor('bed', bx, F, bz - 1.3, PI); Fr.anchor('spawn', bx - 1.2, F, bz - 1.5, PI / 2);
@@ -360,7 +384,7 @@ export function build(ctx) {
     // the user's yellow step ladder in the room (07 renovation)
     const lib = loadKeysModels(THREE, ['step_ladder', 'stove_white', 'bath_set']);
     ctx.async.push(lib.ready.then(() => { const L = lib.instancer('r4int');
-      L.add('step_ladder', 'dock', M(xw + 0.8, F + 0.02, -6.0, 0, 0.6, 0)); Fr.col.box(xw + 0.8, F + 0.7, -6.0, 0.7, 1.4, 0.8, { tag: 'furniture' });
+      // r7f: the step ladder left the finished bedroom
       // the white gas range sits under the hood (front faces +z = into the kitchen)
       const sp = lib.piece('stove_white', 'dock'); if (sp) { const ext = new THREE.Vector3(); sp.box.getSize(ext); L.add('stove_white', 'dock', M(stoveX, F + 0.02, z0 + 0.33, 0, ext.x > ext.z ? 0 : PI / 2, 0)); }
       for (const n of lib.names('bath_set')) if (/klozet/.test(n)) L.add('bath_set', n, M(BA.x1 - 0.45, F + 0.02, BA.z0 + 0.45, 0, PI, 0));

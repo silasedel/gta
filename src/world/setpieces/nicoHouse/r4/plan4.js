@@ -182,8 +182,8 @@ export const P8 = {
   // r8: the canal, 6 m of water between timber bulkheads, from the bay (NW end) in toward the SE, straight
   canal: { x0: 12.6, x1: 18.6, z1: 20.0, on: true, fake: true },
   // the dock (A): leaves the bay wall at an angle by the canal mouth, turns, runs straight to the big platform, parallel to the wall
-  dock: { y: 0.42, w: 1.5, wallX: 10.6, kneeX: 7.6, z: -20.3, x1: 0.6 },
-  plat: { x0: -6.4, x1: 0.6, z0: -24.0, z1: -20.0 },
+  dock: { y: 0.42, w: 1.5, wallX: 10.6, kneeX: 7.0, z: -20.9, x1: 0.6 },
+  plat: { x0: -6.8, x1: 0.6, z0: -26.0, z1: -20.15 },
   colors: {
     teal: 0x4f978c, tealDeep: 0x3c7a72, white: 0xe7e3d6, door: 0x2c2f2e, shutter: 0x4d5552,
     deck: 0xa48f74, deckDark: 0x6f6253, post: 0xe2ddd0,

@@ -151,7 +151,7 @@ export const PLANTING = [   // inside the lot only (r2-veg plants the verges and
   ['gumbo', -22.5, -9.5, { s: 1.05, seed: 3 }], ['sabal', -22.0, -6.0, { s: 0.9 }],
   ['seagrape', 9.0, 4.0, { s: 1.0 }], ['coconut', 9.5, -4.0, { s: 0.95, lean: [-0.4, 0.6] }], ['fern_clump', -12.6, 1.2, { s: 0.8 }],
   // r8 (SPEC F): the neighbor's strip across the canal: a big sea grape and a gumbo limbo over the canal, palms and low green beyond
-  ['seagrape', 23.07, 0.81, { s: 1.5 }], ['gumbo', 24.36, 8.77, { s: 1.15, seed: 5 }], ['tropical_leaf', 18.74, 15.2, { s: 1.4 }],
+  ['tropical_leaf', 18.74, 15.2, { s: 1.4 }],
   ['coconut', 20.62, 24.45, { s: 1.05, lean: [0.2, 0.4], model: 'coconut_palm' }], ['green_shrub', 13.36, 28.14, { s: 1.3 }], ['seagrape', 30.79, 5.84, { s: 1.3 }],
 ];
 

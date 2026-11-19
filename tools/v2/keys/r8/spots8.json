@@ -24,38 +24,53 @@
  "B": {
   "ref": "r8/B_front_low_facing_N.webp",
   "eye": [
-   2.5,
+   0.2,
    0.9,
-   15
+   17.9
   ],
   "hdg": 0,
   "pitch": 9,
   "fov": 72,
-  "tod": 11
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
  },
  "D": {
   "ref": "r8/D_driveway_head_height_facing_N.webp",
   "eye": [
-   3.0,
+   3.18,
    1.7,
-   12.5
+   17.3
   ],
   "hdg": 0,
   "pitch": 4,
   "fov": 74,
-  "tod": 16
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
  },
  "A": {
   "ref": "r8/A_dock_from_water_facing_S.webp",
   "eye": [
    -16.3,
-   1.1,
+   2.2,
    -22.0
   ],
   "hdg": 165,
-  "pitch": 4,
+  "pitch": -3,
   "fov": 62,
-  "tod": 16
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
  },
  "G": {
   "ref": "r8/G_front_walkway_view_facing_S_driveway_street.webp",
@@ -67,7 +82,12 @@
   "hdg": 165,
   "pitch": -22,
   "fov": 72,
-  "tod": 12
+  "tod": 12,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
  },
  "C": {
   "ref": "r8/C_under_house_hoop.webp",
@@ -79,31 +99,46 @@
   "hdg": 315,
   "pitch": 8,
   "fov": 74,
-  "tod": 16
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
  },
  "E": {
   "ref": "r8/E_back_deck_sunset_canal_size.webp",
   "eye": [
-   7.78,
-   5.1,
-   -3.39
+   3.54,
+   5.2,
+   -7.21
   ],
-  "hdg": 315,
+  "hdg": 135,
   "pitch": -12,
   "fov": 74,
-  "tod": 18.6
+  "tod": 18.6,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
  },
  "F": {
   "ref": "r8/F_gym_deck_view_canal_neighbor.webp",
   "eye": [
-   10.25,
-   4.25,
-   -6.0
+   10.32,
+   4.6,
+   -6.79
   ],
-  "hdg": 45,
-  "pitch": -5,
+  "hdg": 75,
+  "pitch": -30,
   "fov": 70,
-  "tod": 11
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
  },
  "L15": {
   "ref": "r4/15_MAIN_living_room_looking_north.webp",

@@ -21,7 +21,7 @@ export function build(ctx) {
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => I.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
   const OLIVE = im.pbr('white_planks_clean', { rep: 1.2 }), WHITEP = im.paint({ peel: 'a', fade: 0.08, gloss: 0.6, scale: 0.6 });
   const FLOOR = im.pbr('white_planks_clean', { rep: 1.6, rough: 0.55 }), PLAST = im.plastic(), GLOSS = im.plasticGloss(), STEEL = im.steel(), CHROME = im.chrome();
-  kit.uIndirect.value = Math.max(kit.uIndirect.value, 0.78);
+  kit.uIndirect.value = Math.max(kit.uIndirect.value, 1.0);
   const Bd = P.body, x0 = Bd.x0 + T, x1 = Bd.x1 - T, z0 = Bd.z0 + T, z1 = Bd.z1 - T;
   const roofTop = (z) => P.yRidge - Math.abs(z - P.ridgeZ) * P.pitch, ceilY = (z) => roofTop(z) - 0.2;
   const HA = P.hall, BA = P.bath, BE = P.bed, KT = P.kitchen, xP = HA.x1;   // xP: the NE walls of the bath and the bedroom (the hall's mouth)
@@ -289,7 +289,7 @@ export function build(ctx) {
     const lampL = Fr.light({ id: 'r7_side_lamp', pos: [stx, top + 0.42, stz], color: 0xffcf96, intensity: 22, range: 5, on: false });
     ctx.updaters.push((dt, env) => { const t = env?.timeOfDay ?? 12, on = t < 7 || t > 17.5; lampL.on = on; for (const m of lampShades) m.emissiveIntensity = on ? 0.9 : 0; });
     // the console under the back window (16): drawers, baskets, books, shells; the woven floor lamp, a potted plant, the yellow boogie board
-    { const cx = x1 - 0.22, cz = -8.6, CW2 = im.wood(), BSK = im.pbr('tatami_mat', { rep: 0.3 });
+    { const cx = x1 - 0.22, cz = -5.5, CW2 = im.wood(), BSK = im.pbr('tatami_mat', { rep: 0.3 });
       LI.box(CW2, 0.42, 0.05, 1.5, M(cx, F + 0.78, cz), { grain: 2, color: 0xa07a4e, wear: 0.4, bevel: 0.008 }); LI.box(CW2, 0.38, 0.3, 1.44, M(cx, F + 0.6, cz), { grain: 2, color: 0x8f6c45, wear: 0.4, bevel: 0.006 });
       for (const dz of [-0.55, 0, 0.55]) { LI.box(CW2, 0.01, 0.22, 0.4, M(cx - 0.195, F + 0.6, cz + dz), { grain: 2, color: 0x9c7850, wear: 0.4 }); }
       LI.box(CW2, 0.38, 0.03, 1.44, M(cx, F + 0.12, cz), { grain: 2, color: 0x8f6c45 }); for (const dz of [-0.75, 0.75]) LI.box(CW2, 0.42, 0.78, 0.05, M(cx, F + 0.39, cz + dz), { grain: 1, color: 0x8a6842 });
@@ -302,7 +302,7 @@ export function build(ctx) {
       lathe(LI, POT, [[0.001, 0], [0.12, 0], [0.16, 0.28], [0.001, 0.26]], M(cx - 0.05, F, cz + 1.05), { color: 0xb5603a, seg: 16 });
       for (let k = 0; k < 9; k++) { const a = k * 2.4; LI.strut(im.plastic(), [cx - 0.05, F + 0.26, cz + 1.05], [cx - 0.05 + Math.cos(a) * 0.3, F + 0.75 + (k % 3) * 0.15, cz + 1.05 + Math.sin(a) * 0.3], 0.08, 0.006, { color: 0x3f7a34 }); }
       Fr.col.cyl(cx - 0.05, F + 0.4, cz + 1.05, 0.2, 0.8, { tag: 'prop' });
-      LI.box(im.plasticGloss(), 0.06, 1.0, 0.52, M(cx + 0.02, F + 0.5, cz + 1.45, 0, 0, 0.12), { color: 0xe8c22a, bevel: 0.08 }); }
+      LI.box(im.plasticGloss(), 0.06, 1.0, 0.52, M(cx + 0.02, F + 0.5, cz + 1.4, 0, 0, 0.12), { color: 0xe8c22a, bevel: 0.08 }); }
     // the north corner (15): stacked cardboard boxes, a fishing rod leaning, a small black chest (no loose boards)
     { const CB = im.matte(); LI.box(CB, 0.45, 0.32, 0.4, M(x1 - 0.3, F + 0.16, z0 + 0.3), { color: 0xa07f56, bevel: 0.01 }); LI.box(CB, 0.4, 0.26, 0.35, M(x1 - 0.32, F + 0.45, z0 + 0.32, 0, 0.2, 0), { color: 0xb18d61, bevel: 0.01 });
       LI.box(im.wood({ dark: true }), 0.55, 0.35, 0.38, M(x1 - 0.95, F + 0.175, z0 + 0.25), { color: 0x1e1a16, bevel: 0.01 });
@@ -348,10 +348,35 @@ export function build(ctx) {
     CUR.userData.uvScale = 1.2;
     for (const o of (ctx.r4openings || []).filter((q) => /W_bed/.test(q.id))) { const W = o.wall; for (const s of [-1, 1]) for (let k = 0; k < 6; k++) { const du = s * (o.w / 2 + 0.05 - k * 0.07), [cx2, cz2] = W.pt(o.u + du, -T - 0.1 - (k % 2) * 0.03); box(CUR, 0.075, o.h + 0.4, 0.02, cx2, (o.y0 + o.y1) / 2 + 0.05, cz2, { color: 0xffffff, bevel: 0.006, uv: [k * 0.07, 0] }, 0, W.ry); } }
   }
+  // ================= the lived-in extras (15 / 16): plants, pictures, baskets, a shelf over the hall mouth, kitchen odds and ends =================
+  // potted plants: the vegetation library's real plants (instanced, volume-shaded), placed in world space once the house is placed
+  const vegIn = []; { let done = false; ctx.updaters.push(() => { if (done) return; done = true; const V = ctx.opts.game?.vegetation; if (!V?.place || !vegIn.length) return; ctx.group.updateMatrixWorld(true);
+    for (const [x, y, z, k, sc] of vegIn) { const p = Fr.v(x, y, z).applyMatrix4(ctx.group.matrixWorld); try { V.place(k, p.x, p.z, { model: k, y: p.y, keepY: true, s: sc, owner: 'nicoHouse' }); } catch (e) { /* no plant */ } } }); }
+  { const X = kit.batch('r8extras'), PICT = (seed, w, h) => im.art('r8pic' + seed, 256, 192, (g, W, H) => { const q = kit.rng(seed); const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, ['#a9d3e6', '#f2c48a', '#cfe3d0'][seed % 3]); gr.addColorStop(0.6, ['#3d8fa3', '#d9774a', '#5e8f62'][seed % 3]); gr.addColorStop(1, '#e8d8b0'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+      for (let k = 0; k < 6; k++) { g.fillStyle = `rgba(30,60,40,${0.3 + q() * 0.4})`; g.beginPath(); g.ellipse(q() * W, H * 0.62 + q() * 30, 20 + q() * 30, 6 + q() * 8, 0, 0, 6.3); g.fill(); } }, { rough: 0.8 });
+    const frame = (x, y, z, ry, w, h, seed) => { X.box(im.wood(), w + 0.06, h + 0.06, 0.03, M(x, y, z, 0, ry, 0), { color: 0x6a4a2e, bevel: 0.004 }); X.box(PICT(seed, w, h), w, h, 0.006, M(x + Math.sin(ry) * 0.018, y, z + Math.cos(ry) * 0.018, 0, ry, 0), { color: 0xffffff, bevel: 0 }); };
+    frame(2.3, F + 1.6, z1 - 0.02, PI, 0.6, 0.45, 1); frame(x1 - 0.02, F + 1.65, -7.2, -PI / 2, 0.5, 0.38, 2); frame(xP + 0.07, F + 1.55, -8.9, PI / 2, 0.45, 0.6, 3);
+    const potPlant = (x, z, s2, tall) => { lathe(X, POT, [[0.001, 0], [0.13 * s2, 0], [0.17 * s2, 0.3 * s2], [0.001, 0.28 * s2]], M(x, F, z), { color: 0xa55a36, seg: 16 });
+      vegIn.push([x, F + 0.26 * s2, z, tall ? 'tropical_bed' : 'tropical_leaf', (tall ? 0.95 : 0.6) * s2]);   // the vegetation library's real plant in the pot
+      Fr.col.cyl(x, F + 0.4, z, 0.2 * s2, 0.8, { tag: 'prop' }); };
+    potPlant(5.2, -6.75, 0.85, false); potPlant(1.95, z0 + 0.35, 0.8, true); potPlant(-2.3, -6.0, 0.7, false);
+    // a basket by the armchair, magazines on the coffee table
+    const BSK = im.pbr('tatami_mat', { rep: 0.3 }); lathe(X, BSK, [[0.001, 0], [0.2, 0], [0.24, 0.32], [0.23, 0.33], [0.001, 0.3]], M(1.6, F, z0 + 0.3), { color: 0xb08a58, seg: 18 });
+    X.box(im.paint({ peel: 'a', fade: 0, gloss: 0.5 }), 0.22, 0.012, 0.3, M(3.75, F + 0.32, z0 + 1.45, 0, 0.3, 0), { color: 0x3a6a8a, bevel: 0 }); X.box(im.paint({ peel: 'a', fade: 0, gloss: 0.5 }), 0.21, 0.01, 0.28, M(3.78, F + 0.333, z0 + 1.43, 0, 0.6, 0), { color: 0xc94b3a, bevel: 0 });
+    // the shelf over the hall mouth with a basket and a box (16), a wall clock, a paper towel roll, a dish rack and a fruit bowl
+    X.box(im.wood(), 0.3, 0.035, 1.3, M(xP + 0.2, F + 2.25, (HA.z0 + HA.z1) / 2), { grain: 2, color: 0x7a5636, bevel: 0.004 }); for (const dz of [-0.5, 0.5]) X.box(im.wood(), 0.2, 0.15, 0.03, M(xP + 0.15, F + 2.16, (HA.z0 + HA.z1) / 2 + dz), { color: 0x6a4a2e });
+    X.box(BSK, 0.28, 0.2, 0.38, M(xP + 0.2, F + 2.37, (HA.z0 + HA.z1) / 2 - 0.25), { color: 0xb89a66, bevel: 0.02 }); X.box(im.matte(), 0.22, 0.16, 0.3, M(xP + 0.2, F + 2.35, (HA.z0 + HA.z1) / 2 + 0.3), { color: 0xa07f56, bevel: 0.01 });
+    lathe(X, PLAST, [[0.001, 0], [0.16, 0], [0.16, 0.04], [0.001, 0.04]], M(0.6, F + 2.0, z1 - 0.01, PI / 2, 0, 0), { color: 0xeeeae0, seg: 24 });
+    X.box(STEEL, 0.008, 0.11, 0.008, M(0.6, F + 2.03, z1 - 0.055, 0, 0, 0.6), { color: 0x222222 }); X.box(STEEL, 0.008, 0.08, 0.008, M(0.6, F + 2.01, z1 - 0.055, 0, 0, -0.9), { color: 0x222222 });
+    X.cyl(im.fabric('cotton_jersey', { rep: 0.2 }), 0.06, 0.06, 0.27, M(1.15, F + 1.42, zB - 0.06, 0, 0, PI / 2), { color: 0xf2efe6, seg: 14 });
+    for (let k = 0; k < 6; k++) X.box(im.plasticGloss(), 0.01, 0.2, 0.18, M(sinkX + 0.72 + k * 0.035, F + 1.0, zB - 0.25, 0, 0, 0.15), { color: [0xe8e4da, 0x3c6a8a, 0xe8e4da, 0xc4482e, 0xe8e4da, 0x6a8a4a][k], bevel: 0.004 });
+    lathe(X, im.plasticGloss(), [[0.001, 0], [0.09, 0.0], [0.15, 0.08], [0.14, 0.085], [0.001, 0.02]], M(penX + 0.1, F + 0.917, penZ1 + 0.85), { color: 0x2e7f8a, seg: 20 });
+    for (const [dx, dz, c] of [[0.05, 0.02, 0xe8a12a], [-0.04, -0.03, 0xd94a2a], [0.0, 0.06, 0x9ac23a], [0.06, -0.05, 0xe8a12a]]) X.geo(im.plastic(), new THREE.SphereGeometry(0.04, 10, 8), M(penX + 0.1 + dx, F + 0.96, penZ1 + 0.85 + dz), { color: c });
+    X.build(Fr.groups.int, { cast: false }); }
   // ================= daylight: fill lights at the windows and the slider, a warm fill under the ridge by day =================
-  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'window' && !q.frosted)) { const [x, z] = o.wall.pt(o.u, -T - 0.8); Fr.light({ id: 'r4_win_' + o.id, pos: [x, (o.y0 + o.y1) / 2, z], color: 0xffe2b8, intensity: 46, range: 7.5, on: true }); }
+  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'window' && !q.frosted)) { const [x, z] = o.wall.pt(o.u, -T - 0.8); Fr.light({ id: 'r4_win_' + o.id, pos: [x, (o.y0 + o.y1) / 2, z], color: 0xffe2b8, intensity: 60, range: 8, on: true }); }
   for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'slider' || q.kind === 'door')) { const [x, z] = o.wall.pt(o.u, -T - 1.2); Fr.light({ id: 'r7_day_' + o.id, pos: [x, F + 1.3, z], color: 0xffe6c4, intensity: 55, range: 8, on: true }); }
-  { const fills = [[3.9, -7.0], [0.0, -5.6], [-4.4, -7.0]].map(([x, z], i) => Fr.light({ id: 'r7_fill_' + i, pos: [x, F + 2.3, z], color: 0xffe3bd, intensity: 70, range: 9, on: true }));
+  { const fills = [[3.9, -7.0], [0.0, -5.6], [-4.4, -7.0]].map(([x, z], i) => Fr.light({ id: 'r7_fill_' + i, pos: [x, F + 2.3, z], color: 0xffe3bd, intensity: 95, range: 9.5, on: true }));
     ctx.updaters.push((dt, env) => { const t = env.timeOfDay ?? 12, day = t > 6.8 && t < 18.6; for (const l of fills) l.on = day; }); }
   Fr.build();
 }

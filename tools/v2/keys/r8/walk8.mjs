@@ -19,7 +19,7 @@ const TESTS = [
   { id: 'wall_nw_living', from: [3.0, F + 0.1, -8.0], dir: [0, -1], secs: 3, expect: 'z > -10.45' },
   { id: 'wall_se_bed', from: [-5.0, F + 0.1, -4.8], dir: [0, 1], secs: 3, expect: 'z < -3.5' },
   { id: 'wall_sw_front_window', from: [-5.8, F + 0.1, -5.0], dir: [-1, 0], secs: 3, expect: 'x > -6.6' },
-  { id: 'slider_out', from: [5.5, F + 0.1, -5.75], dir: [1, 0], secs: 3, open: 'door_slider', expect: 'x > 6.9' },
+  { id: 'slider_out', from: [5.5, F + 0.1, -8.6], dir: [1, 0], secs: 3, open: 'door_slider', expect: 'x > 6.9' },
   { id: 'upper_to_lower_steps', from: [8.2, F + 0.1, -9.72], dir: [1, 0], secs: 3, expect: 'y < 4.1' },
 ];
 await withBrowser({ width: 960, height: 540, maxSeconds: +(o.max || 600) }, async (b) => {

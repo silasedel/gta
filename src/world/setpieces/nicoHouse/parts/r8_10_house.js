@@ -173,8 +173,8 @@ export function build(ctx) {
       { id: 'W_bath', u: 11.2, w: 0.7, sill: 1.35, h: 0.7, kind: 'window', frosted: true } ] },
     // NE gable (+X, back): the slider onto the upper strip and a window (E: the slider, a window with shutters by the chairs)
     { id: 'E', a: [6.5, -3.6], b: [6.5, -10.4], deck: true, gable: true, ops: [
-      { id: 'D_slide', u: 2.15, w: 1.9, sill: 0, h: 2.08, kind: 'slider' },
-      { id: 'W_back_e', u: 5.0, w: 1.0, sill: 0.85, h: 1.3, kind: 'window', shutter: true },
+      { id: 'D_slide', u: 5.0, w: 1.9, sill: 0, h: 2.08, kind: 'slider' },
+      { id: 'W_back_e', u: 2.0, w: 1.0, sill: 0.85, h: 1.3, kind: 'window', shutter: true },
       { id: 'V_e', u: 3.4, w: 0.5, sill: 3.05, h: 0.5, kind: 'vent' } ] },
     // SW gable (-X, FRONT): the front door in the middle, a window each side, the small hatch in the gable above the door (B)
     { id: 'W', a: [-6.5, -10.4], b: [-6.5, -3.6], deck: true, gable: true, ops: [
@@ -355,7 +355,7 @@ export function build(ctx) {
 
   // ================= anchors, interior visibility, camera occluder =================
   Fr.anchor('carport', 0, 0.06, -8.5, Math.PI); Fr.anchor('front', Bd.x0 - 6, 0, -7, -Math.PI / 2);
-  Fr.anchor('truckR4', -10.0, 0, 5.2, 2.9);   // G: nose in toward the front walkway corner
+  Fr.anchor('truckR4', -3.0, 0, 9.5, -2.76);   // G: nose in toward the front walkway corner, right of the B / D sight line
   Fr.anchor('spawnYard', -17, 0, 2.5, 2.37);   // in the drive, facing the front door
   const camS = new THREE.Vector3();
   ctx.lookIn = (cx, cy, cz) => { const [sx, sz] = StoH(...toS(cx, cz)); camS.set(sx, cy, sz); return (inR(P.body, sx, sz, 1.4) && cy > F - 1.4) || (inR({ x0: WK.x0, x1: P.lower.x1, z0: P.lower.z0, z1: WK.z1 }, sx, sz, 2.0) && cy > F - 1.6); };
