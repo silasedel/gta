@@ -107,7 +107,7 @@ export function installQuickTitle() {
     ].filter(Boolean);
     st.focus = 0; render();
     menu.hidden = false; root.classList.add('menu-on');
-    hints.innerHTML = '<span>↑↓ Choose</span><span>Enter Select</span>';
+    hints.innerHTML = '';
   }
   function choose(i) {
     const it = st.items[i]; if (!it || st.chosen) return;

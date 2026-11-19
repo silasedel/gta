@@ -211,13 +211,13 @@ export function createHUD(game) {
   root.appendChild(hitm);
   let spread = 0, lastShotAt = -1e9, lastPunchAt = -1e9;
   const wheel = el('div', 'ps-wheel');
-  wheel.innerHTML = `<div class="ps-wheel-ring"><div class="ps-wheel-hl"></div><div class="ps-wslots"></div><div class="ps-wheel-center"><b></b><small></small><em></em></div></div><div class="ps-wheel-hint">Mouse or ◀ ▶ choose slot · ▲ ▼ cycle slot · release <kbd>Tab</kbd></div>`;
+  wheel.innerHTML = `<div class="ps-wheel-ring"><div class="ps-wheel-hl"></div><div class="ps-wslots"></div><div class="ps-wheel-center"><b></b><small></small><em></em></div></div>`;
   root.appendChild(wheel);
   const wSlotsHost = wheel.querySelector('.ps-wslots'), wHl = wheel.querySelector('.ps-wheel-hl');
   const wName = wheel.querySelector('.ps-wheel-center b'), wInfo = wheel.querySelector('.ps-wheel-center small'), wSlotNo = wheel.querySelector('.ps-wheel-center em');
   let wslots = [], wheelGroups = [], wheelPick = [];
   let wheelSel = 0, wheelVec = { x: 0, y: 0 };
-  const photoHint = el('div', 'ps-photo-hint', 'PHOTO MODE · HUD hidden · <kbd>Backspace</kbd> to exit');
+  const photoHint = el('div', 'ps-photo-hint', 'PHOTO MODE');
   root.appendChild(photoHint);
 
   // ---------- Phone (src/ui/phone: Kestrel OS) ----------
@@ -263,7 +263,6 @@ export function createHUD(game) {
     </div>
     <div class="ps-pages">
       <div class="ps-page ps-page-map on"><canvas class="ps-bigmap"></canvas><div class="ps-map-frame"></div><div class="ps-map-zoom"><button data-z="in" title="Zoom in (+)">+</button><button data-z="out" title="Zoom out (−)">−</button><button data-z="fit" title="Whole map (F)">⤢</button><button data-z="me" title="Centre on me (C)">◎</button></div>
-        <div class="ps-map-legend"><b>Drag / WASD</b> pan · <b>Wheel / pinch</b> zoom · <b>Click</b> waypoint · <b>Right-click</b> clear · <b>F</b> whole map</div>
         <div class="ps-map-loc"></div></div>
       <div class="ps-page ps-page-stats"><div class="ps-stats-grid"></div></div>
       <div class="ps-page ps-page-settings"><div class="ps-settings"></div></div>

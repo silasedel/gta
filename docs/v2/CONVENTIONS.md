@@ -299,6 +299,18 @@ stations, models), `src/gameplay/wantedCore.js` (six-star state machine, pure), 
   loop, and fades at the reveal. `start()` while it plays only takes it over (no restart). The theme no longer plays on the
   title. Setting `menuMusic` (Audio) turns it off.
 
+## 4d. Music: Mission Passed sting and menu music (Nov 18)
+- **Mission Passed sting** `game.audio.missionPassed()` (`src/audio/passed.v2.js`): plays
+  `public/assets/audio/stingers/mission_passed.ogg`, a 7.2 s cut of the user's theme (`music/theme/port_solana_theme.aac`,
+  9.60 s .. 16.80 s, starts on the drop, 2.2 s fade out). Radio and music buses duck under it. Returns a promise (true when
+  it played; one at a time). `game.audio.missionPassed({ title: 'Mission Passed', sub })` also shows the big title card;
+  `game.passed.play({ title, sub })` is the same. Missions call it on success; `jobEnd` (ok), `activityEnd` (success),
+  `turfFightEnd` (won) and `businessBought` already trigger it.
+- **Menu music** (`src/audio/loadingMusic.js`): the Sleepwalking loop (`music/theme/loading_loop.flac`, sample-accurate
+  loop) plays from the boot loading screen through the title, the menus and the second loading screen as one continuous
+  loop, and fades at the reveal. `start()` while it plays only takes it over (no restart). The theme no longer plays on the
+  title. Setting `menuMusic` (Audio) turns it off.
+
 ## 5. Notes for later stages
 - Stage 1 status, open items and measured fps: `docs/v2/briefs/STATUS_stage1.md`.
 - Model requests: `docs/v2/briefs/MODEL_REQUESTS_stage1.md`.

@@ -52,7 +52,7 @@ export async function initV2(game) {
   pause?.querySelector('.ps-pause-foot')?.appendChild(codesBtn);
 
   const panel = el('div', 'ps-dev-panel', `<div class="ps-dev-card" role="dialog" aria-label="Enter code">
-    <h3>ENTER CODE</h3><div class="sub">Type it or use the keypad · Enter to confirm · Esc to close</div>
+    <h3>ENTER CODE</h3>
     <input class="ps-dev-field" readonly inputmode="none" maxlength="8" autocomplete="off" spellcheck="false" aria-label="Code" tabindex="-1">
     <div class="ps-dev-pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button data-k="${n}">${n}</button>`).join('')}<button data-k="del" aria-label="Delete">⌫</button><button data-k="0">0</button><button data-k="ok" class="ok" aria-label="Confirm">✓</button></div>
     <div class="ps-dev-extra"></div></div>`);
@@ -104,7 +104,7 @@ export async function initV2(game) {
   // ------------------------------------------------------------------ code panel
   // while the panel is open the input bindings are in 'ui' mode (menus own the keyboard): nothing reaches the game or
   // the pause menu; Enter / Escape / digits arrive as 'uikey' events, typing in the field works natively
-  let panelOpen = false, leaveUI = null, offUI = null, navH = null;
+  let panelOpen = false, leaveUI = null, offUI = null, navH = null, panelOpts = {};
   // one handler for both routes a key can take (bindings 'uikey' while they own the keyboard, or the raw keydown when they
   // let it through); the event is marked so the same key press is never handled twice
   function panelKey(c, ev, text) {
@@ -123,19 +123,26 @@ export async function initV2(game) {
   // Escape belongs to the panel: if anything else also resumed the game on that key press, put the pause menu back
   let keepPausedUntil = 0;
   function keepPaused() { keepPausedUntil = performance.now() + 400; }
-  function openCodes() {
+  // openCodes({ closeOnSuccess, onClose }): Settings opens it this way (the right code closes it and the row updates)
+  function openCodes(o = {}) {
     if (panelOpen) return;
+    panelOpts = o || {};
     panelOpen = true; panel.classList.add('open'); field.value = ''; field.classList.remove('bad', 'good'); paint();
-    panel.style.zIndex = '2147483000'; document.body.appendChild(panel); setTimeout(() => { try { field.focus(); } catch (e) { /* */ } }, 30);   // above every menu layer (settings from the title), typing goes to the field
+    panel.style.zIndex = '2147483000'; document.body.appendChild(panel);   // above every menu layer (settings from the title)
+    // never focus the (read-only) field: the input bindings swallow keys aimed at a focused text field, so digits would never
+    // arrive; unfocused, every key reaches panelKey() through the bindings' 'uikey' event (or the raw keydown)
+    try { const a = document.activeElement; if (a && a !== document.body && a.blur) a.blur(); } catch (e) { /* */ }
     const B = game.bindings;
     try { if (B?.pushMode) leaveUI = B.pushMode('ui'); if (B?.on) offUI = B.on('uikey', onUIKey); } catch (e) { leaveUI = offUI = null; }
-    try { navH = game.uiContext?.nav?.push?.({ root: panel.querySelector('.ps-dev-card'), wrap: true, onBack: () => { closeCodes(); keepPaused(); } }) || null; } catch (e) { navH = null; }
+    try { navH = game.uiContext?.nav?.push?.({ root: panel.querySelector('.ps-dev-card'), wrap: true, onNav: (d) => d.dir === 'accept' && d.src !== 'pad', onBack: () => { closeCodes(); keepPaused(); } }) || null; } catch (e) { navH = null; }
   }
   function closeCodes() {
     if (!panelOpen) return;
     panelOpen = false; panel.classList.remove('open'); field.blur();
     try { offUI?.(); leaveUI?.(); navH?.pop?.(); } catch (e) { /* */ }
     offUI = leaveUI = navH = null;
+    const cb = panelOpts.onClose; panelOpts = {};
+    try { cb?.(); } catch (e) { /* */ }
   }
   function submit() {
     const v = field.value.replace(/\D/g, '');
@@ -143,7 +150,7 @@ export async function initV2(game) {
       field.classList.remove('bad'); field.classList.add('good');
       setOn(!S.on);
       notify(game, S.on ? 'Dev mode ON' : 'Dev mode OFF', 2000);
-      setTimeout(() => { field.value = ''; field.classList.remove('good'); }, 500);
+      setTimeout(() => { field.value = ''; field.classList.remove('good'); if (panelOpts.closeOnSuccess) closeCodes(); }, 500);
     } else {
       field.classList.remove('bad'); void field.offsetWidth; field.classList.add('bad');
       setTimeout(() => { field.value = ''; }, 260);
@@ -157,6 +164,7 @@ export async function initV2(game) {
     else if (k === 'ok') submit();
     else if (field.value.length < 8) { field.value += k; field.classList.remove('bad'); }
   });
+  field.addEventListener('focus', () => field.blur());
   field.addEventListener('input', () => { field.value = field.value.replace(/\D/g, '').slice(0, 8); field.classList.remove('bad'); });
   extra.addEventListener('click', (e) => {
     const a = e.target.closest('button')?.dataset.a;

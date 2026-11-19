@@ -35,7 +35,9 @@ const TIPS = [
   'Every save keeps the last good copy. If one breaks, the backup loads.',
   'Golden hour in the Keys lasts longer than you think. Stop and look around.',
 ];
-const STATION = 'url:/assets/audio/music/theme/port_solana_theme.aac'; // the game's own theme (epic, not chiptune)
+// menu music (user, Nov 18): the loading loop (src/audio/loadingMusic.js) plays through the title, the menus and both
+// loading screens. The old title theme (port_solana_theme.aac) is now the Mission Passed sting (src/audio/passed.v2.js).
+const NOW_PLAYING = { station: 'Main menu', title: 'Sleepwalking (Instrumental)', artist: 'Mindme' };
 const TITLE_HOURS_FALLBACK = 18.4;
 
 export async function initV2(game) {
@@ -181,13 +183,18 @@ function startTitle(game, ctx, cin, fe, params) {
 
   // ---------------------------------------------------------------- music
   const startAudio = () => { try { window.dispatchEvent(new Event('pointerdown')); } catch (e) { /* */ } };
-  const music = () => { if (ctx.settings.get('menuMusic') === false) { game.menuMusic = { station: null, duck: 0.3, duckLP: 1600 }; return; } game.menuMusic = { station: STATION, gain: 0.85, duck: 0.3, duckLP: 1600, startAt: 9, loopAt: 9 }; };
+  // the world under the title stays ducked; the loop carries on from the boot screen (start() only takes it over)
+  const music = () => {
+    game.menuMusic = { station: null, duck: 0.3, duckLP: 1600 };
+    if (ctx.settings.get('menuMusic') === false) loadingMusic.stop(game, 0.8); else loadingMusic.start(game, { settings: ctx.settings });
+  };
   music();
-  ctx.settings.on('menuMusic', music);
+  ctx.settings.on('menuMusic', () => { if (fe.screen !== 'loading' && game.ui?.title !== false) music(); });
+  for (const k of ['volMaster', 'volMusic']) ctx.settings.on(k, () => loadingMusic.setVolume(game, ctx.settings));
   let npLast = '';
   const npTimer = setInterval(() => {
-    const n = STATION.startsWith('url:') ? { station: 'Main theme', title: BRAND.name, artist: 'Original score' } : game.audio?.nowPlaying?.(STATION);
-    if (!n || !game.audio?.ctx || ctx.settings.get('menuMusic') === false) { np.hidden = true; return; }
+    const n = NOW_PLAYING;
+    if (!loadingMusic.playing() || ctx.settings.get('menuMusic') === false) { np.hidden = true; return; }
     const k = n.title + n.artist; np.hidden = false;
     if (k !== npLast) { npLast = k; np.querySelector('.pm-np-st').textContent = n.station; np.querySelector('.pm-np-tr').textContent = `${n.title} · ${n.artist}`; np.classList.remove('show'); void np.offsetWidth; np.classList.add('show'); }
   }, 1000);
@@ -226,7 +233,7 @@ function startTitle(game, ctx, cin, fe, params) {
   }
   const glyph = (code) => ctx.bindings.codeGlyph(code);
   function setHints(list) { hints.innerHTML = list.map(([k, l]) => `<span>${k}${esc(l)}</span>`).join(''); }
-  const hintsMenu = () => setHints([[glyph('ArrowUp') + glyph('ArrowDown'), 'Choose'], [glyph('Enter'), 'Select']]);
+  const hintsMenu = () => setHints([]); // no control legend in the menus (user: minimal, GTA-like)
 
   let scope = null;
   fe.screen = 'attract';
@@ -331,8 +338,7 @@ function startTitle(game, ctx, cin, fe, params) {
     await cin.crossfade(900);
     live = false;
     await new Promise((r) => setTimeout(r, 380));
-    // fade the title music under the loading screen, then start the world
-    // the loading screen has its own song (user): the title theme stops, the looped drop section plays until the reveal
+    // the menu loop carries on under the loading screen (start() is a no-op while it plays) until the reveal
     game.menuMusic = { station: null, duck: 0.3, duckLP: 1200 };
     loadingMusic.start(game, { settings: ctx.settings });
     let ok = false;

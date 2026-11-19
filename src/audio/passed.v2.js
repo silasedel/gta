@@ -1,11 +1,13 @@
-// "Job passed" moment: the custom Southline theme hits on its drop, with a big title card.
-// The clip (public/assets/audio/stingers/job_passed.ogg) starts right on the song's drop, so the
-// hit and the card land together. Radio and venue music duck under it, then come back.
-//   game.passed.play({ title, sub })   trigger it by hand (also used by the events below)
+// "Mission passed" moment: the custom Southline theme (the old title song) hits on its drop, with a big title card.
+// The sting (public/assets/audio/stingers/mission_passed.ogg, 7.2 s) is cut from port_solana_theme.aac at its drop
+// (9.60 s .. 16.80 s, 2.2 s fade out), so the hit and the card land together. Radio and venue music duck under it.
+//   game.audio.missionPassed()           the sting only (missions call this; returns a promise, true when it played)
+//   game.audio.missionPassed({ title, sub })   sting + title card
+//   game.passed.play({ title, sub })     same as the line above (also used by the events below)
 // Fires on: jobEnd (ok), activityEnd (success), turfFightEnd (won), businessBought.
 export const order = 120;
 const BASE = (import.meta.env && import.meta.env.BASE_URL) || '/';
-const URL_ = BASE + 'assets/audio/stingers/job_passed.ogg';
+const URL_ = BASE + 'assets/audio/stingers/mission_passed.ogg';
 const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
 
 export async function initV2(game) {
@@ -42,10 +44,10 @@ export async function initV2(game) {
     clearTimeout(hideT); hideT = setTimeout(() => el.classList.remove('on'), 6200);
   }
 
-  async function play({ title = 'Job Passed', sub = '' } = {}) {
+  async function sting() {
     const now = performance.now();
-    if (now < busyUntil) { card(title, sub); return; } // one stinger at a time; still show the card
-    busyUntil = now + 9000;
+    if (now < busyUntil) return false; // one sting at a time
+    busyUntil = now + 7500;
     const A = game.audio, ctx = A?.ctx;
     if (ctx && !A.muted) {
       if (ctx.state === 'suspended') { try { await ctx.resume(); } catch (e) { /* needs a user gesture */ } }
@@ -63,13 +65,22 @@ export async function initV2(game) {
           for (const k of ['radio', 'music']) if (Math.abs((v[k] ?? 0) - ducked[k]) < 1e-3) A.setBusVolume?.(k, keep[k]);
         };
         s.start();
-        game.emit?.('passedStinger', { title });
+        game.emit?.('passedStinger', {});
+        return true;
       }
     }
-    card(title, sub);
+    return false;
   }
+  async function play({ title = 'Mission Passed', sub = '' } = {}) {
+    card(title, sub);
+    return sting();
+  }
+  // missions: game.audio.missionPassed() = the sting alone; with a title it also shows the card
+  const missionPassed = (o) => (o && o.title ? play(o) : sting());
 
-  game.passed = { play, preload: load };
+  game.passed = { play, sting, preload: load };
+  const attach = () => { if (game.audio) game.audio.missionPassed = missionPassed; else setTimeout(attach, 500); };
+  attach();
   // decode early once audio exists (first user gesture), so the hit is instant
   const warm = () => { if (game.audio?.ctx) load(); else setTimeout(warm, 2000); };
   warm();

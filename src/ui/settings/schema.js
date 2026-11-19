@@ -152,7 +152,7 @@ export const SCHEMA = [
       { key: 'saveTools', type: 'custom', widget: 'saveTools' },
     ] },
     { title: 'More options', items: [{ key: 'externalSettings', type: 'custom', widget: 'externalSettings' }] },
-    { title: 'Dev mode', items: [{ key: 'devCode', label: 'Dev mode', type: 'action', action: 'devCode', button: 'Enter code', desc: 'Type the dev code and press Enter.' }] },
+    { title: 'Dev mode', items: [{ key: 'devCode', label: 'Dev mode', type: 'action', action: 'devCode', button: 'Enter code', desc: 'Enter the code to turn dev mode on. When it is on, this row turns it off.' }] },
     { title: 'Reset', items: [{ key: 'resetAll', label: 'Restore every setting to its default', type: 'action', action: 'resetAll', button: 'Restore defaults', danger: true }] },
   ] },
 ];

@@ -104,8 +104,7 @@ export function openWardrobeStage(game, ctx, cin, o = {}) {
   ctx.layer('modal').appendChild(ui);
   requestAnimationFrame(() => ui.classList.add('in'));
   const list = ui.querySelector('.pm-ward-list'), desc = ui.querySelector('.pm-ward-desc'), outfitsEl = ui.querySelector('.pm-ward-outfits');
-  ui.querySelector('.pm-ward-foot').innerHTML = [[B.codeGlyph('KeyQ') + B.codeGlyph('KeyE'), 'Category'], [B.codeGlyph('Enter'), 'Wear'], ['<span class="ps-key wide">Drag</span>', 'Turn'], ['<span class="ps-key wide">Wheel</span>', 'Zoom'], [B.codeGlyph('KeyR'), 'Spin'], [B.codeGlyph('Escape'), 'Done']]
-    .map(([g, l]) => `<span>${g}${esc(l)}</span>`).join('');
+  ui.querySelector('.pm-ward-foot').innerHTML = ''; // no control legend (user: minimal, GTA-like)
   const swatch = (p) => {
     const m = p.mat || {};
     if (m.print) return `background-image:url('${m.print}');background-size:220%`;

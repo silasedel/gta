@@ -28,8 +28,7 @@ export function openSettingsScreen(game, ctx, o = {}) {
   requestAnimationFrame(() => root.classList.add('in'));
   const body = root.querySelector('.pm-set-body'), descB = root.querySelector('.pm-set-desc b'), descP = root.querySelector('.pm-set-desc p');
   const foot = root.querySelector('.pm-set-foot');
-  foot.innerHTML = [[B.codeGlyph('KeyQ') + B.codeGlyph('KeyE'), 'Tabs'], [B.codeGlyph('ArrowLeft') + B.codeGlyph('ArrowRight'), 'Change'], [B.codeGlyph('Escape'), 'Back']]
-    .map(([g, l]) => `<span>${g}${esc(l)}</span>`).join('') + `<button class="ps-btn ghost pm-set-reset" data-nav>${esc(t('Restore defaults'))}</button>`;
+  foot.innerHTML = `<button class="ps-btn ghost pm-set-reset" data-nav>${esc(t('Restore defaults'))}</button>`;
 
   function row(it) {
     const v = S.get(it.key);
@@ -43,6 +42,7 @@ export function openSettingsScreen(game, ctx, o = {}) {
       if (it.options.length <= 5) return `<div class="pm-row" data-nav="select" data-key="${it.key}">${lab}<span class="pm-segs">${it.options.map((op) => `<button class="pm-seg${op.value === v ? ' on' : ''}" data-val="${esc(String(op.value))}" tabindex="-1">${esc(t(op.label))}</button>`).join('')}</span></div>`;
       return `<div class="pm-row" data-nav="select" data-key="${it.key}">${lab}<span class="pm-pick"><i>${icon('back')}</i><b>${esc(t(S.formatValue(it.key)))}</b><i>${icon('forward')}</i></span></div>`;
     }
+    if (it.type === 'action' && it.action === 'devCode') { const on = !!game?.dev?.on; return `<div class="pm-row" data-nav data-key="${it.key}" data-kind="action">${lab}<span class="pm-row-v">${on ? t('On') : t('Off')}</span><span class="ps-btn${on ? ' danger' : ''}">${esc(t(on ? 'Turn off' : (it.button || 'Enter code')))}</span></div>`; }
     if (it.type === 'action') return `<div class="pm-row" data-nav data-key="${it.key}" data-kind="action">${lab}<span class="ps-btn${it.danger ? ' danger' : ''}">${esc(t(it.button || 'Apply'))}</span></div>`;
     if (it.type === 'custom' && it.widget === 'bindings') return bindingsHTML();
     if (it.type === 'custom' && it.widget === 'subtitlePreview') return `<div class="pm-subprev" data-size="${S.get('subtitleSize')}" data-bg="${S.get('subtitleBackground')}"><span>${S.get('subtitleSpeaker') ? '<b>MARISOL:</b> ' : ''}Pier 7. After sunset. Don't be late.</span></div>`;
@@ -110,12 +110,18 @@ export function openSettingsScreen(game, ctx, o = {}) {
     const seg = e.target.closest('.pm-seg'); const r = e.target.closest('[data-key]');
     if (seg && r) { const it = S.item(r.dataset.key); const op = it.options.find((x) => String(x.value) === seg.dataset.val); if (op) { S.set(r.dataset.key, op.value); ctx.sfx('move'); } return; }
     if (!r) return;
-    const it = S.item(r.dataset.key);
+    // action rows (dev code, detect, restore) are not value settings, so S.item() does not know them: look in the schema
+    const it = S.item(r.dataset.key) || S.schema.flatMap((x) => x.sections.flatMap((sec) => sec.items)).find((x) => x.key === r.dataset.key);
     if (r.dataset.kind === 'toggle') { S.set(r.dataset.key, !S.get(r.dataset.key)); ctx.sfx('select'); }
     else if (r.dataset.kind === 'action') {
       if (it?.action === 'detect') { const d = S.detect(); S.applyPreset(d.preset); ctx.notify?.(`Picked ${d.preset}: ${d.reason}`, 3500); }
       else if (it?.action === 'resetAll') { S.reset(); }
-      else if (it?.action === 'devCode') { try { (game || ctx.game || window.game)?.dev?.openCodes?.(); } catch (e) { /* dev module not loaded */ } }
+      else if (it?.action === 'devCode') {
+        // off: the code panel (the right code turns it on and closes the panel); on: this row turns it off
+        const D = game?.dev;
+        if (D?.on) { D.setOn(false); ctx.notify?.('Dev mode OFF', 2000); }
+        else D?.openCodes?.({ closeOnSuccess: true, onClose: () => { if (root.isConnected) render(r.dataset.key); } });
+      }
       render(r.dataset.key);
     } else if (e.target.closest('.pm-pick i')) { const i = [...r.querySelectorAll('.pm-pick i')].indexOf(e.target.closest('.pm-pick i')); adjust(r, i === 0 ? -1 : 1); }
   });

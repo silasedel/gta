@@ -3,8 +3,11 @@
 // loading_loop.flac is that exact cut of loading_mindme_sleepwalking.mp3 (25.4904 s .. 49.7942 s = 16 bars at 158 BPM,
 // measured from the file: the drop's first sample and the downbeat 64 beats later). Lossless, so the loop has no codec
 // padding gap; an AudioBufferSourceNode loops it sample-accurately.
+// It is also the menu music (user, Nov 18): boot loading screen -> title -> menus -> second loading screen play ONE
+// continuous loop (each later start() only takes ownership of the running loop, so it never restarts or gaps).
 //   start(game)  fade in (no-op when muted, already playing or the music setting is off)
 //   stop(game)   fade out and free the buffer
+//   setVolume(game, settings)  follow the master / music sliders while it plays
 const URL_ = '/assets/audio/music/theme/loading_loop.flac';
 let buf = null, pending = null, src = null, g = null, token = 0, own = null, who = null;
 // the first loading screen runs before game.audio exists: use a private AudioContext until then (and keep using the one that started the loop)
@@ -22,8 +25,16 @@ export async function start(game, { gain = 1.1, settings = null, owner = 'front'
   try { if (ctx.state === 'suspended') await ctx.resume(); } catch (e) { /* */ }
   g = ctx.createGain(); g.gain.value = 0; g.connect(ctx.destination);
   src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.loopStart = 0; src.loopEnd = buf.duration; src.connect(g);
-  src.start(); g.gain.setTargetAtTime(gain * vol(game, settings), ctx.currentTime, 0.12);
+  src.start(); baseGain = gain; g.gain.setTargetAtTime(gain * vol(game, settings), ctx.currentTime, 0.12);
+  // a browser starts the private context suspended: the first input lets it play
+  if (ctx.state !== 'running' && typeof window !== 'undefined') {
+    const go = () => { try { if (ctx.state === 'suspended') ctx.resume(); } catch (e) { /* */ } if (ctx.state === 'running') for (const k of KEYS) window.removeEventListener(k, go, true); };
+    for (const k of KEYS) window.addEventListener(k, go, true);
+  }
 }
+const KEYS = ['pointerdown', 'keydown', 'touchstart'];
+let baseGain = 1.1;
+export function setVolume(game, settings) { const ctx = usedCtx; if (!src || !g || !ctx) return; try { g.gain.setTargetAtTime(baseGain * vol(game, settings), ctx.currentTime, 0.08); } catch (e) { /* */ } }
 export function stop(game, fade = 1.2, only = null) {
   if (only && who !== only) return; // the boot screen only stops its own loop
   token++; const ctx = usedCtx || game?.audio?.ctx; if (!src || !ctx) return;

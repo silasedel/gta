@@ -343,7 +343,6 @@ export async function initV2(game) {
       cur.active = true; cur.S.engineOn = true; cur.S.ctl.brake = 0;
       if (!cur.owned && !cur.stolen) { cur.stolen = true; game.emit?.('crime', { type: 'vehicle_theft', position: cur.mesh.position.clone(), severity: 2, vehicle: cur }); game.hud?.notify?.('Stolen aircraft: ' + cur.name, 2200); }
       if (!game.cameraOverride || game.cameraOverride === airCam) { game.cameraOverride = airCam; camInit = false; }
-      game.hud?.notify?.('W/S throttle (stays set)  mouse tilt  A/D roll  Q/E rudder  X/Z flaps  V camera', 5000);
     } else if (game.cameraOverride === airCam) { game.cameraOverride = null; restoreFov(); }
   }
   const camPos = new THREE.Vector3(), camFwd = new THREE.Vector3(0, 0, 1), camUp = new THREE.Vector3(0, 1, 0), _f = new THREE.Vector3(), _u = new THREE.Vector3(), _t = new THREE.Vector3(), _o = new THREE.Vector3();
