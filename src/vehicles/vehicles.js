@@ -1475,13 +1475,10 @@ export async function createVehicles(game) {
   const NICO_UTE_SCHEME = { color: 0xf2a90f, finish: 'gloss', interior: 0x8a5634, wear: { dirt: 0.06, rust: 0, fade: 0, dirtColor: 'sand' },
     stripe: { w: 1.1, color: 0xd8461a, satin: false, side: { y: [0.62, 0.74] } } };
   const NICO_CARS = [
-    // silver metallic with one wide satin-black racing stripe over the hood and the cab roof (never on glass, lamps or trim), sandy dust
-    // (user: "shiny gray in the sun, normal gray on the shaded sides": medium cool silver ~0.33 linear (t9b: 0xb0b4b9 still read near-white next to the mock-up's gray body); graphite ~0.13 linear stripe
-    // panels with a lighter pinstripe edge, the roof band down the middle with silver both sides)
-    { key: 'truck9', local: (typeof location !== 'undefined' && /[?&]nh=r3\b/.test(location.search)) ? [-12.4, 8.4] : [-5.26, 2.05], heading: (typeof location !== 'undefined' && /[?&]nh=r3\b/.test(location.search)) ? 2.35 : -0.72,   // r4-house: in the drive under the front eave, facing the street (r4 mock-up 01)
-      color: 0x9a9ea3, finish: 'metallic', wear: { dirt: 0.16, rust: 0, fade: 0, dirtColor: 'sand' },
-      stripe: { w: 0.86, roofW: 0.78, color: 0x515458, satin: true, line: { color: 0x9da0a4, w: 0.022 } } /* hood / roof boxes measured per model (manifest .stripe, seats.py) */, ride: 0.07,
-      tint: 0 }, // factory glass: Nico shows through the windows (QA #4: a rolled limo / dark tint hid the driver completely)
+    // Nico's main car (ute1, mock-ups docs/v2/plan/nico_car): the yellow coupe-utility in the drive, where the gray truck9 stood.
+    // Flank band low on the doors (game y 0.50-0.60: under the bed floor at 0.635, so the bed stays yellow), off the tail panel.
+    { key: 'ute1', drive: true, local: (typeof location !== 'undefined' && /[?&]nh=r3\b/.test(location.search)) ? [-12.4, 8.4] : [-5.26, 2.05], heading: (typeof location !== 'undefined' && /[?&]nh=r3\b/.test(location.search)) ? 2.35 : -0.72,
+      ...NICO_UTE_SCHEME, stripe: { ...NICO_UTE_SCHEME.stripe, side: { y: [0.5, 0.6], z: [-2.33, 2.12] } }, tint: 0 },
     // the old faded powder-blue muscle coupe: solid single-stage enamel, chalky sun fade on the top surfaces, rust at the sills and arches, salt crust, flat chrome, dusty glass, whitewalls
     { key: 'coupe4', local: [-18.8, 5.5], heading: 1.03, color: 0x7a9198, finish: 'solid', old: true, wear: { dirt: 0.3, rust: 0.32, fade: 0.6, age: 0.9, dirtColor: 'salt' } }, // the 1970 two-door muscle coupe, sun-faded powder blue (user model)
   ];
@@ -1500,7 +1497,7 @@ export async function createVehicles(game) {
       try { await placeStatic(k, { x: p.x, z: p.z, heading: h + h0 }); } catch (e) { /* optional */ }
     }
     for (const c of NICO_CARS) {
-      const ta = c.key === 'truck9' && NH.house?.anchors?.truckR4, p = NH.toWorld(ta ? ta.pos.clone().setY(0) : new THREE.Vector3(c.local[0], 0, c.local[1]));   // r4-house: the drive spot follows the rebuilt house
+      const ta = c.drive && NH.house?.anchors?.truckR4, p = NH.toWorld(ta ? ta.pos.clone().setY(0) : new THREE.Vector3(c.local[0], 0, c.local[1]));   // r4-house: the drive spot follows the rebuilt house
       try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: (ta ? ta.heading : c.heading) + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, interior: c.interior, ride: c.ride, old: c.old, tint: c.tint, keepSpot: true }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }

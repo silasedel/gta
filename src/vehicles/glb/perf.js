@@ -33,6 +33,7 @@ export const PERF = {
   coupe2: { t100: 4.4, vmax: 250, mass: 1750, drive: 'rwd' },
   conv1: { t100: 8.5, vmax: 190, mass: 1450, drive: 'rwd' },
   coupe4: { t100: 6.0, vmax: 210, mass: 1700, drive: 'rwd' },
+  ute1: { t100: 7.0, vmax: 200, mass: 1700, drive: 'rwd', grip: 2.1, rollK: 1.35, antiRoll: 3.5, powerSlide: 0.45, eng: 'v8', voice: 'v8' },   // '70 coupe-utility SS 396 (350 hp): soft springs, lazy rear
   coupe5: { t100: 7.8, vmax: 195, mass: 1300, drive: 'rwd' },
   // sports: M4-like twin-turbo six coupe, C8-like mid-engine convertible
   coupe3: { t100: 3.9, vmax: 290, mass: 1725, drive: 'rwd', grip: 2.85, steer: 0.57, rollK: 0.65, comY: 0.44, antiRoll: 6.5, brakeK: 1.1, powerSlide: 0.12, eng: 'v6t' },

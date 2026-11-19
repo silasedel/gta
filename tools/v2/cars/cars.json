@@ -2096,5 +2096,46 @@
   ],
   "keepInner": true,
   "keepDoublePaint": true
+ },
+ "ute1": {
+  "src": "Trucks/Ute 1 - 1970 Coupe Utility/ute1_src.blend",
+  "L": 5.07,
+  "fwd": "-y",
+  "slots": {
+   "^U_Paint$": "paint",
+   "^U_Gap$": "trim",
+   "^U_Chrome$": "trim:chrome",
+   "^U_Black$": "trim",
+   "^U_Under$": "trim",
+   "^U_Glass$": "glass",
+   "^U_Lens$": "lens",
+   "^U_Head$": "lamp:head",
+   "^U_Tail$": "lamp:tail",
+   "^U_Rev$": "lamp:reverse",
+   "^U_Amber$": "lamp:amber",
+   "^U_Recess$": "trim",
+   "^U_Leather|^U_Dash$|^U_Carpet$|^U_Liner$|^U_Gauge$": "trim:interior",
+   "^U_IntChrome$": "trim:chrome",
+   "^U_Tire$": "trim:rubber",
+   "^U_Rim$": "trim:chrome",
+   "^U_RimDark$|^U_Drum$": "trim"
+  },
+  "keepBadges": true,
+  "keepUnderskin": true,
+  "note": "Nico's main car: built by tools/v2/cars/ute1/build_ute1.py (docs/v2/plan/nico_car/SOURCE.md)",
+  "keepInner": true,
+  "keepDoublePaint": true,
+  "wheelTris": [
+   9000,
+   1200
+  ],
+  "noAutoPlate": true
+ },
+ "humvee1": {
+  "src": "Trucks/Truck 14 - Military Utility Vehicle/source/Sketchfab_2020_12_15_23_05_09.blend",
+  "L": 4.93,
+  "textured": true,
+  "noPaint": true,
+  "dropObj": "m2hb|^Plane"
  }
 }
