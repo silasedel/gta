@@ -1,7 +1,7 @@
 # Nico's house r11 (playtest Nov 19: "the plants look terrible"): the user's plant downloads -> game GLBs.
 #
 #   blender -b -Y --python-exit-code 1 --python tools/v2/keys/r11/plants11.py -- \
-#       Models/_Inbox public/assets/models/keys/plants <asset>
+#       Models public/assets/models/keys/plants <asset>
 #
 # Each asset: import, keep the wanted meshes, apply transforms, fix the up axis, decimate to a budget, rebuild
 # the materials from the shipped textures (1K color, 512 normal, leaves alpha-tested = glTF MASK, double sided),
@@ -26,13 +26,13 @@ NORMAL_SIZE = 512
 #   keep: keep the imported material as it is (only its images get resized)
 ASSETS = {
     "snake_pot": {
-        "src": "snake-plant-in-pot/source/Sansevieria in pot.usdz",
+        "src": "Plants/Potted Plant 2 - Snake Plant In Pot Scan/Potted Plant 2.usdz",
         "tris": {"*": 9000},
         "keep_imported": True,
     },
     "monstera_pot": {
-        "src": "monstera-b02/source/MZRa_Monstera_B02.fbx",
-        "tex": "monstera-b02/textures",
+        "src": "Plants/Potted Plant 3 - Monstera In Pot/Potted Plant 3.fbx",
+        "tex": "Plants/Potted Plant 3 - Monstera In Pot/textures",
         "mats": {
             "MI_MZRa_Monstera_B02a": {
                 "color": "T_MZRa_Monstera_B02a_BC.png",
@@ -48,8 +48,8 @@ ASSETS = {
         },
     },
     "sansevieria_tall": {
-        "src": "potted-plant/source/flowerLP.fbx",
-        "tex": "potted-plant/textures",
+        "src": "Plants/Potted Plant 4 - Tall Sword-Leaf Plant In Pot/Potted Plant 4.fbx",
+        "tex": "Plants/Potted Plant 4 - Tall Sword-Leaf Plant In Pot/textures",
         "mats": {
             "flowerLP": {
                 "color": "flowerLP_flowerLP_BaseColor.png",
@@ -59,8 +59,8 @@ ASSETS = {
         },
     },
     "rubber_pot": {
-        "src": "potted-plant-1/source/potted_plant-1.fbx",
-        "tex": "potted-plant-1/textures",
+        "src": "Plants/Potted Plant 5 - Low-Poly Rubber Plant In Pot/Potted Plant 5.fbx",
+        "tex": "Plants/Potted Plant 5 - Low-Poly Rubber Plant In Pot/textures",
         "pot": "pot",
         "mats": {
             "01 - Default": {"color": "foliage_0.png", "alpha": "self", "rough": 0.55},
@@ -68,8 +68,8 @@ ASSETS = {
         },
     },
     "caladium_bowl": {
-        "src": "potted-plant-01/source/potted_plant.fbx",
-        "tex": "potted-plant-01/textures",
+        "src": "Plants/Potted Plant 6 - Bushy Caladium In Round Bowl/Potted Plant 6.fbx",
+        "tex": "Plants/Potted Plant 6 - Bushy Caladium In Round Bowl/textures",
         "drop": ["ground"],
         "pot": "pot",
         "tris": {"pot": 2000, "leaves": 9000},
@@ -79,8 +79,8 @@ ASSETS = {
         },
     },
     "flower_urn": {
-        "src": "potted-plant-03/source/potted_plant_3.fbx",
-        "tex": "potted-plant-03/textures",
+        "src": "Plants/Potted Plant 7 - Tall Flowering Plant In Urn With Pebbles/Potted Plant 7.fbx",
+        "tex": "Plants/Potted Plant 7 - Tall Flowering Plant In Urn With Pebbles/textures",
         "pot": "pot",
         "tris": {"leaves": 9000, "pebbles": 700, "pot": 2000, "stem": 1500},
         "mats": {
@@ -89,8 +89,8 @@ ASSETS = {
         },
     },
     "croton_pot": {
-        "src": "croton-plant/source/Croton.fbx",
-        "tex": "croton-plant/textures",
+        "src": "Plants/Croton 2 - Croton Plant (FBX)/source/Croton.fbx",
+        "tex": "Plants/Croton 2 - Croton Plant (FBX)/textures",
         "pot": "Pot2",
         "mats": {
             "lambert1": {
@@ -104,14 +104,14 @@ ASSETS = {
     },
     "croton_garden": {
         # a 3.8M-triangle vertex-colored scan, upside down and 3.3 m tall: decimated, colors baked to a texture
-        "src": "garden-croton-plant/source/x/v1_full.ply",
+        "src": "Plants/Croton 3 - Garden Croton Scan (PLY)/source/inner_v1_full/v1_full.ply",
         "rot_x": 180,
         "height": 0.95,
         "bake": 16000,
     },
     "tropical_shrub": {
-        "src": "tropical-plant-2/trop2.obj",   # made from the FBX 6.1 ASCII file by fbx6_to_obj.py
-        "tex": "tropical-plant-2/textures",
+        "src": "Plants/Tropical Plant 3 - Broad-Leaf Tropical Shrub/Tropical Plant 3 Converted.obj",   # made from the FBX 6.1 ASCII file by fbx6_to_obj.py
+        "tex": "Plants/Tropical Plant 3 - Broad-Leaf Tropical Shrub/textures/alt",
         "height": 1.9,
         "mats": {
             "Tree_0": {"color": "plant03.png", "normal": "plant03_normal.png", "rough": 0.8},
@@ -119,15 +119,15 @@ ASSETS = {
         },
     },
     "elephant_ear": {
-        "src": "tropical-plant/source/trop_leav 4.blend1",
-        "tex": "tropical-plant/textures",
+        "src": "Plants/Tropical Plant 2 - Elephant Ear Leaf Card Plant/Tropical Plant 2.blend",
+        "tex": "Plants/Tropical Plant 2 - Elephant Ear Leaf Card Plant/textures",
         "keep": ["trop_leav 4"],
         "height": 1.3,
         "mats": {"*": {"color": "trop_leav_4.png", "alpha": "self", "rough": 0.55}},
     },
     "banana": {
-        "src": "tropical-plants-pack-m02p/source/MZRa_Pack_M02P.fbx",
-        "tex": "tropical-plants-pack-m02p/textures",
+        "src": "Plants/Foliage Set 2 - Banana Fern Monstera And Palm Pack/Foliage Set 2.fbx",
+        "tex": "Plants/Foliage Set 2 - Banana Fern Monstera And Palm Pack/textures",
         "keep": ["SM_MZRa_Banana_B091"],
         "mats": {
             "MI_MZRa_Banana_B09a": {"color": "T_MZRa_Banana_B09a_BC.png", "alpha": "self", "rough": 0.55},
@@ -139,14 +139,14 @@ ASSETS = {
         },
     },
     "fern": {
-        "src": "tropical-plants-pack-m02p/source/MZRa_Pack_M02P.fbx",
-        "tex": "tropical-plants-pack-m02p/textures",
+        "src": "Plants/Foliage Set 2 - Banana Fern Monstera And Palm Pack/Foliage Set 2.fbx",
+        "tex": "Plants/Foliage Set 2 - Banana Fern Monstera And Palm Pack/textures",
         "keep": ["SM_MZRa_Fern_B052"],
         "mats": {"MI_MZRa_Fern_B052": {"color": "T_MZRa_Fern_B052_BC.png", "alpha": "self", "rough": 0.6}},
     },
     "monstera_yard": {
-        "src": "tropical-plants-pack-m02p/source/MZRa_Pack_M02P.fbx",
-        "tex": "tropical-plants-pack-m02p/textures",
+        "src": "Plants/Foliage Set 2 - Banana Fern Monstera And Palm Pack/Foliage Set 2.fbx",
+        "tex": "Plants/Foliage Set 2 - Banana Fern Monstera And Palm Pack/textures",
         "keep": ["tree.006SM_MZRa_Monstera_B071"],
         "mats": {
             "MI_MZRa_Monstera_B07a1": {"color": "MI_MZRa_Monstera_B07a1_BC.png", "alpha": "self", "rough": 0.5},

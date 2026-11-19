@@ -61,7 +61,7 @@
   "tex": 512
  },
  "mil_outpost": {
-  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "src": "Prop Packs/Military Base Pack 1 - Outpost Watchtower Garage Fuel Tank Barrels And Fences/Military Base Pack 1.glb",
   "keep": "^Military_Outpost_1$",
   "tris": 6000,
   "tex": 1024,
@@ -70,7 +70,7 @@
   "_from": "game-ready-military-base-asset-pack.zip"
  },
  "mil_watchtower": {
-  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "src": "Prop Packs/Military Base Pack 1 - Outpost Watchtower Garage Fuel Tank Barrels And Fences/Military Base Pack 1.glb",
   "keep": "^Watchtower_1$",
   "tris": 0,
   "tex": 1024,
@@ -79,21 +79,21 @@
   "_from": "game-ready-military-base-asset-pack.zip"
  },
  "mil_garage": {
-  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "src": "Prop Packs/Military Base Pack 1 - Outpost Watchtower Garage Fuel Tank Barrels And Fences/Military Base Pack 1.glb",
   "keep": "^Garage$",
   "tris": 0,
   "tex": 1024,
   "_from": "game-ready-military-base-asset-pack.zip"
  },
  "mil_tank": {
-  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "src": "Prop Packs/Military Base Pack 1 - Outpost Watchtower Garage Fuel Tank Barrels And Fences/Military Base Pack 1.glb",
   "keep": "^Tank$",
   "tris": 0,
   "tex": 512,
   "_from": "game-ready-military-base-asset-pack.zip"
  },
  "mil_barrels": {
-  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "src": "Prop Packs/Military Base Pack 1 - Outpost Watchtower Garage Fuel Tank Barrels And Fences/Military Base Pack 1.glb",
   "keep": "^Metal_Barrel_",
   "tris": 0,
   "tex": 512,

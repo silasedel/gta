@@ -27,7 +27,7 @@
   ],
   "nodes": {},
   "bytes": 2086556,
-  "src": "dl:lockheed-martin-c130jsuper-hercules-reupload/source/x/Lockheed Martin C-130J _Super Hercules_/C130J.fbx",
+  "src": "Planes/Plane 20 - Gray Four-Turboprop Military Transport/Plane 20.fbx",
   "contacts": [
    [
     -0.0,
@@ -87,7 +87,7 @@
    ]
   },
   "bytes": 468708,
-  "src": "dl:us-army-uh-60m-black-hawk-low-poly-model/source/x/UH60M_upload/UH60M.blend",
+  "src": "Helicopters/Helicopter 4 - Utility Military Twin-Engine Helicopter/Helicopter 4.blend",
   "contacts": [
    [
     1.37,
@@ -129,7 +129,7 @@
    ]
   },
   "bytes": 694900,
-  "src": "dl:bell-206-jet-ranger/source/x/bell206.obj",
+  "src": "Helicopters/Helicopter 6 - Light Single-Turbine Utility Helicopter With Full Cockpit/Helicopter 6.obj",
   "contacts": [
    [
     0.9,
@@ -170,7 +170,7 @@
   ],
   "nodes": {},
   "bytes": 1315852,
-  "src": "dl:f-16-fighting-falcon-fighter-jet-free/source/F-16.blend",
+  "src": "Planes/Plane 18 - Gray Single-Engine Multirole Fighter/Plane 18.blend",
   "contacts": [
    [
     -1.08,
@@ -206,7 +206,7 @@
   ],
   "nodes": {},
   "bytes": 1372576,
-  "src": "dl:f-22-raptor-fighter-jet-free/source/F22Raptor.blend",
+  "src": "Planes/Plane 17 - Gray Twin-Tail Air Superiority Fighter/Plane 17.blend",
   "contacts": [
    [
     -1.59,
@@ -237,7 +237,7 @@
   ],
   "nodes": {},
   "bytes": 1505832,
-  "src": "dl:f-35-lightning-ii-fighter-jet-free/source/F-35.blend",
+  "src": "Planes/Plane 19 - Gray Single-Engine Stealth Strike Fighter/Plane 19.blend",
   "contacts": [
    [
     0.0,
@@ -263,7 +263,7 @@
   ],
   "nodes": {},
   "bytes": 357860,
-  "src": "dl:boeing-737-800/source/Boeing 737-800.glb",
+  "src": "Planes/Plane 22 - White Narrow-Body Twin-Jet Airliner Low-Poly/Plane 22.glb",
   "contacts": [
    [
     4.86,
@@ -308,7 +308,7 @@
   ],
   "nodes": {},
   "bytes": 357408,
-  "src": "dl:airbus-a320/source/Airbus A320.glb",
+  "src": "Planes/Plane 23 - Short Narrow-Body Twin-Jet Airliner Low-Poly/Plane 23.glb",
   "contacts": [
    [
     5.77,
@@ -343,7 +343,7 @@
   ],
   "nodes": {},
   "bytes": 645552,
-  "src": "dl:boeing-747-131-trans-world-airlines/source/boeing_747-131_trans_world_airlines.fbx",
+  "src": "Planes/Plane 26 - Classic Four-Engine Jumbo Jet With Red Stripe Livery/Plane 26.fbx",
   "contacts": [
    [
     11.9,
@@ -388,7 +388,7 @@
   ],
   "nodes": {},
   "bytes": 571400,
-  "src": "dl:737-max-lion-air/source/LOW 737 MAX.fbx",
+  "src": "Planes/Plane 24 - Narrow-Body Twin-Jet With Split Winglets Low-Poly/Plane 24.fbx",
   "contacts": [
    [
     0.0,
@@ -418,7 +418,7 @@
   ],
   "nodes": {},
   "bytes": 1201288,
-  "src": "dl:vietnam-airlines-airbus-a321-200/source/Airbus_A-321_Vietnam_Airlines.glb",
+  "src": "Planes/Plane 25 - Stretched Narrow-Body Twin-Jet Airliner/Plane 25.glb",
   "contacts": [
    [
     -4.97,
@@ -463,7 +463,7 @@
   ],
   "nodes": {},
   "bytes": 1585068,
-  "src": "dl:cessna-208/source/ Cessna 208.glb",
+  "src": "Planes/Plane 28 - High-Wing Single-Turboprop Utility Plane/Plane 28.glb",
   "contacts": [
    [
     -0.02,

@@ -2141,33 +2141,33 @@
   "matte": true
  },
  "utv1": {
-  "src": "Utility/Utility 1 - Crew UTV/source/Polaris_RANGER_Diesel_Crew_2018.glb",
+  "src": "Utility/Utility 1 - Crew UTV/Utility 1.glb",
   "L": 3.85,
   "fwd": "-y",
   "dropMat": "logo|label|ornament|diesel_left|diesel_right|fender_diesel|ranger_dash|shadow",
   "dropObj": "^Logo|^Label|^Ornament|^Fender_Diesel|^Ranger_Dash|^Shadow"
  },
  "atv1": {
-  "src": "Utility/Utility 2 - Sport ATV/source/Polaris_Scrambler_XP_1000_2018_sketchfab.glb",
+  "src": "Utility/Utility 2 - Sport ATV/Utility 2.glb",
   "L": 2.1,
   "fwd": "-y",
   "dropMat": "decal|ornament|new material|shadow",
   "dropObj": "Decal|^Ornament|Shadow"
  },
  "utv2": {
-  "src": "Utility/Utility 3 - Single-Seat UTV/source/Polaris_ACE_900_XC_2018.glb",
+  "src": "Utility/Utility 3 - Single-Seat UTV/Utility 3.glb",
   "L": 2.45,
   "fwd": "-y",
   "dropMat": "polaris|velocityblue|ornament|eps|shadow",
   "dropObj": "Decal|^Ornament|^VelocityBlue|^EPS|shadow"
  },
  "golf1": {
-  "src": "Utility/Utility 4 - Golf Cart/source/onward_4_passenger_ptv_non_lifted.glb",
+  "src": "Utility/Utility 4 - Golf Cart/Utility 4.glb",
   "L": 2.83,
   "fwd": "+x"
  },
  "bagcart1": {
-  "src": "Utility/Utility 5 - Baggage Cart/source/Model.obj",
+  "src": "Utility/Utility 5 - Baggage Cart/Utility 5.obj",
   "L": 3.0,
   "textured": true,
   "noPaint": true,

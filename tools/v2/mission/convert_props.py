@@ -1,4 +1,4 @@
-# Mission prop library (Nov 19): the user's downloaded model zips (unpacked into Models/_Inbox/<zip name>/) ->
+# Mission prop library (Nov 19): the user's downloaded models (filed in the model library Models/<group>/<Type N - style>/) ->
 # public/assets/models/mission/<id>.glb (+ <id>_lod1.glb for props over 2 m) and manifest.json, loaded by
 # src/story/props.js. Output frame (glTF): meters, +Y up, x/z centered, y = 0 at the lowest point; long props
 # (ships, wreck, bridge) run along Z with the bow / front toward +Z.
@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from props_cfg import CFG  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-INBOX = os.path.join(ROOT, "Models", "_Inbox")
+INBOX = os.path.join(ROOT, "Models")   # the model library (paths in props_cfg.py are relative to it)
 OUT = os.path.join(ROOT, "public", "assets", "models", "mission")
 SHOTS = os.path.join(ROOT, "docs", "v2", "shots", "mission_props")
 SCRATCH = os.environ.get("MISSION_SCRATCH", "/private/tmp/mission_props")
@@ -578,7 +578,7 @@ def bill_box(mat, band, loc, yaw):
 
 def gen_cash_stack():
     """Banded 20 dollar bundles (the download's stack is thousands of loose quads): 2 x 2 bundles, 3 layers."""
-    mat = pbr_material("bill20", {"base": "money-stacks-20-usd/textures/gltf_embedded_0.png", "roughness": 0.85})
+    mat = pbr_material("bill20", {"base": "Cash/Cash 3 - Twenty-Dollar Bill Stacks/textures/gltf_embedded_0.png", "roughness": 0.85})
     band = pbr_material("bill_band", {"color": (0.82, 0.78, 0.66), "roughness": 0.8})
     for layer in range(3):
         for ix in (-1, 1):
@@ -654,7 +654,7 @@ def convert(key, c):
     else:
         src = c["src"] if os.path.isabs(c["src"]) else os.path.join(INBOX, c["src"])
         load(src)
-        relink_images(os.path.join(INBOX, c["src"].split("/")[0]))
+        relink_images(os.path.dirname(src))   # the model's own library folder
     bake_objects()
     filter_objects(c)
     if c.get("diffuse_only"):

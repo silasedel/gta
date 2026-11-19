@@ -3,13 +3,13 @@
 # separate folder, and two of them only open through assimp). tools/v2/airport/convert.sh then decimates them, adds the
 # far LOD and the collision mesh (models.json entries base_*), exactly like the other airport props.
 #   blender -b --disable-autoexec --python-exit-code 1 --python tools/v2/airport/prep_base_props.py -- <key|all>
-#   W6_DL   = folder with the user's download zips unpacked (one folder per zip name; inner zips unpacked to source/x)
+#   W6_DL   = model library root (default Models/; the Nov 19 downloads were filed there, see Models/INTAKE_2026-11-19.md)
 #   W6_PREP = output folder (default /private/tmp/claude-501/sl/prep)
 # checkpoint-building (ASCII FBX), military-watchtower-1 and simple-signal-tower (Collada, which Blender 5 no longer
 # reads) are converted to GLB first with `assimp export <src> <prep>/asm/<key>.glb -fglb2` (see ASSIMP below).
 import bpy, sys, os, re, glob, math, mathutils
 
-DL = os.environ.get('W6_DL', '/private/tmp/claude-501/sl/dl')
+DL = os.environ.get('W6_DL', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'Models')))
 PREP = os.environ.get('W6_PREP', '/private/tmp/claude-501/sl/prep')
 ASM = os.path.join(PREP, 'asm')
 
@@ -18,58 +18,58 @@ PBR = {'color': '{m}_BaseColor*', 'normal': '{m}_Normal*', 'rough': '{m}_Roughne
 
 CFG = {
     # tent-military: an 11 x 10.5 m frame tent (body + window panels)
-    'base_tent': {'src': 'tent-military/source/Military tent.fbx', 'tex': 'tent-military/textures', 'pbr': PBR},
+    'base_tent': {'src': 'Tents/Tent 1 - Olive Military Frame Tent With Windows/Tent 1.fbx', 'tex': 'Tents/Tent 1 - Olive Military Frame Tent With Windows/textures', 'pbr': PBR},
     # sandbags-defense-line: a kit of sandbag pieces; three of them as separate props
-    'base_sb_line': {'src': 'sandbags-defense-line/source/x/Sandbags.fbx', 'keep': r'^Sandbags_Line_2$',
-                     'tex': 'sandbags-defense-line/textures', 'pbr': PBR},
-    'base_sb_nest': {'src': 'sandbags-defense-line/source/x/Sandbags.fbx', 'keep': r'^Sandbags_Cover_5$',
-                     'tex': 'sandbags-defense-line/textures', 'pbr': PBR},
-    'base_sb_store': {'src': 'sandbags-defense-line/source/x/Sandbags.fbx', 'keep': r'^Sandbags_Storage$',
-                      'tex': 'sandbags-defense-line/textures', 'pbr': PBR},
+    'base_sb_line': {'src': 'Barriers/Barrier 4 - Sandbag Defense Kit With Covers Lines And Tower/Barrier 4.fbx', 'keep': r'^Sandbags_Line_2$',
+                     'tex': 'Barriers/Barrier 4 - Sandbag Defense Kit With Covers Lines And Tower/textures/alt', 'pbr': PBR},
+    'base_sb_nest': {'src': 'Barriers/Barrier 4 - Sandbag Defense Kit With Covers Lines And Tower/Barrier 4.fbx', 'keep': r'^Sandbags_Cover_5$',
+                     'tex': 'Barriers/Barrier 4 - Sandbag Defense Kit With Covers Lines And Tower/textures/alt', 'pbr': PBR},
+    'base_sb_store': {'src': 'Barriers/Barrier 4 - Sandbag Defense Kit With Covers Lines And Tower/Barrier 4.fbx', 'keep': r'^Sandbags_Storage$',
+                      'tex': 'Barriers/Barrier 4 - Sandbag Defense Kit With Covers Lines And Tower/textures/alt', 'pbr': PBR},
     # sandbag-wall-24mb: a 3.3 m sandbag wall segment (the four loose bags beside it are left out)
-    'base_sb_wall': {'src': 'sandbag-wall-24mb/source/03.fbx', 'drop': r'^Cube_1[4-7]$', 'tex': 'sandbag-wall-24mb/textures',
+    'base_sb_wall': {'src': 'Barriers/Barrier 3 - Sandbag Wall Segment With Loose Bags/Barrier 3.fbx', 'drop': r'^Cube_1[4-7]$', 'tex': 'Barriers/Barrier 3 - Sandbag Wall Segment With Loose Bags/textures',
                      'pbr': {'color': 'BaseColor.png', 'normal': 'Normal.png', 'rough': 'Roughness.png'}},
     # wire-fence: a 4 m wood post and wire section (wire is alpha)
-    'base_wire_fence': {'src': 'wire-fence/source/WireFence_V2.fbx', 'tex': 'wire-fence/textures',
+    'base_wire_fence': {'src': 'Fences/Fence 15 - Wood Post And Wire Fence Section/Fence 15.fbx', 'tex': 'Fences/Fence 15 - Wood Post And Wire Fence Section/textures',
                         'pbr': {'M_wood_fence': {'color': 'wood_BaseColor*', 'normal': 'M_wood_fence_Normal*',
                                                  'rough': 'M_wood_fence_Roughness*'},
                                 'lambert1': {'color': 'wire_BaseColor*', 'alpha': 'lambert1_Opacity*',
                                              'normal': 'lambert1_Normal*', 'rough': 'lambert1_Roughness*',
                                              'metal': 'lambert1_Metallic*'}}},
     # fence-11mb: a 5.7 m chain-link panel (one of the five copies)
-    'base_mesh_fence': {'src': 'fence-11mb/source/01.fbx', 'keep': r'^Fance$', 'tex': 'fence-11mb/textures',
+    'base_mesh_fence': {'src': 'Fences/Fence 13 - Chain-Link Fence Panel Set/Fence 13.fbx', 'keep': r'^Fance$', 'tex': 'Fences/Fence 13 - Chain-Link Fence Panel Set/textures',
                         'pbr': {'color': 'Alpha_BaseColor.png', 'color_alpha': True,
                                 'normal': '01_DefaultMaterial_Normal.png', 'rough': '01_DefaultMaterial_Roughness.png',
                                 'metal': '01_DefaultMaterial_Metallic.png'}},
     # wooden-watchtower (obj in source units): scaled to a 7 m tower
-    'base_wood_tower': {'src': 'wooden-watchtower/source/x/watchtower/watchtower.obj', 'tex': 'wooden-watchtower/textures',
+    'base_wood_tower': {'src': 'Watchtowers/Watchtower 2 - Wooden Watchtower On Log Legs/Watchtower 2.obj', 'tex': 'Watchtowers/Watchtower 2 - Wooden Watchtower On Log Legs/textures',
                         'height': 7.0,
                         'pbr': {'color': 'watchtower_albedo.png', 'normal': 'watchtower_normal.png',
                                 'rough': 'watchtower_roughness.png', 'metal': 'watchtower_metalness.png'}},
     # military-style-building-with-animations: the hut's outside only (no interior: it is not enterable); doors closed
-    'base_hut': {'src': 'military-style-building-with-animations/source/x/Military_Hut.fbx',
+    'base_hut': {'src': 'Buildings/Building 31 - Military Hut With Blast Doors And Animated Garage Doors/Building 31.fbx',
                  'drop': r'^(Back_Inside_Wall|Front_Inside_Wall|Ceiling|Fluorescent_Lights|Fuse_Box|Camera\d)$',
-                 'tex': 'military-style-building-with-animations/textures', 'still': True,
+                 'tex': 'Buildings/Building 31 - Military Hut With Blast Doors And Animated Garage Doors/textures', 'still': True,
                  'pbr': {'color': 'Military_Hut_{m}_Base*', 'normal': 'Military_Hut_{m}_Norma*',
                          'rough': 'Military_Hut_{m}_Rough*', 'metal': 'Military_Hut_{m}_Metal*'}},
     # checkpoint-building (ASCII FBX via assimp, centimeters)
-    'base_checkpoint': {'src': 'asm:base_checkpoint.glb', 'tex': 'checkpoint-building/textures', 'scale': 0.01,
+    'base_checkpoint': {'src': 'asm:base_checkpoint.glb', 'tex': 'Buildings/Building 30 - Low Military Checkpoint Building/textures', 'scale': 0.01,
                         'pbr': {'color': '{m}_Base_Color.png', 'normal': '{m}_Normal_DirectX.png', 'flip_g': True,
                                 'rough': '{m}_Roughness.png', 'metal': '{m}_Metallic.png'}},
     # military-watchtower-1 (Collada via assimp, centimeters)
-    'base_mil_tower': {'src': 'asm:base_mil_tower.glb', 'tex': 'military-watchtower-1/textures', 'scale': 0.01,
+    'base_mil_tower': {'src': 'asm:base_mil_tower.glb', 'tex': 'Watchtowers/Watchtower 1 - Steel Military Watchtower With Cabin/textures/alt', 'scale': 0.01,
                        'pbr': {'color': 'DefaultMaterial_albedo*', 'normal': 'DefaultMaterial_normal*',
                                'rough': 'DefaultMaterial_roughness*', 'metal': 'DefaultMaterial_metallic*'}},
     # simple-signal-tower (Collada via assimp): a 30 m lattice radio mast (lattice is alpha)
-    'base_mast': {'src': 'asm:base_mast.glb', 'tex': 'simple-signal-tower/source/x/model/textures',
+    'base_mast': {'src': 'asm:base_mast.glb', 'tex': 'Antennas/Mast 1 - Lattice Radio Mast/textures',
                   'pbr': {'color': 'DefaultMaterial_albedo*', 'alpha': 'DefaultMaterial_opacity*',
                           'normal': 'DefaultMaterial_normal*', 'rough': 'DefaultMaterial_roughness*',
                           'metal': 'DefaultMaterial_metallic*'}},
 }
 ASSIMP = {
-    'base_checkpoint': 'checkpoint-building/source/bldg_lo.fbx',
-    'base_mil_tower': 'military-watchtower-1/source/x/model/model.dae',
-    'base_mast': 'simple-signal-tower/source/x/model/model.dae',
+    'base_checkpoint': 'Buildings/Building 30 - Low Military Checkpoint Building/Building 30.fbx',
+    'base_mil_tower': 'Watchtowers/Watchtower 1 - Steel Military Watchtower With Cabin/Watchtower 1.dae',
+    'base_mast': 'Antennas/Mast 1 - Lattice Radio Mast/Mast 1.dae',
 }
 
 

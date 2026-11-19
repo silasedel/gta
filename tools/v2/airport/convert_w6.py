@@ -3,7 +3,8 @@
 # meters, y = 0 at the lowest wheel / skid, x = 0 centerline, z = 0 at the bounding-box center); spinning parts become
 # PROP<n> nodes (origin at the hub), control surfaces AIL_L / AIL_R / ELEV nodes (origin on the hinge line).
 #   blender -b --disable-autoexec --python-exit-code 1 --python tools/v2/airport/convert_w6.py -- <key|all>
-#   (W6_DL = folder with the user's download zips unpacked, one folder per zip name; nested zips / rars unpacked to source/x)
+#   (sources live in the model library Models/<group>/<Type N - style>/; the Nov 19 downloads were filed there, see
+#   Models/INTAKE_2026-11-19.md; 'dl:<path>' still reads $W6_DL/<path> for a scratch unpack)
 # Real insignia (roundels, service names, tail codes, flags, type numbers) are painted out of the textures (scrub
 # rectangles in texture space, filled with the surrounding paint); tire brand text is downsampled away.
 import bpy, bmesh, sys, os, re, math, mathutils, json
@@ -14,19 +15,19 @@ DL = os.environ.get('W6_DL', '/private/tmp/claude-501/sl/dl')   # the unpacked d
 AIR = os.path.join(ROOT, 'public', 'assets', 'vehicles', 'air')
 APT = os.path.join(ROOT, 'public', 'assets', 'models', 'airport')
 CFG = {
-  # Downloaded fighters (Nov 19, the user's ~/Downloads zips, unpacked to $W6_DL): f-16-fighting-falcon-fighter-jet-free,
+  # Downloaded fighters (Nov 19, the user's ~/Downloads zips, now Models/Planes/Plane 17-19): f-16-fighting-falcon-fighter-jet-free,
   # f-22-raptor-fighter-jet-free, f-35-lightning-ii-fighter-jet-free. .blend sources open with autoexec off; geometry-node
   # modifiers are evaluated. Gear-down parts kept, gear-up doors / lights / HUD glass dropped. One 4K atlas each -> 2K.
-  'jet_f16': {'src': 'dl:f-16-fighting-falcon-fighter-jet-free/source/F-16.blend', 'out': AIR, 'tris': 18000, 'lod1': 2500, 'scale': 0.1, 'nose': (0, 1),
+  'jet_f16': {'src': 'Planes/Plane 18 - Gray Single-Engine Multirole Fighter/Plane 18.blend', 'out': AIR, 'tris': 18000, 'lod1': 2500, 'scale': 0.1, 'nose': (0, 1),
     'drop': [r'landingOff', r'landingOnLight', r'instrGlass', r'-hud'], 'tex': 2048,
     'scrub': {r'^BaseColor': [[.785, .222, .84, .268], [.035, .597, .09, .643], [.76, .305, .885, .395], [.74, .44, .86, .52], [.22, .635, .26, .675], [.265, .685, .305, .725], [.215, .335, .315, .385]]}},
-  'jet_f22': {'src': 'dl:f-22-raptor-fighter-jet-free/source/F22Raptor.blend', 'out': AIR, 'tris': 20000, 'lod1': 2500, 'scale': 0.1, 'nose': (0, 1),
+  'jet_f22': {'src': 'Planes/Plane 17 - Gray Twin-Tail Air Superiority Fighter/Plane 17.blend', 'out': AIR, 'tris': 20000, 'lod1': 2500, 'scale': 0.1, 'nose': (0, 1),
     'drop': [r'landingOff', r'landingOnLight', r'instrGlass', r'-hud'], 'tex': 2048,
     'scrub': {r'^BaseColor': [[.005, .135, .085, .24], [.005, .385, .085, .49], [.785, .24, .845, .305], [.07, .58, .13, .64]]}},
-  'jet_f35': {'src': 'dl:f-35-lightning-ii-fighter-jet-free/source/F-35.blend', 'out': AIR, 'tris': 18000, 'lod1': 2500, 'scale': 0.1, 'nose': (0, 1),
+  'jet_f35': {'src': 'Planes/Plane 19 - Gray Single-Engine Stealth Strike Fighter/Plane 19.blend', 'out': AIR, 'tris': 18000, 'lod1': 2500, 'scale': 0.1, 'nose': (0, 1),
     'drop': [r'landingOff', r'landingOnLight', r'instrGlass'], 'tex': 2048},
   # lockheed-martin-c130jsuper-hercules-reupload (fbx, 1/20 scale units): the base's parked C-130 (cockpit interior dropped)
-  'c130': {'src': 'dl:lockheed-martin-c130jsuper-hercules-reupload/source/x/Lockheed Martin C-130J _Super Hercules_/C130J.fbx', 'out': APT, 'tris': 22000, 'lod1': 2500, 'col': True,
+  'c130': {'src': 'Planes/Plane 20 - Gray Four-Turboprop Military Transport/Plane 20.fbx', 'out': APT, 'tris': 22000, 'lod1': 2500, 'col': True,
     'scale': 0.0505, 'nose': (1, -1), 'dropmat': r'^(cockpit|Interior)', 'tex': 1024},
   # Plane 8: parked prop at the base (cockpit / crew-station interior dropped)
   'cargo_jet': {'src': 'Planes/Plane 8 - Weathered Four-Engine Military Cargo Jet/Plane 8.glb', 'out': APT, 'tris': 24000, 'lod1': 2500, 'col': True,
@@ -41,35 +42,36 @@ CFG = {
     'gear': {'z': -4.2, 'nose': (0, -19.0, 0.42, 2), 'main': [(4.9, 1.0, 0.6), (-4.9, 1.0, 0.6)], 'top': -1.6}},
   # bell-206-jet-ranger (obj, FlightGear model): the Keys tour helicopter (main rotor PROP0, tail rotor PROP1); its blue
   # repainted to the tour teal; cockpit instruments / seats dropped (cabin shell kept behind the windows)
-  'heli_tour': {'src': 'dl:bell-206-jet-ranger/source/x/bell206.obj', 'out': AIR, 'tris': 14000, 'lod1': 1800, 'nose': (0, -1),
+  'heli_tour': {'src': 'Helicopters/Helicopter 6 - Light Single-Turbine Utility Helicopter With Full Cockpit/Helicopter 6.obj', 'out': AIR, 'tris': 14000, 'lod1': 1800, 'nose': (0, -1),
     'drop': [r'^seat', r'^yoke', r'^fond', r'^vitre', r'^int(?!erieur)', r'^pedal', r'^collective', r'^cyclic'],
     'props': [[r'^blade\d', r'^axe', r'^mainrotor[234]'], [r'^tailrotor', r'^blade_blade', r'^blade\.001_']], 'hubs': [r'^axe', r'^tailrotor1'], 'tex': 1024, 'teal': r'^texture'},
   # us-army-uh-60m-black-hawk-low-poly-model (blend): the base helipad's Black Hawk (flyable); service name / serials painted out
-  'heli_blackhawk': {'src': 'dl:us-army-uh-60m-black-hawk-low-poly-model/source/x/UH60M_upload/UH60M.blend', 'out': AIR, 'tris': 0, 'lod1': 1800, 'nose': (1, -1),
+  'heli_blackhawk': {'src': 'Helicopters/Helicopter 4 - Utility Military Twin-Engine Helicopter/Helicopter 4.blend', 'out': AIR, 'tris': 0, 'lod1': 1800, 'nose': (1, -1),
     'drop': [r'^Door open'], 'props': [[r'^main rotor'], [r'^TAIL ROTOR']], 'tex': 2048,
     'scrub': {r'UH60M_d': [[.4, .815, .66, .925], [.83, .795, .935, .86], [.83, .255, .935, .32]]}},
   # MIA airline traffic (Nov 19, the user's downloads, free to use). Real airline / maker liveries are neutralized:
   # 'neutral' textures lose every painted (saturated) pixel to the plain body white, 'scrub' rectangles take the dark
   # titles / registrations, and the tail fin gets its own plain 'LiveryTail' material that livery.js tints in the
   # (fictional) operator color. 'len' scales to the real length; 'fin' = (min height m, rear fraction, max |x| m).
-  'airliner_737': {'src': 'dl:boeing-737-800/source/Boeing 737-800.glb', 'out': APT, 'tris': 22000, 'lod1': 2500,
+  'airliner_737': {'src': 'Planes/Plane 22 - White Narrow-Body Twin-Jet Airliner Low-Poly/Plane 22.glb', 'out': APT, 'tris': 22000, 'lod1': 2500,
     'col': True, 'len': 39.5, 'nose': (1, -1), 'drop': [r'^custom_vis_LIGHT_BEACON'], 'tex': 2048, 'neutral': r'.',
     'fin': (6.4, 0.3, 0.8), 'scrub': {r'^faib_737': [[.17, .785, .215, .806], [.17, .892, .215, .913]]}},
-  'airliner_a320': {'src': 'dl:airbus-a320/source/Airbus A320.glb', 'out': APT, 'tris': 22000, 'lod1': 2500,
+  'airliner_a320': {'src': 'Planes/Plane 23 - Short Narrow-Body Twin-Jet Airliner Low-Poly/Plane 23.glb', 'out': APT, 'tris': 22000, 'lod1': 2500,
     'col': True, 'len': 37.6, 'nose': (1, -1), 'drop': [r'^custom_vis_LIGHT'], 'tex': 2048, 'neutral': r'.',
     'fin': (6.6, 0.3, 0.8)},
-  'airliner_737max': {'src': 'dl:737-max-lion-air/source/LOW 737 MAX.fbx', 'out': APT, 'tris': 22000, 'lod1': 2500,
+  'airliner_737max': {'src': 'Planes/Plane 24 - Narrow-Body Twin-Jet With Split Winglets Low-Poly/Plane 24.fbx', 'out': APT, 'tris': 22000, 'lod1': 2500,
     'col': True, 'len': 39.5, 'nose': (1, -1), 'tex': 1024, 'neutral': r'Base Color', 'fin': (6.4, 0.3, 0.8),
-    'texfile': {r'^Wings 737': 'textures/Wings_737._Base_Color_Lion.png'},
+    'texfile': {r'^Wings 737': 'textures/Wings_Base_Color_Livery.png', r'^Body 738': 'textures/Body_Base_Color_Livery.png',
+                r'^Egnine 737': 'textures/Engine_Base_Color.png'},
     'scrub': {r'^Body 737 Base': [[.069, .657, .085, .722], [.101, .638, .124, .756], [.198, .636, .218, .75],
                                   [.235, .662, .251, .723]]}},
-  'airliner_a321': {'src': 'dl:vietnam-airlines-airbus-a321-200/source/Airbus_A-321_Vietnam_Airlines.glb', 'out': APT,
+  'airliner_a321': {'src': 'Planes/Plane 25 - Stretched Narrow-Body Twin-Jet Airliner/Plane 25.glb', 'out': APT,
     'tris': 22000, 'lod1': 2500, 'col': True, 'len': 44.5, 'tex': 1024, 'neutral': r'_va', 'dark': r'^glass',
     'fin': (6.6, 0.3, 0.8), 'align': (r'^(19|20|21|22)___Default|^m1r$', r'^23___Default$')},
-  'airliner_747': {'src': 'dl:boeing-747-131-trans-world-airlines/source/boeing_747-131_trans_world_airlines.fbx',
+  'airliner_747': {'src': 'Planes/Plane 26 - Classic Four-Engine Jumbo Jet With Red Stripe Livery/Plane 26.fbx',
     'out': APT, 'tris': 22000, 'lod1': 2500, 'col': True, 'len': 70.6, 'nose': (1, -1), 'tex': 2048,
-    'texfile': {r'^Image_0': 'textures/twa_800.png'}, 'neutral': r'.', 'fin': (10.6, 0.25, 1.0)},
-  'ga_c208': {'src': 'dl:cessna-208/source/ Cessna 208.glb', 'out': APT, 'tris': 18000, 'lod1': 1500, 'col': True,
+    'texfile': {r'^Image_0': 'textures/jumbo_livery.png'}, 'neutral': r'.', 'fin': (10.6, 0.25, 1.0)},
+  'ga_c208': {'src': 'Planes/Plane 28 - High-Wing Single-Turboprop Utility Plane/Plane 28.glb', 'out': APT, 'tris': 18000, 'lod1': 1500, 'col': True,
     'len': 11.5, 'tex': 512, 'fin': (2.45, 0.27, 0.45), 'renormal': True, 'dropfaces': r'^Union2Mtl$', 'lod1_minpart': 0.6, 'whiten': r'^Union10_diff'},
 }
 args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else ['all']
@@ -274,7 +276,7 @@ def find_texture(img, src, c):
     d0 = os.path.dirname(src)
     for pat, rel in c.get('texfile', {}).items():
         if re.search(pat, img.name):
-            return os.path.join(os.path.dirname(d0), rel)
+            return os.path.join(d0, rel)   # library sources sit next to their textures/ folder
     nm = os.path.basename(bpy.path.abspath(img.filepath))
     up3 = os.path.dirname(os.path.dirname(os.path.dirname(d0)))
     dirs = [d0, os.path.join(d0, 'textures'), os.path.join(os.path.dirname(d0), 'textures'), os.path.join(up3, 'textures')]

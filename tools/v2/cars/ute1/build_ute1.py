@@ -8,8 +8,8 @@
 #   front / rear plate recesses (the game mounts a 0.305 m plate there), no lettering or badges anywhere.
 # blender -b --factory-startup -P tools/v2/cars/ute1/build_ute1.py -- <source.fbx> <out.blend>
 # wheels come from <source dir>/wheel/wheel_parts.blend, made once from the downloaded rim + tyre by:
-#   blender -b --factory-startup --disable-autoexec -P tools/v2/cars/ute1/prep_wheel.py -- Models/_Inbox/shiny-rim/source/rim2.blend \
-#           Models/_Inbox/tyres/source/tyre.fbx "<source dir>/wheel/wheel_parts.blend"
+#   blender -b --factory-startup --disable-autoexec -P tools/v2/cars/ute1/prep_wheel.py -- "Models/Wheels/Rim 1 - Chrome Five-Spoke Rim/Rim 1.blend" \
+#           "Models/Wheels/Wheel Set 1 - Sport Wheels With Brake Discs And Tires/Wheel Set 1.fbx" "<source dir>/wheel/wheel_parts.blend"
 # Output = a clean source for tools/v2/cars/convert.py (cars.json key ute1: material names U_* -> slots).
 import bpy, bmesh, sys, math, os
 from mathutils import Vector, Matrix

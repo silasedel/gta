@@ -1,8 +1,8 @@
-# Nico's house r11: the user's "kitchen-sink" download (Models/_Inbox/kitchen-sink: a 33 x 22 in double-basin drop-in sink
+# Nico's house r11: the user's "kitchen-sink" download (Models/Kitchens/Sink 2 - Double-Basin Steel Drop-In Sink With Gooseneck Faucet: a 33 x 22 in double-basin drop-in sink
 # with a gooseneck faucet and two handles) -> public/assets/models/keys/kitchen/sink2.glb
 #
 #   blender -b -Y --python-exit-code 1 --python tools/v2/keys/r11/sink11.py -- \
-#       Models/_Inbox/kitchen-sink public/assets/models/keys/kitchen/sink2.glb
+#       "Models/Kitchens/Sink 2 - Double-Basin Steel Drop-In Sink With Gooseneck Faucet" public/assets/models/keys/kitchen/sink2.glb
 #
 # Game frame after export: the long side along X, the faucet toward -Z, the flange top at y = 0, centered on the basin.
 # Two materials: brushed stainless (the shipped color / roughness / normal maps, 1K) and bright chrome for the faucet.
@@ -16,7 +16,7 @@ import numpy as np
 
 ARGS = sys.argv[sys.argv.index("--") + 1 :]
 SRC_DIR, OUT = ARGS[0], ARGS[1]
-TEX = os.path.join(SRC_DIR, "source", "x")
+TEX = os.path.join(SRC_DIR, "textures")   # the library folder: Sink 2.fbx + textures/
 
 
 def load_resized(name, size, non_color=False):
@@ -68,7 +68,7 @@ def chrome():
 
 def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    bpy.ops.import_scene.fbx(filepath=os.path.join(TEX, "KitchenSink.fbx"))
+    bpy.ops.import_scene.fbx(filepath=os.path.join(SRC_DIR, "Sink 2.fbx"))
     objs = [o for o in bpy.context.scene.objects if o.type == "MESH"]
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")

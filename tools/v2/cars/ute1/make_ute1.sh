@@ -6,8 +6,9 @@ cd "$(dirname "$0")/../../../.."
 D="Models/Cars/Trucks/Ute 1 - 1970 Coupe Utility"; OUT=public/assets/vehicles/cars; LOG=tools/v2/cars/logs; B=/opt/homebrew/bin/blender
 # wheel parts (downloaded rim + tyre fitted to the wheel frame), built once; delete the file to rebuild
 [ -f "$D/wheel/wheel_parts.blend" ] || { mkdir -p "$D/wheel"; $B -b --factory-startup --disable-autoexec -P tools/v2/cars/ute1/prep_wheel.py -- \
-  Models/_Inbox/shiny-rim/source/rim2.blend Models/_Inbox/tyres/source/tyre.fbx "$D/wheel/wheel_parts.blend" 2>&1 | grep "\[wheel\]"; }
-$B -b --factory-startup -P tools/v2/cars/ute1/build_ute1.py -- "$D/sketchfab-elcamino.fbx" "$D/ute1_src.blend" 2>&1 | grep "\[ute1\]"
+  "Models/Wheels/Rim 1 - Chrome Five-Spoke Rim/Rim 1.blend" \
+  "Models/Wheels/Wheel Set 1 - Sport Wheels With Brake Discs And Tires/Wheel Set 1.fbx" "$D/wheel/wheel_parts.blend" 2>&1 | grep "\[wheel\]"; }
+$B -b --factory-startup -P tools/v2/cars/ute1/build_ute1.py -- "$D/Ute 1.fbx" "$D/ute1_src.blend" 2>&1 | grep "\[ute1\]"
 cfg=$(python3 -c "import json;c=json.load(open('tools/v2/cars/cars.json'))['ute1'];print(json.dumps({x:y for x,y in c.items() if x!='src'}))")
 $B -b --disable-autoexec --factory-startup -P tools/v2/cars/convert.py -- "$D/ute1_src.blend" $OUT ute1 "$cfg" > $LOG/ute1.log 2>&1
 grep -h "DONE\|FAIL" $LOG/ute1.log || { grep -A4 Traceback $LOG/ute1.log; exit 1; }
