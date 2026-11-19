@@ -45,7 +45,7 @@ Write code the way shipped game codebases read, not dense one-liners:
 - **Shop slots:** `city.storefronts` / `city.storefrontsNear(x, z, r)`: ground-floor shop lots with `{x, z, kind, street,
   facing, building}` (door on the street side, `facing` toward the street). Interiors attach to these (interior id =
   storefront id). Synthetic ground-floor shops (`synthShopsNear`) fill commercial streets.
-- **Set pieces:** `layout.json` `setpieces`: `nico_house` (Key Largo, Pelican Point Ln, x -836, z 5272, heading 0.91,
+- **Set pieces:** `layout.json` `setpieces`: `nico_house` (Key Largo, Pelican Point Ln, layout spot x -836, z 5272, heading 0.91; the built house stands at about x -1008, z 5174 after the r10 turn and shifts,
   lot ring, spawnX/Z in the yard), `keys_sign` (start of the Overseas Highway), `keys_bar` (Key Largo strip).
 - **Key Largo by hand (keys pass, Nov 17):** Nico's yard and street corner are explicit data in
   `src/world/setpieces/nicoHouse/yard.data.js` (house-local frame of plan.js; built by parts/55_yard.js, dock by parts/06_dock.js
