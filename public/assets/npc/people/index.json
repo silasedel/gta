@@ -9,6 +9,7 @@
    "age": "elderly",
    "years": 78,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "keys",
@@ -44,6 +45,7 @@
    "age": "adult",
    "years": 24,
    "role": "local",
+   "look": "casual",
    "places": [
     "street",
     "residential",
@@ -79,6 +81,7 @@
    "age": "older",
    "years": 58,
    "role": "fisherman",
+   "look": "rugged",
    "places": [
     "dock",
     "keys",
@@ -113,6 +116,7 @@
    "age": "adult",
    "years": 27,
    "role": "jogger",
+   "look": "sport",
    "places": [
     "sport",
     "beach_walk",
@@ -148,6 +152,7 @@
    "age": "adult",
    "years": 30,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "beach_walk",
@@ -182,6 +187,7 @@
    "age": "adult",
    "years": 34,
    "role": "nurse",
+   "look": "uniform",
    "places": [
     "street",
     "business",
@@ -215,6 +221,7 @@
    "age": "adult",
    "years": 25,
    "role": "local",
+   "look": "casual",
    "places": [
     "street",
     "residential",
@@ -249,6 +256,7 @@
    "age": "older",
    "years": 64,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "beach_walk",
@@ -283,6 +291,7 @@
    "age": "adult",
    "years": 45,
    "role": "office",
+   "look": "business",
    "places": [
     "business",
     "street"
@@ -315,6 +324,7 @@
    "age": "teen",
    "years": 16,
    "role": "teen",
+   "look": "casual",
    "places": [
     "street",
     "residential",
@@ -349,6 +359,7 @@
    "age": "adult",
    "years": 29,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "street",
@@ -383,6 +394,7 @@
    "age": "adult",
    "years": 33,
    "role": "swat",
+   "look": "uniform",
    "places": [
     "police_swat"
    ],
@@ -414,6 +426,7 @@
    "age": "teen",
    "years": 17,
    "role": "teen",
+   "look": "street",
    "places": [
     "street",
     "residential",
@@ -448,6 +461,7 @@
    "age": "adult",
    "years": 41,
    "role": "businessman",
+   "look": "business",
    "places": [
     "business"
    ],
@@ -479,6 +493,7 @@
    "age": "adult",
    "years": 48,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "beach_walk",
@@ -513,6 +528,7 @@
    "age": "adult",
    "years": 36,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -544,6 +560,7 @@
    "age": "adult",
    "years": 26,
    "role": "cashier",
+   "look": "staff",
    "places": [
     "shop_staff",
     "street"
@@ -576,6 +593,7 @@
    "age": "adult",
    "years": 47,
    "role": "worker",
+   "look": "worker",
    "places": [
     "work",
     "port",
@@ -611,6 +629,7 @@
    "age": "adult",
    "years": 32,
    "role": "bartender",
+   "look": "staff",
    "places": [
     "bar",
     "nightlife",
@@ -644,6 +663,7 @@
    "age": "older",
    "years": 62,
    "role": "local",
+   "look": "casual",
    "places": [
     "residential",
     "keys",
@@ -679,6 +699,7 @@
    "age": "adult",
    "years": 31,
    "role": "nightlife",
+   "look": "evening",
    "places": [
     "nightlife",
     "business"
@@ -712,6 +733,7 @@
    "age": "adult",
    "years": 22,
    "role": "student",
+   "look": "street",
    "places": [
     "street",
     "residential",
@@ -746,6 +768,7 @@
    "age": "kid",
    "years": 11,
    "role": "kid",
+   "look": "casual",
    "places": [
     "residential",
     "park",
@@ -780,6 +803,7 @@
    "age": "adult",
    "years": 50,
    "role": "manager",
+   "look": "casual",
    "places": [
     "business",
     "shop_staff",
@@ -813,6 +837,7 @@
    "age": "older",
    "years": 66,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "keys",
@@ -848,6 +873,7 @@
    "age": "kid",
    "years": 9,
    "role": "kid",
+   "look": "casual",
    "places": [
     "residential",
     "park",
@@ -882,6 +908,7 @@
    "age": "adult",
    "years": 23,
    "role": "beachgoer",
+   "look": "beach",
    "places": [
     "beach",
     "beach_walk",
@@ -916,6 +943,7 @@
    "age": "adult",
    "years": 28,
    "role": "bouncer",
+   "look": "street",
    "places": [
     "nightlife",
     "security",
@@ -950,6 +978,7 @@
    "age": "adult",
    "years": 27,
    "role": "nightlife",
+   "look": "evening",
    "places": [
     "nightlife",
     "tourist"
@@ -983,6 +1012,7 @@
    "age": "adult",
    "years": 24,
    "role": "beachgoer",
+   "look": "beach",
    "places": [
     "beach",
     "beach_walk",
@@ -1017,6 +1047,7 @@
    "age": "adult",
    "years": 26,
    "role": "nightlife",
+   "look": "evening",
    "places": [
     "nightlife"
    ],
@@ -1049,6 +1080,7 @@
    "age": "adult",
    "years": 28,
    "role": "jogger",
+   "look": "sport",
    "places": [
     "sport",
     "park",
@@ -1084,6 +1116,7 @@
    "age": "adult",
    "years": 25,
    "role": "beachgoer",
+   "look": "beach",
    "places": [
     "beach",
     "beach_walk",
@@ -1117,6 +1150,7 @@
    "age": "adult",
    "years": 29,
    "role": "swimmer",
+   "look": "swim",
    "places": [
     "beach",
     "swim"
@@ -1149,6 +1183,7 @@
    "age": "adult",
    "years": 26,
    "role": "swimmer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -1182,6 +1217,7 @@
    "age": "adult",
    "years": 34,
    "role": "nightlife",
+   "look": "evening",
    "places": [
     "nightlife",
     "tourist",
@@ -1215,6 +1251,7 @@
    "age": "adult",
    "years": 27,
    "role": "jogger",
+   "look": "sport",
    "places": [
     "sport",
     "park",
@@ -1250,6 +1287,7 @@
    "age": "adult",
    "years": 39,
    "role": "businesswoman",
+   "look": "business",
    "places": [
     "business"
    ],
@@ -1281,6 +1319,7 @@
    "age": "elderly",
    "years": 76,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "keys",
@@ -1316,6 +1355,7 @@
    "age": "adult",
    "years": 24,
    "role": "lifeguard",
+   "look": "uniform",
    "places": [
     "lifeguard"
    ],
@@ -1347,6 +1387,7 @@
    "age": "older",
    "years": 63,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "keys",
@@ -1381,6 +1422,7 @@
    "age": "adult",
    "years": 44,
    "role": "worker",
+   "look": "rugged",
    "places": [
     "work",
     "rural",
@@ -1416,6 +1458,7 @@
    "age": "older",
    "years": 60,
    "role": "farmer",
+   "look": "rugged",
    "places": [
     "rural",
     "farm"
@@ -1448,6 +1491,7 @@
    "age": "older",
    "years": 61,
    "role": "businessman",
+   "look": "business",
    "places": [
     "business",
     "tourist",
@@ -1481,6 +1525,7 @@
    "age": "teen",
    "years": 15,
    "role": "teen",
+   "look": "casual",
    "places": [
     "street",
     "residential",
@@ -1516,6 +1561,7 @@
    "age": "adult",
    "years": 38,
    "role": "chef",
+   "look": "staff",
    "places": [
     "kitchen",
     "street"
@@ -1548,6 +1594,7 @@
    "age": "adult",
    "years": 33,
    "role": "shop_worker",
+   "look": "staff",
    "places": [
     "shop_staff",
     "kitchen",
@@ -1581,6 +1628,7 @@
    "age": "adult",
    "years": 30,
    "role": "local",
+   "look": "evening",
    "places": [
     "nightlife",
     "street",
@@ -1614,6 +1662,7 @@
    "age": "adult",
    "years": 37,
    "role": "businessman",
+   "look": "business",
    "places": [
     "business"
    ],
@@ -1645,6 +1694,7 @@
    "age": "adult",
    "years": 35,
    "role": "local",
+   "look": "rugged",
    "places": [
     "keys",
     "rural",
@@ -1680,6 +1730,7 @@
    "age": "adult",
    "years": 42,
    "role": "local",
+   "look": "street",
    "places": [
     "rough",
     "street",
@@ -1713,6 +1764,7 @@
    "age": "adult",
    "years": 45,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -1744,6 +1796,7 @@
    "age": "adult",
    "years": 21,
    "role": "beachgoer",
+   "look": "beach",
    "places": [
     "beach_walk",
     "street",
@@ -1778,6 +1831,7 @@
    "age": "adult",
    "years": 39,
    "role": "worker",
+   "look": "rugged",
    "places": [
     "rural",
     "keys",
@@ -1812,6 +1866,7 @@
    "age": "adult",
    "years": 44,
    "role": "maid",
+   "look": "staff",
    "places": [
     "hotel_staff",
     "street"
@@ -1844,6 +1899,7 @@
    "age": "adult",
    "years": 33,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "keys",
@@ -1878,6 +1934,7 @@
    "age": "adult",
    "years": 29,
    "role": "local",
+   "look": "street",
    "places": [
     "street",
     "rough",
@@ -1912,6 +1969,7 @@
    "age": "older",
    "years": 59,
    "role": "hunter",
+   "look": "rugged",
    "places": [
     "rural",
     "keys",
@@ -1946,6 +2004,7 @@
    "age": "adult",
    "years": 35,
    "role": "office",
+   "look": "business",
    "places": [
     "business",
     "street"
@@ -1978,6 +2037,7 @@
    "age": "adult",
    "years": 46,
    "role": "businessman",
+   "look": "business",
    "places": [
     "business",
     "security"
@@ -2010,6 +2070,7 @@
    "age": "adult",
    "years": 40,
    "role": "construction",
+   "look": "worker",
    "places": [
     "work",
     "industrial",
@@ -2043,6 +2104,7 @@
    "age": "older",
    "years": 60,
    "role": "local",
+   "look": "casual",
    "places": [
     "residential",
     "keys",
@@ -2077,6 +2139,7 @@
    "age": "adult",
    "years": 31,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -2108,6 +2171,7 @@
    "age": "adult",
    "years": 27,
    "role": "bellhop",
+   "look": "staff",
    "places": [
     "hotel_staff"
    ],
@@ -2139,6 +2203,7 @@
    "age": "adult",
    "years": 36,
    "role": "shop_worker",
+   "look": "staff",
    "places": [
     "shop_staff",
     "street",
@@ -2172,6 +2237,7 @@
    "age": "adult",
    "years": 25,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim"
@@ -2204,6 +2270,7 @@
    "age": "older",
    "years": 64,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "tourist",
@@ -2238,6 +2305,7 @@
    "age": "adult",
    "years": 32,
    "role": "paramedic",
+   "look": "uniform",
    "places": [
     "medic"
    ],
@@ -2269,6 +2337,7 @@
    "age": "adult",
    "years": 43,
    "role": "ranger",
+   "look": "rugged",
    "places": [
     "park",
     "rural",
@@ -2302,6 +2371,7 @@
    "age": "adult",
    "years": 38,
    "role": "road_worker",
+   "look": "worker",
    "places": [
     "work",
     "industrial",
@@ -2335,6 +2405,7 @@
    "age": "older",
    "years": 55,
    "role": "boat_captain",
+   "look": "worker",
    "places": [
     "dock",
     "port",
@@ -2369,6 +2440,7 @@
    "age": "older",
    "years": 52,
    "role": "chef",
+   "look": "staff",
    "places": [
     "kitchen"
    ],
@@ -2400,6 +2472,7 @@
    "age": "adult",
    "years": 30,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -2431,6 +2504,7 @@
    "age": "adult",
    "years": 49,
    "role": "maintenance",
+   "look": "worker",
    "places": [
     "work",
     "hotel_staff",
@@ -2465,6 +2539,7 @@
    "age": "older",
    "years": 67,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "beach_walk",
@@ -2498,6 +2573,7 @@
    "age": "adult",
    "years": 44,
    "role": "businessman",
+   "look": "business",
    "places": [
     "business"
    ],
@@ -2529,6 +2605,7 @@
    "age": "adult",
    "years": 28,
    "role": "server",
+   "look": "staff",
    "places": [
     "bar",
     "shop_staff",
@@ -2563,6 +2640,7 @@
    "age": "older",
    "years": 66,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "beach_walk",
@@ -2597,6 +2675,7 @@
    "age": "adult",
    "years": 30,
    "role": "local",
+   "look": "street",
    "places": [
     "rough",
     "street",
@@ -2631,6 +2710,7 @@
    "age": "adult",
    "years": 38,
    "role": "farmer",
+   "look": "rugged",
    "places": [
     "rural",
     "farm",
@@ -2664,6 +2744,7 @@
    "age": "elderly",
    "years": 81,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "keys",
@@ -2698,6 +2779,7 @@
    "age": "adult",
    "years": 37,
    "role": "businesswoman",
+   "look": "business",
    "places": [
     "business"
    ],
@@ -2730,6 +2812,7 @@
    "age": "adult",
    "years": 40,
    "role": "local",
+   "look": "casual",
    "places": [
     "street",
     "residential",
@@ -2765,6 +2848,7 @@
    "age": "adult",
    "years": 34,
    "role": "local",
+   "look": "casual",
    "places": [
     "street",
     "residential",
@@ -2799,6 +2883,7 @@
    "age": "adult",
    "years": 46,
    "role": "detective",
+   "look": "business",
    "places": [
     "police_detective",
     "business",
@@ -2832,6 +2917,7 @@
    "age": "older",
    "years": 63,
    "role": "local",
+   "look": "street",
    "places": [
     "street",
     "residential",
@@ -2866,6 +2952,7 @@
    "age": "adult",
    "years": 31,
    "role": "delivery",
+   "look": "worker",
    "places": [
     "work",
     "street",
@@ -2899,6 +2986,7 @@
    "age": "adult",
    "years": 29,
    "role": "bartender",
+   "look": "staff",
    "places": [
     "bar",
     "nightlife"
@@ -2931,6 +3019,7 @@
    "age": "adult",
    "years": 33,
    "role": "office",
+   "look": "business",
    "places": [
     "business",
     "shop_staff",
@@ -2964,6 +3053,7 @@
    "age": "adult",
    "years": 30,
    "role": "bodybuilder",
+   "look": "sport",
    "places": [
     "sport",
     "beach_walk",
@@ -2999,6 +3089,7 @@
    "age": "adult",
    "years": 42,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "keys",
@@ -3033,6 +3124,7 @@
    "age": "adult",
    "years": 45,
    "role": "local",
+   "look": "casual",
    "places": [
     "street",
     "residential",
@@ -3069,6 +3161,7 @@
    "age": "adult",
    "years": 41,
    "role": "mechanic",
+   "look": "worker",
    "places": [
     "work",
     "industrial",
@@ -3103,6 +3196,7 @@
    "age": "adult",
    "years": 22,
    "role": "surfer",
+   "look": "beach",
    "places": [
     "beach",
     "beach_walk",
@@ -3137,6 +3231,7 @@
    "age": "adult",
    "years": 48,
    "role": "local",
+   "look": "rugged",
    "places": [
     "rural",
     "keys",
@@ -3172,6 +3267,7 @@
    "age": "adult",
    "years": 26,
    "role": "lifeguard",
+   "look": "uniform",
    "places": [
     "lifeguard"
    ],
@@ -3203,6 +3299,7 @@
    "age": "adult",
    "years": 28,
    "role": "lifeguard",
+   "look": "uniform",
    "places": [
     "lifeguard"
    ],
@@ -3234,6 +3331,7 @@
    "age": "adult",
    "years": 26,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3267,6 +3365,7 @@
    "age": "older",
    "years": 62,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "beach_walk",
@@ -3304,6 +3403,7 @@
    "age": "adult",
    "years": 32,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3341,6 +3441,7 @@
    "age": "adult",
    "years": 27,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3378,6 +3479,7 @@
    "age": "adult",
    "years": 24,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3415,6 +3517,7 @@
    "age": "adult",
    "years": 25,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3452,6 +3555,7 @@
    "age": "adult",
    "years": 26,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3490,6 +3594,7 @@
    "age": "adult",
    "years": 21,
    "role": "beachgoer",
+   "look": "beach",
    "places": [
     "beach_walk",
     "beach",
@@ -3528,6 +3633,7 @@
    "age": "adult",
    "years": 27,
    "role": "surfer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3565,6 +3671,7 @@
    "age": "adult",
    "years": 24,
    "role": "surfer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3602,6 +3709,7 @@
    "age": "adult",
    "years": 44,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -3640,6 +3748,7 @@
    "age": "adult",
    "years": 26,
    "role": "lifeguard",
+   "look": "uniform",
    "places": [
     "lifeguard"
    ],
@@ -3675,6 +3784,7 @@
    "age": "older",
    "years": 64,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "beach_walk",
@@ -3712,6 +3822,7 @@
    "age": "adult",
    "years": 25,
    "role": "lifeguard",
+   "look": "uniform",
    "places": [
     "lifeguard"
    ],
@@ -3747,6 +3858,7 @@
    "age": "adult",
    "years": 30,
    "role": "delivery",
+   "look": "worker",
    "places": [
     "work",
     "street",
@@ -3780,6 +3892,7 @@
    "age": "adult",
    "years": 24,
    "role": "lifeguard",
+   "look": "uniform",
    "places": [
     "lifeguard"
    ],
@@ -3811,6 +3924,7 @@
    "age": "adult",
    "years": 38,
    "role": "sanitation",
+   "look": "worker",
    "places": [
     "work",
     "street",
@@ -3844,6 +3958,7 @@
    "age": "adult",
    "years": 28,
    "role": "delivery",
+   "look": "worker",
    "places": [
     "work",
     "street",
@@ -3877,6 +3992,7 @@
    "age": "adult",
    "years": 35,
    "role": "landscaper",
+   "look": "worker",
    "places": [
     "work",
     "residential",
@@ -3914,6 +4030,7 @@
    "age": "adult",
    "years": 40,
    "role": "construction",
+   "look": "worker",
    "places": [
     "work",
     "industrial",
@@ -3951,6 +4068,7 @@
    "age": "adult",
    "years": 36,
    "role": "maid",
+   "look": "staff",
    "places": [
     "hotel_staff"
    ],
@@ -3986,6 +4104,7 @@
    "age": "adult",
    "years": 22,
    "role": "server",
+   "look": "staff",
    "places": [
     "bar",
     "shop_staff"
@@ -4022,6 +4141,7 @@
    "age": "adult",
    "years": 19,
    "role": "valet",
+   "look": "staff",
    "places": [
     "hotel_staff",
     "nightlife"
@@ -4058,6 +4178,7 @@
    "age": "adult",
    "years": 38,
    "role": "nurse",
+   "look": "uniform",
    "places": [
     "medic",
     "street",
@@ -4095,6 +4216,7 @@
    "age": "adult",
    "years": 33,
    "role": "paramedic",
+   "look": "uniform",
    "places": [
     "medic"
    ],
@@ -4130,6 +4252,7 @@
    "age": "adult",
    "years": 41,
    "role": "firefighter",
+   "look": "uniform",
    "places": [
     "fire",
     "work"
@@ -4166,6 +4289,7 @@
    "age": "older",
    "years": 58,
    "role": "mail_carrier",
+   "look": "worker",
    "places": [
     "work",
     "residential",
@@ -4203,6 +4327,7 @@
    "age": "adult",
    "years": 36,
    "role": "security",
+   "look": "uniform",
    "places": [
     "security"
    ],
@@ -4238,6 +4363,7 @@
    "age": "adult",
    "years": 30,
    "role": "mechanic",
+   "look": "worker",
    "places": [
     "work",
     "industrial",
@@ -4275,6 +4401,7 @@
    "age": "adult",
    "years": 29,
    "role": "office",
+   "look": "business",
    "places": [
     "business",
     "street"
@@ -4311,6 +4438,7 @@
    "age": "adult",
    "years": 47,
    "role": "businesswoman",
+   "look": "business",
    "places": [
     "business",
     "street"
@@ -4347,6 +4475,7 @@
    "age": "adult",
    "years": 29,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -4382,6 +4511,7 @@
    "age": "adult",
    "years": 34,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -4417,6 +4547,7 @@
    "age": "adult",
    "years": 27,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -4452,6 +4583,7 @@
    "age": "older",
    "years": 55,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -4487,6 +4619,7 @@
    "age": "adult",
    "years": 30,
    "role": "police",
+   "look": "uniform",
    "places": [
     "police"
    ],
@@ -4522,6 +4655,7 @@
    "age": "adult",
    "years": 26,
    "role": "local",
+   "look": "casual",
    "places": [
     "street",
     "tourist",
@@ -4561,6 +4695,7 @@
    "age": "adult",
    "years": 31,
    "role": "jogger",
+   "look": "sport",
    "places": [
     "sport",
     "park",
@@ -4598,6 +4733,7 @@
    "age": "adult",
    "years": 24,
    "role": "nightlife",
+   "look": "evening",
    "places": [
     "nightlife",
     "street"
@@ -4634,6 +4770,7 @@
    "age": "adult",
    "years": 39,
    "role": "businesswoman",
+   "look": "business",
    "places": [
     "business",
     "street"
@@ -4670,6 +4807,7 @@
    "age": "adult",
    "years": 28,
    "role": "local",
+   "look": "street",
    "places": [
     "street",
     "nightlife",
@@ -4708,6 +4846,7 @@
    "age": "elderly",
    "years": 78,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "street",
@@ -4746,6 +4885,7 @@
    "age": "elderly",
    "years": 82,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "street",
@@ -4784,6 +4924,7 @@
    "age": "older",
    "years": 70,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "residential",
@@ -4822,6 +4963,7 @@
    "age": "elderly",
    "years": 74,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "park",
@@ -4860,6 +5002,7 @@
    "age": "kid",
    "years": 8,
    "role": "kid",
+   "look": "casual",
    "places": [
     "park",
     "residential"
@@ -4896,6 +5039,7 @@
    "age": "kid",
    "years": 8,
    "role": "kid",
+   "look": "casual",
    "places": [
     "park",
     "residential"
@@ -4932,6 +5076,7 @@
    "age": "kid",
    "years": 10,
    "role": "kid",
+   "look": "casual",
    "places": [
     "park",
     "residential"
@@ -4968,6 +5113,7 @@
    "age": "kid",
    "years": 12,
    "role": "kid",
+   "look": "casual",
    "places": [
     "park",
     "residential"
@@ -5004,6 +5150,7 @@
    "age": "kid",
    "years": 12,
    "role": "kid",
+   "look": "casual",
    "places": [
     "park",
     "residential"
@@ -5040,6 +5187,7 @@
    "age": "adult",
    "years": 48,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "beach_walk",
@@ -5077,6 +5225,7 @@
    "age": "adult",
    "years": 26,
    "role": "bodybuilder",
+   "look": "sport",
    "places": [
     "sport",
     "street",
@@ -5114,6 +5263,7 @@
    "age": "kid",
    "years": 10,
    "role": "kid",
+   "look": "casual",
    "places": [
     "park",
     "residential"
@@ -5150,6 +5300,7 @@
    "age": "older",
    "years": 50,
    "role": "homeless",
+   "look": "street",
    "places": [
     "rough",
     "street"
@@ -5186,6 +5337,7 @@
    "age": "adult",
    "years": 27,
    "role": "gang",
+   "look": "gang",
    "places": [
     "gang"
    ],
@@ -5221,6 +5373,7 @@
    "age": "adult",
    "years": 44,
    "role": "vendor",
+   "look": "staff",
    "places": [
     "street",
     "tourist",
@@ -5258,6 +5411,7 @@
    "age": "adult",
    "years": 32,
    "role": "gang",
+   "look": "gang",
    "places": [
     "gang"
    ],
@@ -5293,6 +5447,7 @@
    "age": "adult",
    "years": 24,
    "role": "gang",
+   "look": "gang",
    "places": [
     "gang"
    ],
@@ -5328,6 +5483,7 @@
    "age": "adult",
    "years": 35,
    "role": "gang",
+   "look": "gang",
    "places": [
     "gang"
    ],
@@ -5363,6 +5519,7 @@
    "age": "adult",
    "years": 29,
    "role": "gang",
+   "look": "gang",
    "places": [
     "gang"
    ],
@@ -5398,6 +5555,7 @@
    "age": "adult",
    "years": 30,
    "role": "gang",
+   "look": "gang",
    "places": [
     "gang"
    ],
@@ -5433,6 +5591,7 @@
    "age": "adult",
    "years": 22,
    "role": "gang",
+   "look": "gang",
    "places": [
     "gang"
    ],
@@ -5468,6 +5627,7 @@
    "age": "adult",
    "years": 25,
    "role": "beachgoer",
+   "look": "swim",
    "places": [
     "beach",
     "swim",
@@ -5501,6 +5661,7 @@
    "age": "older",
    "years": 60,
    "role": "fisherman",
+   "look": "rugged",
    "places": [
     "dock",
     "fishing",
@@ -5538,6 +5699,7 @@
    "age": "adult",
    "years": 45,
    "role": "boat_captain",
+   "look": "worker",
    "places": [
     "dock",
     "keys",
@@ -5575,6 +5737,7 @@
    "age": "adult",
    "years": 40,
    "role": "guide",
+   "look": "rugged",
    "places": [
     "keys",
     "dock",
@@ -5612,6 +5775,7 @@
    "age": "adult",
    "years": 42,
    "role": "fisherman",
+   "look": "rugged",
    "places": [
     "dock",
     "fishing",
@@ -5649,6 +5813,7 @@
    "age": "adult",
    "years": 34,
    "role": "bouncer",
+   "look": "uniform",
    "places": [
     "security",
     "nightlife"
@@ -5685,6 +5850,7 @@
    "age": "adult",
    "years": 30,
    "role": "bartender",
+   "look": "staff",
    "places": [
     "bar"
    ],
@@ -5716,6 +5882,7 @@
    "age": "adult",
    "years": 38,
    "role": "businessman",
+   "look": "business",
    "places": [
     "business"
    ],
@@ -5751,6 +5918,7 @@
    "age": "adult",
    "years": 33,
    "role": "businesswoman",
+   "look": "business",
    "places": [
     "business",
     "nightlife"
@@ -5783,6 +5951,7 @@
    "age": "adult",
    "years": 20,
    "role": "local",
+   "look": "casual",
    "places": [
     "street",
     "park",
@@ -5816,6 +5985,7 @@
    "age": "adult",
    "years": 45,
    "role": "musician",
+   "look": "casual",
    "places": [
     "street",
     "tourist",
@@ -5849,6 +6019,7 @@
    "age": "adult",
    "years": 28,
    "role": "jogger",
+   "look": "sport",
    "places": [
     "sport",
     "park",
@@ -5882,6 +6053,7 @@
    "age": "adult",
    "years": 38,
    "role": "tourist",
+   "look": "tourist",
    "places": [
     "tourist",
     "beach_walk",
@@ -5916,6 +6088,7 @@
    "age": "older",
    "years": 62,
    "role": "retiree",
+   "look": "casual",
    "places": [
     "residential",
     "street",
