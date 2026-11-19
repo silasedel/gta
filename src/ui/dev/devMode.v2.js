@@ -3,7 +3,8 @@
 //    shakes the field. The panel also has the dev switches (police lock, turn dev mode off) and the dev key list.
 //  - DEV badge at the bottom right (above the speedometer while driving, hidden behind the phone).
 //  - Pause map: with a waypoint set, a TELEPORT button sits beside the pin (or press T). The player (and their car, landed
-//    on the nearest lane heading along it) is moved there behind a short black veil ("Loading area") and held in place
+//    on the nearest lane heading along it) is moved there behind the main menu's loading screen (src/ui/menu/loadScreen.js,
+//    user Nov 19; it was a plain black veil) and held in place
 //    until the tile colliders and the near tiles around the spot are streamed, so nothing falls through the world.
 //    Water spots move to the nearest dry, walkable ground.
 //  - Police lock: a lock beside the wanted stars (click it while the cursor is free, or ; / L in the pause menu). Locked =
@@ -12,6 +13,7 @@
 // API: game.dev = { on, policeLock, setOn(b), setPoliceLock(b), teleportTo(x, z), openCodes() }
 import './devMode.css';
 import { seaLevel } from '../../player/controller/surface.js';
+import { createLoadScreen } from '../menu/loadScreen.js';
 
 export const order = 900; // after the police / law system and the HUD, so the crime filter wraps theirs
 
@@ -67,9 +69,6 @@ export async function initV2(game) {
   lockBtn.title = 'Police lock (dev): no wanted level, no crimes reported';
   corner?.appendChild(lockBtn);
 
-  const veil = el('div', 'ps-dev-veil', '<div><div class="msg"><span class="spin"></span>LOADING AREA</div><small></small></div>');
-  document.body.appendChild(veil);
-  const veilSmall = veil.querySelector('small');
 
   // ------------------------------------------------------------------ state -> view
   function paint() {
@@ -149,7 +148,8 @@ export async function initV2(game) {
     const v = field.value.replace(/\D/g, '');
     if (v === CODE) {
       field.classList.remove('bad'); field.classList.add('good');
-      setOn(!S.on);
+      // from the Settings "Dev mode" toggle (unlock) the code only turns it on; the bare Codes panel still toggles
+      setOn(panelOpts.unlock ? true : !S.on);
       notify(game, S.on ? 'Dev mode ON' : 'Dev mode OFF', 2000);
       setTimeout(() => { field.value = ''; field.classList.remove('good'); if (panelOpts.closeOnSuccess) closeCodes(); }, 500);
     } else {
@@ -309,9 +309,12 @@ export async function initV2(game) {
       const d = footNear(x, z);
       dest = { x: d.x, z: d.z, y: gy(d.x, d.z), heading: P?.heading ?? 0, car: false, moved: d.moved };
     }
-    veilSmall.textContent = (() => { try { return city()?.districtAt?.(dest.x, dest.z) || ''; } catch (e) { return ''; } })();
-    veil.classList.add('on');
-    await sleep(300);
+    // the main menu's loading screen (key art, LOADING bar, tips), not a black veil (user, Nov 19)
+    const load = createLoadScreen({ mount: document.body });
+    load.el.style.zIndex = '2147481000';
+    load.place((() => { try { return city()?.districtAt?.(dest.x, dest.z) || ''; } catch (e) { return ''; } })());
+    load.set(4, 'Loading area');
+    await sleep(750);
     try { game.hud?.setPaused?.(false, true); } catch (e) { /* */ }
     // move there and freeze: the player kinematic (player.script), the car without gravity, re-placed every tick
     let releaseP = null, car = null;
@@ -322,6 +325,7 @@ export async function initV2(game) {
     while (performance.now() - t0 < 30000) {
       await sleep(100);
       if (car) car.put();
+      { const t = performance.now() - t0, q = city()?.streamer?.pending?.() || 0; load.set(Math.min(94, 6 + 88 * (1 - Math.exp(-t / 3500))), q > 4 ? `Streaming the area · ${q}` : 'Placing you'); }
       if (performance.now() - t0 < 600 || !areaReady(dest.x, dest.z)) continue;
       if (dest.swim) { ok = true; break; } // open water: nothing to stand on, the swim code takes over at the surface
       // the collider under the exact landing point must exist (ray hit within 2 m of the drawn ground)
@@ -333,7 +337,7 @@ export async function initV2(game) {
     else { releaseP?.(); try { game.teleport(dest.x, dest.y + 0.05, dest.z); } catch (e) { /* */ } }
     await frames(3);
     try { if (game.renderer?.shadowMap) game.renderer.shadowMap.needsUpdate = true; } catch (e) { /* */ }
-    veil.classList.remove('on');
+    load.set(100, 'Ready'); load.close();
     game.waypoint = null;
     S.busy = false;
     S.lastTeleport = { ...dest, ok, hitY, ms: Math.round(performance.now() - t0) };

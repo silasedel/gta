@@ -17,6 +17,7 @@ import { openSettingsScreen } from './settingsScreen.js';
 import { openWardrobeStage } from './wardrobeStage.js';
 import { createLoadScreen } from './loadScreen.js';
 import * as loadingMusic from '../../audio/loadingMusic.js';
+import { mountMusicMute } from './musicMute.js';
 import creditsText from '../../../CREDITS.md?raw';
 
 export const order = 950;
@@ -177,6 +178,7 @@ function startTitle(game, ctx, cin, fe, params) {
     if (ctx.settings.get('menuMusic') === false) loadingMusic.stop(game, 0.8); else loadingMusic.start(game, { settings: ctx.settings });
   };
   music();
+  try { mountMusicMute(); } catch (e) { /* */ }
   ctx.settings.on('menuMusic', () => { if (fe.screen !== 'loading' && game.ui?.title !== false) music(); });
   for (const k of ['volMaster', 'volMusic']) ctx.settings.on(k, () => loadingMusic.setVolume(game, ctx.settings));
   let npLast = '';

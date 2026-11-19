@@ -16,7 +16,7 @@ export const PAUSE_SECTIONS = [
   { id: 'subs', title: 'Subtitles', keys: ['subtitles', 'subtitleSize', 'subtitleBackground', 'subtitleSpeaker', 'subtitleAmbient', 'subtitlePreview'] },
   { id: 'access', title: 'Accessibility', keys: ['colorblind', 'highContrast', 'reducedMotion', 'reduceFlashes', 'phoneWalk'] },
   { id: 'game', title: 'Game', keys: ['units', 'clock24h', 'language', 'autosaveMinutes', 'resetAll'] },
-  { id: 'codes', title: 'Codes', keys: ['codes'] },
+  { id: 'codes', title: 'Codes', keys: ['devMode', 'codes'] },
 ];
 
 /** Mounts the Settings page into `host`. Returns { render(keepKey), section(id) }. */
@@ -35,8 +35,21 @@ export function mountPauseSettings(game, ctx, host) {
     const on = !!game?.dev?.on;
     return `<div class="pm-row pz-codes" data-nav data-key="codes" data-kind="codes"><span class="pm-row-l">${esc(t('Enter a code'))}</span>${on ? '<span class="pz-chip">DEV MODE ON</span>' : ''}<span class="pz-btn">${esc(t('Enter code'))}</span></div>`;
   }
+  // Dev mode (user, Nov 19): a plain toggle. Turning it ON asks for the dev code every time (the code panel, which turns it
+  // on and closes); turning it OFF needs nothing.
+  function devRow() {
+    const on = !!game?.dev?.on;
+    return `<div class="pm-row" data-nav data-key="devMode" data-kind="devmode"><span class="pm-row-l">${esc(t('Dev mode'))}</span><span class="pm-tog${on ? ' on' : ''}"><i></i></span><span class="pm-row-v">${on ? esc(t('On')) : esc(t('Off'))}</span></div>`;
+  }
+  function setDev(want) {
+    const D = game?.dev; if (!D) return;
+    if (!want) { if (D.on) { D.setOn(false); ctx.notify?.('Dev mode OFF', 1800); } render('devMode'); return; }
+    if (D.on) return;
+    D.openCodes({ unlock: true, closeOnSuccess: true, onClose: () => { if (host.isConnected) render('devMode'); } });
+  }
   function row(k) {
     if (k === 'codes') return codesRow();
+    if (k === 'devMode') return devRow();
     const it = def(k); if (!it) return '';
     return settingRowHTML(game, S, B, t, it);
   }
@@ -64,11 +77,13 @@ export function mountPauseSettings(game, ctx, host) {
 
   function describe(e) {
     const k = e?.dataset?.key || e?.closest?.('[data-key]')?.dataset.key;
+    if (k === 'devMode') { descB.textContent = t('Dev mode'); descP.textContent = t('Teleport, time and weather keys, police lock and infinite money. Turning it on asks for the dev code.'); return; }
     if (k === 'codes') { descB.textContent = t('Codes'); descP.textContent = game?.dev?.on ? t('Dev mode is on. The code panel has the dev switches and turns it off.') : t('Type a code with the keyboard, the number keys or the keypad.'); return; }
     const it = k && def(k);
     descB.textContent = it ? t(it.label || '') : ''; descP.textContent = it?.desc ? t(it.desc) : '';
   }
   function adjust(e, dir) {
+    if (e.dataset.key === 'devMode') { ctx.sfx('move'); setDev(!game?.dev?.on); return; }
     const k = e.dataset.key, it = S.item(k); if (!it) return;
     ctx.sfx('move');
     if (it.type === 'range') S.set(k, S.get(k) + dir * it.step);
@@ -85,6 +100,7 @@ export function mountPauseSettings(game, ctx, host) {
     if (seg) { const it = S.item(r.dataset.key); const op = it?.options.find((x) => String(x.value) === seg.dataset.val); if (op) { S.set(r.dataset.key, op.value); ctx.sfx('move'); } return; }
     const it = def(r.dataset.key);
     if (r.dataset.kind === 'toggle') { S.set(r.dataset.key, !S.get(r.dataset.key)); ctx.sfx('select'); }
+    else if (r.dataset.kind === 'devmode') { ctx.sfx('select'); setDev(!game?.dev?.on); }
     else if (r.dataset.kind === 'codes') game?.dev?.openCodes?.({ onClose: () => { if (host.isConnected) render('codes'); } });
     else if (r.dataset.kind === 'action') {
       if (it?.action === 'detect') { const d = S.detect(); S.applyPreset(d.preset); ctx.notify?.(`Picked ${d.preset}: ${d.reason}`, 3500); }

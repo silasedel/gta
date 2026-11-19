@@ -4,12 +4,14 @@
 import { createLoadScreen } from './loadScreen.js';
 import { installQuickTitle, quickTitleEnabled } from './quickTitle.js';
 import * as loadingMusic from '../../audio/loadingMusic.js';
+import { mountMusicMute } from './musicMute.js';
 
 function install() {
   const L = document.getElementById('loading'); if (!L || L.dataset.sl) return;
   L.dataset.sl = '1';
   // the first loading screen plays the same loop as the second (user): started here, before the engine exists, on a private AudioContext
   try { loadingMusic.start({}, { owner: 'boot' }); window.__bootLoop = true; } catch (e) { console.warn('[boot music]', e); }
+  try { mountMusicMute(); } catch (e) { /* */ }
   for (const c of L.children) c.style.visibility = 'hidden';
   L.style.background = '#12061c';
   const ls = createLoadScreen({ mount: L });

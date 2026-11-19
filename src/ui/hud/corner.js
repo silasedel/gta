@@ -312,7 +312,11 @@ export function createCorner(game) {
   const clockSvg = svgRow('hc-text', 0, 128);
   clockLine.appendChild(clockSvg);
 
-  root.append(starsEl, knownEl, ammoEl, gunEl, bankLine, cashLine, clockLine);
+  // police state tag left of the stars (Nov 19 playtest, groundwork for missions): IN PURSUIT while the police see you,
+  // SEARCHING while they have lost sight (the stars breathe); hidden with no stars
+  const copTag = div('hc-police', '<i></i><span></span>');
+  const copTxt = copTag.querySelector('span');
+  root.append(starsEl, knownEl, ammoEl, gunEl, bankLine, cashLine, clockLine, copTag);
   loadIcons().then(() => { if (lastWeapon && lastWeapon !== 'pistol') setWeapon(lastWeapon, lastWeaponSvg); });
 
   // scale with the window (designed at 1080p)
@@ -326,6 +330,7 @@ export function createCorner(game) {
   // ---- state
   let manual = null, flashForce = null;
   let lastKnownKey = '', knownShown = null, pollT = 0;
+  let lastCop = '';
   let lastW = -1, lastFlash = null, lastWeapon = null, lastWeaponSvg = null, lastAmmoKey = null;
   let cashText = '', bankText = null, clockText = '';
 
@@ -437,6 +442,13 @@ export function createCorner(game) {
     if (flash !== lastFlash) {
       lastFlash = flash; root.classList.toggle('evading', flash);
       if (!flash && w > 0) for (const el of starEls) if (el.classList.contains('on')) { el.classList.remove('gain'); restart(el, 'spotted'); }
+    }
+
+    const cop = w > 0 ? (s.evading ? 'search' : 'pursuit') : '';
+    if (cop !== lastCop) {
+      lastCop = cop;
+      copTag.classList.toggle('on', !!cop); copTag.classList.toggle('search', cop === 'search');
+      if (cop) { copTxt.textContent = cop === 'search' ? 'SEARCHING' : 'IN PURSUIT'; restart(copTag, 'pop'); }
     }
 
     // evidence badges (polled; the evidence snapshot is not free)

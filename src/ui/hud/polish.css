@@ -173,3 +173,32 @@
 #ps-hud, #ps-hud *, .ps-hud, .ps-hud *, .ps-speedo, .ps-speedo *, .ps-minimap, .ps-minimap * {
   -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
 }
+
+/* ---- Nov 19 playtest: police radio, officer lines and NPC prompts in the HUD's own language (groundwork for missions).
+   The elements are built by src/gameplay/police/comms.js and src/npc/talk.js; only their look is set here (html body
+   selectors win over the inline <style> those modules add at runtime). */
+/* dispatch radio ticker: one readable card per message, left column under the help / notifications */
+html body .pl-radio { left: 28px; top: auto; bottom: 228px; width: min(26vw, 360px); font: 500 13.5px/1.4 var(--ps-sans); color: #eef2f7; }
+html body .pl-radio .pl-r { position: relative; margin-bottom: 6px; padding: 8px 13px 9px 30px; border: 0; border-radius: 12px;
+  background: rgba(10, 14, 24, .74); box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .22); text-shadow: 0 1px 1px rgba(0, 0, 0, .35); }
+html body .pl-radio .pl-r::before { content: ''; position: absolute; left: 12px; top: 13px; width: 9px; height: 9px; border-radius: 50%; background: #3d7bff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .85); }
+html body .pl-radio .pl-r.hi::before { background: #ff3b4a; }
+html body .pl-radio .pl-r i { font: 800 11.5px/1.2 var(--ps-cond); letter-spacing: .18em; color: #9fc0ff; margin-bottom: 2px; }
+html body .pl-radio .pl-r.hi i { color: #ff9aa3; }
+html body .ps-hud.is-paused ~ .pl-radio, html body .ps-hud.is-dead ~ .pl-radio { opacity: 0; }
+html body .ps-hud.driving ~ .pl-radio { bottom: 330px; }
+/* officer shouts: subtitle line with the speaker in police blue */
+html body .pl-subs { font-family: var(--ps-sans); font-weight: 600; }
+html body .pl-subs .pl-line { display: inline-block; padding: 4px 12px 5px; border-radius: 8px; background: rgba(8, 10, 16, .42); }
+html body .pl-subs b { font: 800 .9em/1 var(--ps-cond); letter-spacing: .08em; text-transform: uppercase; color: #8fb8ff; }
+/* NPC talk prompt + choice wheel: the help card's glass and keycaps */
+html body .npcTalkPrompt { bottom: 128px; padding: 8px 15px 8px 9px; border-radius: 12px; background: rgba(14, 16, 22, .72);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .22); font: 600 14.5px/1.2 var(--ps-sans); color: #fff; letter-spacing: .01em; }
+html body .npcTalkPrompt b { min-width: 1.6em; margin-right: 9px; padding: .1em .45em; border-radius: 5px; background: rgba(255, 255, 255, .94); color: #10131b;
+  font: 700 .86em/1.45 var(--ps-sans); box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+html body .npcWheel div { border: 0; border-radius: 12px; background: rgba(14, 16, 22, .8); box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .25); font: 600 14px/1.2 var(--ps-sans); color: #fff; }
+html body .npcWheel div i { display: inline-block; min-width: 1.5em; margin-right: 8px; padding: .08em .35em; border-radius: 5px; background: rgba(255, 255, 255, .94); color: #10131b; font: 700 .85em/1.45 var(--ps-sans); text-align: center; }
+html body .npcWheel .hub { background: rgba(250, 248, 242, .95); color: #15171c; font: 700 15px/1.25 var(--ps-sans); }
+html body .npcWheel .hub small { font: 500 12px/1.35 var(--ps-sans); }
+/* help prompt keycaps read a touch larger than body text */
+.ps-hud .ps-help kbd { font-size: .86em; min-width: 1.7em; }
