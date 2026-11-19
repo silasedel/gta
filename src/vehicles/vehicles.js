@@ -58,7 +58,7 @@ export async function createVehicles(game) {
           const dx = t.x - pos.x, dz = t.z - pos.z;
           const lat = Math.abs(dx * Math.cos(heading) - dz * Math.sin(heading));
           const lon = Math.abs(dx * Math.sin(heading) + dz * Math.cos(heading));
-          if (lat < (spec.W + v.spec.W) / 2 + 0.35 && lon < need) return false;
+          if (lat < (spec.W + v.spec.W) / 2 + 0.35 && lon < need) { spotWhy = 'car'; return false; }
         }
       }
     }
@@ -70,37 +70,47 @@ export async function createVehicles(game) {
         if (it.name !== 'cart' && it.name !== 'bin_wheel') continue;
         const dx = it.x - pos.x, dz = it.z - pos.z; if (dx * dx + dz * dz > 100) continue;
         const ex = Math.max(0, Math.abs(dx * c - dz * s) - spec.W / 2), ez = Math.max(0, Math.abs(dx * s + dz * c) - spec.L / 2);
-        if (ex * ex + ez * ez < 2.0 * 2.0) return false;
+        if (ex * ex + ez * ez < 2.0 * 2.0) { spotWhy = 'cart'; return false; }
       }
     }
+    // perf (Nov 19): physics shape queries for spawn spots get at most ~2 ms a frame; past that the spot is refused and the
+    // caller tries again next frame (traffic respawns ran 40 tries x several cars in one frame: 100-640 ms stalls)
+    const qNow = performance.now(), qF = game.clock?.elapsed ?? qNow; if (qF !== spotQ.t) { spotQ.t = qF; spotQ.ms = 0; }
+    if (spotQ.ms > 2) { spotWhy = 'budget'; return false; }
     try {
       const hh = Math.max(0.3, (spec.roofY - 0.35) / 2);
       _fq.setFromAxisAngle(UP, heading);
       const shape = new RAPIER.Cuboid(spec.W / 2 + 0.25, hh, spec.L / 2 + 0.35);
       const hit = world.intersectionWithShape({ x: pos.x, y: (pos.y || 0) + 0.35 + hh, z: pos.z }, { x: _fq.x, y: _fq.y, z: _fq.z, w: _fq.w }, shape,
         QF.EXCLUDE_SENSORS, undefined, undefined, ignoreBody || undefined);
-      if (hit) return false;
-      if (city?.collidersReadyAt && !city.collidersReadyAt(pos.x, pos.z)) return false;
+      if (hit) { spotWhy = 'solid'; spotQ.ms += performance.now() - qNow; return false; }
+      if (city?.collidersReadyAt && !city.collidersReadyAt(pos.x, pos.z)) { spotWhy = 'tile'; return false; }
       // the ground (streamed static colliders) must exist under the spot
       const gh = world.castRay(new RAPIER.Ray({ x: pos.x, y: (pos.y || 0) + 2.5, z: pos.z }, { x: 0, y: -1, z: 0 }), 6, true,
         QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS);
-      if (!gh) return false;
-    } catch (e) { return false; /* query pipeline not ready: try later */ }
+      if (!gh) { spotWhy = 'ground'; spotQ.ms += performance.now() - qNow; return false; }
+    } catch (e) { spotWhy = 'query'; return false; /* query pipeline not ready: try later */ }
+    spotQ.ms += performance.now() - qNow;
     return true;
   }
+  const spotQ = { t: 0, ms: 0 };
+  let spotWhy = ''; // why spotFree last said no (traffic spawn diagnostics: game.vehicles.trafficDebug.rej)
+  const spawnRej = {};
+  const rej = (k) => { spawnRej[k] = (spawnRej[k] || 0) + 1; };
   // random lane position: { edge, dir, d, lane, pos: Vector3, heading }
   const MINOR = /service|living|track|path|parking|driveway|pedestrian/;
   const trafficEdge = { edge: (e) => !MINOR.test(e.kind || '') };
   function randomLanePos(nearPos, minD, maxD, notInView, tries = 40, spec) {
     for (let i = 0; i < tries; i++) {
       const info = randomLane(net, nearPos, minD, maxD, trafficEdge, 4);
-      if (!info) continue;
+      if (!info) { rej('lane'); continue; }
       const pos = new THREE.Vector3(info.x, groundY(info.x, info.z, info.y), info.z);
-      if (notInView && spawnVisible(pos)) continue;
-      if (isNear(pos, 10)) continue;
-      if (!spotFree(pos, info.heading, spec || CAR_TYPES.sedan)) continue;
+      if (notInView && spawnVisible(pos)) { rej('view'); continue; }
+      if (isNear(pos, 10)) { rej('near'); continue; }
+      if (!spotFree(pos, info.heading, spec || CAR_TYPES.sedan)) { rej(spotWhy); if (spotWhy === 'budget') return null; continue; }
       // keep clear of junctions
-      if (info.d < 10 || info.edge.len - info.d < 10) continue;
+      if (info.d < 10 || info.edge.len - info.d < 10) { rej('junction'); continue; }
+      rej('ok');
       return { ...info, pos };
     }
     return null;
@@ -120,7 +130,7 @@ export async function createVehicles(game) {
       if (notInView && spawnVisible(pos)) continue;
       if (isNear(pos, 7)) continue;
       const heading = Math.atan2(p.fx, p.fz);
-      if (!spotFree(pos, heading, spec)) continue;
+      if (!spotFree(pos, heading, spec)) { if (spotWhy === 'budget') return null; continue; }
       if (game.placement?.parkOk && !game.placement.parkOk(pos.x, pos.z, heading, spec?.L || 4.8, spec?.W || 2.0, e)) continue; // map audit: no curb spot in a bush or a narrow lane (world/placement.v2.js)
       return { pos, heading, edge: e };
     }
@@ -627,8 +637,8 @@ export async function createVehicles(game) {
     const ratio = gear === -1 ? G[0] * 1.1 : G[gear - 1];
     let rpm = wheelRpm * ratio * m.final;
     if (gear > 0 && v.shiftT <= 0) {
-      if (rpm > m.maxRpm * (0.42 + 0.5 * thr * thr * thr) && gear < G.length && (thr > 0.05 || rpm > m.maxRpm * 0.6)) { gear++; v.shiftT = 0.22; }
-      else if ((rpm < m.maxRpm * 0.28 || (thr > 0.95 && rpm < m.maxRpm * 0.5 && gear > 2)) && gear > 1) { gear--; v.shiftT = 0.15; }
+      if (rpm > m.maxRpm * (0.42 + 0.5 * thr * thr * thr) && gear < G.length && (thr > 0.05 || rpm > m.maxRpm * 0.6)) { gear++; v.shiftT = v.spec.shift ?? 0.22; } // spec.shift: dual-clutch exotics change gear in well under 0.1 s
+      else if ((rpm < m.maxRpm * 0.28 || (thr > 0.95 && rpm < m.maxRpm * 0.5 && gear > 2)) && gear > 1) { gear--; v.shiftT = Math.min(0.15, v.spec.shift ?? 0.15); }
       rpm = wheelRpm * G[gear - 1] * m.final;
     }
     // clutch slip / burnout at low speed
@@ -1358,6 +1368,7 @@ export async function createVehicles(game) {
   const specials = new Set();
   const pendingSpecials = fleet ? [['sports', 0xff5a1f, null, 18], ['muscle', 0x1d3f8f, null, 30]] // library fleet: the rare cars are placed by hand (glb/placements.js)
     : [['sports', 0xff5a1f, 'Solano GT 400', 18], ['super', 0xffc21a, null, 30], ['muscle', 0x1d3f8f, null, 30], ['roadster', 0xb3121b, null, 30]];
+  let specT = -1e9;
   function trySpecials() {
     try { world.updateSceneQueries?.(); } catch (e) { /* older rapier */ }
     for (const entry of pendingSpecials.slice()) {
@@ -1527,7 +1538,7 @@ export async function createVehicles(game) {
   const PHYS_R = 190; // simulate cars within this radius of the player (colliders stream to ~250-300 m)
   const DENS = { downtown: 1.45, business: 1.35, causeway: 1.25, nightlife: 1.25, commercial: 1.1, beach: 0.95, residential: 0.8, port: 0.7, industrial: 0.7, park: 0.55, water: 0.5 };
   let mgrT = 0;
-  const trafficDebug = { target: null };
+  const trafficDebug = { target: null, rej: spawnRej };
   // simulation tiers: full ray-cast physics within SIM_R; beyond it AI traffic becomes a kinematic
   // "ghost" that follows its lane on the road graph (no controller, no wheel rays), parked cars freeze.
   const SIM_R = 95; // stage 1 perf: full wheel-ray physics only near the player (was 180); farther AI cars glide on their lanes (identical at range)
@@ -1668,7 +1679,10 @@ export async function createVehicles(game) {
     const pp = game.player?.position;
     if (!pp) return;
     physicsRange(pp);
-    if (pendingSpecials.length && (game.clock?.elapsed ?? 0) < 90) trySpecials();
+    // perf (Nov 19): every 1.5 s instead of every manager tick (each try is up to 8 x 60 spot queries; with the per-frame
+    // query budget in spotFree this was still a quarter of the main thread in the first 90 s after loading)
+    const specNow = game.clock?.elapsed ?? 0;
+    if (pendingSpecials.length && specNow < 90 && specNow - specT >= 1.5) { specT = specNow; trySpecials(); }
     placeRare(pp);
     const h = game.timeOfDay ?? 12;
     const tf = h < 5 ? 0.4 : h < 6.5 ? 0.6 : (h > 7 && h < 9.5) || (h > 16 && h < 19) ? 1.2 : h > 22 ? 0.65 : 1;
@@ -2131,12 +2145,6 @@ export async function createVehicles(game) {
     scene.remove(v.mesh);
     console.warn('[vehicles] chassis body vanished (removed externally?) - vehicle dropped:', v.name);
   }
-  function removeVehicle(v) {
-    const i = list.indexOf(v);
-    if (i < 0 || v.playerDriven) return false;
-    list.splice(i, 1);
-    v.alive = false; v.disposed = true;
-    try { city?.unregisterAnchor?.(v); } catch (e) { /* */ }
   // game.vehicles.remove(v, { force }) for other systems: the player's last car, and any car he drove in the last 10 min while it
   // is within 250 m or on screen, stays where he left it (house lots, police, gang and job cleanups used to delete it the moment
   // he got out).  Garage-managed cars (property.js: v.owned) and force: true bypass the guard.  Returns false when kept.
@@ -2150,6 +2158,12 @@ export async function createVehicles(game) {
     }
     return removeVehicle(v);
   }
+  function removeVehicle(v) {
+    const i = list.indexOf(v);
+    if (i < 0 || v.playerDriven) return false;
+    list.splice(i, 1);
+    v.alive = false; v.disposed = true;
+    try { city?.unregisterAnchor?.(v); } catch (e) { /* */ }
     disposeCar(v);
     for (let k = 0; k < 4; k++) skids.end(v.name + k);
     scene.remove(v.mesh);
@@ -2189,6 +2203,7 @@ export async function createVehicles(game) {
         heading = Math.atan2(lp.fx, lp.fz);
       }
     }
+    spotQ.ms = 0; // explicit API spawns (police, missions) are never refused by the per-frame query budget
     if (opts.snap !== false && !spotFree(p, heading, CAR_TYPES[key])) {
       const alt = randomLanePos(p, 0, 45, false, 40, CAR_TYPES[key]);
       if (alt) { p = alt.pos; heading = alt.heading; }

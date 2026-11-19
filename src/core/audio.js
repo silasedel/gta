@@ -167,6 +167,48 @@ export function createAudio(game) {
     return b;
   }
 
+  // ---------- freeze watchdog (user: "when it freezes, have the sound also stop") ----------
+  // One gain node in front of the output volume. Every animation frame schedules it only a short way ahead on the audio
+  // clock: hold for FREEZE_HOLD s, then a FREEZE_OUT s ramp to 0. While frames keep coming the ramp is pushed back and
+  // never plays. When frames stop (main-thread stall, loading or GC hitch, a blocked tab) nothing renews it and the audio
+  // thread fades everything out by itself, which works even when no JavaScript can run. The first frame after a stall
+  // fades back in over FREEZE_IN s. ?freezemute=0 = off. game.audio.freeze = { gain(), stalls, on }.
+  const FREEZE_HOLD = 0.2, FREEZE_OUT = 0.03, FREEZE_IN = 0.15;
+  const freeze = { on: !(typeof location !== 'undefined' && /[?&]freezemute=0/.test(location.search)), node: null, stalls: 0, last: 0, recEnd: 0, held: false, gain: () => (freeze.node ? freeze.node.gain.value : 1) };
+  function freezeNode() {
+    freeze.node = ctx.createGain(); freeze.node.gain.value = 1;
+    const hold = () => { // background tab with "keep playing in the background": no frames by design, so no watchdog
+      try { const g = freeze.node.gain, t = ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(1, t); freeze.held = true; } catch (e) { /* */ }
+    };
+    const frame = () => {
+      requestAnimationFrame(frame);
+      if (!ctx || ctx.state !== 'running' || !freeze.node) return;
+      try {
+        const g = freeze.node.gain, t = ctx.currentTime;
+        if (!freeze.on) { if (!freeze.held) hold(); return; }
+        let cur = 1;
+        if (!freeze.held && freeze.last > 0) {
+          const gap = t - freeze.last;
+          if (gap >= FREEZE_HOLD + FREEZE_OUT) { cur = 0; freeze.stalls++; freeze.recEnd = t + FREEZE_IN; } // the fade-out played out: start the fade-in
+          else if (gap > FREEZE_HOLD) { cur = 1 - (gap - FREEZE_HOLD) / FREEZE_OUT; freeze.recEnd = t + FREEZE_IN * (1 - cur); } // caught mid-fade
+          else if (t < freeze.recEnd) cur = 1 - (freeze.recEnd - t) / FREEZE_IN; // still fading back in
+        }
+        freeze.held = false; freeze.last = t;
+        const end = Math.max(freeze.recEnd, t + FREEZE_HOLD);
+        g.cancelScheduledValues(t);
+        g.setValueAtTime(Math.max(0, Math.min(1, cur)), t);
+        if (t < freeze.recEnd) g.linearRampToValueAtTime(1, freeze.recEnd);
+        g.setValueAtTime(1, end);
+        g.linearRampToValueAtTime(0, end + FREEZE_OUT);
+      } catch (e) { /* */ }
+    };
+    requestAnimationFrame(frame);
+    // safety net for a loop that stops while timers still run (hidden tab that keeps playing): hold the gain open
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.hidden && ctx && ctx.state === 'running') hold(); });
+    setInterval(() => { if (typeof document !== 'undefined' && document.hidden && ctx && ctx.state === 'running' && freeze.node) hold(); }, 100);
+    return freeze.node;
+  }
+
   function start() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
     ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -182,7 +224,7 @@ export function createAudio(game) {
     masterComp = comp;
     masterMakeup = ctx.createGain();
     masterMakeup.gain.value = 1;
-    master.connect(worldLP).connect(worldG).connect(comp).connect(masterMakeup).connect(lim).connect(outGain).connect(ctx.destination);
+    master.connect(worldLP).connect(worldG).connect(comp).connect(masterMakeup).connect(lim).connect(freezeNode()).connect(outGain).connect(ctx.destination);
     uiBus = ctx.createGain(); uiBus.gain.value = busVol.ui; uiBus.connect(comp); tap('ui', uiBus);
     menuBus = ctx.createGain(); menuBus.gain.value = busVol.music * MIXK.music; menuBus.connect(comp); // [main-menu hook]
     musicBus = ctx.createGain(); musicBus.gain.value = busVol.music * MIXK.music; musicBus.connect(master); tap('music', musicBus);
@@ -980,8 +1022,8 @@ export function createAudio(game) {
     i4: { layers: [['i4_idle', 850], ['i4_mid', 2900], ['i4_high', 5200]], pitch: 1.0, bright: 1.0, turbo: false, pops: 0.15, gain: 0.9 },
     v6: { layers: [['v6_idle', 800], ['v6_mid', 2600], ['v6_high', 5600]], pitch: 1.0, bright: 0.9, turbo: false, pops: 0.25, gain: 1.0 },
     v8: { layers: [['v8_idle', 750], ['v8_mid', 2400], ['v8_high', 4600]], pitch: 1.0, bright: 0.75, turbo: false, pops: 0.6, gain: 1.15 },
-    v10: { layers: [['v10_idle', 900], ['v10_mid', 3200], ['v10_high', 7200]], pitch: 1.0, bright: 1.15, turbo: false, pops: 0.7, gain: 1.05 },
-    v12: { layers: [['v10_idle', 900], ['v10_mid', 3000], ['v10_high', 6600]], pitch: 1.12, bright: 1.3, turbo: true, pops: 0.8, gain: 1.05 },
+    v10: { layers: [['v10_idle', 900], ['v10_mid', 3200], ['v10_high', 7200]], pitch: 1.0, bright: 1.15, turbo: false, pops: 0.7, gain: 1.05, exotic: true },
+    v12: { layers: [['v10_idle', 900], ['v10_mid', 3000], ['v10_high', 6600]], pitch: 1.12, bright: 1.3, turbo: true, pops: 0.8, gain: 1.05, exotic: true },
     diesel: { layers: [['diesel_idle', 650], ['diesel_mid', 1700]], pitch: 1.0, bright: 0.6, turbo: true, pops: 0, gain: 1.2 },
     electric: { layers: [], electric: true, gain: 1 },
   };
@@ -1036,6 +1078,14 @@ export function createAudio(game) {
     if (k && ENGINE[k]) return k;
     return CLASS_ENGINE[cls] || 'v6';
   }
+  // r6 (user: wedge supercars need their own sound): a naturally aspirated V10 / V12 in a super or sports car is an "exotic"
+  // voice: deep loud idle, a shriek that opens toward the redline, a burst of crackles and a backfire on every lift-off,
+  // no turbo whine or blow-off. The loops are the real V10 / V12 recordings of the vehicles bank. ?exotic=0 = old.
+  const EXOTIC_OFF = typeof location !== 'undefined' && /[?&]exotic=0/.test(location.search);
+  function isExotic(car, kind = engineKind(car)) {
+    if (EXOTIC_OFF || !ENGINE[kind]?.exotic || !/super|sports/.test(carClass(car))) return false;
+    const a = car.model?.sound?.aspiration; return !a || a === 'na';
+  }
   let satCurve = null;
   function SAT() { // soft tanh saturation (shared curve, cheap)
     if (!satCurve) { satCurve = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; satCurve[i] = Math.tanh(x * 1.6) / Math.tanh(1.6); } }
@@ -1045,10 +1095,11 @@ export function createAudio(game) {
     getVar('vehicles', 'squeal_asphalt'); getVar('vehicles', 'skid_concrete');
     const kind = engineKind(car), E = ENGINE[kind];
     const out = ctx.createGain(); out.gain.value = 0;
+    const exo = isExotic(car, kind);
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3000; lp.Q.value = 0.7;
     const sum = ctx.createGain(); sum.gain.value = 1;
     // tone: +5 dB low shelf under 150 Hz, mild saturation for harmonics
-    const shelf = ctx.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 150; shelf.gain.value = 5;
+    const shelf = ctx.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 150; shelf.gain.value = exo ? 8 : 5;
     sum.connect(lp).connect(shelf).connect(SAT()).connect(out);
     // engine-synced sub (firing frequency + octave below for V8 and up), rises with load
     const CYL = { i3: 3, i4: 4, i4turbo: 4, v6: 6, flat6: 6, v8: 8, v10: 10, v12: 12, diesel: 6, bus: 6, moto: 2, electric: 0 }[kind] || 4;
@@ -1067,10 +1118,16 @@ export function createAudio(game) {
       const hp = ctx.createBiquadFilter(); hp.type = 'bandpass'; hp.frequency.value = 1400; hp.Q.value = 0.7;
       const ig = ctx.createGain(); ig.gain.value = 0; sum.connect(hp).connect(ig).connect(out); intake = { ig };
     }
+    // exotic shriek: a narrow band of the engine itself that follows the firing order up the rev range and opens near the redline
+    let shriek = null;
+    if (exo) {
+      const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2400; f.Q.value = 3.2;
+      const g = ctx.createGain(); g.gain.value = 0; sum.connect(f).connect(g).connect(out); shriek = { f, g };
+    }
     let pan = null;
     if (isPlayer) out.connect(carBus._engine);
     else { pan = panner(3.5, 1.3, 200); out.connect(pan).connect(vehBus); }
-    const v = { sub, intake, car, kind, E, isPlayer, out, lp, sum, pan, layers: [], rpm: DEF_RPM[kind][0], gear: 1, prevThr: 0, shiftT: 0, popT: 0, popN: 0, dead: false, prevGear: 1, squeal: null, turbo: null, el: null };
+    const v = { sub, intake, shriek, exo, car, kind, E, isPlayer, out, lp, sum, pan, layers: [], rpm: DEF_RPM[kind][0], gear: 1, prevThr: 0, shiftT: 0, popT: 0, popN: 0, dead: false, prevGear: 1, squeal: null, turbo: null, el: null };
     if (E.electric) {
       const o1 = ctx.createOscillator(); o1.type = 'sine';
       const o2 = ctx.createOscillator(); o2.type = 'triangle';
@@ -1098,7 +1155,7 @@ export function createAudio(game) {
         v.synth = { o1, o2, g };
       }
     }
-    if (E.turbo || carClass(car) === 'sports' || carClass(car) === 'super') {
+    if (!exo && (E.turbo || carClass(car) === 'sports' || carClass(car) === 'super')) {
       const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = 2000;
       const g = ctx.createGain(); g.gain.value = 0; o.connect(g).connect(out); o.start();
       v.turbo = { o, g };
@@ -1200,7 +1257,10 @@ export function createAudio(game) {
     const shiftDip = v.shiftT > 0 ? 0.45 : 1;
     const load = st.load * (v.shiftT > 0 ? 0.2 : 1);
     // overrun crackle: big throttle lift at high rpm
-    if (E.pops && v.prevThr > 0.6 && st.thr < 0.15 && r > 0.55 && t - (v.popLast || -99) > 3 && Math.random() < E.pops * 0.45) { v.popN = 1 + Math.floor(Math.random() * 3); v.popT = 0.06; v.popLast = t; }
+    if (v.exo && v.prevThr > 0.6 && st.thr < 0.15 && r > 0.4 && t - (v.popLast || -99) > 0.9) { // exotic: every lift-off crackles, hard ones backfire
+      v.popN = 3 + Math.floor(Math.random() * 4 + r * 3); v.popT = 0.05; v.popLast = t;
+      if (r > 0.7) real(fxDst(v, VMIX.backfire * rnd(0.8, 1.1)), t + 0.03, 'vehicles', 'backfire', { rate: rnd(0.95, 1.08) });
+    } else if (E.pops && v.prevThr > 0.6 && st.thr < 0.15 && r > 0.55 && t - (v.popLast || -99) > 3 && Math.random() < E.pops * 0.45) { v.popN = 1 + Math.floor(Math.random() * 3); v.popT = 0.06; v.popLast = t; }
     if (E.turbo && v.turbo && v.prevThr > 0.6 && st.thr < 0.15 && r > 0.35) blowOff(v, t);
     v.prevThr = st.thr;
     if (v.popN > 0) {
@@ -1244,15 +1304,20 @@ export function createAudio(game) {
       const bright = E.bright || 1;
       v.lp.frequency.setTargetAtTime(Math.min(16000, (900 + 5200 * (0.25 + 0.75 * load) * (0.4 + 0.6 * r)) * bright), t, 0.05);
     }
-    const lift = 0.6 + 0.4 * load; // off-load / idle sit ~3 dB under on-load
+    const lift = v.exo ? Math.max(0.6 + 0.4 * load, 0.92 - 0.5 * r) : 0.6 + 0.4 * load; // off-load / idle sit ~3 dB under on-load (exotic: a loud idle)
     v.out.gain.setTargetAtTime(vol * lift * shiftDip * (v.isPlayer ? 1 : Math.min(1, 0.35 + st.kmh / 40)), t, v.shiftT > 0 ? 0.02 : 0.06);
     if (v.sub) { // firing frequency = rpm/60 * cylinders/2 (4-stroke)
       const ff = Math.max(18, Math.min(400, st.rpm / 60 * v.sub.cyl / 2));
       v.sub.s1.frequency.setTargetAtTime(ff, t, 0.03); v.sub.s2.frequency.setTargetAtTime(ff / 2, t, 0.03);
-      const sg = 0.035 * (0.35 + 0.65 * load) * (ff < 160 ? 1 : 160 / ff);
+      const sg = 0.035 * (v.exo ? Math.max(0.35 + 0.65 * load, 1.5 - 2.2 * r) : 0.35 + 0.65 * load) * (ff < 160 ? 1 : 160 / ff); // exotic: deep idle
       v.sub.g1.gain.setTargetAtTime(sg, t, 0.05); v.sub.g2.gain.setTargetAtTime(v.sub.oct ? sg * 0.8 : 0, t, 0.05);
     }
     if (v.intake) v.intake.ig.gain.setTargetAtTime(0.35 * load * (0.3 + 0.7 * r), t, 0.06);
+    if (v.shriek) { // 4th harmonic of the firing frequency (V12 at 9000 rpm: 3.6 kHz); silent under 60 % of the rev range
+      const ff = st.rpm / 60 * (v.sub?.cyl || 10) / 2, k = Math.max(0, Math.min(1, (r - 0.6) / 0.35));
+      v.shriek.f.frequency.setTargetAtTime(Math.max(1400, Math.min(5200, ff * 4)), t, 0.03);
+      v.shriek.g.gain.setTargetAtTime(1.6 * k * k * (0.25 + 0.75 * load), t, 0.05);
+    }
     if (v.turbo) {
       const spool = load * Math.max(0, r - 0.2);
       v.turbo.o.frequency.setTargetAtTime(1800 + r * 4200, t, 0.1);
@@ -1301,6 +1366,7 @@ export function createAudio(game) {
   }
   const camVel = { x: 0, y: 0, z: 0 }, camPrev = { x: 0, y: 0, z: 0, ok: false };
   let lastPc = null;
+  const RECRANK = typeof location !== 'undefined' && /[?&]recrank=1/.test(location.search);
   function updateEngines(dt, t, muted) {
     const st = game.player?.state;
     const pc = st?.inVehicle && st.vehicle && !muted ? st.vehicle : null;
@@ -1314,7 +1380,11 @@ export function createAudio(game) {
     // not the muted one: pausing (muted) used to read as "left the car", so unpausing replayed the startup crank (user report)
     const inCar = st?.inVehicle && st.vehicle ? st.vehicle : null;
     if (!muted && inCar !== lastPc) {
-      if (inCar && inCar.engineOn !== false) engineOneShot(inCar, 'start');
+      // r6 (user: "if you are stealing a car from someone who has theirs already going then it should not have to start again"):
+      // a car whose engine is already running (NPC was driving it, or the player left it running a moment ago) gets no
+      // startup crank. Cars that really start emit 'engineStart' (vehicles.js), which plays it; only vehicles without an
+      // engineOn state (boats, aircraft) still crank here. ?recrank=1 = old.
+      if (inCar && (RECRANK ? inCar.engineOn !== false : inCar.engineOn === undefined)) engineOneShot(inCar, 'start');
       if (lastPc && !inCar && lastPc.engineOn !== true) engineOneShot(lastPc, 'stop');
       lastPc = inCar;
     }
@@ -1729,6 +1799,8 @@ export function createAudio(game) {
   const fwd = { x: 0, y: 0, z: -1 };
   return {
     get ctx() { return ctx; },
+    freeze, // r6 freeze watchdog: { on, stalls, gain() }
+    engineProfile(car) { const kind = engineKind(car), v = voices.get(car); return { kind, exotic: isExotic(car, kind), real: !!realEngineLayers(kind), voice: v ? { src: v.src, exotic: !!v.exo, shriek: !!v.shriek, turbo: !!v.turbo, layers: v.layers.map((l) => l.recRpm), rpm: Math.round(v.rpm) } : null, maxRpm: car.model?.maxRpm, idleRpm: car.model?.idleRpm, gears: car.model?.gears?.length }; },
     meter() { // dBFS RMS of each pre-master tap
       const o = {};
       for (const [k, a] of Object.entries(meters)) { const b = new Float32Array(a.fftSize); a.getFloatTimeDomainData(b); let s2 = 0, pk = 0; for (const x of b) { s2 += x * x; const ax = Math.abs(x); if (ax > pk) pk = ax; } o[k] = +(10 * Math.log10(s2 / b.length + 1e-12)).toFixed(1); o[k + '_pk'] = +(20 * Math.log10(pk + 1e-9)).toFixed(1); }
@@ -1826,7 +1898,7 @@ export function createAudio(game) {
         // user (Nov 18): no game sounds at all before you are in the game (loading, title, front end): world fully silent
         const preGame = !game.ready || !!game.frontEnd?.active || !(typeof document !== 'undefined' && document.getElementById('ps-hud')?.classList.contains('live'));
         const dk = preGame ? 0 : game.menuMusic?.duck;
-        if (dk != null && deathFx.state === 0) { worldG.gain.setTargetAtTime(dk, t, 0.5); worldLP.frequency.setTargetAtTime(game.menuMusic.duckLP ?? 20000, t, 0.5); menuDuck.on = true; }
+        if (dk != null && deathFx.state === 0) { worldG.gain.setTargetAtTime(dk, t, 0.5); worldLP.frequency.setTargetAtTime(game.menuMusic?.duckLP ?? 20000, t, 0.5); menuDuck.on = true; }
         else if (menuDuck.on && deathFx.state === 0) { worldG.gain.setTargetAtTime(1, t, 0.6); worldLP.frequency.setTargetAtTime(20000, t, 0.6); menuDuck.on = false; }
       }
       const indoor = isIndoor();

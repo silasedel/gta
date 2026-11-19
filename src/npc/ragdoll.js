@@ -544,19 +544,48 @@ export function createRagdollSystem(game, maxActive = 6) {
       } catch (e) { /* query only */ }
     }
   }
+  // r6-sky (user: "the weird thing in the sky that's like broken"): when the solver blew up (a body wedged under a car, NaN or a
+  // limb flung away), the bones were driven to the exploded bodies FIRST and the ragdoll was then frozen in that pose for good: a
+  // corpse whose skin stretched from the road into the sky as long thin shards. The bodies are now checked before the bones follow
+  // them; an unstable ragdoll goes back to its last sane pose and freezes there.
+  function unstable(rd) {
+    const c = rd.byKey.pelvis.body.translation();
+    if (!Number.isFinite(c.x + c.y + c.z)) return 'nan';
+    if (Math.abs(c.y - rd.groundY) > 60) return 'flung ' + (c.y - rd.groundY).toFixed(0);
+    for (const p of rd.parts) {
+      const t = p.body.translation(), v = p.body.linvel(), r = p.body.rotation(), sp = Math.hypot(v.x, v.y, v.z);
+      if (!Number.isFinite(t.x + t.y + t.z + r.x + r.y + r.z + r.w + sp)) return 'nan';
+      if (sp > 70) return 'speed ' + sp.toFixed(0);
+      if (Math.hypot(t.x - c.x, t.y - c.y, t.z - c.z) > 2.6) return 'stretched ' + p.key;   // no body part is 2.6 m from the pelvis
+    }
+    return null;
+  }
+  function keepSane(rd) {
+    const a = rd.sane || (rd.sane = new Float64Array(rd.parts.length * 7));
+    rd.parts.forEach((p, i) => { const t = p.body.translation(), r = p.body.rotation(); a.set([t.x, t.y, t.z, r.x, r.y, r.z, r.w], i * 7); });
+  }
+  function backToSane(rd) { // true when the bodies are back in the last good pose (bones may follow them)
+    const a = rd.sane; if (!a) return false;
+    try { rd.parts.forEach((p, i) => { const o = i * 7; p.body.setTranslation({ x: a[o], y: a[o + 1], z: a[o + 2] }, false); p.body.setRotation({ x: a[o + 3], y: a[o + 4], z: a[o + 5], w: a[o + 6] }, false);
+      p.body.setLinvel({ x: 0, y: 0, z: 0 }, false); p.body.setAngvel({ x: 0, y: 0, z: 0 }, false); }); return true; } catch (e) { return false; }
+  }
   function update(dt) {
     for (const rd of active.slice()) {
       rd.age += dt; rd.modeT += dt;
+      let bad = null; try { bad = unstable(rd); } catch (e) { bad = 'error'; }
+      if (bad) { rd.why = 'blowup ' + bad; stats.blowups = (stats.blowups || 0) + 1; console.warn('[ragdoll] unstable (' + bad + '), back to the last sane pose and frozen');
+        try { if (backToSane(rd)) drive(rd); } catch (e) { /* bones keep their last pose */ }
+        freeze(rd); continue; }
       try { behave(rd, dt); } catch (e) { console.warn('[ragdoll] behave', e); }
       drive(rd);
       floorGuard(rd);
+      try { keepSane(rd); } catch (e) { /* */ }
       let maxV = 0, maxW = 0, asleep = true;
       for (const p of rd.parts) {
         const v = p.body.linvel(), w = p.body.angvel();
         maxV = Math.max(maxV, Math.hypot(v.x, v.y, v.z)); maxW = Math.max(maxW, Math.hypot(w.x, w.y, w.z));
         if (!p.body.isSleeping()) asleep = false;
       }
-      if (!Number.isFinite(maxV) || maxV > 70) { rd.why = 'blowup ' + maxV; console.warn('[ragdoll] unstable, frozen', maxV); freeze(rd); continue; }
       if (rd.mode === 'balance') { rd.still = 0; continue; }
       // car victims: once down on the road the tumble is damped hard (no cartwheeling across the street)
       if ((rd.kind === 'car' || rd.kind === 'explosion') && !rd.landDamped && rd.modeT > 0.6 && rd.byKey.pelvis.body.translation().y - rd.groundY < 0.45) {

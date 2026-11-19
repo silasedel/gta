@@ -22,7 +22,7 @@ const E = {
   v8s: { engine: 'v8', cylinders: 8, aspiration: 'supercharged', exhaust: 'loud', maxRpm: 6800, idleRpm: 700, gears: [2.9, 1.95, 1.4, 1.1, 0.88, 0.7], final: 3.3 },
   v8l: { engine: 'v8', cylinders: 8, aspiration: 'twin-turbo', exhaust: 'quiet', maxRpm: 6600, idleRpm: 600, gears: [4.7, 3.1, 2.1, 1.67, 1.29, 1.0, 0.84, 0.67], final: 2.9 },
   v10: { engine: 'v10', cylinders: 10, aspiration: 'na', exhaust: 'race', maxRpm: 8800, idleRpm: 1000, gears: [3.1, 2.2, 1.65, 1.3, 1.07, 0.9, 0.76], final: 3.6 },
-  v12: { engine: 'v12', cylinders: 12, aspiration: 'na', exhaust: 'race', maxRpm: 9200, idleRpm: 1000, gears: [3.1, 2.2, 1.65, 1.3, 1.07, 0.9, 0.76], final: 3.6 },
+  v12: { engine: 'v12', cylinders: 12, aspiration: 'na', exhaust: 'race', maxRpm: 9000, idleRpm: 1000, gears: [3.1, 2.2, 1.65, 1.3, 1.07, 0.9, 0.76], final: 3.6 },
   w16: { engine: 'v12', cylinders: 16, aspiration: 'quad-turbo', exhaust: 'race', maxRpm: 7400, idleRpm: 900, gears: [3.2, 2.3, 1.75, 1.4, 1.15, 0.95, 0.8], final: 3.4 },
   dsl: { engine: 'diesel', cylinders: 6, aspiration: 'turbo', exhaust: 'diesel', maxRpm: 4500, idleRpm: 650, gears: [4.0, 2.4, 1.6, 1.15, 0.85, 0.68], final: 3.4 },
   dslH: { engine: 'diesel', cylinders: 6, aspiration: 'turbo', exhaust: 'diesel', maxRpm: 2800, idleRpm: 600, gears: [6.0, 3.6, 2.3, 1.5, 1.0, 0.75], final: 4.6 },

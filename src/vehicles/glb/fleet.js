@@ -12,8 +12,8 @@ const PHYS = {
   muscle: { mass: 1750, engine: 11000, vmax: 260, steer: 0.55, grip: 2.3, drive: 'rwd', rearGrip: 0.72, powerSlide: 0.5, susp: [0.36, 31], rollK: 1.1 },
   classic: { mass: 1450, engine: 7600, vmax: 190, steer: 0.55, grip: 1.9, drive: 'rwd', powerSlide: 0.4, susp: [0.4, 26], rollK: 1.6 },
   sports: { mass: 1550, engine: 10500, vmax: 270, steer: 0.55, grip: 2.7, drive: 'rwd', powerSlide: 0.2, susp: [0.3, 44], rollK: 0.7 },
-  super: { mass: 1450, engine: 13500, vmax: 325, steer: 0.5, grip: 3.1, drive: 'awd', downforce: 1.6, susp: [0.26, 56], rollK: 0.45, wedge: true, coupe: true },
-  hyper: { mass: 1950, engine: 19000, vmax: 410, steer: 0.48, grip: 3.2, drive: 'awd', downforce: 1.8, susp: [0.27, 54], rollK: 0.5, wedge: true, coupe: true },
+  super: { shift: 0.07, mass: 1450, engine: 13500, vmax: 325, steer: 0.5, grip: 3.1, drive: 'awd', downforce: 1.6, susp: [0.26, 56], rollK: 0.45, wedge: true, coupe: true },
+  hyper: { shift: 0.07, mass: 1950, engine: 19000, vmax: 410, steer: 0.48, grip: 3.2, drive: 'awd', downforce: 1.8, susp: [0.27, 54], rollK: 0.5, wedge: true, coupe: true },
   suv: { mass: 2000, engine: 9000, vmax: 200, steer: 0.58, grip: 2.2, drive: 'awd', susp: [0.4, 27], rollK: 1.5 },
   luxsuv: { mass: 2500, engine: 12000, vmax: 240, steer: 0.55, grip: 2.3, drive: 'awd', susp: [0.42, 26], rollK: 1.4 },
   offroad: { mass: 2050, engine: 8200, vmax: 175, steer: 0.6, grip: 2.0, drive: 'awd', susp: [0.48, 22], rollK: 1.8, offroad: true },
@@ -84,7 +84,7 @@ c('coupe4', 'Brava', 'Regalia 454', 'muscle', 'classic', 5.03, 2, 'v8', 1970, { 
 c('coupe5', 'Brava', 'Bayline Coupe', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { classic: true, pal: 'sport' });
 // rare: one of each on the map (placements.js), never random traffic
 c('conv2', 'Brava', 'Mako R Spyder', 'sports', 'sports', 4.63, 4, 'v8', 2022, { rare: true, convertible: true, palette: [0xeeeeea] });   // rare: one factory color
-c('super3', 'Vireo', 'Fulmine', 'super', 'super', 4.57, 5, 'v8s', 2017, { rare: true, palette: [0xb3121b] });
+c('super3', 'Vireo', 'Fulmine', 'super', 'super', 4.57, 5, 'v10', 2017, { rare: true, palette: [0xb3121b] });
 c('super4', 'Solano', 'Libeccio RS', 'super', 'super', 4.57, 5, 'v6t', 2023, { rare: true, palette: [0xa9aeb4] });
 c('super5', 'Vireo', 'Aeterna', 'super', 'hyper', 4.54, 5, 'w16', 2021, { rare: true, palette: [0x1d3f8f] });
 c('super6', 'Vireo', 'Sorpasso 84', 'super', 'super', 4.49, 5, 'v12', 1986, { rare: true, classic: true, palette: [0xb3121b] });
