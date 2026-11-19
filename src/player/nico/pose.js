@@ -45,6 +45,13 @@ export function createRelaxedPose({
   character = null,
   proportions = true,
   keepLegs = false,
+  // shoulder line and idle arms (per hero): armOut = how far the hanging upper arm points out from vertical (0.36 =
+  // clear of a broad man's lats), shoulderLift / shoulderBack = clavicle raise / pull back (radians at full posture),
+  // shoulderWide = the shoulder joint moved out along the clavicle (1 = the rig's own width)
+  armOut = 0.36,
+  shoulderLift = 0.08,
+  shoulderBack = 0.1,
+  shoulderWide = 1,
 }) {
   const B = (n) => bone(n);
   let w = 0;
@@ -141,6 +148,12 @@ export function createRelaxedPose({
       // neutral-to-slightly raised and back. Also under the standing styles (phone, talk, aim rest) and, lighter, while
       // walking; off when seated, swimming, down or airborne. '__nicoPoseOld' = the old dropped-shoulder layer (A/B).
       const OLD = !!globalThis.__nicoPoseOld;
+      // broader shoulders: the arm joint sits further out along the clavicle. Bone positions go back to the animated
+      // value every frame (nicoTripo/index.js), so this never compounds.
+      if (shoulderWide !== 1 && !OLD) {
+        for (const side of ['Left', 'Right'])
+          B(side + 'Arm')?.position.multiplyScalar(shoulderWide);
+      }
       const postureOK = !(
         anim.driving ||
         anim.swimming ||
@@ -173,8 +186,8 @@ export function createRelaxedPose({
           const sgn = side === 'Left' ? -1 : 1;
           const sh = B(side + 'Shoulder');
           if (sh) {
-            rotateWorld(sh, pf, -sgn * 0.08 * wPost);
-            rotateWorld(sh, UP, -sgn * 0.1 * wPost);
+            rotateWorld(sh, pf, -sgn * shoulderLift * wPost);
+            rotateWorld(sh, UP, -sgn * shoulderBack * wPost);
           } // clavicle up a touch and back
         }
       }
@@ -202,7 +215,7 @@ export function createRelaxedPose({
         else if (sh) rotateWorld(sh, fwd, sgn * breathe * 0.6 * wArms); // breathing only
         // upper arm hangs close to the body, a touch forward
         const want = new THREE.Vector3(0, -1, 0)
-          .addScaledVector(out, OLD ? 0.17 : 0.36)
+          .addScaledVector(out, OLD ? 0.17 : armOut)
           .addScaledVector(fwd, OLD ? -0.01 : 0.02)
           .normalize(); // hanging clear of the lats (bulk), a touch forward
         aimToward(B(side + 'Arm'), B(side + 'ForeArm'), want, 0.85 * wArms);

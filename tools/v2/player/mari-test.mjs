@@ -193,6 +193,89 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 285 }, async (b) => {
     );
     log('contacts', rep.steps.contacts);
   }
+  if (want('look2')) {
+    // shoulders: Nico close up, then Mari close up (idle), then Mari walk / run / jump landing / hit with the springs
+    await b.eval(`game.timeOfDay = 12; true`);
+    for (const [id, yaw] of [
+      ['nico_sh_front', 0],
+      ['nico_sh_side', Math.PI / 2],
+    ]) {
+      await b.eval(orbit(yaw, 1.45, 1.5, 1.35));
+      await b.sleep(900);
+      await b.screenshot(path.join(DIR, id + '.png'));
+    }
+    await b.eval(`window.__sw = game.characters.switchTo('mari'); true`);
+    await b.waitFor('!game.characters.busy', 40);
+    await b.waitFor('!!game.playerCharacter.jiggle', 20);
+    await b.sleep(1500);
+    for (const [id, yaw] of [
+      ['mari_sh_front', 0],
+      ['mari_sh_back', Math.PI],
+      ['mari_sh_side', Math.PI / 2],
+      ['mari_full', 0.5],
+    ]) {
+      await b.eval(id === 'mari_full' ? orbit(yaw, 3.0, 1.2, 0.95) : orbit(yaw, 1.35, 1.42, 1.25));
+      await b.sleep(900);
+      await b.screenshot(path.join(DIR, id + '.png'));
+    }
+    rep.steps.morph = await b.eval(
+      `JSON.stringify((() => { let m = null; game.playerCharacter.root.traverse((o) => { if (!m && o.morphTargetInfluences && /LOD0/.test(o.name + (o.parent?.name || ''))) m = o; }); return m && { dict: m.morphTargetDictionary, inf: m.morphTargetInfluences }; })())`,
+    );
+    log('morph', rep.steps.morph);
+    // the sequence: spring offsets sampled every 50 ms (cm: chest, glutes, hair) with the phase
+    await b.eval(
+      `window.__seq = []; window.__phase = 'idle'; window.__seqT = setInterval(() => { const J = game.playerCharacter.jiggle; window.__seq.push([window.__phase].concat(J.peak.map((x) => +x.toFixed(2)))); }, 50); true`,
+    );
+    await b.eval(
+      orbit(Math.PI / 2 + 0.4, 3.0, 1.25, 1.0).replace(
+        'const a = P.heading',
+        'const a = P.heading',
+      ),
+    );
+    const seq = async (phase, keys, ms, shots) => {
+      await b.eval(`window.__phase = '${phase}'; true`);
+      for (const k of keys) await b.key(k, true, k);
+      for (let i = 0; i < shots; i++) {
+        await b.sleep(ms / shots);
+        await b.screenshot(path.join(DIR, `seq_${phase}_${i}.png`));
+      }
+      for (const k of keys) await b.key(k, false, k);
+    };
+    await seq('walk', ['KeyW'], 1800, 3);
+    await seq('run', ['KeyW', 'ShiftLeft'], 1800, 3);
+    await b.eval(`window.__phase = 'stop'; true`);
+    await b.sleep(1200);
+    await b.eval(`window.__phase = 'jump'; true`);
+    await b.key('Space', true, ' ');
+    await b.sleep(100);
+    await b.key('Space', false, ' ');
+    for (let i = 0; i < 3; i++) {
+      await b.sleep(i === 0 ? 520 : 90);
+      await b.screenshot(path.join(DIR, `seq_land_${i}.png`));
+    }
+    await b.sleep(1200);
+    await b.eval(
+      `window.__phase = 'hit'; (() => { const G = game.gameplay?.G; if (G?.damagePlayer) G.damagePlayer(6, { kind: 'punch' }); })(); true`,
+    );
+    for (let i = 0; i < 3; i++) {
+      await b.sleep(90);
+      await b.screenshot(path.join(DIR, `seq_hit_${i}.png`));
+    }
+    await b.sleep(1000);
+    rep.steps.seq = JSON.parse(
+      await b.eval(`clearInterval(window.__seqT); JSON.stringify(window.__seq)`),
+    );
+    const by = {};
+    for (const [ph, c, g, h] of rep.steps.seq) {
+      const e = (by[ph] ||= [0, 0, 0]);
+      e[0] = Math.max(e[0], c);
+      e[1] = Math.max(e[1], g);
+      e[2] = Math.max(e[2], h);
+    }
+    rep.steps.seqMax = by;
+    log('seq max cm (chest, glutes, hair)', JSON.stringify(by));
+    await b.eval('game.cameraOverride = null; true');
+  }
   if (want('jiggle')) {
     // secondary motion: the painted masks (exaggerated fixed offsets), then a jump landing and a hit, close up
     if ((await b.eval('game.characters.active.id')) !== 'mari') {
@@ -200,7 +283,9 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 285 }, async (b) => {
       await b.waitFor('!game.characters.busy', 40);
     }
     await b.waitFor('!!game.playerCharacter.jiggle', 20);
-    await b.eval(`game.timeOfDay = 12; game.playerCharacter.jiggle.debug = [[0, 0, 0.06], [0, 0, -0.06], [0.1, -0.05, -0.08]]; true`);
+    await b.eval(
+      `game.timeOfDay = 12; game.playerCharacter.jiggle.debug = [[0, 0, 0.06], [0, 0, -0.06], [0.1, -0.05, -0.08]]; true`,
+    );
     await b.eval(orbit(Math.PI / 2, 2.6, 1.25, 1.05));
     await b.sleep(900);
     await b.screenshot(path.join(DIR, 'jiggle_mask_side.png'));
@@ -211,7 +296,9 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 285 }, async (b) => {
     await b.sleep(1500);
     await b.eval(orbit(Math.PI / 2 + 0.35, 2.6, 1.2, 1.0));
     // jump: sample the spring peaks every 60 ms, frames around the landing
-    await b.eval(`window.__jig = []; window.__jigT = setInterval(() => { const J = game.playerCharacter.jiggle; window.__jig.push(J.peak.map((x) => +x.toFixed(2)).concat([+game.player.position.y.toFixed(2)])); }, 60); true`);
+    await b.eval(
+      `window.__jig = []; window.__jigT = setInterval(() => { const J = game.playerCharacter.jiggle; window.__jig.push(J.peak.map((x) => +x.toFixed(2)).concat([+game.player.position.y.toFixed(2)])); }, 60); true`,
+    );
     await b.key('Space', true, ' ');
     await b.sleep(120);
     await b.key('Space', false, ' ');
@@ -221,7 +308,9 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 285 }, async (b) => {
     }
     await b.sleep(900);
     // hit: a punch from the front
-    await b.eval(`(() => { const G = game.gameplay?.G; if (G?.damagePlayer) G.damagePlayer(6, { kind: 'punch' }); else game.combat?.damage?.({ kind: 'player' }, 6, new game.THREE.Vector3(0, 0, -1), 'melee'); })(); true`);
+    await b.eval(
+      `(() => { const G = game.gameplay?.G; if (G?.damagePlayer) G.damagePlayer(6, { kind: 'punch' }); else game.combat?.damage?.({ kind: 'player' }, 6, new game.THREE.Vector3(0, 0, -1), 'melee'); })(); true`,
+    );
     for (let i = 0; i < 3; i++) {
       await b.sleep(120);
       await b.screenshot(path.join(DIR, `hit_${i}.png`));

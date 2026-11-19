@@ -21,14 +21,19 @@ mkdir -p "$SCR/src"
 /opt/homebrew/bin/blender -b --python-exit-code 1 --python "$ROOT/tools/v2/player/fbx_to_glb.py" -- "$FBX" \
   "$(ls "$FBM"/*basecolor.jpg | head -1)" "$SCR/src/mari_src.glb" 2>&1 | grep -E '\[fbx2glb\]|Error|Traceback' || true
 /opt/homebrew/bin/blender -b --python-exit-code 1 --python "$ROOT/tools/v2/npcs/apose_lifeguard.py" -- \
-  --in "$SCR/src/mari_src.glb" --id mari --height "${MARI_HEIGHT:-1.69}" --mode pose --out "$SCR/apose" 2>&1 |
-  grep -E '\[apose\] mari (bbox posed|wrote)|Error|Traceback' || true
+  --in "$SCR/src/mari_src.glb" --id mari --height "${MARI_HEIGHT:-1.69}" --mode pose --orig 1 --out "$SCR/apose" 2>&1 |
+  grep -E '\[apose\] mari (bbox posed|wrote|orig)|Error|Traceback' || true
 test -s "$SCR/apose/mari_tpose.glb"
 /opt/homebrew/bin/blender -b --python-exit-code 1 --python "$ROOT/tools/v2/player/rig_nico.py" -- \
   --in "$SCR/apose/mari_tpose.glb" \
   --id mari --height "${MARI_HEIGHT:-1.69}" --out "$SCR/rig" --lods 0,24000,7000 --blend 1 2>&1 |
   grep -E '\[rig-nico\]|Error|Traceback' || true
 test -s "$SCR/rig/mari.glb"
+# arms-down corrective shapes (the scan's own shoulders when her arms hang; see corrective.py)
+/opt/homebrew/bin/blender -b "$SCR/rig/mari.blend" --python-exit-code 1 \
+  --python "$ROOT/tools/v2/player/corrective.py" -- "$SCR/apose/mari_tpose_verts.npy" \
+  "$SCR/apose/mari_tpose_orig.npy" "$SCR/rig/mari.glb" "$SCR/rig/mari.json" 2>&1 |
+  grep -E '\[corrective\]|Error|Traceback' || true
 python3 "$ROOT/tools/v2/player/textures.py" "$FBM" "$SCR/tex"
 /opt/homebrew/bin/blender -b "$SCR/rig/mari.blend" --python-exit-code 1 \
   --python "$ROOT/tools/v2/player/measure.py" -- "$SCR/fit.json" 2>&1 |
@@ -41,5 +46,10 @@ m['fit'] = json.load(open(sys.argv[3]))
 m['src'] = 'Tripo FBX tripo_convert_6f9eb2ce (Main_Female_Character), T-pose'
 json.dump(m, open(sys.argv[2], 'w'), indent=1)
 PY
+# the baked arm-against-body shadow on her inner arms / armpits (scan stood arms down): lifted toward her arm skin
+/opt/homebrew/bin/blender -b "$SCR/rig/mari.blend" --python-exit-code 1 \
+  --python "$ROOT/tools/v2/player/underarm.py" -- "$SCR/underarm.json" 2>&1 |
+  grep -E '\[underarm\]|Error|Traceback' || true
+python3 "$ROOT/tools/v2/player/underarm_fix.py" "$SCR/underarm.json" "$SCR/tex/albedo.webp" "$SCR/tex/albedo_1k.webp"
 cp "$SCR/tex/"*.webp "$OUT/"
 ls -la "$OUT"

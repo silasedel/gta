@@ -821,6 +821,18 @@ bm.to_mesh(me); bm.free(); me.update()
 P3 = V()
 log('bbox posed', P3.min(0).round(3), P3.max(0).round(3))
 np.save(os.path.join(OUT, PID + '_tpose_verts.npy'), P3.astype(np.float32))
+if A.get('orig'):
+    # --orig 1: each output vertex's position in the source (arms-down) pose, NaN for the cap vertices; the player
+    # build turns it into an arms-down corrective shape (tools/v2/player/corrective.py)
+    vid = np.zeros(len(me.vertices), np.int64)
+    me.attributes['vid'].data.foreach_get('value', vid)
+    O = np.full(P3.shape, np.nan, np.float32)
+    for i in np.where(vid > 0)[0]: O[i] = P[kd.find(Vector(P3[i]))[1]]
+    np.save(os.path.join(OUT, PID + '_tpose_orig.npy'), O)
+    UVV = np.zeros((len(me.vertices), 2), np.float32)   # a UV per vertex: matches survive the rig's own re-pose
+    for lp in me.loops: UVV[lp.vertex_index] = me.uv_layers[0].data[lp.index].uv
+    np.save(os.path.join(OUT, PID + '_tpose_uv.npy'), UVV)
+    log('orig positions', int((vid > 0).sum()), 'of', len(vid))
 np.save(os.path.join(OUT, PID + '_labels.npy'), label)
 c = HT / 2; span = np.ptp(P3[:, 0]) * 1.05
 render_views(body, os.path.join(OUT, PID + '_tpose_views.png'), [((0, -1, 0), (0, 0, c), max(HT, span) * 1.02), ((0, 1, 0), (0, 0, c), max(HT, span) * 1.02), ((1, 0, 0), (0, 0, c), HT * 1.02)], size=900)

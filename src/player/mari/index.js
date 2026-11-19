@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { addJiggle, JIGGLE_DIST } from './jiggle.js';
+import { createShoulderCorrective } from './shoulders.js';
 
 export const MARI = {
   id: 'mari',
@@ -47,6 +48,10 @@ export function preloadMari() {
       gltf,
       meta,
       tex: { map, normalMap, orm, mask: null },
+      // her idle arms hang closer than Nico's (0.36): narrower lats; shoulder line checked in game (Nov 19)
+      pose: { armOut: 0.17, shoulderLift: 0.1, shoulderBack: 0.1, shoulderWide: 1.03 },
+      // arms-down shoulder shapes (shoulders.js), hooked in by decorateHero
+      corrective: createShoulderCorrective,
       // soft-tissue / ponytail secondary motion (jiggle.js), hooked in by decorateHero
       jiggle: { add: addJiggle, albedoUrl: DIR + 'albedo_1k.webp', dist: JIGGLE_DIST },
     };

@@ -154,7 +154,19 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
 
   const outfit = createBakedOutfit({ character, game, material: mat });
   const ik = { right: createArmIK(model, bone, 'Right'), left: createArmIK(model, bone, 'Left') };
-  const relaxed = createRelaxedPose({ model, bone, character, proportions: false, keepLegs: true });
+  // Nico's shoulder line (user, Nov 19: "shoulders hang a bit low and narrow"): clavicles raised and the shoulder joints
+  // a little wider; another hero passes its own values (assets.pose)
+  const relaxed = createRelaxedPose({
+    model,
+    bone,
+    character,
+    proportions: false,
+    keepLegs: true,
+    shoulderLift: 0.14,
+    shoulderBack: 0.12,
+    shoulderWide: 1.07,
+    ...(assets.pose || {}),
+  });
   const feet = createFootIK({ game, model, bone, root: character.root, mesh: lod[0][0] || null });
 
   // body change (game.player.body): subtle and capped, through bone scale (no morph targets on a scanned body)
@@ -373,29 +385,27 @@ export function decorateHero(character, ctx) {
     hero: meta.id || 'hero',
     ragdollRadii: radii,
   });
-  if (ctx.assets.jiggle) attachJiggle(character, ctx);
+  if (ctx.assets.jiggle || ctx.assets.corrective) attachHeroExtras(character, ctx);
   return character;
 }
 
-// Secondary motion (src/player/mari/jiggle.js): runs after the character's own update, only on the full-detail mesh
-// near the camera.
-async function attachJiggle(character, { game, model, assets }) {
+// Hero extras (Mari): the arms-down shoulder correction (src/player/mari/shoulders.js, every frame on the full mesh) and
+// the secondary motion (src/player/mari/jiggle.js, near the camera only). Both run after the character's own update.
+async function attachHeroExtras(character, { game, model, assets }) {
   let lod0 = null;
   model.traverse((o) => {
     if (!lod0 && o.isSkinnedMesh && /LOD0/.test(o.name + ' ' + (o.parent?.name || ''))) lod0 = o;
   });
-  const J = await assets.jiggle.add(character, {
-    material: character.material,
-    mesh: lod0,
-    albedoUrl: assets.jiggle.albedoUrl,
-  });
-  if (!J) return;
-  character.jiggle = J;
+  const shoulders = assets.corrective?.({ model, mesh: lod0, meta: assets.meta }) || null;
+  character.shoulders = shoulders;
   const inner = character.update;
   const cam = new THREE.Vector3();
   const at = new THREE.Vector3();
+  let J = null;
   character.update = (dt, anim) => {
     inner(dt, anim);
+    if (character.meshLOD === 0) shoulders?.update();
+    if (!J) return;
     let near = character.meshLOD === 0 && lod0.visible !== false && !character.__ragdoll;
     if (near && game?.camera) {
       const d = game.camera.getWorldPosition(cam).distanceTo(character.root.getWorldPosition(at));
@@ -403,4 +413,16 @@ async function attachJiggle(character, { game, model, assets }) {
     }
     J.update(dt, near);
   };
+  if (!assets.jiggle) return;
+  J = await assets.jiggle.add(character, {
+    material: character.material,
+    mesh: lod0,
+    albedoUrl: assets.jiggle.albedoUrl,
+  });
+  character.jiggle = J;
+  // hits on the player kick the springs (when this hero is the one being played)
+  game?.on?.('playerHit', (e) => {
+    if (J && game.playerCharacter === character)
+      J.kick(e?.damage, e?.from?.pos || e?.from?.position);
+  });
 }

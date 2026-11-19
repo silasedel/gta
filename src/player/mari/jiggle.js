@@ -11,10 +11,19 @@ const ON = !(typeof location !== 'undefined' && /[?&]jiggle=0\b/.test(location.s
 
 // per region: natural frequency (Hz), damping ratio, gain (how much of the hips' acceleration, s^2), max offset (m)
 const REGIONS = [
-  { name: 'chest', hz: 5.2, zeta: 0.32, gain: 0.0011, max: 0.011 },
-  { name: 'glutes', hz: 4.4, zeta: 0.36, gain: 0.0009, max: 0.009 },
-  { name: 'hair', hz: 1.9, zeta: 0.3, gain: 0.0035, max: 0.035 },
+  { name: 'chest', hz: 3.4, zeta: 0.36, gain: 0.00085, max: 0.02 },
+  { name: 'glutes', hz: 3.0, zeta: 0.4, gain: 0.00075, max: 0.016 },
+  { name: 'hair', hz: 1.5, zeta: 0.3, gain: 0.0042, max: 0.06 },
 ];
+// how much each axis of the hips' acceleration (character frame) moves soft tissue: the vertical bob most, the
+// side-to-side sway of the walk least
+const AXIS = { side: 0.35, up: 1, fwd: 0.55 };
+// a hit (game event 'playerHit'): a velocity kick on the springs, m/s per point of damage, capped
+const HIT_KICK = 0.08;
+const HIT_MAX = 0.6;
+// the springs see the hips' acceleration minus its slow average (time constant HP_S): bounces on steps, landings and
+// hits, but no constant offset during a long fall or a steady turn
+const HP_S = 0.22;
 
 const smooth = (a, b, x) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -154,6 +163,9 @@ transformed += aJiggle.x * uJigChest + aJiggle.y * uJigGlute + aJiggle.z * uJigH
   const p0 = new THREE.Vector3();
   const vel = new THREE.Vector3();
   const acc = new THREE.Vector3();
+  const accSlow = new THREE.Vector3();
+  const accHP = new THREE.Vector3();
+  const rq = new THREE.Quaternion();
   const tmp = new THREE.Vector3();
   const inv = new THREE.Matrix3();
   let hasPrev = false;
@@ -169,6 +181,17 @@ transformed += aJiggle.x * uJigChest + aJiggle.y * uJigGlute + aJiggle.z * uJigH
   }
 
   const J = {
+    // a hit from `from` (world position, optional): tissue and hair are thrown away from it, then settle
+    kick(damage, from) {
+      const dir = new THREE.Vector3();
+      const at = character.root.getWorldPosition(new THREE.Vector3());
+      if (from?.x !== undefined) dir.set(at.x - from.x, 0, at.z - from.z);
+      if (dir.lengthSq() < 1e-4)
+        dir.set(0, 0, -1).applyQuaternion(character.root.getWorldQuaternion(rq));
+      dir.normalize().y = 0.35;
+      const v = Math.min(HIT_MAX, HIT_KICK * (damage || 6));
+      springs.forEach((s, i) => s.v.addScaledVector(dir, v * (i === 2 ? 1.6 : 1)));
+    },
     // this frame's offset per region (cm), for tests
     peak: [0, 0, 0],
     // tests: fixed world-space offsets per region (exaggerated) to see the painted masks; null = springs
@@ -190,6 +213,7 @@ transformed += aJiggle.x * uJigChest + aJiggle.y * uJigGlute + aJiggle.z * uJigH
       // first frame, or a teleport / seat snap (more than 1.5 m in one frame): restart from rest
       if (!hasPrev || tmp.distanceToSquared(p0) > 2.25) {
         acc.set(0, 0, 0);
+        accSlow.set(0, 0, 0);
         p0.copy(tmp);
         vel.set(0, 0, 0);
         hasPrev = true;
@@ -200,6 +224,15 @@ transformed += aJiggle.x * uJigChest + aJiggle.y * uJigGlute + aJiggle.z * uJigH
       p0.copy(tmp);
       acc.lerp(nv.clone().sub(vel).divideScalar(dt), Math.min(1, dt * 14));
       vel.copy(nv);
+      accSlow.lerp(acc, Math.min(1, dt / HP_S));
+      const push = accHP.copy(acc).sub(accSlow);
+      // weight the axes in the character's frame
+      character.root.getWorldQuaternion(rq);
+      push.applyQuaternion(rq.clone().invert());
+      push.x *= AXIS.side;
+      push.y *= AXIS.up;
+      push.z *= AXIS.fwd;
+      push.applyQuaternion(rq);
       if (acc.length() > 120) acc.setLength(120); // teleports, seat snaps
       // world -> the skinned mesh's local frame (the shader adds the offset after skinning)
       inv.setFromMatrix4(mesh.matrixWorld).invert();
