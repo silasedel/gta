@@ -87,7 +87,10 @@ export async function loadMiamiData(game, opts = {}) {
   const root = opts.base || DEFAULT_BASE;
   const t0 = performance.now();
   // world.json is the manifest of the published build; `dir` is that build's folder (builds are swapped atomically)
-  const man = await getJSON(root + 'world.json');
+  // ?mapbuild=b2026...: load a kept build folder instead of the published one (audits compare fixes on one fixed map)
+  const MB = typeof location !== 'undefined' && (location.search.match(/[?&]mapbuild=(b[\d-]+)/) || [])[1];
+  const man = await getJSON(root + (MB ? MB + '/manifest.json' : 'world.json'));
+  if (MB && !man.dir) man.dir = MB + '/';
   const base = root + (man.dir || '');
   const F = man.files;
   const [rg, peds, spots, map, names, placesJ, transitJ, gridBuf] = await Promise.all([

@@ -1,0 +1,4505 @@
+{
+ "set": "after",
+ "when": "2026-11-19T04:30:27.032Z",
+ "build": "b20261118-141555",
+ "global": {
+  "counts": {
+   "roadOnWater": 1,
+   "deckStep": 23,
+   "deckDangling": 11,
+   "deckLow": 6,
+   "bldWater": 1
+  },
+  "findings": [
+   {
+    "cls": "roadOnWater",
+    "x": 2143.53,
+    "z": 958.27,
+    "len": 9,
+    "edge": 2383,
+    "kind": "secondary",
+    "name": "6th St",
+    "bridgeTag": false,
+    "elevTag": false
+   },
+   {
+    "cls": "deckStep",
+    "x": -2165.3,
+    "z": -3972.7,
+    "y": 0.37,
+    "grade": 14.86,
+    "kink": -0.39,
+    "chain": 14,
+    "name": "Immokalee Rd",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": -3806,
+    "z": -3674,
+    "y": 5.47,
+    "chain": 16,
+    "name": "County Road 833",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckLow",
+    "x": 378.36,
+    "z": -3075.69,
+    "len": 8,
+    "minY": 0,
+    "chain": 33,
+    "name": "NE 30th St",
+    "kind": "primary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 385.23,
+    "z": -3084.15,
+    "y": 1.96,
+    "grade": -11.33,
+    "kink": -3.33,
+    "chain": 33,
+    "name": "NE 30th St",
+    "kind": "primary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": -1001,
+    "z": -3102,
+    "y": 5.49,
+    "chain": 35,
+    "name": "Coral Way",
+    "kind": "primary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 1034.8,
+    "z": -2274.8,
+    "y": 1.99,
+    "grade": -10.02,
+    "kink": -3.1,
+    "chain": 60,
+    "name": "County Road 833",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": -1870,
+    "z": -2244,
+    "y": 5.5,
+    "chain": 63,
+    "name": "Corkscrew Rd",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckLow",
+    "x": 838.52,
+    "z": -1868.59,
+    "len": 6,
+    "minY": 0.18,
+    "chain": 78,
+    "name": "Airboat Rd",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 838.76,
+    "z": -1872.64,
+    "y": 0,
+    "grade": 8.98,
+    "kink": 8.92,
+    "chain": 78,
+    "name": "Airboat Rd",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": 836,
+    "z": -1826,
+    "y": 2.22,
+    "chain": 78,
+    "name": "Airboat Rd",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckLow",
+    "x": 342.11,
+    "z": -1428.04,
+    "len": 8,
+    "minY": 0,
+    "chain": 85,
+    "name": "State Road 935",
+    "kind": "trunk"
+   },
+   {
+    "cls": "deckStep",
+    "x": 331.51,
+    "z": -1431.37,
+    "y": 1.97,
+    "grade": -10.85,
+    "kink": -3.4,
+    "chain": 85,
+    "name": "State Road 935",
+    "kind": "trunk"
+   },
+   {
+    "cls": "deckStep",
+    "x": 1937.76,
+    "z": -1619.4,
+    "y": 0.19,
+    "grade": 9.25,
+    "kink": -0.06,
+    "chain": 86,
+    "name": "Josie Billie Hwy",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckStep",
+    "x": -2340.9,
+    "z": -1530.57,
+    "y": 0.5,
+    "grade": 9.94,
+    "kink": 1.12,
+    "chain": 89,
+    "name": "Josie Billie Hwy",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": 2068,
+    "z": -990,
+    "y": 5.5,
+    "chain": 93,
+    "name": "Pennsylvania Ave",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 2234.98,
+    "z": -1421.34,
+    "y": 4.98,
+    "grade": -13.85,
+    "kink": 0.03,
+    "chain": 99,
+    "name": "27th St",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 2217.26,
+    "z": -1407.37,
+    "y": 2.02,
+    "grade": -11.6,
+    "kink": 0.38,
+    "chain": 99,
+    "name": "27th St",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 2269.73,
+    "z": -1320.25,
+    "y": 2.02,
+    "grade": -9.65,
+    "kink": -2.57,
+    "chain": 100,
+    "name": "Collins Ave",
+    "kind": "primary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": 1034,
+    "z": -1397,
+    "y": 5.5,
+    "chain": 101,
+    "name": "Canal Rd",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 122.08,
+    "z": -1208.3,
+    "y": 0.33,
+    "grade": 15.95,
+    "kink": -0.18,
+    "chain": 113,
+    "name": "NW 2nd Ave",
+    "kind": "primary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 2364.02,
+    "z": -956.02,
+    "y": 0.22,
+    "grade": 9.86,
+    "kink": 2.55,
+    "chain": 118,
+    "name": "Collins Ave",
+    "kind": "primary"
+   },
+   {
+    "cls": "deckLow",
+    "x": -150.84,
+    "z": -771.69,
+    "len": 20,
+    "minY": 0,
+    "chain": 124,
+    "name": "NW 6th St",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckStep",
+    "x": -144.64,
+    "z": -786.34,
+    "y": 1.95,
+    "grade": -11.25,
+    "kink": -3.28,
+    "chain": 124,
+    "name": "NW 6th St",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 1364.21,
+    "z": -621.46,
+    "y": 1.84,
+    "grade": -9.54,
+    "kink": -0.9,
+    "chain": 131,
+    "name": "Canal Rd",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckStep",
+    "x": -915.18,
+    "z": -471.26,
+    "y": 0.12,
+    "grade": 10.58,
+    "kink": 4.56,
+    "chain": 140,
+    "name": "NW 4th St",
+    "kind": "trunk"
+   },
+   {
+    "cls": "deckStep",
+    "x": 1970.8,
+    "z": -443.69,
+    "y": 0.91,
+    "grade": 9.6,
+    "kink": 0.66,
+    "chain": 141,
+    "name": "18th St",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 1949.36,
+    "z": -438.65,
+    "y": 3.5,
+    "grade": 13.41,
+    "kink": 0.15,
+    "chain": 141,
+    "name": "18th St",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": -1815,
+    "z": -429,
+    "y": 5.39,
+    "chain": 142,
+    "name": "County Road 846",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": -3421,
+    "z": 253,
+    "y": 5.49,
+    "chain": 193,
+    "name": "County Road 721",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckStep",
+    "x": -174.27,
+    "z": 249.4,
+    "y": 2.1,
+    "grade": 9,
+    "kink": 0.19,
+    "chain": 196,
+    "name": "SW 6th Ave",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckLow",
+    "x": 1831.97,
+    "z": 275.25,
+    "len": 12,
+    "minY": 0,
+    "chain": 202,
+    "name": "Dock St",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 1832.97,
+    "z": 275.18,
+    "y": 0,
+    "grade": 8.97,
+    "kink": 8.91,
+    "chain": 202,
+    "name": "Dock St",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": 1881,
+    "z": 374,
+    "y": 5.22,
+    "chain": 202,
+    "name": "Dock St",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": 1738,
+    "z": 418,
+    "y": 5.5,
+    "chain": 204,
+    "name": "Container Rd",
+    "kind": "tertiary"
+   },
+   {
+    "cls": "deckStep",
+    "x": 57.77,
+    "z": 874.42,
+    "y": 0,
+    "grade": 7.14,
+    "kink": 7.09,
+    "chain": 218,
+    "name": "State Road 970",
+    "kind": "trunk"
+   },
+   {
+    "cls": "deckStep",
+    "x": 440.26,
+    "z": 1244.83,
+    "y": 0.44,
+    "grade": 9.44,
+    "kink": 1.13,
+    "chain": 231,
+    "name": "Miami Ave",
+    "kind": "secondary"
+   },
+   {
+    "cls": "deckDangling",
+    "x": 2200,
+    "z": 1375,
+    "y": 2.22,
+    "chain": 237,
+    "name": "Main St",
+    "kind": "residential"
+   },
+   {
+    "cls": "deckLow",
+    "x": -791.45,
+    "z": 2389.35,
+    "len": 20,
+    "minY": 0,
+    "chain": 253,
+    "name": "Bay St",
+    "kind": "residential"
+   },
+   {
+    "cls": "deckStep",
+    "x": -793.73,
+    "z": 2391.33,
+    "y": 0,
+    "grade": 8.98,
+    "kink": 8.92,
+    "chain": 253,
+    "name": "Bay St",
+    "kind": "residential"
+   },
+   {
+    "cls": "deckStep",
+    "x": -773.12,
+    "z": 2394.76,
+    "y": 0.23,
+    "grade": 9.82,
+    "kink": 2.47,
+    "chain": 254,
+    "name": "SW 10th Ave",
+    "kind": "residential"
+   },
+   {
+    "cls": "bldWater",
+    "x": -1138.43,
+    "z": -428.47,
+    "frac": 0.6,
+    "h": 24.9,
+    "idx": 5104
+   }
+  ]
+ },
+ "areas": [
+  {
+   "name": "nico",
+   "x": -1000.16,
+   "z": 5184.42,
+   "district": "Key Largo",
+   "zone": "residential",
+   "r": 110,
+   "counts": {
+    "floatProp": 73,
+    "propInBld": 9,
+    "carLane": 4,
+    "carBush": 4,
+    "groundSeam": 6
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": -1020.58,
+     "y": -0.02,
+     "z": 5251.53,
+     "dy": -2,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps(palm)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1078.97,
+     "y": -0.48,
+     "z": 5222.95,
+     "dy": -0.165,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1085.62,
+     "y": -0.55,
+     "z": 5227.67,
+     "dy": -0.221,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1086.54,
+     "y": -0.53,
+     "z": 5230.65,
+     "dy": -0.203,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1087.9,
+     "y": -0.55,
+     "z": 5226.56,
+     "dy": -0.175,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -989.08,
+     "y": -0.54,
+     "z": 5125.94,
+     "dy": -1.874,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -987.59,
+     "y": -0.45,
+     "z": 5128.53,
+     "dy": -1.432,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -988.98,
+     "y": -0.45,
+     "z": 5129.69,
+     "dy": -0.82,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -964.39,
+     "y": -0.37,
+     "z": 5155.62,
+     "dy": -1.591,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -967.6,
+     "y": -0.19,
+     "z": 5155.52,
+     "dy": -1.625,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -956.87,
+     "y": -0.39,
+     "z": 5156.24,
+     "dy": -0.454,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1003.43,
+     "y": 0.15,
+     "z": 5209.77,
+     "dy": 0.15,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": -973.6,
+     "y": -0.02,
+     "z": 5202.88,
+     "dy": -2,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps(palm)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1000.23,
+     "y": 0.15,
+     "z": 5214.91,
+     "dy": 0.15,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -981.25,
+     "y": -0.08,
+     "z": 5177.15,
+     "dy": -0.634,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -963.48,
+     "y": -0.08,
+     "z": 5217.15,
+     "dy": -0.788,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1017.02,
+     "y": -0.06,
+     "z": 5219.17,
+     "dy": -0.871,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1021.04,
+     "y": -0.06,
+     "z": 5216.55,
+     "dy": -0.915,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -978.51,
+     "y": -0.07,
+     "z": 5198.68,
+     "dy": -0.605,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -980.76,
+     "y": -0.07,
+     "z": 5201.86,
+     "dy": -0.668,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1014.33,
+     "y": -0.07,
+     "z": 5220.91,
+     "dy": -0.449,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1018.36,
+     "y": -0.06,
+     "z": 5218.29,
+     "dy": -0.901,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -950.51,
+     "y": -0.06,
+     "z": 5208.75,
+     "dy": -0.836,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -949.91,
+     "y": -0.07,
+     "z": 5203.99,
+     "dy": -0.83,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1020.41,
+     "y": -0.02,
+     "z": 5193.66,
+     "dy": -1.97,
+     "kind": "vegTree",
+     "src": "vegetation field liveoak (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1014.48,
+     "y": -0.02,
+     "z": 5198.99,
+     "dy": -1.771,
+     "kind": "vegTree",
+     "src": "vegetation field liveoak (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1025.65,
+     "y": -0.29,
+     "z": 5190.95,
+     "dy": -1.146,
+     "kind": "vegTree",
+     "src": "vegetation field liveoak (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -953.62,
+     "y": -0.06,
+     "z": 5207.05,
+     "dy": -0.515,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1013.7,
+     "y": -0.07,
+     "z": 5220.84,
+     "dy": -0.397,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -995.13,
+     "y": -0.08,
+     "z": 5174.95,
+     "dy": -0.774,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -992.61,
+     "y": -0.08,
+     "z": 5175.91,
+     "dy": -0.817,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -988.82,
+     "y": -0.09,
+     "z": 5177.34,
+     "dy": -0.885,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -986.29,
+     "y": -0.09,
+     "z": 5178.3,
+     "dy": -0.887,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -972.43,
+     "y": -0.07,
+     "z": 5212.16,
+     "dy": -0.559,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -969.82,
+     "y": -0.08,
+     "z": 5213.58,
+     "dy": -1.104,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -969.89,
+     "y": -0.09,
+     "z": 5213.26,
+     "dy": -1.796,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -968.6,
+     "y": -0.07,
+     "z": 5213.65,
+     "dy": -0.682,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -980.92,
+     "y": -0.08,
+     "z": 5221.44,
+     "dy": -0.775,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -979.34,
+     "y": -0.08,
+     "z": 5216.27,
+     "dy": -0.786,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -978.55,
+     "y": -0.08,
+     "z": 5213.69,
+     "dy": -0.797,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -960.74,
+     "y": -0.07,
+     "z": 5189.51,
+     "dy": -0.631,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -950.09,
+     "y": -0.07,
+     "z": 5202.55,
+     "dy": -0.968,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -920.52,
+     "y": 0.1,
+     "z": 5180.3,
+     "dy": 0.097,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -919.18,
+     "y": 0.1,
+     "z": 5180.48,
+     "dy": 0.095,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -991.34,
+     "y": -0.09,
+     "z": 5176.38,
+     "dy": -0.647,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -981.71,
+     "y": -0.09,
+     "z": 5224.02,
+     "dy": -0.919,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -962.82,
+     "y": -0.08,
+     "z": 5203.59,
+     "dy": -2,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -982.1,
+     "y": -0.08,
+     "z": 5225.31,
+     "dy": -1.956,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -980.13,
+     "y": -0.07,
+     "z": 5218.86,
+     "dy": -1.454,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -963.42,
+     "y": -0.08,
+     "z": 5189.17,
+     "dy": -0.661,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1011.64,
+     "y": -0.02,
+     "z": 5198.53,
+     "dy": -1.953,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -987.56,
+     "y": -0.09,
+     "z": 5177.82,
+     "dy": -1.46,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -963.92,
+     "y": -0.07,
+     "z": 5202.81,
+     "dy": -2,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -966.02,
+     "y": -0.09,
+     "z": 5214.44,
+     "dy": -0.773,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -978.15,
+     "y": -0.09,
+     "z": 5212.4,
+     "dy": -0.677,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -950.25,
+     "y": -0.09,
+     "z": 5203.89,
+     "dy": -1.035,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -931.79,
+     "y": -0.06,
+     "z": 5172.04,
+     "dy": -0.388,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -965.02,
+     "y": -0.08,
+     "z": 5202.03,
+     "dy": -1.039,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -965.92,
+     "y": -0.08,
+     "z": 5208.06,
+     "dy": -1.038,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -979.02,
+     "y": -0.08,
+     "z": 5212.23,
+     "dy": -1.041,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -977.64,
+     "y": -0.07,
+     "z": 5210.89,
+     "dy": -0.913,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -972.47,
+     "y": -0.09,
+     "z": 5212.47,
+     "dy": -0.717,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -950.76,
+     "y": -0.08,
+     "z": 5207.91,
+     "dy": -1.554,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -933.04,
+     "y": -0.06,
+     "z": 5197.08,
+     "dy": -0.385,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -977.3,
+     "y": -0.07,
+     "z": 5213.64,
+     "dy": -0.709,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -976.74,
+     "y": -0.06,
+     "z": 5211.98,
+     "dy": -0.865,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -964.86,
+     "y": -0.06,
+     "z": 5206.05,
+     "dy": -2,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -972.23,
+     "y": -0.05,
+     "z": 5215.42,
+     "dy": -0.812,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -933.23,
+     "y": -0.06,
+     "z": 5164.59,
+     "dy": -0.51,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (scene)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -975.51,
+     "y": 0,
+     "z": 5200.92,
+     "dy": -0.6,
+     "kind": "fence",
+     "src": "dressing.v2.js:spawn yards"
+    },
+    {
+     "cls": "floatProp",
+     "x": -976.28,
+     "y": 0,
+     "z": 5201.84,
+     "dy": -0.6,
+     "kind": "fence",
+     "src": "dressing.v2.js:spawn yards"
+    },
+    {
+     "cls": "floatProp",
+     "x": -995,
+     "y": 0,
+     "z": 5261.49,
+     "dy": -0.5,
+     "kind": "fence",
+     "src": "dressing.v2.js:spawn yards"
+    },
+    {
+     "cls": "floatProp",
+     "x": -993.8,
+     "y": 0,
+     "z": 5261.54,
+     "dy": -0.5,
+     "kind": "fence",
+     "src": "dressing.v2.js:spawn yards"
+    },
+    {
+     "cls": "propInBld",
+     "x": -987.78,
+     "y": -0.02,
+     "z": 5181.1,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "propInBld",
+     "x": -981.25,
+     "y": -0.08,
+     "z": 5177.15,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (houses)"
+    },
+    {
+     "cls": "propInBld",
+     "x": -1020.41,
+     "y": -0.02,
+     "z": 5193.66,
+     "kind": "vegTree",
+     "src": "vegetation field liveoak (scene)"
+    },
+    {
+     "cls": "propInBld",
+     "x": -995.4,
+     "y": 0.07,
+     "z": 5187.24,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (scene)"
+    },
+    {
+     "cls": "propInBld",
+     "x": -991.39,
+     "y": 0.11,
+     "z": 5184.45,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (scene)"
+    },
+    {
+     "cls": "propInBld",
+     "x": -989.8,
+     "y": 0.11,
+     "z": 5188.69,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (scene)"
+    },
+    {
+     "cls": "propInBld",
+     "x": -1018.41,
+     "y": -0.02,
+     "z": 5193.14,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (scene)"
+    },
+    {
+     "cls": "propInBld",
+     "x": -1022.26,
+     "y": -0.02,
+     "z": 5191.94,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (scene)"
+    },
+    {
+     "cls": "propInBld",
+     "x": -1025.65,
+     "y": -0.29,
+     "z": 5190.95,
+     "kind": "vegTree",
+     "src": "vegetation field liveoak (scene)"
+    },
+    {
+     "cls": "carLane",
+     "x": -992.86,
+     "z": 5226.98,
+     "width": 6.5,
+     "off": 2.1,
+     "kind": "residential",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": -991.99,
+     "z": 5218.7,
+     "width": 6.5,
+     "off": 2.1,
+     "kind": "residential",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": -963.37,
+     "z": 5251.46,
+     "width": 6.5,
+     "off": 2.1,
+     "kind": "residential",
+     "model": ""
+    },
+    {
+     "cls": "carBush",
+     "x": -982.19,
+     "z": 5207.95,
+     "depth": 0.41,
+     "model": ""
+    },
+    {
+     "cls": "carBush",
+     "x": -1028.48,
+     "z": 5227.1,
+     "depth": 0.39,
+     "model": ""
+    },
+    {
+     "cls": "carBush",
+     "x": -976.79,
+     "z": 5164.33,
+     "depth": 0.12,
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": -1028.58,
+     "z": 5255.28,
+     "width": 6.5,
+     "off": 3.6,
+     "kind": "residential",
+     "model": ""
+    },
+    {
+     "cls": "carBush",
+     "x": -1010.47,
+     "z": 5193.79,
+     "depth": 0.77,
+     "model": ""
+    },
+    {
+     "cls": "groundSeam",
+     "x": -1013.28,
+     "z": 5168.46,
+     "cells": 76,
+     "pair": "miami-land-base|land-base / terrain|terrain"
+    },
+    {
+     "cls": "groundSeam",
+     "x": -998.56,
+     "z": 5147.02,
+     "cells": 5,
+     "pair": "miami-land-base|land-base / terrain-lod|terrain-lod"
+    },
+    {
+     "cls": "groundSeam",
+     "x": -992.22,
+     "z": 5210.73,
+     "cells": 16,
+     "pair": "?|car-paint / terrain-lod|terrain-lod"
+    },
+    {
+     "cls": "groundSeam",
+     "x": -1009.65,
+     "z": 5172.68,
+     "cells": 35,
+     "pair": "nh_occluder|nh:occluder / terrain|terrain"
+    },
+    {
+     "cls": "groundSeam",
+     "x": -1011.16,
+     "z": 5194.42,
+     "cells": 6,
+     "pair": "?|car-glass-dusty / terrain-lod|terrain-lod"
+    },
+    {
+     "cls": "groundSeam",
+     "x": -1001.02,
+     "z": 5193.42,
+     "cells": 7,
+     "pair": "?|car-trim / terrain-lod|terrain-lod"
+    }
+   ]
+  },
+  {
+   "name": "a1",
+   "x": -2178,
+   "z": -6498.2,
+   "district": "Okeechobee",
+   "zone": "rural",
+   "r": 110,
+   "counts": {
+    "floatProp": 1
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": -2178.31,
+     "y": -0.02,
+     "z": -6546.47,
+     "dy": -2,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    }
+   ]
+  },
+  {
+   "name": "a2",
+   "x": 2592.4,
+   "z": -1059.6,
+   "district": "Miami Beach",
+   "zone": "commercial",
+   "r": 110,
+   "counts": {
+    "floatProp": 18,
+    "propInBld": 2
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": 2598.14,
+     "y": 0.15,
+     "z": -1018.33,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2598.28,
+     "y": 0.15,
+     "z": -1013.93,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2593.88,
+     "y": 0.15,
+     "z": -1049.26,
+     "dy": 0.15,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2597.39,
+     "y": 0.15,
+     "z": -1044.34,
+     "dy": 0.15,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2597.84,
+     "y": 0.15,
+     "z": -1043.27,
+     "dy": 0.15,
+     "kind": "bin",
+     "src": "tilebuild.js:shopDress/buildRoads"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2614.93,
+     "y": 0.15,
+     "z": -1151.92,
+     "dy": -0.875,
+     "kind": "cafe",
+     "src": "tilebuild.js:shopFrontDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2620.13,
+     "y": 0.15,
+     "z": -1151.92,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2614.93,
+     "y": 0.15,
+     "z": -1151.92,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2598.93,
+     "y": 0.15,
+     "z": -1069,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2598.15,
+     "y": 0.15,
+     "z": -1074.14,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2596.75,
+     "y": 0.15,
+     "z": -1083.29,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2595.97,
+     "y": 0.15,
+     "z": -1088.43,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2594.57,
+     "y": 0.15,
+     "z": -1097.58,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2593.79,
+     "y": 0.15,
+     "z": -1102.72,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2597.6,
+     "y": 0.15,
+     "z": -1136.14,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2602.8,
+     "y": 0.15,
+     "z": -1136.14,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2621.76,
+     "y": 0.15,
+     "z": -962.35,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 2621.34,
+     "y": 0.15,
+     "z": -967.53,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": 2595,
+     "y": 0.15,
+     "z": -1125,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": 2619.16,
+     "y": 0.15,
+     "z": -964.75,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    }
+   ]
+  },
+  {
+   "name": "a3",
+   "x": -5025.1,
+   "z": -97.5,
+   "district": "Naples",
+   "zone": "rural",
+   "r": 110,
+   "counts": {
+    "groundSeam": 2
+   },
+   "findings": [
+    {
+     "cls": "groundSeam",
+     "x": -5029.12,
+     "z": -103.04,
+     "cells": 125,
+     "pair": "miami-land-base|land-base / terrain|terrain"
+    },
+    {
+     "cls": "groundSeam",
+     "x": -5063.5,
+     "z": -109.9,
+     "cells": 10,
+     "pair": "miami-land-base|land-base / terrain-lod|terrain-lod"
+    }
+   ]
+  },
+  {
+   "name": "a4",
+   "x": -5142.3,
+   "z": 6144,
+   "district": "Key West",
+   "zone": "rural",
+   "r": 110,
+   "counts": {
+    "floatProp": 3,
+    "carLane": 4
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": -5189.98,
+     "y": -0.02,
+     "z": 6155.79,
+     "dy": -1.712,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -5091.19,
+     "y": -0.02,
+     "z": 6155.65,
+     "dy": -2,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -5137.99,
+     "y": -0.02,
+     "z": 6195.63,
+     "dy": -1.808,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "carLane",
+     "x": -5185.77,
+     "z": 6202.51,
+     "width": 8.4,
+     "off": 3.05,
+     "kind": "residential",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": -5204.42,
+     "z": 6233.94,
+     "width": 8.4,
+     "off": 3.05,
+     "kind": "residential",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": -5184.11,
+     "z": 6209.99,
+     "width": 8.4,
+     "off": 3.05,
+     "kind": "residential",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": -5193.69,
+     "z": 6211.86,
+     "width": 8.4,
+     "off": 3.05,
+     "kind": "residential",
+     "model": ""
+    }
+   ]
+  },
+  {
+   "name": "a5",
+   "x": -1438.2,
+   "z": -2299,
+   "district": "Clewiston",
+   "zone": "commercial",
+   "r": 110,
+   "counts": {
+    "floatProp": 23,
+    "carLane": 2,
+    "carBush": 1
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": -1428.51,
+     "y": -0.02,
+     "z": -2281.77,
+     "dy": -1.199,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1402.35,
+     "y": 0,
+     "z": -2247.65,
+     "dy": -0.15,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1470.27,
+     "y": -0.05,
+     "z": -2295.64,
+     "dy": -1.644,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1471.82,
+     "y": -0.06,
+     "z": -2291.4,
+     "dy": -0.311,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1465.79,
+     "y": -0.05,
+     "z": -2312.02,
+     "dy": -0.75,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1494.88,
+     "y": -0.06,
+     "z": -2374.64,
+     "dy": -0.384,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1471.41,
+     "y": -0.05,
+     "z": -2292.72,
+     "dy": -0.305,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1449.87,
+     "y": -0.06,
+     "z": -2302.32,
+     "dy": -0.835,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1455.26,
+     "y": -0.06,
+     "z": -2358.14,
+     "dy": -1.029,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1470.16,
+     "y": -0.06,
+     "z": -2296.49,
+     "dy": -0.932,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1470.47,
+     "y": -0.07,
+     "z": -2295.53,
+     "dy": -0.86,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1466.12,
+     "y": -0.05,
+     "z": -2310.86,
+     "dy": -0.953,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1482.62,
+     "y": -0.05,
+     "z": -2352.17,
+     "dy": -0.701,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1504.94,
+     "y": -0.06,
+     "z": -2339.49,
+     "dy": -0.382,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1424.07,
+     "y": -0.06,
+     "z": -2311.34,
+     "dy": -0.389,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1454.73,
+     "y": -0.05,
+     "z": -2359.92,
+     "dy": -0.301,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1453.59,
+     "y": -0.08,
+     "z": -2335.56,
+     "dy": -2,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1448.92,
+     "y": 0.08,
+     "z": -2299.21,
+     "dy": 0.082,
+     "kind": "vegPalm",
+     "src": "vegetation field coconut (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1465.44,
+     "y": -0.05,
+     "z": -2312.81,
+     "dy": -0.706,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1478.84,
+     "y": -0.05,
+     "z": -2368.12,
+     "dy": -0.302,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1483.7,
+     "y": -0.06,
+     "z": -2277.05,
+     "dy": -0.381,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1442.28,
+     "y": -0.07,
+     "z": -2338.66,
+     "dy": -0.418,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -1496.52,
+     "y": -0.06,
+     "z": -2303.61,
+     "dy": -0.387,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "carLane",
+     "x": -1436.78,
+     "z": -2214.11,
+     "width": 7.6,
+     "off": 2.65,
+     "kind": "tertiary",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": -1534.32,
+     "z": -2269.04,
+     "width": 9,
+     "off": 3.35,
+     "kind": "tertiary",
+     "model": ""
+    },
+    {
+     "cls": "carBush",
+     "x": -1425.17,
+     "z": -2250.24,
+     "depth": 0.22,
+     "model": ""
+    }
+   ]
+  },
+  {
+   "name": "a6",
+   "x": -5356.2,
+   "z": -4144.5,
+   "district": "Fort Myers",
+   "zone": "residential",
+   "r": 110,
+   "counts": {
+    "floatProp": 7
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": -5300.06,
+     "y": -0.05,
+     "z": -4128.86,
+     "dy": -0.376,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -5281.06,
+     "y": -0.07,
+     "z": -4154.85,
+     "dy": -0.317,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -5307.76,
+     "y": -0.06,
+     "z": -4159.93,
+     "dy": -1.191,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -5340.35,
+     "y": -0.06,
+     "z": -4122.29,
+     "dy": -0.383,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -5341.46,
+     "y": -0.07,
+     "z": -4127.12,
+     "dy": -0.391,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -5277.76,
+     "y": -0.06,
+     "z": -4155.86,
+     "dy": -1.032,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -5283.59,
+     "y": 0,
+     "z": -4162.64,
+     "dy": -2,
+     "kind": "mailbox",
+     "src": "lotProps.v2.js"
+    }
+   ]
+  },
+  {
+   "name": "a7",
+   "x": -316.8,
+   "z": 1446.7,
+   "district": "Brickell",
+   "zone": "business",
+   "r": 110,
+   "counts": {
+    "floatProp": 4,
+    "propInBld": 8
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": -289.11,
+     "y": 0,
+     "z": 1397.54,
+     "dy": -0.15,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -301.5,
+     "y": 0,
+     "z": 1371.57,
+     "dy": -0.15,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": -336.72,
+     "y": 0.15,
+     "z": 1515.51,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": -337.18,
+     "y": 0.15,
+     "z": 1519.89,
+     "dy": -0.72,
+     "kind": "umbrella",
+     "src": "tilebuild.js:beachDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": -405,
+     "y": 0.15,
+     "z": 1385,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": -395,
+     "y": 0.15,
+     "z": 1395,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": -375,
+     "y": 0.15,
+     "z": 1395,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": -335,
+     "y": 0.15,
+     "z": 1395,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": -385,
+     "y": 0.15,
+     "z": 1395,
+     "kind": "bench",
+     "src": "tilebuild.js:shopDress/plazaDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": -315,
+     "y": 0.15,
+     "z": 1395,
+     "kind": "bench",
+     "src": "tilebuild.js:shopDress/plazaDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": -245,
+     "y": 0.15,
+     "z": 1405,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "propInBld",
+     "x": -235,
+     "y": 0.15,
+     "z": 1405,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    }
+   ]
+  },
+  {
+   "name": "a8",
+   "x": -3402.6,
+   "z": 2911.4,
+   "district": "Everglades City",
+   "zone": "commercial",
+   "r": 110,
+   "counts": {
+    "floatProp": 6,
+    "groundSeam": 2
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": -3405.15,
+     "y": -0.06,
+     "z": 2927.21,
+     "dy": -0.357,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -3405.21,
+     "y": -0.05,
+     "z": 2927.04,
+     "dy": -0.351,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -3388.94,
+     "y": -0.07,
+     "z": 2947.68,
+     "dy": -1.36,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -3377.48,
+     "y": -0.07,
+     "z": 2923.42,
+     "dy": -1.597,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -3358.03,
+     "y": -0.07,
+     "z": 2947.33,
+     "dy": -1.033,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": -3358.8,
+     "y": -0.07,
+     "z": 2946.54,
+     "dy": -1.194,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "groundSeam",
+     "x": -3465.6,
+     "z": 2899.63,
+     "cells": 26,
+     "pair": "miami-land-base|land-base / terrain|terrain"
+    },
+    {
+     "cls": "groundSeam",
+     "x": -3403.6,
+     "z": 2950.54,
+     "cells": 7,
+     "pair": "?|car-paint / terrain-lod|terrain-lod"
+    }
+   ]
+  },
+  {
+   "name": "a9",
+   "x": 597.6,
+   "z": -4623.6,
+   "district": "Hialeah Gardens",
+   "zone": "residential",
+   "r": 110,
+   "counts": {
+    "floatProp": 18,
+    "carLane": 4
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": 540.78,
+     "y": -0.02,
+     "z": -4621.76,
+     "dy": -1.946,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": 585.18,
+     "y": 0.15,
+     "z": -4604.25,
+     "dy": 0.15,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+    },
+    {
+     "cls": "floatProp",
+     "x": 580.32,
+     "y": 0.15,
+     "z": -4600.63,
+     "dy": 0.15,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": 653.4,
+     "y": -0.02,
+     "z": -4619.11,
+     "dy": -1.979,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    },
+    {
+     "cls": "floatProp",
+     "x": 551.19,
+     "y": -0.05,
+     "z": -4670.52,
+     "dy": -0.7,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 581.66,
+     "y": -0.06,
+     "z": -4634.89,
+     "dy": -0.41,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 553.1,
+     "y": -0.06,
+     "z": -4667.54,
+     "dy": -0.384,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 564.31,
+     "y": -0.05,
+     "z": -4655.34,
+     "dy": -1.027,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 573.44,
+     "y": -0.07,
+     "z": -4615.8,
+     "dy": -1.359,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 585.42,
+     "y": -0.05,
+     "z": -4629.15,
+     "dy": -0.398,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 551.82,
+     "y": -0.06,
+     "z": -4669.75,
+     "dy": -0.706,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 567.8,
+     "y": -0.06,
+     "z": -4651.79,
+     "dy": -0.381,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 559.89,
+     "y": -0.06,
+     "z": -4603.04,
+     "dy": -0.755,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 560.24,
+     "y": -0.06,
+     "z": -4603.38,
+     "dy": -1.219,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 558.96,
+     "y": -0.05,
+     "z": -4602.63,
+     "dy": -0.678,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 566.05,
+     "y": -0.05,
+     "z": -4653.43,
+     "dy": -1.027,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 562.86,
+     "y": -0.06,
+     "z": -4605.34,
+     "dy": -1.19,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "floatProp",
+     "x": 563.93,
+     "y": -0.06,
+     "z": -4655.57,
+     "dy": -1.031,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)"
+    },
+    {
+     "cls": "carLane",
+     "x": 539.31,
+     "z": -4570.54,
+     "width": 7.6,
+     "off": 2.65,
+     "kind": "tertiary",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": 531.69,
+     "z": -4563.12,
+     "width": 7.6,
+     "off": 2.65,
+     "kind": "tertiary",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": 549,
+     "z": -4572.58,
+     "width": 7.6,
+     "off": 2.65,
+     "kind": "tertiary",
+     "model": ""
+    },
+    {
+     "cls": "carLane",
+     "x": 522.67,
+     "z": -4554.34,
+     "width": 7.6,
+     "off": 2.65,
+     "kind": "tertiary",
+     "model": ""
+    }
+   ]
+  },
+  {
+   "name": "a10",
+   "x": 2457.4,
+   "z": 1605.7,
+   "district": "Virginia Key",
+   "zone": "rural",
+   "r": 110,
+   "counts": {
+    "floatProp": 1
+   },
+   "findings": [
+    {
+     "cls": "floatProp",
+     "x": 2403.94,
+     "y": -0.02,
+     "z": 1606.17,
+     "dy": -2,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps"
+    }
+   ]
+  }
+ ],
+ "counts": {
+  "roadOnWater": 1,
+  "deckStep": 23,
+  "deckDangling": 11,
+  "deckLow": 6,
+  "bldWater": 1,
+  "floatProp": 134,
+  "propInBld": 19,
+  "carLane": 14,
+  "carBush": 5,
+  "groundSeam": 10
+ },
+ "top": {
+  "roadOnWater": [
+   {
+    "cls": "roadOnWater",
+    "x": 2143.53,
+    "z": 958.27,
+    "len": 9,
+    "edge": 2383,
+    "kind": "secondary",
+    "name": "6th St",
+    "bridgeTag": false,
+    "elevTag": false,
+    "shot": "docs/v2/shots/map-audit/after/roadOnWater_1.jpg"
+   }
+  ],
+  "deckStep": [
+   {
+    "cls": "deckStep",
+    "x": 838.76,
+    "z": -1872.64,
+    "y": 0,
+    "grade": 8.98,
+    "kink": 8.92,
+    "chain": 78,
+    "name": "Airboat Rd",
+    "kind": "secondary",
+    "shot": "docs/v2/shots/map-audit/after/deckStep_1.jpg"
+   },
+   {
+    "cls": "deckStep",
+    "x": -793.73,
+    "z": 2391.33,
+    "y": 0,
+    "grade": 8.98,
+    "kink": 8.92,
+    "chain": 253,
+    "name": "Bay St",
+    "kind": "residential",
+    "shot": "docs/v2/shots/map-audit/after/deckStep_2.jpg"
+   }
+  ],
+  "deckDangling": [
+   {
+    "cls": "deckDangling",
+    "x": -3806,
+    "z": -3674,
+    "y": 5.47,
+    "chain": 16,
+    "name": "County Road 833",
+    "kind": "tertiary",
+    "shot": "docs/v2/shots/map-audit/after/deckDangling_1.jpg"
+   },
+   {
+    "cls": "deckDangling",
+    "x": -1001,
+    "z": -3102,
+    "y": 5.49,
+    "chain": 35,
+    "name": "Coral Way",
+    "kind": "primary",
+    "shot": "docs/v2/shots/map-audit/after/deckDangling_2.jpg"
+   }
+  ],
+  "deckLow": [
+   {
+    "cls": "deckLow",
+    "x": -150.84,
+    "z": -771.69,
+    "len": 20,
+    "minY": 0,
+    "chain": 124,
+    "name": "NW 6th St",
+    "kind": "tertiary",
+    "shot": "docs/v2/shots/map-audit/after/deckLow_1.jpg"
+   },
+   {
+    "cls": "deckLow",
+    "x": -791.45,
+    "z": 2389.35,
+    "len": 20,
+    "minY": 0,
+    "chain": 253,
+    "name": "Bay St",
+    "kind": "residential",
+    "shot": "docs/v2/shots/map-audit/after/deckLow_2.jpg"
+   }
+  ],
+  "bldWater": [
+   {
+    "cls": "bldWater",
+    "x": -1138.43,
+    "z": -428.47,
+    "frac": 0.6,
+    "h": 24.9,
+    "idx": 5104,
+    "shot": "docs/v2/shots/map-audit/after/bldWater_1.jpg"
+   }
+  ]
+ },
+ "all": [
+  {
+   "cls": "roadOnWater",
+   "x": 2143.53,
+   "z": 958.27,
+   "len": 9,
+   "edge": 2383,
+   "kind": "secondary",
+   "name": "6th St",
+   "bridgeTag": false,
+   "elevTag": false
+  },
+  {
+   "cls": "deckStep",
+   "x": -2165.3,
+   "z": -3972.7,
+   "y": 0.37,
+   "grade": 14.86,
+   "kink": -0.39,
+   "chain": 14,
+   "name": "Immokalee Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -3806,
+   "z": -3674,
+   "y": 5.47,
+   "chain": 16,
+   "name": "County Road 833",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 378.36,
+   "z": -3075.69,
+   "len": 8,
+   "minY": 0,
+   "chain": 33,
+   "name": "NE 30th St",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 385.23,
+   "z": -3084.15,
+   "y": 1.96,
+   "grade": -11.33,
+   "kink": -3.33,
+   "chain": 33,
+   "name": "NE 30th St",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -1001,
+   "z": -3102,
+   "y": 5.49,
+   "chain": 35,
+   "name": "Coral Way",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1034.8,
+   "z": -2274.8,
+   "y": 1.99,
+   "grade": -10.02,
+   "kink": -3.1,
+   "chain": 60,
+   "name": "County Road 833",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -1870,
+   "z": -2244,
+   "y": 5.5,
+   "chain": 63,
+   "name": "Corkscrew Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 838.52,
+   "z": -1868.59,
+   "len": 6,
+   "minY": 0.18,
+   "chain": 78,
+   "name": "Airboat Rd",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 838.76,
+   "z": -1872.64,
+   "y": 0,
+   "grade": 8.98,
+   "kink": 8.92,
+   "chain": 78,
+   "name": "Airboat Rd",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 836,
+   "z": -1826,
+   "y": 2.22,
+   "chain": 78,
+   "name": "Airboat Rd",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 342.11,
+   "z": -1428.04,
+   "len": 8,
+   "minY": 0,
+   "chain": 85,
+   "name": "State Road 935",
+   "kind": "trunk"
+  },
+  {
+   "cls": "deckStep",
+   "x": 331.51,
+   "z": -1431.37,
+   "y": 1.97,
+   "grade": -10.85,
+   "kink": -3.4,
+   "chain": 85,
+   "name": "State Road 935",
+   "kind": "trunk"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1937.76,
+   "z": -1619.4,
+   "y": 0.19,
+   "grade": 9.25,
+   "kink": -0.06,
+   "chain": 86,
+   "name": "Josie Billie Hwy",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckStep",
+   "x": -2340.9,
+   "z": -1530.57,
+   "y": 0.5,
+   "grade": 9.94,
+   "kink": 1.12,
+   "chain": 89,
+   "name": "Josie Billie Hwy",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 2068,
+   "z": -990,
+   "y": 5.5,
+   "chain": 93,
+   "name": "Pennsylvania Ave",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 2234.98,
+   "z": -1421.34,
+   "y": 4.98,
+   "grade": -13.85,
+   "kink": 0.03,
+   "chain": 99,
+   "name": "27th St",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 2217.26,
+   "z": -1407.37,
+   "y": 2.02,
+   "grade": -11.6,
+   "kink": 0.38,
+   "chain": 99,
+   "name": "27th St",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 2269.73,
+   "z": -1320.25,
+   "y": 2.02,
+   "grade": -9.65,
+   "kink": -2.57,
+   "chain": 100,
+   "name": "Collins Ave",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 1034,
+   "z": -1397,
+   "y": 5.5,
+   "chain": 101,
+   "name": "Canal Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 122.08,
+   "z": -1208.3,
+   "y": 0.33,
+   "grade": 15.95,
+   "kink": -0.18,
+   "chain": 113,
+   "name": "NW 2nd Ave",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 2364.02,
+   "z": -956.02,
+   "y": 0.22,
+   "grade": 9.86,
+   "kink": 2.55,
+   "chain": 118,
+   "name": "Collins Ave",
+   "kind": "primary"
+  },
+  {
+   "cls": "deckLow",
+   "x": -150.84,
+   "z": -771.69,
+   "len": 20,
+   "minY": 0,
+   "chain": 124,
+   "name": "NW 6th St",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": -144.64,
+   "z": -786.34,
+   "y": 1.95,
+   "grade": -11.25,
+   "kink": -3.28,
+   "chain": 124,
+   "name": "NW 6th St",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1364.21,
+   "z": -621.46,
+   "y": 1.84,
+   "grade": -9.54,
+   "kink": -0.9,
+   "chain": 131,
+   "name": "Canal Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": -915.18,
+   "z": -471.26,
+   "y": 0.12,
+   "grade": 10.58,
+   "kink": 4.56,
+   "chain": 140,
+   "name": "NW 4th St",
+   "kind": "trunk"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1970.8,
+   "z": -443.69,
+   "y": 0.91,
+   "grade": 9.6,
+   "kink": 0.66,
+   "chain": 141,
+   "name": "18th St",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1949.36,
+   "z": -438.65,
+   "y": 3.5,
+   "grade": 13.41,
+   "kink": 0.15,
+   "chain": 141,
+   "name": "18th St",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -1815,
+   "z": -429,
+   "y": 5.39,
+   "chain": 142,
+   "name": "County Road 846",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": -3421,
+   "z": 253,
+   "y": 5.49,
+   "chain": 193,
+   "name": "County Road 721",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": -174.27,
+   "z": 249.4,
+   "y": 2.1,
+   "grade": 9,
+   "kink": 0.19,
+   "chain": 196,
+   "name": "SW 6th Ave",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckLow",
+   "x": 1831.97,
+   "z": 275.25,
+   "len": 12,
+   "minY": 0,
+   "chain": 202,
+   "name": "Dock St",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 1832.97,
+   "z": 275.18,
+   "y": 0,
+   "grade": 8.97,
+   "kink": 8.91,
+   "chain": 202,
+   "name": "Dock St",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 1881,
+   "z": 374,
+   "y": 5.22,
+   "chain": 202,
+   "name": "Dock St",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 1738,
+   "z": 418,
+   "y": 5.5,
+   "chain": 204,
+   "name": "Container Rd",
+   "kind": "tertiary"
+  },
+  {
+   "cls": "deckStep",
+   "x": 57.77,
+   "z": 874.42,
+   "y": 0,
+   "grade": 7.14,
+   "kink": 7.09,
+   "chain": 218,
+   "name": "State Road 970",
+   "kind": "trunk"
+  },
+  {
+   "cls": "deckStep",
+   "x": 440.26,
+   "z": 1244.83,
+   "y": 0.44,
+   "grade": 9.44,
+   "kink": 1.13,
+   "chain": 231,
+   "name": "Miami Ave",
+   "kind": "secondary"
+  },
+  {
+   "cls": "deckDangling",
+   "x": 2200,
+   "z": 1375,
+   "y": 2.22,
+   "chain": 237,
+   "name": "Main St",
+   "kind": "residential"
+  },
+  {
+   "cls": "deckLow",
+   "x": -791.45,
+   "z": 2389.35,
+   "len": 20,
+   "minY": 0,
+   "chain": 253,
+   "name": "Bay St",
+   "kind": "residential"
+  },
+  {
+   "cls": "deckStep",
+   "x": -793.73,
+   "z": 2391.33,
+   "y": 0,
+   "grade": 8.98,
+   "kink": 8.92,
+   "chain": 253,
+   "name": "Bay St",
+   "kind": "residential"
+  },
+  {
+   "cls": "deckStep",
+   "x": -773.12,
+   "z": 2394.76,
+   "y": 0.23,
+   "grade": 9.82,
+   "kink": 2.47,
+   "chain": 254,
+   "name": "SW 10th Ave",
+   "kind": "residential"
+  },
+  {
+   "cls": "bldWater",
+   "x": -1138.43,
+   "z": -428.47,
+   "frac": 0.6,
+   "h": 24.9,
+   "idx": 5104
+  },
+  {
+   "cls": "floatProp",
+   "x": -1020.58,
+   "y": -0.02,
+   "z": 5251.53,
+   "dy": -2,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps(palm)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1078.97,
+   "y": -0.48,
+   "z": 5222.95,
+   "dy": -0.165,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1085.62,
+   "y": -0.55,
+   "z": 5227.67,
+   "dy": -0.221,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1086.54,
+   "y": -0.53,
+   "z": 5230.65,
+   "dy": -0.203,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1087.9,
+   "y": -0.55,
+   "z": 5226.56,
+   "dy": -0.175,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -989.08,
+   "y": -0.54,
+   "z": 5125.94,
+   "dy": -1.874,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -987.59,
+   "y": -0.45,
+   "z": 5128.53,
+   "dy": -1.432,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -988.98,
+   "y": -0.45,
+   "z": 5129.69,
+   "dy": -0.82,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -964.39,
+   "y": -0.37,
+   "z": 5155.62,
+   "dy": -1.591,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -967.6,
+   "y": -0.19,
+   "z": 5155.52,
+   "dy": -1.625,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -956.87,
+   "y": -0.39,
+   "z": 5156.24,
+   "dy": -0.454,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1003.43,
+   "y": 0.15,
+   "z": 5209.77,
+   "dy": 0.15,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": -973.6,
+   "y": -0.02,
+   "z": 5202.88,
+   "dy": -2,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps(palm)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1000.23,
+   "y": 0.15,
+   "z": 5214.91,
+   "dy": 0.15,
+   "kind": "lamp",
+   "src": "tilebuild.js:buildRoads/seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -981.25,
+   "y": -0.08,
+   "z": 5177.15,
+   "dy": -0.634,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -963.48,
+   "y": -0.08,
+   "z": 5217.15,
+   "dy": -0.788,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1017.02,
+   "y": -0.06,
+   "z": 5219.17,
+   "dy": -0.871,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1021.04,
+   "y": -0.06,
+   "z": 5216.55,
+   "dy": -0.915,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -978.51,
+   "y": -0.07,
+   "z": 5198.68,
+   "dy": -0.605,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -980.76,
+   "y": -0.07,
+   "z": 5201.86,
+   "dy": -0.668,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1014.33,
+   "y": -0.07,
+   "z": 5220.91,
+   "dy": -0.449,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1018.36,
+   "y": -0.06,
+   "z": 5218.29,
+   "dy": -0.901,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -950.51,
+   "y": -0.06,
+   "z": 5208.75,
+   "dy": -0.836,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -949.91,
+   "y": -0.07,
+   "z": 5203.99,
+   "dy": -0.83,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1020.41,
+   "y": -0.02,
+   "z": 5193.66,
+   "dy": -1.97,
+   "kind": "vegTree",
+   "src": "vegetation field liveoak (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1014.48,
+   "y": -0.02,
+   "z": 5198.99,
+   "dy": -1.771,
+   "kind": "vegTree",
+   "src": "vegetation field liveoak (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1025.65,
+   "y": -0.29,
+   "z": 5190.95,
+   "dy": -1.146,
+   "kind": "vegTree",
+   "src": "vegetation field liveoak (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -953.62,
+   "y": -0.06,
+   "z": 5207.05,
+   "dy": -0.515,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -995.13,
+   "y": -0.08,
+   "z": 5174.95,
+   "dy": -0.774,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -992.61,
+   "y": -0.08,
+   "z": 5175.91,
+   "dy": -0.817,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -988.82,
+   "y": -0.09,
+   "z": 5177.34,
+   "dy": -0.885,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -986.29,
+   "y": -0.09,
+   "z": 5178.3,
+   "dy": -0.887,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -972.43,
+   "y": -0.07,
+   "z": 5212.16,
+   "dy": -0.559,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -969.82,
+   "y": -0.08,
+   "z": 5213.58,
+   "dy": -1.104,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -968.6,
+   "y": -0.07,
+   "z": 5213.65,
+   "dy": -0.682,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -980.92,
+   "y": -0.08,
+   "z": 5221.44,
+   "dy": -0.775,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -979.34,
+   "y": -0.08,
+   "z": 5216.27,
+   "dy": -0.786,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -978.55,
+   "y": -0.08,
+   "z": 5213.69,
+   "dy": -0.797,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -960.74,
+   "y": -0.07,
+   "z": 5189.51,
+   "dy": -0.631,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -950.09,
+   "y": -0.07,
+   "z": 5202.55,
+   "dy": -0.968,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -920.52,
+   "y": 0.1,
+   "z": 5180.3,
+   "dy": 0.097,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -981.71,
+   "y": -0.09,
+   "z": 5224.02,
+   "dy": -0.919,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -962.82,
+   "y": -0.08,
+   "z": 5203.59,
+   "dy": -2,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -982.1,
+   "y": -0.08,
+   "z": 5225.31,
+   "dy": -1.956,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -980.13,
+   "y": -0.07,
+   "z": 5218.86,
+   "dy": -1.454,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -963.42,
+   "y": -0.08,
+   "z": 5189.17,
+   "dy": -0.661,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1011.64,
+   "y": -0.02,
+   "z": 5198.53,
+   "dy": -1.953,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -963.92,
+   "y": -0.07,
+   "z": 5202.81,
+   "dy": -2,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -966.02,
+   "y": -0.09,
+   "z": 5214.44,
+   "dy": -0.773,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -978.15,
+   "y": -0.09,
+   "z": 5212.4,
+   "dy": -0.677,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -931.79,
+   "y": -0.06,
+   "z": 5172.04,
+   "dy": -0.388,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -965.02,
+   "y": -0.08,
+   "z": 5202.03,
+   "dy": -1.039,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -965.92,
+   "y": -0.08,
+   "z": 5208.06,
+   "dy": -1.038,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -979.02,
+   "y": -0.08,
+   "z": 5212.23,
+   "dy": -1.041,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -977.64,
+   "y": -0.07,
+   "z": 5210.89,
+   "dy": -0.913,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -933.04,
+   "y": -0.06,
+   "z": 5197.08,
+   "dy": -0.385,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -976.74,
+   "y": -0.06,
+   "z": 5211.98,
+   "dy": -0.865,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -964.86,
+   "y": -0.06,
+   "z": 5206.05,
+   "dy": -2,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -972.23,
+   "y": -0.05,
+   "z": 5215.42,
+   "dy": -0.812,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -933.23,
+   "y": -0.06,
+   "z": 5164.59,
+   "dy": -0.51,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (scene)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -975.51,
+   "y": 0,
+   "z": 5200.92,
+   "dy": -0.6,
+   "kind": "fence",
+   "src": "dressing.v2.js:spawn yards"
+  },
+  {
+   "cls": "floatProp",
+   "x": -976.28,
+   "y": 0,
+   "z": 5201.84,
+   "dy": -0.6,
+   "kind": "fence",
+   "src": "dressing.v2.js:spawn yards"
+  },
+  {
+   "cls": "floatProp",
+   "x": -995,
+   "y": 0,
+   "z": 5261.49,
+   "dy": -0.5,
+   "kind": "fence",
+   "src": "dressing.v2.js:spawn yards"
+  },
+  {
+   "cls": "propInBld",
+   "x": -987.78,
+   "y": -0.02,
+   "z": 5181.1,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "propInBld",
+   "x": -981.25,
+   "y": -0.08,
+   "z": 5177.15,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (houses)"
+  },
+  {
+   "cls": "propInBld",
+   "x": -1020.41,
+   "y": -0.02,
+   "z": 5193.66,
+   "kind": "vegTree",
+   "src": "vegetation field liveoak (scene)"
+  },
+  {
+   "cls": "propInBld",
+   "x": -995.4,
+   "y": 0.07,
+   "z": 5187.24,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (scene)"
+  },
+  {
+   "cls": "propInBld",
+   "x": -991.39,
+   "y": 0.11,
+   "z": 5184.45,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (scene)"
+  },
+  {
+   "cls": "propInBld",
+   "x": -989.8,
+   "y": 0.11,
+   "z": 5188.69,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (scene)"
+  },
+  {
+   "cls": "propInBld",
+   "x": -1018.41,
+   "y": -0.02,
+   "z": 5193.14,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (scene)"
+  },
+  {
+   "cls": "propInBld",
+   "x": -1022.26,
+   "y": -0.02,
+   "z": 5191.94,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (scene)"
+  },
+  {
+   "cls": "propInBld",
+   "x": -1025.65,
+   "y": -0.29,
+   "z": 5190.95,
+   "kind": "vegTree",
+   "src": "vegetation field liveoak (scene)"
+  },
+  {
+   "cls": "carLane",
+   "x": -992.86,
+   "z": 5226.98,
+   "width": 6.5,
+   "off": 2.1,
+   "kind": "residential",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": -991.99,
+   "z": 5218.7,
+   "width": 6.5,
+   "off": 2.1,
+   "kind": "residential",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": -963.37,
+   "z": 5251.46,
+   "width": 6.5,
+   "off": 2.1,
+   "kind": "residential",
+   "model": ""
+  },
+  {
+   "cls": "carBush",
+   "x": -982.19,
+   "z": 5207.95,
+   "depth": 0.41,
+   "model": ""
+  },
+  {
+   "cls": "carBush",
+   "x": -1028.48,
+   "z": 5227.1,
+   "depth": 0.39,
+   "model": ""
+  },
+  {
+   "cls": "carBush",
+   "x": -976.79,
+   "z": 5164.33,
+   "depth": 0.12,
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": -1028.58,
+   "z": 5255.28,
+   "width": 6.5,
+   "off": 3.6,
+   "kind": "residential",
+   "model": ""
+  },
+  {
+   "cls": "carBush",
+   "x": -1010.47,
+   "z": 5193.79,
+   "depth": 0.77,
+   "model": ""
+  },
+  {
+   "cls": "groundSeam",
+   "x": -1013.28,
+   "z": 5168.46,
+   "cells": 76,
+   "pair": "miami-land-base|land-base / terrain|terrain"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -998.56,
+   "z": 5147.02,
+   "cells": 5,
+   "pair": "miami-land-base|land-base / terrain-lod|terrain-lod"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -992.22,
+   "z": 5210.73,
+   "cells": 16,
+   "pair": "?|car-paint / terrain-lod|terrain-lod"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -1009.65,
+   "z": 5172.68,
+   "cells": 35,
+   "pair": "nh_occluder|nh:occluder / terrain|terrain"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -1011.16,
+   "z": 5194.42,
+   "cells": 6,
+   "pair": "?|car-glass-dusty / terrain-lod|terrain-lod"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -1001.02,
+   "z": 5193.42,
+   "cells": 7,
+   "pair": "?|car-trim / terrain-lod|terrain-lod"
+  },
+  {
+   "cls": "floatProp",
+   "x": -2178.31,
+   "y": -0.02,
+   "z": -6546.47,
+   "dy": -2,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2598.14,
+   "y": 0.15,
+   "z": -1018.33,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2598.28,
+   "y": 0.15,
+   "z": -1013.93,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2593.88,
+   "y": 0.15,
+   "z": -1049.26,
+   "dy": 0.15,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2597.39,
+   "y": 0.15,
+   "z": -1044.34,
+   "dy": 0.15,
+   "kind": "lamp",
+   "src": "tilebuild.js:buildRoads/seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2614.93,
+   "y": 0.15,
+   "z": -1151.92,
+   "dy": -0.875,
+   "kind": "cafe",
+   "src": "tilebuild.js:shopFrontDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2620.13,
+   "y": 0.15,
+   "z": -1151.92,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2598.93,
+   "y": 0.15,
+   "z": -1069,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2598.15,
+   "y": 0.15,
+   "z": -1074.14,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2596.75,
+   "y": 0.15,
+   "z": -1083.29,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2595.97,
+   "y": 0.15,
+   "z": -1088.43,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2594.57,
+   "y": 0.15,
+   "z": -1097.58,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2593.79,
+   "y": 0.15,
+   "z": -1102.72,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2597.6,
+   "y": 0.15,
+   "z": -1136.14,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2602.8,
+   "y": 0.15,
+   "z": -1136.14,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2621.76,
+   "y": 0.15,
+   "z": -962.35,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 2621.34,
+   "y": 0.15,
+   "z": -967.53,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": 2595,
+   "y": 0.15,
+   "z": -1125,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": 2619.16,
+   "y": 0.15,
+   "z": -964.75,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -5029.12,
+   "z": -103.04,
+   "cells": 125,
+   "pair": "miami-land-base|land-base / terrain|terrain"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -5063.5,
+   "z": -109.9,
+   "cells": 10,
+   "pair": "miami-land-base|land-base / terrain-lod|terrain-lod"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5189.98,
+   "y": -0.02,
+   "z": 6155.79,
+   "dy": -1.712,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5091.19,
+   "y": -0.02,
+   "z": 6155.65,
+   "dy": -2,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5137.99,
+   "y": -0.02,
+   "z": 6195.63,
+   "dy": -1.808,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "carLane",
+   "x": -5185.77,
+   "z": 6202.51,
+   "width": 8.4,
+   "off": 3.05,
+   "kind": "residential",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": -5204.42,
+   "z": 6233.94,
+   "width": 8.4,
+   "off": 3.05,
+   "kind": "residential",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": -5184.11,
+   "z": 6209.99,
+   "width": 8.4,
+   "off": 3.05,
+   "kind": "residential",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": -5193.69,
+   "z": 6211.86,
+   "width": 8.4,
+   "off": 3.05,
+   "kind": "residential",
+   "model": ""
+  },
+  {
+   "cls": "floatProp",
+   "x": -1428.51,
+   "y": -0.02,
+   "z": -2281.77,
+   "dy": -1.199,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1402.35,
+   "y": 0,
+   "z": -2247.65,
+   "dy": -0.15,
+   "kind": "lamp",
+   "src": "tilebuild.js:buildRoads/seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1470.27,
+   "y": -0.05,
+   "z": -2295.64,
+   "dy": -1.644,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1471.82,
+   "y": -0.06,
+   "z": -2291.4,
+   "dy": -0.311,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1465.79,
+   "y": -0.05,
+   "z": -2312.02,
+   "dy": -0.75,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1494.88,
+   "y": -0.06,
+   "z": -2374.64,
+   "dy": -0.384,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1449.87,
+   "y": -0.06,
+   "z": -2302.32,
+   "dy": -0.835,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1455.26,
+   "y": -0.06,
+   "z": -2358.14,
+   "dy": -1.029,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1466.12,
+   "y": -0.05,
+   "z": -2310.86,
+   "dy": -0.953,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1482.62,
+   "y": -0.05,
+   "z": -2352.17,
+   "dy": -0.701,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1504.94,
+   "y": -0.06,
+   "z": -2339.49,
+   "dy": -0.382,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1424.07,
+   "y": -0.06,
+   "z": -2311.34,
+   "dy": -0.389,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1454.73,
+   "y": -0.05,
+   "z": -2359.92,
+   "dy": -0.301,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1453.59,
+   "y": -0.08,
+   "z": -2335.56,
+   "dy": -2,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1448.92,
+   "y": 0.08,
+   "z": -2299.21,
+   "dy": 0.082,
+   "kind": "vegPalm",
+   "src": "vegetation field coconut (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1478.84,
+   "y": -0.05,
+   "z": -2368.12,
+   "dy": -0.302,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1483.7,
+   "y": -0.06,
+   "z": -2277.05,
+   "dy": -0.381,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1442.28,
+   "y": -0.07,
+   "z": -2338.66,
+   "dy": -0.418,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -1496.52,
+   "y": -0.06,
+   "z": -2303.61,
+   "dy": -0.387,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "carLane",
+   "x": -1436.78,
+   "z": -2214.11,
+   "width": 7.6,
+   "off": 2.65,
+   "kind": "tertiary",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": -1534.32,
+   "z": -2269.04,
+   "width": 9,
+   "off": 3.35,
+   "kind": "tertiary",
+   "model": ""
+  },
+  {
+   "cls": "carBush",
+   "x": -1425.17,
+   "z": -2250.24,
+   "depth": 0.22,
+   "model": ""
+  },
+  {
+   "cls": "floatProp",
+   "x": -5300.06,
+   "y": -0.05,
+   "z": -4128.86,
+   "dy": -0.376,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5281.06,
+   "y": -0.07,
+   "z": -4154.85,
+   "dy": -0.317,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5307.76,
+   "y": -0.06,
+   "z": -4159.93,
+   "dy": -1.191,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5340.35,
+   "y": -0.06,
+   "z": -4122.29,
+   "dy": -0.383,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5341.46,
+   "y": -0.07,
+   "z": -4127.12,
+   "dy": -0.391,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5277.76,
+   "y": -0.06,
+   "z": -4155.86,
+   "dy": -1.032,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -5283.59,
+   "y": 0,
+   "z": -4162.64,
+   "dy": -2,
+   "kind": "mailbox",
+   "src": "lotProps.v2.js"
+  },
+  {
+   "cls": "floatProp",
+   "x": -289.11,
+   "y": 0,
+   "z": 1397.54,
+   "dy": -0.15,
+   "kind": "lamp",
+   "src": "tilebuild.js:buildRoads/seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -301.5,
+   "y": 0,
+   "z": 1371.57,
+   "dy": -0.15,
+   "kind": "lamp",
+   "src": "tilebuild.js:buildRoads/seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": -336.72,
+   "y": 0.15,
+   "z": 1515.51,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": -337.18,
+   "y": 0.15,
+   "z": 1519.89,
+   "dy": -0.72,
+   "kind": "umbrella",
+   "src": "tilebuild.js:beachDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": -405,
+   "y": 0.15,
+   "z": 1385,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": -395,
+   "y": 0.15,
+   "z": 1395,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": -375,
+   "y": 0.15,
+   "z": 1395,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": -335,
+   "y": 0.15,
+   "z": 1395,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": -385,
+   "y": 0.15,
+   "z": 1395,
+   "kind": "bench",
+   "src": "tilebuild.js:shopDress/plazaDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": -315,
+   "y": 0.15,
+   "z": 1395,
+   "kind": "bench",
+   "src": "tilebuild.js:shopDress/plazaDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": -245,
+   "y": 0.15,
+   "z": 1405,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "propInBld",
+   "x": -235,
+   "y": 0.15,
+   "z": 1405,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": -3405.15,
+   "y": -0.06,
+   "z": 2927.21,
+   "dy": -0.357,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -3388.94,
+   "y": -0.07,
+   "z": 2947.68,
+   "dy": -1.36,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -3377.48,
+   "y": -0.07,
+   "z": 2923.42,
+   "dy": -1.597,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -3358.03,
+   "y": -0.07,
+   "z": 2947.33,
+   "dy": -1.033,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": -3358.8,
+   "y": -0.07,
+   "z": 2946.54,
+   "dy": -1.194,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -3465.6,
+   "z": 2899.63,
+   "cells": 26,
+   "pair": "miami-land-base|land-base / terrain|terrain"
+  },
+  {
+   "cls": "groundSeam",
+   "x": -3403.6,
+   "z": 2950.54,
+   "cells": 7,
+   "pair": "?|car-paint / terrain-lod|terrain-lod"
+  },
+  {
+   "cls": "floatProp",
+   "x": 540.78,
+   "y": -0.02,
+   "z": -4621.76,
+   "dy": -1.946,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": 585.18,
+   "y": 0.15,
+   "z": -4604.25,
+   "dy": 0.15,
+   "kind": "palm",
+   "src": "tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "cls": "floatProp",
+   "x": 580.32,
+   "y": 0.15,
+   "z": -4600.63,
+   "dy": 0.15,
+   "kind": "lamp",
+   "src": "tilebuild.js:buildRoads/seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": 653.4,
+   "y": -0.02,
+   "z": -4619.11,
+   "dy": -1.979,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  },
+  {
+   "cls": "floatProp",
+   "x": 551.19,
+   "y": -0.05,
+   "z": -4670.52,
+   "dy": -0.7,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 581.66,
+   "y": -0.06,
+   "z": -4634.89,
+   "dy": -0.41,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 553.1,
+   "y": -0.06,
+   "z": -4667.54,
+   "dy": -0.384,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 564.31,
+   "y": -0.05,
+   "z": -4655.34,
+   "dy": -1.027,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 573.44,
+   "y": -0.07,
+   "z": -4615.8,
+   "dy": -1.359,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 585.42,
+   "y": -0.05,
+   "z": -4629.15,
+   "dy": -0.398,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 567.8,
+   "y": -0.06,
+   "z": -4651.79,
+   "dy": -0.381,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 559.89,
+   "y": -0.06,
+   "z": -4603.04,
+   "dy": -0.755,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 558.96,
+   "y": -0.05,
+   "z": -4602.63,
+   "dy": -0.678,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 566.05,
+   "y": -0.05,
+   "z": -4653.43,
+   "dy": -1.027,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "floatProp",
+   "x": 562.86,
+   "y": -0.06,
+   "z": -4605.34,
+   "dy": -1.19,
+   "kind": "vegShrub",
+   "src": "vegetation field hibiscus (houses)"
+  },
+  {
+   "cls": "carLane",
+   "x": 539.31,
+   "z": -4570.54,
+   "width": 7.6,
+   "off": 2.65,
+   "kind": "tertiary",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": 531.69,
+   "z": -4563.12,
+   "width": 7.6,
+   "off": 2.65,
+   "kind": "tertiary",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": 549,
+   "z": -4572.58,
+   "width": 7.6,
+   "off": 2.65,
+   "kind": "tertiary",
+   "model": ""
+  },
+  {
+   "cls": "carLane",
+   "x": 522.67,
+   "z": -4554.34,
+   "width": 7.6,
+   "off": 2.65,
+   "kind": "tertiary",
+   "model": ""
+  },
+  {
+   "cls": "floatProp",
+   "x": 2403.94,
+   "y": -0.02,
+   "z": 1606.17,
+   "dy": -2,
+   "kind": "tree",
+   "src": "tilebuild.js:seedRealProps"
+  }
+ ]
+}

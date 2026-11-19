@@ -182,7 +182,7 @@ function groundScan(game, A, out) {
     for (const [di, dj] of [[1, 0], [0, 1]]) { const b = grid.get((i + di) * 4096 + j + dj); if (!b || a.o === b.o || a.f === b.f || a.f.split('|')[1] === b.f.split('|')[1]) continue; // same material across a tile / chunk seam: one surface if (Math.abs(a.y - b.y) > 0.25) continue;
       // only ground fills against ground fills (two sand / dirt / grass sheets meeting): road / deck / building edges are meant to be
       // hard, and terrain vs its own far LOD is the same surface
-      const fill = (f) => !/asph|road|junction|line|mark|curb|deck|walk|slab|pave|lane|concrete|elevated|ocean|water|chunk-mid|facade|houses|wall|roof|town:|npcProp|panels/i.test(f);
+      const fill = (f) => !/asph|road|junction|line|mark|curb|deck|walk|slab|pave|lane|concrete|elevated|ocean|water|chunk-mid|facade|houses|wall|roof|town:|npcProp|panels|car-|occluder|^\?\|/i.test(f);
       if (!fill(a.f) || !fill(b.f)) continue; if (/terrain/.test(a.f) && /terrain/.test(b.f)) continue;
       const key = [a.f, b.f].sort().join(' / '); let s = seams.get(key); if (!s) seams.set(key, (s = { n: 0, x: 0, z: 0 })); s.n++; s.x += A.x + (i + di / 2) * S; s.z += A.z + (j + dj / 2) * S; } }
   for (const [pair, s] of seams) if (s.n >= 5) out.push({ cls: 'groundSeam', x: r2(s.x / s.n), z: r2(s.z / s.n), cells: s.n, pair });
