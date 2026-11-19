@@ -45,6 +45,23 @@ export async function initV2(game) {
   const sm = game.renderer.shadowMap;
   const smRender = sm.render.bind(sm);
   sm.render = (...a) => { inShadow = true; try { smRender(...a); } finally { inShadow = false; } };
+  // perf (Nov 19, 30 fps floor while driving): a frame-time governor. The render is CPU-bound on draw calls downtown;
+  // when frames run long the screen-size threshold rises (tiny props a few pixels wide go first) and the shadow pass
+  // drops small casters and its far range. It relaxes back to the base values once frames are fast again.
+  // ?dcgov=0 turns it off.
+  const GOV = !(typeof location !== 'undefined' && /[?&]dcgov=0\b/.test(location.search));
+  const base = { mainPx: cfg.mainPx, shadowPx: cfg.shadowPx, shadowFar: cfg.shadowFar };
+  const gov = cfg.gov = { on: GOV, k: 0, ema: 1 / 60, last: 0 };
+  game.updaters.push(function detailCullGov() {
+    if (!gov.on || !cfg.on) return;
+    const now = performance.now(), d = gov.last ? Math.min(0.25, (now - gov.last) / 1000) : 1 / 60; gov.last = now;
+    gov.ema += (d - gov.ema) * 0.1;
+    if (gov.ema > 1 / 38) gov.k = Math.min(1, gov.k + 0.02);
+    else if (gov.ema < 1 / 52) gov.k = Math.max(0, gov.k - 0.005);
+    cfg.mainPx = base.mainPx + gov.k * 2.6;
+    cfg.shadowPx = base.shadowPx + gov.k * 14;
+    cfg.shadowFar = base.shadowFar - gov.k * 50;
+  });
   game.updaters.push(function detailCullTick() {
     const cam = game.camera;
     cam.getWorldPosition(camPos);

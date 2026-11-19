@@ -688,6 +688,9 @@ export function createBoats(game, opts = {}) {
     b.speed = vF; b.speedKmh = Math.hypot(lv.x, lv.z) * 3.6;
     b.submerged = 0; b.grounded = H.ground; b.groundKind = H.groundKind;
     b.beached = !air && H.ground > 0.2 && wf < 0.55;
+    // QA (Nov 19): an AI / parked boat ended up resting on the Overseas Highway deck, 6 m above the sea. A hull that
+    // sits well above the water with no water under it for over a second goes back to its last good spot on the water.
+    if (!b.playerDriven && wf < 0.05 && tr.y > SEA + 2.5) { b.highT = (b.highT || 0) + dt; if (b.highT > 1) { b.highT = 0; if (b.lastGood) placeBoat(b, b.lastGood, Math.atan2(_f.x, _f.z)); else removeBoat(b); return; } } else b.highT = 0;
     const water = wf > 0 && H.sheet < 0.5; // real water under the hull (not the glades sheet)
     // forward drag: hull in the water (less once planing), air drag always; an airboat on a wet sheet barely drags
     {

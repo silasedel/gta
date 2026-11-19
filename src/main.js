@@ -538,7 +538,7 @@ async function boot() {
     pCol.setEnabled(false);
     armGuard(v);
     if (character && !playerSeat.enter(character, v)) character.setVisible(false);     // seen in the driver's seat (src/player/seat.js)
-    game.hud.notify?.(`${v.name || 'Vehicle'}`, 2000);
+    // (the HUD's car name card already names the car; the old notify showed the fleet's debug name, e.g. "... #22")
   }
   game.enterVehicle = (v) => enterVehicle(v);
   game.exitVehicle = () => exitVehicle();
