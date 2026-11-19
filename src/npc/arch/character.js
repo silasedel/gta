@@ -288,7 +288,14 @@ export function createNpc(game, opts = {}) {
     if (headBone && st.look > 0.01) { headBone.parent.getWorldQuaternion(_q1); _q2.setFromAxisAngle(UP, st.lookYaw * st.look * 0.75); headBone.quaternion.premultiply(_qa.copy(_q1).invert().multiply(_q2).multiply(_q1)); }
     if (st.snap && st.snapT < st.snapDur) {
       st.snapT += dt * every; const k = THREE.MathUtils.smoothstep(st.snapT / st.snapDur, 0, 1);
-      for (const e of st.snap) { e.b.quaternion.slerpQuaternions(e.q, e.b.quaternion, k); e.b.position.lerpVectors(e.p, e.b.position, k); }
+      // Nov 19: slerpQuaternions(e.q, e.b.quaternion, k) overwrote the bone before reading it, so the blend did nothing and
+      // the bones snapped from the ragdoll pose to the clip at the end (same fix as src/player/characterModel.js)
+      for (const e of st.snap) {
+        const animQ = (e.aq ||= new THREE.Quaternion()).copy(e.b.quaternion);
+        const animP = (e.ap ||= new THREE.Vector3()).copy(e.b.position);
+        e.b.quaternion.slerpQuaternions(e.q, animQ, k);
+        e.b.position.lerpVectors(e.p, animP, k);
+      }
       if (st.snapT >= st.snapDur) st.snap = null;
     }
   }
