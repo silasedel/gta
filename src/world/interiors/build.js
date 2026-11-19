@@ -49,7 +49,7 @@ export function* buildInterior(game, store, def) {
   def.plan(plan, ctx); if (!plan.rooms.length) plan.room('sales', 'sales', plan.lot); prepareFront(plan); plan.finalize(); lap('plan'); yield;
   buildShell(ctx); lap('shell'); yield;
   ctx.front = buildFacade(ctx); const doors = buildDoors(ctx); lap('facade'); yield;
-  const it = def.fixtures(ctx); if (it && typeof it.next === 'function') { let r = it.next(); while (!r.done) { yield; r = it.next(); } } try { autoWear(ctx); } catch (e) { console.warn('[interiors] wear pass failed', e); } if (!NO_DRESS) try { dressFront(ctx, def); } catch (e) { console.warn('[interiors] front dressing failed', e); } lap('fixtures'); yield;
+  const it = def.fixtures(ctx); if (it && typeof it.next === 'function') { let n = 0, t = performance.now(), r = it.next(); prof.stepMax = 0; while (!r.done) { const d = performance.now() - t; if (d > prof.stepMax) { prof.stepMax = Math.round(d); prof.stepAt = n; } yield; n++; t = performance.now(); r = it.next(); } } // r7: longest fixture group (ms) and its index try { autoWear(ctx); } catch (e) { console.warn('[interiors] wear pass failed', e); } if (!NO_DRESS) try { dressFront(ctx, def); } catch (e) { console.warn('[interiors] front dressing failed', e); } lap('fixtures'); yield;
   if (def.lighting) def.lighting(ctx); for (const r of plan.rooms) if (!r.lit) { defaultRig(ctx, r); r.lit = true; }
   registerDaylight(ctx, store.profile.daylight ?? 1); lap('lights'); yield;
   // ---- meshes

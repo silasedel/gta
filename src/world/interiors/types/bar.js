@@ -28,6 +28,7 @@ const VARIANTS = [
 // ?noart in the URL keeps the legacy (v1) interiors for this category (before/after captures, safety valve)
 if (!/[?&]noart\b/.test(globalThis.location?.search || '')) registerStoreType({
   type: 'bar', label: 'Bar', kinds: ['bar', 'pub', 'biergarten'], minSize: { w: 5.5, d: 6.5 }, variants: VARIANTS.length,
+  depth(sf, { room, seed }) { return Math.min(room, 12 + (seed % 5)); }, // r7: real bars run 12-16 m deep
   profile(base, { R }) { const v = VARIANTS[base.variant], pal = venuePalette({ ...v.pal });
     return { venueWear: true, v, pal, name: R.pick(v.names), tier: v.key === 'lounge' ? 'luxury' : 'mid', wear: v.wear ?? 0.15, hours: [11, 2], busy: [17, 2], flip: R.chance(0.5), bounce: 0.38, lamp: v.lamp, floor: v.floor, wall: v.wall, ceil: v.ceil, facade: { style: v.facade }, spillC: [1, 0.7, 0.4],
       lore: { story: `${v.names[0]}-style neighborhood bar. Regulars since ${base.since}.` } }; },

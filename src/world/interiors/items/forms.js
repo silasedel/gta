@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-const LV = 0.8;
+const LV = 0.8, LATHE_MAX = 12; // r7: lathe sides cap for shelf items (thousands per store)
 export const uvL = (u, v) => [u, v * LV];                      // into the label art
 export const uvS = (i) => [(i + 0.5) / 4, LV + (1 - LV) / 2];   // swatch i (0 cap, 1 body, 2 secondary, 3 metal/dark)
 
@@ -21,7 +21,7 @@ export class FormBuilder {
   cyl(r1, r0, h, x, y, z, uv, seg = 14, rot, open = false) { const m = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rot?.[0] || 0, rot?.[1] || 0, rot?.[2] || 0)).setPosition(x, y, z); return this.geo(new THREE.CylinderGeometry(r1, r0, h, seg, 1, open), m, uv); }
   sphere(r, x, y, z, uv, seg = 10, scale) { const m = new THREE.Matrix4().makeScale(scale?.[0] || 1, scale?.[1] || 1, scale?.[2] || 1).setPosition(x, y, z); return this.geo(new THREE.SphereGeometry(r, seg, Math.max(5, Math.round(seg * 0.7))), m, uv); }
   // surface of revolution [[r, y], ...]; uv(u around with the front at 0.5, y, r)
-  lathe(pts, uv, seg = 16) { const g = new THREE.LatheGeometry(pts.map((q) => new THREE.Vector2(Math.max(1e-4, q[0]), q[1])), seg); g.rotateY(Math.PI); return this.geo(g, null, typeof uv === 'number' ? uv : (u, v, p) => uv(u, p.y, Math.hypot(p.x, p.z))); }
+  lathe(pts, uv, seg = 16) { const g = new THREE.LatheGeometry(pts.map((q) => new THREE.Vector2(Math.max(1e-4, q[0]), q[1])), Math.min(seg, LATHE_MAX)); /* r7: 12 sides max (thousands of shelf items) */ g.rotateY(Math.PI); return this.geo(g, null, typeof uv === 'number' ? uv : (u, v, p) => uv(u, p.y, Math.hypot(p.x, p.z))); }
   done(meta = {}) { const g = mergeGeometries(this.parts, false); g.computeBoundingBox(); const b = g.boundingBox; g.userData = { size: { w: b.max.x - b.min.x, h: b.max.y - b.min.y, d: b.max.z - b.min.z }, shared: true, ...meta }; this.parts.length = 0; return g; }
 }
 // label wrap for a band of a lathe: y in [y0, y1] maps to label v 0..1, u around the full label; outside -> swatch
@@ -65,7 +65,7 @@ registerForm('case', { aspect: 2.6, px: 200, build(F, p) { const w = p.w || 0.4,
   F.geo(new THREE.BoxGeometry(w, h, d), new THREE.Matrix4().makeTranslation(0, h / 2, 0), (u, v, pos, n) => (Math.abs(n.z) > 0.5 ? uvL(u * 0.6, v * 0.5) : n.y > 0.5 ? uvL(u * 0.6, 0.5 + v * 0.5) : Math.abs(n.x) > 0.5 ? uvL(0.62 + u * 0.38, v * 0.5) : uvS(2))); F.box(0.09, 0.004, 0.03, 0, h + 0.001, 0, 3); return F.done({ hold: 'two-hands' }); } });
 // ---------------------------------------------------------------- flexible packs
 function pillow(F, w, h, d, crimp, lay) { // heat-sealed bag: bulged front and back from a grid, crimped ends
-  const nx = 6, ny = 8, pos = [], uv = [], nor = [], idx = [];
+  const nx = w < 0.06 ? 3 : 5, ny = w < 0.06 ? 4 : 7, pos = [], uv = [], nor = [], idx = [];
   for (const s of [1, -1]) { const base = pos.length / 3; for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) { const u = i / nx, v = j / ny, ex = Math.sin(u * Math.PI), ey = Math.min(1, Math.min(v, 1 - v) / crimp); const bz = d / 2 * Math.pow(ex, 0.6) * Math.pow(Math.sin(Math.min(1, ey) * Math.PI / 2), 0.7) * (1 - 0.25 * Math.pow(Math.abs(v - 0.42) * 2, 2));
       pos.push((u - 0.5) * w * (1 - 0.04 * Math.sin(v * Math.PI)), v * h, s * bz); nor.push(0, 0, s); uv.push(...uvL(s > 0 ? u * 0.5 : 1 - u * 0.5, v)); }
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const a = base + j * (nx + 1) + i, b = a + 1, c = a + nx + 1, e = c + 1; if (s > 0) idx.push(a, b, e, a, e, c); else idx.push(a, e, b, a, c, e); } }

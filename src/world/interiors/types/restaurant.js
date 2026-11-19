@@ -30,6 +30,7 @@ const VARIANTS = [
 // ?noart in the URL keeps the legacy (v1) interiors for this category (before/after captures, safety valve)
 if (!/[?&]noart\b/.test(globalThis.location?.search || '')) registerStoreType({
   type: 'restaurant', label: 'Restaurant', kinds: ['restaurant', 'fast_food', 'food_court'], minSize: { w: 6, d: 7 }, variants: VARIANTS.length,
+  depth(sf, { room, seed }) { return Math.min(room, 13 + (seed % 6)); }, // r7: dining room + kitchen at real depth
   profile(base, { R, sf }) { const v = /fast_food|food_court/.test(sf?.kind || '') ? VARIANTS[5] : VARIANTS[base.variant], pal = venuePalette({ ...v.pal });
     return { venueWear: true, v, pal, name: R.pick(v.names), tier: v.key === 'steak' ? 'luxury' : 'mid', wear: v.key === 'cuban' ? 0.25 : 0.1, hours: [11, 23], busy: [12, 22], flip: R.chance(0.5), bounce: v.light === 'bright' ? 0.55 : 0.4, lamp: v.lamp, floor: v.floor, wall: v.wall, ceil: v.ceil,
       facade: { style: v.key === 'cuban' || v.key === 'seafood' ? 'wood' : v.key === 'steak' ? 'bronze' : 'black' }, spillC: [1, 0.85, 0.6], lore: { story: `Family-run since ${base.since}.` } }; },

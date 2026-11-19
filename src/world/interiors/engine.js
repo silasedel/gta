@@ -10,12 +10,14 @@ import { updateSky, createLightPool } from './lighting.js';
 import { pumpBakes, bakesPending } from './kit/bake.js';
 import { GLOBAL } from './kit/atlas.js';
 import { setDesign, getProduct } from './items/catalog.js';
+import { auditClerk, STAFF_TAGS, LANE_MIN } from './clerkLane.js';
 import { rng, hashStr, clamp } from './kit/util.js';
 import { probeJob, probePlaceholder } from './kit/probe.js';
 import { setProbePlaceholder } from './kit/materials.js';
 import { surfaceTextures } from './kit/surfaces.js';
 import { preloadModels, modelsReady } from './kit/models.js';
 
+const DEEP_OFF = typeof location !== 'undefined' && /[?&]deep=0\b/.test(location.search), DEEP_CAP = 34; // ?deep=0: lots keep the 9 x 10 m city default (before/after)
 const ACTIVE_R = 70, DISPOSE_R = 140, MAX_ACTIVE = 3, CACHE = 2, WALL_T = 0.25, GF_H = 4.2, BUILD_MS = 4;
 export const isOpenAt = (h, hrs) => { const [o, c] = hrs; if (c - o >= 24) return true; return o < c ? h >= o && h < c : h >= o || h < c; };
 
@@ -32,10 +34,12 @@ export function createEngine(game, opts = {}) {
 
   // ---------------------------------------------------------------- store records
   const keyOf = (sf) => (sf.id != null ? 'id' + sf.id : `${Math.round(sf.x * 10)},${Math.round(sf.z * 10)}`);
-  function claims(sf) { if (claimed.has(sf)) return true; if (sf.v2 === false) return false; const fit = fitter?.get ? fitter.get(sf) : null; const lw = fit?.ok ? fit.w : sf.w, ld = fit?.ok ? fit.d : sf.d; return !!typeFor(sf, Math.max(3, lw - 2 * WALL_T), Math.max(3, ld - WALL_T)); }
+  function claims(sf) { if (claimed.has(sf)) return true; if (sf.v2 === false) return false; const fit = fitter?.get ? fitter.get(sf) : null; const lw = fit?.ok ? fit.w : sf.w, ld = fit?.ok ? Math.max(fit.d, !DEEP_OFF && fitter?.room && !(fit.grown >= 0) ? fitter.room(sf, DEEP_CAP) : 0) : sf.d; return !!typeFor(sf, Math.max(3, lw - 2 * WALL_T), Math.max(3, ld - WALL_T)); }
   function addStore(sf) {
     const key = keyOf(sf); if (byKey.has(key)) return byKey.get(key);
     const fit = fitter?.get ? fitter.get(sf) : null; if (fit && !fit.ok) return null;
+    if (fit && fitter.room && !DEEP_OFF && sf.v2 !== false && !(fit.grown >= 0)) { // r7: grow into the host building (real store depths), as deep as the type wants
+      try { const room = fitter.room(sf, DEEP_CAP); fit.grown = 0; if (room > fit.d + 0.5) { const t = typeFor(sf, Math.max(3, fit.w - 2 * WALL_T), Math.max(3, room - WALL_T)); const want = t?.depth ? t.depth(sf, { W: fit.w - 2 * WALL_T, room: room - WALL_T, seed: hashStr(keyOf(sf)) }) : 0; if (want > fit.d) fitter.grow(sf, Math.min(room, want + WALL_T)); } } catch (e) { console.warn('[interiors] deep lot', e); } }
     const facing = sf.facing || 0, cos = Math.cos(facing), sin = Math.sin(facing), lw = fit ? fit.w : sf.w, ld = fit ? fit.d : sf.d, off = (fit ? fit.off : 0) + WALL_T / 2;
     const W = Math.max(3, lw - 2 * WALL_T), D = Math.max(3, ld - WALL_T), def = typeFor(sf, W, D); if (!def) return null;
     const cx = sf.x + sin * off, cz = sf.z + cos * off, seed = (hashStr(key) ^ Math.imul(Math.round(sf.x * 7.3 + sf.z * 13.7), 2654435761)) >>> 0 || 1;
@@ -54,7 +58,7 @@ export function createEngine(game, opts = {}) {
   }
   function ingest() {
     const src = (Array.isArray(city.storefronts) && city.storefronts.length ? city.storefronts : city.shopLots) || []; if (src === ingSrc && src.length === ingN) return;
-    const start = src === ingSrc ? ingN : 0; ingSrc = src; ingN = src.length; const fresh = src.slice(start);
+    const start = src === ingSrc ? ingN : 0; ingSrc = src; ingN = src.length; const fresh = src.slice(start); try { fitter?.addRaw?.(fresh); } catch (e) { /* */ }
     if (fitter?.fit) { try { fitter.fit(fresh.filter((sf) => sf.shell ?? (sf.buildingId != null))); } catch (e) { console.warn('[interiors] lot fit', e); } }
     for (const sf of fresh) { try { if (sf.v2 !== false) addStore(sf); } catch (e) { console.warn('[interiors] store failed', e); } }
   }
@@ -160,8 +164,17 @@ export function createEngine(game, opts = {}) {
   const loadState = (o) => { for (const k of Object.keys(o || {})) { const v = o[k]; state.set(k, { dvr: true, lights: true, robbedUntil: -1, banned: false, ...v, taken: new Set(v.taken || []) }); const s = byKey.get(k); if (s) { s.state = state.get(k); if (s.built) dispose(s); } } };
   try { game.on?.('save', (d) => { if (d) d.interiors = saveState(); }); game.on?.('load', (d) => { if (d?.interiors) loadState(d.interiors); }); } catch (e) { /* */ }
 
+  // dev check (game.interiors.auditClerks()): every staff spot of every built interior against its colliders. overlap = a body there
+  // would stand in furniture; narrow = the lane behind a counter (counter -> shelf / wall behind the clerk) is under LANE_MIN.
+  function auditClerks() {
+    const built = [];
+    for (const s of list) { const b = s.built; if (!b) continue;
+      const spots = (b.pois || []).filter((q) => STAFF_TAGS.has(q.tag)).map((q) => ({ ...auditClerk(q, b.colliders, { floor: 0.02 }), role: q.tag }));
+      built.push({ store: s.name, type: s.def?.type || s.type, variant: s.profile?.variant, W: +s.W.toFixed(1), D: +s.D.toFixed(1), overlaps: spots.filter((a) => a.hits > 0).length, narrow: spots.filter((a) => a.role !== 'door' && a.role !== 'serve' && a.lane < LANE_MIN - 0.005).length, spots }); }
+    return { built, overlaps: built.reduce((n, e) => n + e.overlaps, 0), narrow: built.reduce((n, e) => n + e.narrow, 0) };
+  }
   ingest();
-  const api = { list, byKey, update, viewCull, current: null, claims, addStore, hooks, pool, saveState, loadState, registerStoreType, getStoreType, storeTypes, rebuild(s) { if (s.built) dispose(s); s.failed = false; }, dispose, show, hide,
+  const api = { list, byKey, update, auditClerks, viewCull, current: null, claims, addStore, hooks, pool, saveState, loadState, registerStoreType, getStoreType, storeTypes, rebuild(s) { if (s.built) dispose(s); s.failed = false; }, dispose, show, hide,
     setFitter(f) { fitter = f; }, pending: () => !!pending || bakesPending() > 0,
     stats(reset) { const r = { stores: list.length, built: list.filter((s) => s.built).length, visible: list.filter((s) => s.built?.visible).length, updMaxMs: Math.round(upMax * 10) / 10, buildSliceMaxMs: Math.round(buildMax * 10) / 10, atlasMB: Math.round(GLOBAL.bytes() / 1e5) / 10, bakes: bakesPending() }; if (reset) { upMax = 0; buildMax = 0; } return r; } };
   return api;

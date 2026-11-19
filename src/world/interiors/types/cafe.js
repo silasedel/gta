@@ -23,6 +23,7 @@ const VARIANTS = [
 // ?noart in the URL keeps the legacy (v1) interiors for this category (before/after captures, safety valve)
 if (!/[?&]noart\b/.test(globalThis.location?.search || '')) registerStoreType({
   type: 'cafe', label: 'Cafe', kinds: ['cafe', 'coffee', 'bakery', 'pastry'], minSize: { w: 4.5, d: 5.5 }, variants: VARIANTS.length,
+  depth(sf, { room, seed }) { return Math.min(room, 10 + (seed % 3)); },
   profile(base, { R }) { const v = VARIANTS[base.variant], pal = venuePalette({ ...v.pal });
     return { venueWear: true, v, pal, name: R.pick(v.names), tier: 'mid', wear: v.key === 'ventanita' ? 0.35 : 0.1, hours: [6, 20], busy: [7, 17], flip: R.chance(0.5), bounce: 0.55, lamp: v.lamp, floor: v.floor, wall: v.wall, ceil: v.ceil, daylight: 1.1,
       facade: { style: v.key === 'ventanita' ? 'tile' : v.key === 'roaster' ? 'black' : 'wood' }, spillC: [1, 0.9, 0.7], lore: { story: `Coffee since ${base.since}.` } }; },

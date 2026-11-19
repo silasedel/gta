@@ -7,6 +7,8 @@ import { clamp } from '../kit/util.js';
 import { family, gondola, wallShelf, coolerBank, checkout, trashCan, floorSign, mopBucket, cctvDome, convexMirror, exitSign, wallFan, floorMat, atm } from '../fixtures/retail.js';
 import { stockRack, handTruck, officeDesk, safe, dvr, restroom, lockers, wallClock, lightSwitch, breakerPanel } from '../fixtures/backroom.js';
 import { stack, shelfRun } from '../items/stock.js';
+import { magRack, basketStack, chestFreezer } from '../fixtures/aisles.js';
+import { DEPT } from '../items/range.js';
 
 const VARIANTS = [
   { name: 'Marlin Mart', sub: 'FOOD · FUEL · 24 HR', tier: 'mid', pal: ['#0f5fb4', '#ffffff', '#ff8a1f'], fam: 'white', floor: ['vct', { c: [232, 232, 228], c2: [70, 120, 180] }], ceil: { type: 'drop' }, lamp: 'coolwhite', facade: 'aluminum', door: 'auto', wear: 0.2, open24: true, counter: [[40, 70, 120], [240, 240, 236]], band: '#0f5fb4', cooler: 'COLD DRINKS', signFont: 'deco' },
@@ -19,8 +21,10 @@ const VARIANTS = [
 const SODA = ['zumbo-cola', 'zumbo-cherry', 'zumbo-zero', 'tiki-orange', 'tiki-pina', 'limonazo'], SODA20 = ['zumbo-cola-20', 'tiki-orange-20', 'limonazo-20', 'rally-orange', 'rally-blue'], ENERGY = ['voltra', 'voltra-riptide', 'voltra-mango', 'tocororo-cold'], WATER = ['aguamar', 'aguamar-1l', 'bayleaf-tea', 'vaca-choc'], BEER = ['lobo-lager', 'cayo-light', 'cayo-tall', 'malta-faro'], DAIRY = ['vaca-milk', 'bayleaf-gallon', 'egg-sandwich', 'tuna-sandwich'];
 const CHIPS = ['crunchero-classic', 'crunchero-limon', 'crunchero-bbq', 'quesitos'], SNACK = ['crunchero-jalapeno', 'donpepe-mariquitas', 'dona-pastelito', 'dona-cake'], PANTRY = ['sopa-ya-chicken', 'sopa-ya-shrimp', 'abuela-beans', 'abuela-soup'], PEGS = ['gatorbite-original', 'gatorbite-teriyaki', 'gummi-gator', 'nutty-peanuts', 'ampd-cable'], MISC = ['torque-oil', 'alivio', 'zumbo-cola-2l'], BARS = ['nubo-milk', 'nubo-caramel', 'nubo-almond', 'chicle-pop', 'polar-mints', 'chispa-lighter'], LOTTO = ['scratch-flamingo', 'scratch-gator', 'scratch-hurricane', 'scratch-mango'];
 
+const S0 = (ctx) => ctx.store.W * ctx.store.D; // floor area (m2)
 registerStoreType({
   type: 'gas-convenience', label: 'Convenience store', kinds: ['convenience', 'fuel', 'gas', 'kiosk', 'pharmacy', 'chemist', 'liquor', 'alcohol', 'variety_store', 'supermarket', 'deli', 'greengrocer'], minSize: { w: 6.5, d: 7 }, variants: VARIANTS.length,
+  depth(sf, { room, seed }) { return clamp(room, 12, 14 + (seed % 5)); }, // r7: real c-stores run 12-18 m back from the glass
   profile(base, { design, R, sf }) {
     const rx = /pharmacy|chemist/.test(sf?.kind || '') ? R.pick(['Bayside Drugs', 'Coral Rx', 'Farmacia del Sol', 'Keystone Pharmacy']) : /liquor|alcohol/.test(sf?.kind || '') ? R.pick(['Tarpon Liquors', 'Cayo Wine & Spirits', 'Last Call Package']) : null; // shops pass: same store family, own banner
     const v0 = VARIANTS[base.variant], v = rx ? { ...v0, name: rx, sub: /Rx|Drugs|Farmacia|Pharmacy/.test(rx) ? 'PHARMACY · PHOTO · SNACKS' : 'BEER · WINE · SPIRITS' } : v0; let brand = null; try { brand = design?.pickBrand?.(base.seed, { category: 'fuel', storefront: true }) || null; } catch (e) { brand = null; }
@@ -40,11 +44,12 @@ registerStoreType({
     void S; void rd;
   },
   *fixtures(ctx) {
+    ctx.store.venue = { kind: 'shop', busy: [7, 23], guests: S0(ctx) > 60 ? 4 : 3 };
     const { G, M, plan: P, R, profile: p, prints } = ctx, v = p.v, S = P.get('sales'), fl = p.flip ? -1 : 1, F = family(ctx, v.fam), y0 = ctx.FLOOR_Y, ch = S.ceilY;
     const poster = (pid, x, y, z, ry, w = 0.5, o) => { const q = prints.poster(pid, o); G.plane(q.mat, x, y, z, w, w * 1.4, { ry, uvRect: q.rect, rz: R.jit(0.02) }); };
     // ---- checkout on the door side wall, back bar behind the clerk
     const cl = clamp(S.d * 0.34, 2.2, 3.2), cx = fl * (S.w / 2 - 1.3), cz = S.z1 - 1.0 - cl / 2, cry = -fl * Math.PI / 2;
-    const co = checkout(ctx, cx, cz, cry, { l: cl, top: ['laminate', { c: v.counter[1] }], front: ['laminate', { c: v.counter[0] }], glass: v.glass, lotto: LOTTO, impulse: BARS, registerSide: -fl }); ctx.store.counterLocal = { x: cx, z: cz };
+    const co = checkout(ctx, cx, cz, cry, { l: cl, top: ['laminate', { c: v.counter[1] }], front: ['laminate', { c: v.counter[0] }], glass: v.glass, lotto: LOTTO, impulse: BARS, registerSide: -fl }); ctx.store.counterLocal = { x: cx, z: cz }; ctx.poi('counter', co.clerk.x, co.clerk.z, co.clerk.ry, {});
     const wx = fl * (S.w / 2); // side wall behind the clerk
     G.at(wx, cz, cry, () => { const z = -0.02; // frame: wall at local z = -0, facing the room (+z)
       G.push(new (Object.getPrototypeOf(G.cur).constructor)().makeTranslation(0, 0, 0)); void z;
@@ -88,14 +93,19 @@ registerStoreType({
       wallShelf(ctx, at.x, at.z, at.ry, { l: b - a - 0.1, h: 2.05, plan: [MISC, PANTRY, SNACK, CHIPS, ['zumbo-cola-2l', 'alivio']], pegs: PEGS, pegsFrom: 4 }); for (let u = a + 0.6; u < b - 0.3; u += 1.3) poster(R.pick(['voltra', 'zumbo-cola', 'crunchero-bbq', 'cayo-light', 'tiki-pina', 'lobo-lager']), at.x + sp.face.nx * 0.012, 2.6, u, at.ry, 0.44); }
     yield;
     // ---- gondolas in the middle, running front to back
-    const gx0 = Math.min(cx, -cx) + 1.3 + (fl < 0 ? 0.9 : 0.9), gx1 = Math.max(cx, -cx) - 1.5, gz1 = S.z1 - 2.6, gz0 = S.z0 + 0.82 + 1.5, gl = Math.max(0, Math.min(5.4, gz1 - gz0)), ng = gl > 1.6 ? Math.max(1, Math.floor((gx1 - gx0 + 1.25) / 2.15)) : 0;
-    const plansA = [[PANTRY, MISC, SNACK, CHIPS], [CHIPS, SNACK, ['donpepe-mariquitas', 'quesitos'], CHIPS.slice(1)], [['zumbo-cola-2l', 'torque-oil'], PANTRY, ['dona-pastelito', 'dona-cake'], SNACK]];
+    const gx0 = Math.min(cx, -cx) + 1.3 + (fl < 0 ? 0.9 : 0.9), gx1 = Math.max(cx, -cx) - 1.5, frz = S.d > 10.5 && R.chance(0.65), gz1 = S.z1 - 2.6 - (frz ? 1.8 : 0), gz0 = S.z0 + 0.82 + 1.5, gl = Math.max(0, Math.min(9, gz1 - gz0)), ng = gl > 1.6 ? Math.max(1, Math.floor((gx1 - gx0 + 1.25) / 2.15)) : 0;
+    const rx = /Rx|Drugs|Farmacia|Pharmacy/.test(p.name), plansA = rx ? [[DEPT.beauty.slice(1), DEPT.health.slice(0, 3), DEPT.health.slice(3), DEPT.beauty], [DEPT.household.slice(3), DEPT.paper, DEPT.beauty.slice(2), DEPT.health], [CHIPS, SNACK, DEPT.cookies.slice(0, 3), DEPT.health.slice(2)]]
+      : [[PANTRY, MISC, SNACK, CHIPS], [CHIPS, SNACK, ['donpepe-mariquitas', 'quesitos'], CHIPS.slice(1)], [['zumbo-cola-2l', 'torque-oil'], PANTRY, ['dona-pastelito', 'dona-cake'], SNACK], [DEPT.paper.slice(1), DEPT.household.slice(3), DEPT.health.slice(0, 3), DEPT.cookies.slice(2)]];
     for (let i = 0; i < ng; i++) { const gx = ng === 1 ? (gx0 + gx1) / 2 : gx0 + 0.45 + i * (gx1 - gx0 - 0.9) / (ng - 1); const sg = prints.promo(R.pick(['SNACK DEAL', 'OFERTA', 'MIX & MATCH']), R.pick(['2 FOR $6', '3 X $5', '2 FOR $4']), R.pick(['Any Crunchero 8 oz', 'Tiki Tang 12 oz cans', 'VOLTRA 16 oz']), { bg: v.pal[1] === '#ffffff' ? '#ffd21f' : v.pal[1], band: v.pal[0] });
-      gondola(ctx, gx, (gz0 + gz1) / 2, Math.PI / 2, { l: gl, h: v.tier === 'luxury' ? 1.3 : 1.45, sides: [plansA[i % 3], plansA[(i + 1) % 3]], ends: [{ pegs: PEGS, sign: sg }, i % 2 ? { pegs: PEGS.slice(2) } : [BARS, SNACK, CHIPS, ['aguamar']]] }); if (i % 2 === 0) yield; }
+      gondola(ctx, gx, (gz0 + gz1) / 2, Math.PI / 2, { l: gl, h: v.tier === 'luxury' ? 1.3 : 1.45, rows: 2, sides: [plansA[i % plansA.length], plansA[(i + 1) % plansA.length]], ends: [{ pegs: PEGS, sign: sg }, i % 2 ? { pegs: PEGS.slice(2) } : [BARS, SNACK, CHIPS, ['aguamar']]] }); if (i % 2 === 0) yield; }
     // ---- front of store: beer stacks, ATM, trash, mats, wet floor sign, ice
     const fx = -fl * (S.w / 2 - 1.1); stack(ctx, 'cayo-12', fx * 0.45, y0, S.z1 - 0.75, 2, 1, 4); stack(ctx, 'lobo-12', fx * 0.45 + 0.95 * -fl, y0, S.z1 - 0.75, 2, 1, 3); ctx.G.at(fx * 0.45, S.z1 - 0.75, 0, () => ctx.solid(-1.4, 0, -0.2, 0.5, 0.5, 0.2, { occ: false }));
     atm(ctx, fl * (S.w / 2 - 0.4), S.z1 - 0.45, -fl * Math.PI / 2 + (fl > 0 ? 0 : 0)); trashCan(ctx, P.doorX + fl * -1.5, S.z1 - 0.4); floorMat(ctx, P.doorX, S.z1 - 2.2, 1.6, 0.9, [40, 36, 32]);
     if (p.wear > 0.3) { floorSign(ctx, R.range(-1, 1), S.cz + R.range(-1, 1), R() * 3); }
+    // r7: magazines and papers at the counter end, a basket stack by the door, an ice-cream chest when the floor allows
+    { const mz = cz + cl / 2 + 0.9; if (mz < S.z1 - 0.8) magRack(ctx, fl * (S.w / 2 - 0.3), mz, -fl * Math.PI / 2, { l: 1.0, pids: DEPT.mags, paper: 'ledger-paper' }); }
+    basketStack(ctx, P.doorX - fl * 1.2, S.z1 - 0.45, { c: v.pal[0], n: 6 });
+    if (frz) chestFreezer(ctx, (gx0 + gx1) / 2 + R.jit(0.3), gz1 + 1.4, 0, { l: 1.6, pids: [...DEPT.frozen.slice(3, 5), 'polar-ice'] });
     // ---- ceiling and wall dressing
     cctvDome(ctx, cx - fl * 0.4, ch, cz); cctvDome(ctx, -fl * (S.w / 2 - 0.8), ch, S.z0 + 1.2); cctvDome(ctx, P.doorX, ch, S.z1 - 0.7); convexMirror(ctx, -fl * (S.w / 2 - 0.25), ch - 0.4, S.z0 + 0.95, fl * Math.PI / 4); exitSign(ctx, P.doorX, Math.min(ch - 0.12, ctx.front.gh + 0.25), S.z1 - 0.24, Math.PI); if (v.tier !== 'luxury') wallFan(ctx, fl * (S.w / 2 - 0.01), ch - 0.5, S.z0 + 1.6, -fl * Math.PI / 2);
     // pennant string across the store and hanging aisle promos

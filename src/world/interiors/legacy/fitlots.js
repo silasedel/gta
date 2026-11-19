@@ -60,7 +60,7 @@ export function createLotFitter(buildingPolys = []) {
     const p = { o, x0, z0, x1, z1 }; polys.push(p); bg.add(p, x0, z0, x1, z1);
   }
   const polysAt = (x, z) => bg.at(x, z).filter((p) => x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1 && pointInPoly(p.o, x, z));
-  const lg = grid(20); const accepted = [];
+  const lg = grid(20); const accepted = []; const rects = new Map(); const raw = grid(20); const rawSeen = new WeakSet();
   const stats = { total: 0, ok: 0, shrunk: 0, droppedOverlap: 0, droppedBuilding: 0, overlapPairsBefore: 0, batches: 0 };
   function fitOne(sf) {
     const facing = sf.facing || 0; const sn = Math.sin(facing), cs = Math.cos(facing);
@@ -84,7 +84,7 @@ export function createLotFitter(buildingPolys = []) {
       const nd = Math.max(3.5, d * 0.82), nw = Math.max(3.5, w * 0.88); off += (d - nd) / 2; d = nd; w = nw;
     }
     if (verdict.ok) {
-      const r = verdict.rect; delete verdict.rect; r.i = accepted.length;
+      const r = verdict.rect; delete verdict.rect; r.i = accepted.length; rects.set(sf, r); r.host = host;
       accepted.push(r); const R = Math.hypot(r.hw, r.hd); lg.add(r, r.x - R, r.z - R, r.x + R, r.z + R);
       stats.ok++; if (verdict.shrunk) stats.shrunk++;
     } else if (verdict.reason === 'building') stats.droppedBuilding++; else stats.droppedOverlap++;
@@ -98,7 +98,27 @@ export function createLotFitter(buildingPolys = []) {
     return res;
   }
   function overlapsAfter() { let after = 0; const seen = new Set(); for (const r of accepted) { const R0 = Math.hypot(r.hw, r.hd); for (const [x, z] of [[r.x - R0, r.z - R0], [r.x + R0, r.z - R0], [r.x - R0, r.z + R0], [r.x + R0, r.z + R0], [r.x, r.z]]) for (const a of lg.at(x, z)) { if (a === r) continue; const k = Math.min(a.i, r.i) + ':' + Math.max(a.i, r.i); if (!seen.has(k) && obbOverlap(a, r)) { seen.add(k); after++; } } } return after; }
-  return { fit, res, stats, overlapsAfter, get: (sf) => res.get(sf) };
+  // r7 deep stores: real shops run 15-40 m back from the street. The city's storefront shell is the whole ground floor of the
+  // host building (outer walls + ceiling collider, hollow inside), so a lot may grow BACKWARD (front edge fixed) while the grown
+  // part stays inside its own building footprint (0.35 m clear of the outer wall), clear of every other building, every accepted
+  // lot and every raw lot not fitted yet (so growing never steals a later shop). room(sf, cap) asks, grow(sf, d) commits.
+  function addRaw(list) { for (const sf of list || []) { if (rawSeen.has(sf) || !(sf.w > 0)) continue; rawSeen.add(sf); const r = rectOf(sf.x, sf.z, sf.w, sf.d, sf.facing || 0); r.sf = sf; const R0 = Math.hypot(r.hw, r.hd); raw.add(r, r.x - R0, r.z - R0, r.x + R0, r.z + R0); } }
+  function backFree(sf, r, d0, nd) { // the strip from the current back edge to the new one (plus margins) is free
+    const ext = nd - d0 + 0.35, hw = r.hw + 0.3, cz = -(d0 / 2) - ext / 2, [x, z] = toWorld(r, 0, cz), strip = rectOf(x, z, hw * 2, ext, sf.facing || 0);
+    for (const [px, pz] of samples(strip, 0)) {
+      if (!r.host || !pointInPoly(r.host.o, px, pz)) return false;
+      if (polysAt(px, pz).some((p) => p !== r.host)) return false;
+      if (lg.at(px, pz).some((a) => a !== r && inRect(a, px, pz, -0.1))) return false;
+      if (raw.at(px, pz).some((a) => a.sf !== sf && !rects.has(a.sf) && res.get(a.sf)?.ok !== false && inRect(a, px, pz, -0.1))) return false;
+    }
+    return true;
+  }
+  function room(sf, cap = 30) { const v = res.get(sf), r = rects.get(sf); if (!v?.ok || !r || !polys.length) return v?.ok ? v.d : 0; let best = v.d;
+    for (let nd = Math.min(cap, 40); nd >= v.d + 1.5; nd -= 1.5) { if (backFree(sf, r, v.d, nd)) { best = nd; break; } } return best; }
+  function grow(sf, nd) { const v = res.get(sf), r = rects.get(sf); if (!v?.ok || !r || !(nd > v.d + 0.5)) return v; if (!backFree(sf, r, v.d, nd)) return v;
+    const facing = sf.facing || 0, sn = Math.sin(facing), cs = Math.cos(facing); v.off -= (nd - v.d) / 2; v.grown = +(nd - v.d).toFixed(2); v.d = nd;
+    r.x = sf.x + sn * v.off; r.z = sf.z + cs * v.off; r.hd = nd / 2; const R0 = Math.hypot(r.hw, r.hd); lg.add(r, r.x - R0, r.z - R0, r.x + R0, r.z + R0); stats.grown = (stats.grown || 0) + 1; return v; }
+  return { fit, res, stats, overlapsAfter, get: (sf) => res.get(sf), addRaw, room, grow };
 }
 
 export function fitLots(lots, buildingPolys = []) {
