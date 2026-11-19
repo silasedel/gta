@@ -100,7 +100,7 @@ export async function initV2(game) {
   function security(dt) {
     const P = game.player; if (!P) return;
     const v = P.state?.vehicle, inAir = !!(v && v.air);
-    let a = inAirside(P.position.x, P.position.z); if (a && (a.parts.zone || a.military) && !STEALTH_OFF) a = null;   // guarded zones report by sight (zone.js)
+    let a = inAirside(P.position.x, P.position.z); if (a && !STEALTH_OFF) a = null;   // guarded zones report by sight (zone.js)
     if (a && !inAir && !sec.pass && !boarding.active) {
       if (sec.inside !== a) { sec.inside = a; sec.t = 0; }
       sec.t += dt; sec.outT = 0;
