@@ -43,7 +43,7 @@ if (!/[?&]noart\b/.test(globalThis.location?.search || '')) registerStoreType({
     // ---- floor: racks and nesting tables down the middle, mannequins by the window
     const mx = 0, zA = S.z0 + 1.6, zB = S.z1 - 2.0; let z = zA, k = 0;
     while (z < zB) { if (k % 2 === 0) foldTable(ctx, mx + R.jit(0.2), z, R.jit(0.1), { pal, colors: cols, top: v.key === 'luxe' ? V.marble : undefined }); else { garmentRack(ctx, mx - 1.1, z, Math.PI / 2, { pal, colors: cols, round: true, r: 0.45, metal: v.metal, sparse: v.sparse }); garmentRack(ctx, mx + 1.1, z, Math.PI / 2, { pal, colors: cols, l: 1.2, metal: v.metal, sparse: v.sparse }); } z += 1.9; k++; }
-    for (const s of [-1, 1]) { const mxs = clamp(P.doorX + s * (P.doorW / 2 + 0.9), -W / 2 + 0.5, W / 2 - 0.5); mannequin(ctx, mxs, S.z1 - 0.75, Math.PI + R.jit(0.3), { top: R.pick(cols), bottom: R.pick(cols) }); }
+    for (const s of [-1, 1]) { const mxs = clamp(P.doorX + s * (P.doorW / 2 + 0.9), -W / 2 + 0.5, W / 2 - 0.5); mannequin(ctx, mxs, S.z1 - 0.75, Math.PI + R.jit(0.3), { top: R.pick(cols), bottom: R.pick(cols), lib: s > 0 ? 'mannequin_torso' : null }); }
     yield;
     // ---- back: cash wrap with a logo wall, fitting rooms on the other side, mirror, plants, light
     const cx = bs * (W / 2 - 1.6); hostBar(ctx, cx, S.z0 + 1.0, 0, { l: 1.8, h: 1.0, pal, dj: false, glowC: v.key === 'street' ? pal.accent : '#fff2e0', k: v.key === 'street' ? 0.5 : 0.35 });

@@ -10,6 +10,7 @@ import { stockRack, handTruck, officeDesk, safe, dvr, restroom, lockers, wallClo
 import { tallWall, pallet, cagePartition } from '../fixtures/aisles.js';
 import { shelfRun, stack } from '../items/stock.js';
 import { DEPT as D } from '../items/range.js';
+import { libModel } from '../kit/models.js';
 
 const VARIANTS = [
   { key: 'package', names: ['Tarpon Liquors', 'Last Call Package', 'Corner Pocket Liquors', 'Dixie Package Store'], pal: ['#c8102e', '#ffd21f', '#ffffff'], fam: 'almond', floor: ['vct', { c: [214, 206, 186], c2: [120, 40, 40] }], ceil: { type: 'drop' }, lamp: 'coolwhite', facade: 'block', wear: 0.75, glass: true, bars: true },
@@ -73,6 +74,8 @@ registerStoreType({
       const W = D.wine, sg = prints.promo(R.pick(['WINE SALE', 'STAFF PICK', 'NEW']), R.pick(['2 FOR $20', '$9.99', '15% OFF 6']), R.pick(['Marisol reds', 'Brisa whites', 'Any 750 ml wine']), { bg: '#f6efe0', band: v.pal[0] });
       gondola(ctx, gx, (gz0 + gz1) / 2, Math.PI / 2, { l: gl, h: 1.65, levels: 4, d: 0.36, rows: 2, block: 0.2, sides: [[W.slice(0, 2), W.slice(2, 4), W.slice(4), W], [W.slice(3), W.slice(0, 3), SP.slice(0, 4), SP.slice(4, 8)]], ends: [{ pegs: ['chispa-lighter', 'nutty-peanuts', 'gatorbite-original'], sign: sg }, [D.beer, ['lobo-lager'], SP.slice(8), D.minis]] });
       stack(ctx, R.pick(['lobo-12', 'cayo-12']), gx, ctx.FLOOR_Y, gz1 + 0.75, 2, 1, R.int(3, 5)); ctx.G.at(gx, gz1 + 0.75, 0, () => ctx.solid(-0.42, 0, -0.15, 0.42, 0.65, 0.15, { occ: false })); yield; }
+    // r7: oak barrels (the user's Barrel 2) by the window in the cellar variant, wine on the heads
+    if (v.key === 'cellar' || R.chance(0.3)) for (const s of [-1, 1]) { const bx = -cs * (S.w / 2 - 0.65) + s * 0.0, bz = S.z1 - 1.3 - (s > 0 ? 0.85 : 0); if (Math.abs(bx - doorX) < 1.6) continue; if (libModel(ctx, 'barrel', bx, bz, R() * 6)) { ctx.G.at(bx, bz, 0, () => { ctx.solid(-0.36, 0, -0.36, 0.36, 0.95, 0.36, { occ: false }); ctx.shadow(0, 0, 0.8, 0.8); }); for (let k = 0; k < 3; k++) ctx.item(D.wine[(k + (s > 0 ? 2 : 0)) % D.wine.length], bx - 0.12 + k * 0.12, ctx.FLOOR_Y + 0.948, bz + R.jit(0.05), R.jit(0.5), { zone: 'barrel' }); } }
     // ---- front: floor display of spirits, trash, mats, cameras, mirror, neon in the window
     floorMat(ctx, doorX, S.z1 - 1.0, 1.6, 0.9, [40, 36, 32]); trashCan(ctx, doorX - cs * 1.4, S.z1 - 0.4); if (p.wear > 0.4) floorSign(ctx, R.range(-1, 1), S.cz + R.range(-1, 1), R() * 3);
     cctvDome(ctx, cx - cs * 0.4, ch, cz); cctvDome(ctx, 0, ch, S.z0 + 1.4); cctvDome(ctx, doorX, ch, S.z1 - 0.7); convexMirror(ctx, -cs * (S.w / 2 - 0.25), ch - 0.4, S.z0 + 0.95, cs * Math.PI / 4); exitSign(ctx, doorX, Math.min(ch - 0.12, ctx.front.gh + 0.25), S.z1 - 0.24, Math.PI);

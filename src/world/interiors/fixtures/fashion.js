@@ -2,6 +2,7 @@
 //   garmentRack wallBay foldTable mannequin fittingRooms sneakerWall
 // Garments are merged static geometry in a handful of fabric materials per store (a palette), so a full store stays at a few draw calls.
 import * as THREE from 'three';
+import { libModel } from '../kit/models.js';
 import { FIXTURES } from '../lighting.js';
 import { venuePalette, venueMats } from './venue.js';
 import '../kit/venueSurfaces.js';
@@ -74,6 +75,7 @@ export function foldTable(ctx, x, z, ry, o = {}) {
 }
 // abstract display mannequin on a stand, dressed in a top and a bottom color
 export function mannequin(ctx, x, z, ry, o = {}) {
+  if (o.lib && libModel(ctx, o.lib, x, z, ry)) { ctx.G.at(x, z, ry, () => { ctx.solid(-0.22, 0, -0.22, 0.22, 1.8, 0.22, { occ: false }); ctx.shadow(0, 0, 0.5, 0.5); }); return; } // r7: the user's mannequins
   const { G, M } = ctx, skin = M.flat(o.skin || '#e8e2d8', { rough: 0.35, probe: 0.3 }), top = fab(ctx, o.top || [240, 240, 236]), bot = fab(ctx, o.bottom || [30, 40, 70]), base = M.flat('#141416', { rough: 0.3, metal: 0.6 });
   G.at(x, z, ry, () => { G.cylB(base, 0, 0, 0, 0.2, 0.02, { seg: 18 }); G.cylB(base, 0, 0.02, 0, 0.012, 0.85, { seg: 6 });
     G.lathe(bot, [[0.001, 0], [0.13, 0.02], [0.15, 0.2], [0.16, 0.34]], 0, 0.82, 0, { seg: 14 }); G.lathe(top, [[0.16, 0], [0.14, 0.15], [0.17, 0.32], [0.18, 0.4], [0.06, 0.48], [0.001, 0.49]], 0, 1.16, 0, { seg: 16, sz: 0.7 });

@@ -6,7 +6,9 @@ const BASE = '/assets/models/street/', cache = new Map();
 let started = null, done = false;
 export const hasModel = (n) => cache.has(n);
 // r7: interior-only library models converted from Models/ (tools/v2/street-models/convert.py) live next to this code
-const LOCAL = { pistol_a: new URL('../models/pistol_a.glb', import.meta.url).href, pistol_b: new URL('../models/pistol_b.glb', import.meta.url).href, cart: new URL('../models/cart.glb', import.meta.url).href };
+const LOCAL = { pistol_a: new URL('../models/pistol_a.glb', import.meta.url).href, pistol_b: new URL('../models/pistol_b.glb', import.meta.url).href, cart: new URL('../models/cart.glb', import.meta.url).href,
+  mannequin_m: new URL('../models/mannequin_m.glb', import.meta.url).href, mannequin_torso: new URL('../models/mannequin_torso.glb', import.meta.url).href, clothing_rack: new URL('../models/clothing_rack.glb', import.meta.url).href,
+  barrel: new URL('../models/barrel.glb', import.meta.url).href, card_reader: new URL('../models/card_reader.glb', import.meta.url).href };
 export function preloadModels(names = ['atm', 'wall_clock', 'plant_ficus', 'plant_palm', 'bin_commercial', ...Object.keys(LOCAL)]) {
   if (started) return started;
   const gl = new GLTFLoader();
