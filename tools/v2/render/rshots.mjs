@@ -33,12 +33,10 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
   if (o.eval) console.log('EVAL', await b.eval(o.eval));
   // --pole: views around the nearest street-lamp pole (instanced mesh with the city's metal material) to the player
   if (o.pole) {
-    const pole = await b.eval(`(() => { const M = game.city?.materials?.metal; const P = game.player.position; let best = null, bd = 1e9; const m4 = new game.THREE.Matrix4(), v = new game.THREE.Vector3();
-      game.scene.traverse((o) => { if (!o.isInstancedMesh || o.material !== M) return; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); v.setFromMatrixPosition(m4).applyMatrix4(o.matrixWorld); const d = v.distanceTo(P); if (d < bd) { bd = d; best = v.toArray(); } } });
-      return JSON.stringify(best); })()`);
+    const pole = await b.eval(`(() => { const P = game.player.position, L = game.env?.lamps?.nearest?.(P.x, P.z); return L ? JSON.stringify([L.x, L.gy, L.z, L.y]) : 'null'; })()`);
     console.log('pole', pole);
     const q = JSON.parse(pole || 'null');
-    if (q) { VIEWS.pole1 = { abs: [[q[0] + 3.5, q[1] + 1.7, q[2] + 2], [q[0], q[1] + 2.5, q[2]]] }; VIEWS.pole2 = { abs: [[q[0] - 4, q[1] + 2.5, q[2] - 3], [q[0], q[1] + 2, q[2]]] }; VIEWS.pole3 = { abs: [[q[0] + 1, q[1] + 6, q[2] - 5], [q[0], q[1] + 0.5, q[2]]] }; views.push('pole1', 'pole2', 'pole3'); }
+    if (q) { VIEWS.pole1 = { abs: [[q[0] + 4, q[1] + 1.7, q[2] + 3], [q[0], q[1] + 3, q[2]]] }; VIEWS.pole2 = { abs: [[q[0] - 4, q[1] + 2.5, q[2] - 4], [q[0], q[1] + 3, q[2]]] }; VIEWS.pole3 = { abs: [[q[0] + 3, q[1] + 8, q[2] - 6], [q[0], q[1] + 0.5, q[2]]] }; views.push('pole1', 'pole2', 'pole3'); }
   }
   // --shore: views of the nearest shoreline (march out from the player until city.isWater; camera inland looking at it)
   if (o.shore) {

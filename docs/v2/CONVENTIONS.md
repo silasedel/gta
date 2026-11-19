@@ -144,6 +144,16 @@ How the world and the systems connect. If something here is wrong, fix the code 
 - The sky's cumulus field is world-anchored (`env.cloudBase` m); post.js repeats `cloudShape()` for the cloud-shadow
   map: change both together.
 
+- **No coplanar faces (Nov 18).** Anything drawn on another surface (trim, casing, decal, sticker, paint line, pad) either has
+  real thickness in front (5 mm or more) or `polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2` (decals
+  -2 / -4). Never two faces in the same plane, never the same mesh built twice in one place (LOD copies must hide each
+  other). Check a view with `await game.zfight()` in a session or `node tools/v2/render/zfight.mjs` (names both meshes).
+- **Lights (Nov 18).** Over the 16 point / 4 spot budget, lights fade (~0.3 s) instead of popping (`perfGuards.v2.js`,
+  `?lightfade=0`); street lamps use the clustered lamp system (`game.env.lamps`, 16 per 22 m tile, strongest first).
+  Auto exposure eases with a dead zone and a 0.7 stop/s cap (`post.js`; `game.lookAESnap = true` = old).
+- **Water edge (Nov 18).** The ocean reads the opaque scene depth (copied before its first pass) for the true water depth
+  near the shore: ground meeting the water needs no special mesh work; `?softshore=0` = old edge.
+
 ## 4. Events (`game.emit` / `game.on`)
 - `crime` `{ type, position|pos, severity?, by?: 'officer'|'witness'|'alarm'|'camera'|'self', witnesses? }` — types in
   `src/gameplay/wantedCore.js SEV` (assault, shoplift, vehicle_theft, carjack, trespass, vandalism, speeding, red_light,

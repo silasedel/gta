@@ -17,6 +17,7 @@ const TILE = 22;           // metres per tile  -> 352 m grid around the camera
 // on the ground and made light pop on and off as the camera-snapped grid moved. Each tile now keeps the K lamps that
 // light its center most (intensity / distance^2), so a lamp that does not make the cut is too weak to leave an edge.
 const K = 16;
+const LAMP_SOFT = !(typeof location !== 'undefined' && /[?&]lampsoft=0\b/.test(location.search)); // sphere-light highlight (A/B)
 const KT = K / 4;          // texels per tile
 export const CLUSTER_R = 165;
 const POOL_FAR = 1100;
@@ -78,7 +79,7 @@ export function patchLampChunks() {
 					float psWin = 1.0 - pow( psD / psP.w, 4.0 ); psWin *= psWin;
 					directLight.color = psC.rgb * ( psC.w * psWin * psSpot / ( psD * psD + ${LOOK_OFF ? '16.0' : '9.0'} ) );
 					directLight.visible = true;
-					#ifdef STANDARD
+					#if defined( STANDARD ) && ${LAMP_SOFT ? 1 : 0}
 					// render track (Nov 18, user: "unrealistic bright edge on the light post"): a lamp is a ~0.35 m luminaire, not a
 					// point. Its highlight is widened like a sphere light (roughness + radius / distance, Karis), so metal poles, car
 					// paint and glass right under a lamp show a soft sheen instead of a razor-thin bright line along the edge.
@@ -278,6 +279,8 @@ export function createLampSystem(game) {
   function growCand() { candCap *= 2; const a = new Int32Array(candCap); a.set(candI); candI = a; const b = new Float32Array(candCap); b.set(candD); candD = b; order = new Int32Array(candCap); }
   const fill = new Uint8Array(GRID * GRID), tileK = new Int16Array(GRID * GRID * K), tileS = new Float32Array(GRID * GRID * K);
   let lastOn = -1;
+  /** nearest registered lamp to x, z (tools: rshots --pole): { x, y, z, gy } or null */
+  api.nearest = (x, z) => { let b = -1, bd = 1e18; for (let i = 0; i < n; i++) { const d = (X[i] - x) ** 2 + (Z[i] - z) ** 2; if (d < bd) { bd = d; b = i; } } return b < 0 ? null : { x: X[b], y: Y[b], z: Z[b], gy: GY[b] }; };
   api.update = (dt, camera, on) => {
     try { scanStep(dt); } catch (e) { console.warn('[lamps] scan', e); }
     if (cellsDirty) { rebuildCells(); cellsDirty = false; poolCursor = 0; }
