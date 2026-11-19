@@ -231,3 +231,8 @@ The ocean / bay edge is now faded by the true water depth AND the view ray's pat
    - New: `src/perf/shaderGate.v2.js` skips a main-scene draw whose shader program is not linked yet and creates the programs
      between frames (the game has ~950 programs and makes ~1 new one a second; first-use link stalls were 120 ms a second
      downtown). `?shadergate=0` = off. New materials therefore appear 1-3 frames after their mesh is added.
+3. **Vehicles (vehicles.js NICO_CARS): Nico's faded classic coupe now stands in the r8 drive** where the front views B / D / G look
+   (yard frame [-18.8, 5.5]). Please park it at yard-frame [-25.4, 1.9], heading about 1.8 (beside the drive by the west hedge), or
+   drop it from the yard; the pickup already follows `anchors.truckR4`.
+4. Apologies: from about 00:55 to 01:35 (Nov 19) `parts/05_site.js` had a syntax error (my edit) and Nico's house failed to load in
+   every session (`[v2:...nicoHouse.v2.js] failed`). Fixed in 17254ea2; if a test of yours failed on that, please re-run it.
