@@ -1,0 +1,68 @@
+{
+ "set": "b1",
+ "when": "2026-11-19T06:47:57.824Z",
+ "runs": {
+  "A": {
+   "dome_noon": {
+    "avgMs": 35.34,
+    "p95Ms": 49.6,
+    "calls": 354,
+    "tris": 4813439
+   },
+   "dome_close": {
+    "avgMs": 41.44,
+    "p95Ms": 54.4,
+    "calls": 497,
+    "tris": 4532972
+   },
+   "heron": {
+    "avgMs": 63.09,
+    "p95Ms": 249.9,
+    "calls": 524,
+    "tris": 3651495
+   },
+   "tarp_ground": {
+    "avgMs": 54.43,
+    "p95Ms": 68.1,
+    "calls": 717,
+    "tris": 15065736
+   },
+   "south_bank_dawn": {
+    "avgMs": 51.72,
+    "p95Ms": 63.4,
+    "calls": 603,
+    "tris": 7601131
+   },
+   "west_airboat_noon": {
+    "avgMs": 43.51,
+    "p95Ms": 54.4,
+    "calls": 365,
+    "tris": 5966942
+   },
+   "south_aerial_noon": {
+    "avgMs": 28.87,
+    "p95Ms": 43.2,
+    "calls": 399,
+    "tris": 6944281
+   },
+   "slough_aerial": {
+    "avgMs": 20.84,
+    "p95Ms": 26.7,
+    "calls": 540,
+    "tris": 3783756
+   },
+   "slough_airboat": {
+    "avgMs": 25.57,
+    "p95Ms": 39.9,
+    "calls": 585,
+    "tris": 7544418
+   },
+   "gus_dock_dawn": {
+    "avgMs": 35.58,
+    "p95Ms": 46.9,
+    "calls": 607,
+    "tris": 5195169
+   }
+  }
+ }
+}

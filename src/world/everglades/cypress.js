@@ -12,7 +12,7 @@ import { snagTexture } from './textures.js';
 import { hash2, vnoise } from './region.js';
 import { loadModel, partsOf } from './models.js';
 
-const CELL = 240, R = 1100, NEAR = 240, MID = 560, MAX = 2600, COLS = 48, MODEL_H = 7.34;
+const CELL = 240, R = 1100, NEAR = 150, MID = 500, MAX = 2600, COLS = 48, MODEL_H = 7.34;
 
 function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 
