@@ -186,6 +186,13 @@ export const PERF = {
     brakeK: 0.85,
     eng: 'dslV8',
   },
+  // utility vehicles: no t100 (they never reach 100 km/h), the drive force is the class engine in fleet.js PHYS.
+  // like: Ranger Diesel Crew (3-cyl diesel, ~80 km/h), Scrambler XP 1000, ACE 900 XC, Onward 4P (48 V, 19 mph), baggage cart
+  utv1: { vmax: 80, mass: 950, drive: 'awd', grip: 2.0, comY: 0.62, antiRoll: 6, brakeK: 0.8 },
+  atv1: { vmax: 100, mass: 400, drive: 'awd', grip: 2.1, comY: 0.55, antiRoll: 6.5, brakeK: 0.9 },
+  utv2: { vmax: 95, mass: 560, drive: 'awd', grip: 2.1, comY: 0.55, antiRoll: 6.5, brakeK: 0.9 },
+  golf1: { vmax: 30, mass: 480, drive: 'rwd', grip: 1.9, comY: 0.5, antiRoll: 7, brakeK: 0.6 },
+  bagcart1: { vmax: 25, mass: 650, drive: 'rwd', grip: 1.9, comY: 0.6, antiRoll: 8, brakeK: 0.6 },
 };
 
 // engine profiles that the fleet's real cars need beyond glb/index.js E (merged there)

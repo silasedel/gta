@@ -813,3 +813,10 @@ model names are invented. The airport fence, gates, signs and all aircraft effec
 
 ## Vehicles: military (W2 vehicles agent) — public/assets/vehicles/cars/humvee1.glb
 - `humvee1` (in game: Atlas Sentinel M4, the military base utility truck) — "Humvee" by 8sianDude (Sketchfab user haoliu95), **CC BY 4.0** — https://sketchfab.com/3d-models/humvee-ec74fee2b99546b0a7065d134e84af91 . Changes: turret mount and gun removed, decimated to 80k / 4k / 1.9k triangle LODs, textures downscaled to 1024 px WebP, matte paint.
+
+## Vehicles: utility (user downloads, Nov 19) — public/assets/vehicles/cars/utv1|atv1|utv2|golf1|bagcart1.glb
+- Five downloaded models the user provided as free to use (sources kept in Models/Cars/Utility/, original authors not named
+  in the downloads): a 2018 crew-cab diesel side-by-side, a 2018 sport ATV, a 2018 single-seat sport side-by-side, a
+  four-passenger golf cart and a low-poly covered airport baggage cart. Changes: maker logos, model names, badge and decal
+  meshes removed (lettering painted out of the textures), decimated to the car pipeline's LODs, invented names in game
+  (Ridgeback Ranchhand Crew / Scrub 1000 / Dart 900, Cayo Fairway 4, Atlas Ramp Cart).

@@ -16,3 +16,9 @@
   frame time, shots in `docs/v2/shots/cars/`).
 - Runtime: `src/vehicles/glb/` (glbCar.js builder, fleet.js names/classes/physics/colors, index.js registration + streaming,
   placements.js rare cars).
+- Utility vehicles (user downloads, Nov 19): `utility/build.sh [keys]` (sources in `Models/Cars/Utility/`): `prep.py` paints the
+  maker lettering out of the textures (speedometer faces, seat print, golf cart decal sheets), then `convert.py` (cfg `minTire`
+  lowers the tire-size floor for the baggage cart's casters), `seats.py`, `seats_fix.py` (single-seat ATV / UTV, the golf cart's
+  rear-facing bench, the cart's driver over the tow bar). Keys `utv1` crew UTV, `atv1` ATV, `utv2` single-seat UTV, `golf1`
+  golf cart, `bagcart1` baggage cart; placed by `src/vehicles/glb/spots.js` (`placements.js` `UTILITY_SPOTS`, within 400 m).
+  In-game check: `node tools/v2/cars/utility/ingame.mjs [outdir]`.

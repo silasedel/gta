@@ -384,9 +384,10 @@ gz = V[:, 2].min()
 isz = imax - imin
 # tire candidates: wheel-sized, round in side view (Y ~ Z extent), narrow in X, touching the ground, off center
 cand = []
+MIN_TIRE = CFG.get('minTire', 0.42)   # tire diameter floor (m); small-wheeled carts (bagcart1: 0.35 m casters) lower it
 for i in range(nI):
     dx, dy, dz = isz[i]
-    if not (0.42 < dz < 1.5): continue
+    if not (MIN_TIRE < dz < 1.5): continue
     if not (0.8 < dy / dz < 1.2): continue
     if not (0.08 < dx < (1.05 if dz > 0.75 else 0.75)): continue
     if imin[i, 2] > gz + 0.12 * dz: continue

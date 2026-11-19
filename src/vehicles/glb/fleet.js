@@ -199,6 +199,62 @@ const PHYS = {
     rollK: 1.6,
     heavy: true,
   },
+  // utility vehicles (Nov 19, user downloads): light off-road machines and slow electric carts. Drive force is set directly
+  // (perf.js solves it from 0-100, which these never reach), tuned in game (tools/v2/cars/utility/ingame.mjs): about 0-50 km/h
+  // in 4 s (ATV, sport UTV), 7 s (crew UTV); the carts about 1 m/s2. Soft, long-travel suspension on the off-roaders.
+  utv: {
+    mass: 950,
+    engine: 4000,
+    vmax: 80,
+    steer: 0.64,
+    grip: 2.0,
+    drive: 'awd',
+    susp: [0.46, 22],
+    rollK: 1.6,
+    offroad: true,
+  },
+  sportutv: {
+    mass: 560,
+    engine: 3600,
+    vmax: 95,
+    steer: 0.66,
+    grip: 2.1,
+    drive: 'awd',
+    susp: [0.46, 21],
+    rollK: 1.4,
+    offroad: true,
+  },
+  atv: {
+    mass: 400,
+    engine: 3000,
+    vmax: 100,
+    steer: 0.7,
+    grip: 2.1,
+    drive: 'awd',
+    susp: [0.42, 23],
+    rollK: 1.3,
+    offroad: true,
+  },
+  golfcart: {
+    mass: 480,
+    engine: 1300,
+    vmax: 30,
+    steer: 0.62,
+    grip: 1.9,
+    drive: 'rwd',
+    susp: [0.3, 32],
+    rollK: 1.2,
+  },
+  tugcart: {
+    mass: 650,
+    engine: 1150,
+    vmax: 25,
+    steer: 0.55,
+    grip: 1.9,
+    drive: 'rwd',
+    susp: [0.24, 46],
+    rollK: 0.8,
+  },
 };
 const ENG = {
   i4: 'i4',
@@ -424,6 +480,30 @@ c('humvee1', 'Atlas', 'Sentinel M4', 'military', 'offroad', 4.93, 3, 'dsl', 2012
   rare: true,
   palette: [0xb19a72],
 });
+// utility vehicles (user downloads, Nov 19; tools/v2/cars/utility): never in random traffic or curb parking, placed by
+// glb/spots.js (Nico's yard, the air base, MIA). Factory colors are baked in (no paint slot) except the golf cart's body.
+c('utv1', 'Ridgeback', 'Ranchhand Crew', 'utility', 'utv', 3.85, 2, 'dsl', 2018, {
+  rare: true,
+  palette: [0x4a5a3e],
+}); // crew-cab diesel side-by-side, six-up benches (four seats used), cargo bed: the base's "mule"
+c('atv1', 'Ridgeback', 'Scrub 1000', 'utility', 'atv', 2.1, 2, 'i3', 2018, {
+  rare: true,
+  convertible: true,
+  palette: [0x8e1018],
+});
+c('utv2', 'Ridgeback', 'Dart 900', 'utility', 'sportutv', 2.45, 2, 'i3', 2018, {
+  rare: true,
+  palette: [0x1c2f5e],
+}); // single-seat sport side-by-side
+c('golf1', 'Cayo', 'Fairway 4', 'utility', 'golfcart', 2.83, 1.5, 'ev', 2021, {
+  rare: true,
+  palette: [0xf2f2ef, 0xeeeeea, 0xd8cdb0],
+}); // four-passenger electric cart, rear bench faces back
+c('bagcart1', 'Atlas', 'Ramp Cart', 'utility', 'tugcart', 3.0, 1, 'ev', 2010, {
+  rare: true,
+  convertible: true,
+  palette: [0xe9ebe8],
+}); // covered airport baggage cart, made drivable (no tug in the source: the driver sits over the tow bar)
 export const FLEET = F;
 export const FLEET_BY_KEY = Object.fromEntries(F.map((e) => [e.key, e]));
 export const fileKey = (key) => FLEET_BY_KEY[key]?.model || key;

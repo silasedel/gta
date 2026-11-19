@@ -57,6 +57,7 @@ import { createHotwire } from './ui/hotwire.js';
 import { createRadioUI } from './ui/radio.js';
 import { loadCarModel, buildStaticCar } from './glb/glbCar.js';
 import { RARE_PLACEMENTS } from './glb/placements.js';
+import { createUtilitySpots } from './glb/spots.js';
 import { createShapeVehicle } from './physics/suspension.js'; // r2-physics (carphys 2)
 import { WEATHER_U } from '../render/wetSurfaces.js'; // r2-physics: wet-road grip
 
@@ -2969,6 +2970,8 @@ export async function createVehicles(game) {
     }
     return g;
   }
+  // utility vehicles at their spots (glb/spots.js: Nico's yard, the air station, MIA), spawned within 400 m
+  const utilitySpots = createUtilitySpots(game);
   const rareDone = new Set();
   function placeRare(pp) {
     if (!fleet) return;
@@ -3288,6 +3291,7 @@ export async function createVehicles(game) {
       trySpecials();
     }
     placeRare(pp);
+    if (fleet) utilitySpots.tick(pp);
     const h = game.timeOfDay ?? 12;
     const tf =
       h < 5
