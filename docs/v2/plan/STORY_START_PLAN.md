@@ -73,7 +73,8 @@ D3. Proximity voice: WebRTC audio between peers, signaled over the existing WebS
 - E1 **Police AI v2** (this account): dispatch by wanted level, units that search the last known position, line of sight
   and sound, roadblocks at 3+ stars, helicopter at 4+, tactical response at 5, escape by breaking line of sight, and a cooldown.
   Builds on `src/gameplay/police/**` and CONVENTIONS 4a. Missions call into it.
-- E2 **Smart NPCs** (friend): daily schedules (home, work, beach, nightlife by hour), reactions (flee, cower, call the
+- E2 **Smart NPCs** (friend; NOTE Nov 19: this account did a first pass on sidewalk walking, crossings, no walking through
+  buildings and purposeful destinations in `src/npc/**`. Build on it): daily schedules (home, work, beach, nightlife by hour), reactions (flee, cower, call the
   police, film, fight back by personality), short memory of the player (you robbed them, they recognize you), and group
   behavior. Builds on `src/npc/**` and `src/gameplay/wantedSense.js`.
 - E3 **Stores** (friend): one store system (enter, browse, buy, sell) for guns, clothes, **shoes**, food, car mods. Data-driven
