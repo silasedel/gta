@@ -1090,7 +1090,10 @@ async function boot() {
       // 25 ms a frame at a 90 ms frame); below 20 fps the simulation now runs slightly slower than real time instead.
       // The query BVH refresh runs before the first sub-step only: world.step() refreshes it at its own end.
       const PCAP = game.physCap ?? PHYS_CAP;
-      const steps = PCAP ? Math.min(3, Math.max(1, Math.ceil(simDt / (1 / 60)))) : Math.max(1, Math.ceil(simDt / (1 / 60)));
+      // perf (Nov 19): at most 2 sub-steps (real time down to 30 fps); the third sub-step of a slow frame cost ~4 ms of Rapier
+      // and kept the next frame slow (in-app benchmark). game.physMaxSteps overrides.
+      const MAXS = game.physMaxSteps ?? 2;
+      const steps = PCAP ? Math.min(MAXS, Math.max(1, Math.ceil(simDt / (1 / 60)))) : Math.max(1, Math.ceil(simDt / (1 / 60)));
       const h = PCAP ? Math.min(1 / 60, simDt / steps) : simDt / steps;
       world.timestep = h;
       if (!game.physicsDead) for (let i = 0; i < steps; i++) {
