@@ -1592,7 +1592,7 @@ export function buildGlbCar(key, look, t, info) {
   const lod1Base = new Set(levels[1].children);
   if (t.taxi) addTaxi(levels, t, M, lightMats);
   if (t.livery === 'ambulance' || t.livery === 'fire') addServiceLivery(levels, t, M);
-  const far = buildFarLevel(M, paintOpts, paint, lamps, glass, levels[1], lod1Base);
+  const far = buildFarLevel(M, paintOpts, paint, lamps, glass, sheet, levels[1], lod1Base);
   if (far) lod.addLevel(far.level, FAR_LOD_M * big, 0.1);
   const contact = new THREE.Mesh(CONTACT_GEO, contactMat());
   contact.scale.set(t.W + 0.25, t.L + 0.35, 1);
@@ -1684,10 +1684,10 @@ export function buildGlbCar(key, look, t, info) {
  * The far LOD level of one car (farLod.js): one merged mesh with the car's far material, plus copies of LOD1's own-material
  * extras (textured slots, taxi sign, liveries).  -> { level, mat, enter(wheelNode, maxY) } or null (model without paint).
  */
-function buildFarLevel(M, paintOpts, paint, lamps, glass, lod1, lod1Base) {
+function buildFarLevel(M, paintOpts, paint, lamps, glass, sheet, lod1, lod1Base) {
   let built;
   try {
-    built = M.far === undefined ? (M.far = buildFarGeometry(M)) : M.far;
+    built = M.far === undefined ? (M.far = buildFarGeometry(M, plateGeo())) : M.far;
   } catch (e) {
     console.warn('[cars] far LOD', M.key, e);
     built = M.far = null;
@@ -1695,7 +1695,7 @@ function buildFarLevel(M, paintOpts, paint, lamps, glass, lod1, lod1Base) {
   if (!built) return null;
   const level = new THREE.Group();
   level.name = 'car-far';
-  const mat = farMaterial(paintOpts, paint, lamps, glass);
+  const mat = farMaterial(paintOpts, paint, lamps, glass, sheet, SHEET.plate);
   const mesh = new THREE.Mesh(built.geo, mat.material);
   mesh.castShadow = true;
   mesh.receiveShadow = true;

@@ -13,6 +13,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { carPaint, R3PAINT } from '../model/materials.js';
+import { R3CAR } from '../model/body/mats.js';
 
 // switch distance in m (times 2.2 for heavy vehicles); the LOD1 -> far switch is ~0.3 px of shading at this range
 export const FAR_LOD_M = 40;
@@ -31,11 +32,6 @@ function triangleIndex(g) {
   const idx = new Uint32Array(n);
   for (let i = 0; i < n; i++) idx[i] = i;
   return idx;
-}
-
-/** true when all three corners of a triangle are cabin vertices (hidden behind the opaque far glass) */
-function inCabin(mask, a, b, c) {
-  return !!mask && mask[a] === 1 && mask[b] === 1 && mask[c] === 1;
 }
 
 /**
@@ -85,10 +81,6 @@ function farPart(g, kind, keepTri = null) {
       b *= 0.45;
     }
     const ch = lamp ? Math.round(lamp.getX(i)) : 0;
-    if (ch === PLATE_CHANNEL) {
-      // the plate's decal (white field, dark letters) averages to a light gray at distance
-      r = gg = b = 0.62;
-    }
     C[i * 3] = r;
     C[i * 3 + 1] = gg;
     C[i * 3 + 2] = b;
@@ -128,6 +120,52 @@ function placedWheel(geo, x, y, z, side) {
   return g;
 }
 
+/** the rear plate quad (glbCar plateGeo) on the plate mount, as a lamp-slot plate (channel 14: the plate lamp at night) */
+function plateQuad(geo, PA) {
+  const g = geo.clone();
+  g.rotateY(Math.PI);
+  g.translate(PA[0], PA[1], PA[2] - 0.006);
+  const n = g.getAttribute('position').count;
+  const rm = new Float32Array(n * 2);
+  for (let i = 0; i < n; i++) {
+    rm[i * 2] = 0.45;
+    rm[i * 2 + 1] = 0.2;
+  }
+  g.setAttribute('aRM', new THREE.BufferAttribute(rm, 2));
+  g.setAttribute('aLamp', new THREE.BufferAttribute(new Float32Array(n).fill(PLATE_CHANNEL), 1));
+  return g;
+}
+
+/** average color (linear) of the plate region of a car's decal sheet canvas, sampled on a coarse grid */
+function plateColor(sheet, region) {
+  const out = new THREE.Color(0.55, 0.55, 0.52);
+  const cv = sheet?.texture?.image;
+  const c = cv?.getContext?.('2d');
+  if (!c) return out;
+  const [x, y, w, h] = region;
+  let data;
+  try {
+    data = c.getImageData(x, y, w, h).data;
+  } catch (e) {
+    return out;
+  }
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let n = 0;
+  for (let j = 2; j < h; j += 8) {
+    for (let i = 2; i < w; i += 8) {
+      const o = (j * w + i) * 4;
+      r += data[o];
+      g += data[o + 1];
+      b += data[o + 2];
+      n++;
+    }
+  }
+  if (!n) return out;
+  return out.setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
+}
+
 /** wheel centers at rest in the body frame: [x, z, side, rear] for every drawn wheel (virtual axle wheels left out) */
 function wheelSpots(man) {
   const sides = [1, -1, 1, -1];
@@ -146,25 +184,23 @@ function wheelSpots(man) {
  * M (a loaded model record) -> { geo, wheelY } : the merged far geometry, shared by every car of the model.
  * wheelY: the wheel center height the wheels were baked at (the car shifts them to its own ride height in the shader).
  */
-export function buildFarGeometry(M) {
+export function buildFarGeometry(M, plateGeo = null) {
   const G = M.lv[1];
-  if (!G?.paint) return null;
+  if (!G) return null;
   const parts = [];
-  parts.push(farPart(G.paint, KIND.paint));
-  if (G.trim) {
-    const mask = G.trim.userData.cabMask;
-    parts.push(farPart(G.trim, KIND.trim, (a, b, c) => !inCabin(mask, a, b, c)));
-  }
+  // (a model may have no paint slot at LOD1: a textured body, all T_* slots)
+  if (G.paint) parts.push(farPart(G.paint, KIND.paint));
+  // (the cabin is kept: its mask also covers lower bumpers / sills on some models, which would open holes at the switch)
+  if (G.trim) parts.push(farPart(G.trim, KIND.trim));
   if (G.glass) {
     // windows only: the clear lamp lenses would be an opaque sheet over the lamps
     const win = G.glass.getAttribute('aWin');
     const keep = (a, b, c) => !win || win.getX(a) + win.getX(b) + win.getX(c) > 1.5;
     parts.push(farPart(G.glass, KIND.glass, keep));
   }
-  if (G.lamp) {
-    const mask = G.lamp.userData.cabMask;
-    parts.push(farPart(G.lamp, KIND.lamp, (a, b, c) => !inCabin(mask, a, b, c)));
-  }
+  if (G.lamp) parts.push(farPart(G.lamp, KIND.lamp));
+  const PA = M.man.plates?.rear;
+  if (PA && plateGeo) parts.push(farPart(plateQuad(plateGeo, PA), KIND.lamp));
   const wheelY = M.man.r || 0.33;
   const front = M.wheel?.[1] || M.wheel?.[0];
   const rear = M.wheelR?.[1] || M.wheelR?.[0] || front;
@@ -175,6 +211,7 @@ export function buildFarGeometry(M) {
     }
   }
   const list = parts.filter(Boolean);
+  if (!list.length) return null;
   const geo = mergeGeometries(list, false);
   for (const p of list) p.dispose();
   if (!geo) return null;
@@ -203,11 +240,13 @@ const FAR_PROJECT = /* glsl */ `
 const FAR_FRAG_DECL = /* glsl */ `
 uniform vec3 uLampE[${LAMP_CHANNELS}];
 uniform vec3 uSeat;
+uniform vec3 uPlate;      // the car's plate decal, averaged
 uniform vec4 uGlass;      // rgb = window tint (linear), a = opacity
 uniform float uGlassRough;
 varying vec4 vFar;
 varying float vFarLamp;
-float farEnvK = 1.0;      // the slot materials' own reflection strength, relative to the paint's
+float farEnvK = 1.0;
+const vec3 CABIN_ALBEDO = vec3(0.04);  // the roofed, shaded interior seen through the window      // the slot materials' own reflection strength, relative to the paint's
 `;
 // after the paint's own color / wear / roughness / metalness: the other kinds take their baked look (lamps: the far half of
 // the lamp shader, model/body/mats.js lampMaterial, with the close-up facets already faded out)
@@ -226,14 +265,15 @@ const FAR_SURFACE = /* glsl */ `
       farEnvK = kind == 1 ? 1.25 : kind == 2 ? 1.2 : kind == 3 ? 1.35 : 1.3;
     }
     if (kind == 3) {
-      // tinted window over a dark cabin (the near glass is see-through: tint x opacity + cabin x the rest)
-      diffuseColor.rgb = mix(vec3(0.15), uGlass.rgb, uGlass.a);
+      // white here: totalDiffuse carries the irradiance, the pane is composed at the end (FAR_GLASS)
+      diffuseColor.rgb = vec3(1.0);
       roughnessFactor = uGlassRough;
       metalnessFactor = 0.0;
     }
     if (kind == 2) {
       int ch = int(vFarLamp + 0.5);
       if (ch == ${SEAT_CHANNEL}) diffuseColor.rgb *= uSeat;
+      if (ch == ${PLATE_CHANNEL}) diffuseColor.rgb = uPlate;
       float ndv = clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0);
       bool white = ch == 1 || ch == 2 || ch == 3 || ch == 4 || ch == 7;
       bool colored = ch == 5 || ch == 6 || ch == 8 || ch == 9 || ch == 10 || ch == 13;
@@ -263,15 +303,20 @@ const FAR_COAT = /* glsl */ `
   }
   #endif
 `;
-// a see-through pane reflects only its opacity's share (alpha blending); the opaque far pane does the same here
-const FAR_GLASS_SPEC = /* glsl */ `
+// the near window shader's own output (model/body/mats.js glassMaterial, premultiplied: tint x alpha + the full reflection
+// + the sky mirror) over an opaque dark cabin instead of the blended interior behind it
+const FAR_GLASS = /* glsl */ `
   if (vFar.w > 2.5 && vFar.w < 3.5) {
-    float seen = mix(1.0, uGlass.a, 0.5);
-    reflectedLight.directSpecular *= seen;
-    reflectedLight.indirectSpecular *= seen;
-    #ifdef USE_CLEARCOAT
-    material.clearcoat *= seen;
-    #endif
+    float cv = clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0);
+    float fr = pow(1.0 - cv, ${R3CAR ? '5.0' : '3.0'});
+    float ga = clamp(uGlass.a + fr * ${R3CAR ? '0.7' : '0.6'}, 0.0, 1.0);
+    vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0));
+    spec *= ${R3CAR ? '0.6 + 0.4 * fr' : '0.5 + 0.6 * fr'};
+    vec3 rw = inverseTransformDirection(reflect(normalize(-vViewPosition), normal), viewMatrix);
+    vec3 skyHi = mix(vec3(0.75, 0.82, 0.9), vec3(0.32, 0.5, 0.78), clamp(rw.y * 1.6, 0.0, 1.0));
+    vec3 skyC = mix(vec3(0.16, 0.15, 0.14), skyHi, smoothstep(-0.12, 0.05, rw.y));
+    spec += skyC * ${R3CAR ? '(0.02 + 0.45 * fr)' : '(0.08 + 0.32 * fr)'};
+    outgoingLight = totalDiffuse * (uGlass.rgb * ga + CABIN_ALBEDO * (1.0 - ga)) + spec;
   }
 `;
 
@@ -304,15 +349,15 @@ function farShader(sh, U) {
   f = f.replace('#include <envmap_physical_pars_fragment>', envChunk);
   f = insertAfter(f, '#include <emissivemap_fragment>', FAR_SURFACE);
   f = insertAfter(f, '#include <lights_physical_fragment>', FAR_COAT);
-  f = insertAfter(f, '#include <aomap_fragment>', FAR_GLASS_SPEC);
+  f = f.replace('#include <opaque_fragment>', FAR_GLASS + '\n#include <opaque_fragment>');
   sh.fragmentShader = f;
 }
 
 /**
  * The far material of one car: carPaint(paintOpts) sharing `paint`'s wear uniforms, plus the car's lamp uniforms and its
- * window glass.  -> { material, uniforms, sync() }; sync() copies the live paint parameters (respray, finish changes).
+ * window glass; sheet = its decal sheet (the plate color).  -> { material, uniforms, sync() }; sync() copies the live paint parameters (respray, finish changes).
  */
-export function farMaterial(paintOpts, paint, lamps, glass) {
+export function farMaterial(paintOpts, paint, lamps, glass, sheet, plateRegion) {
   const m = carPaint(paintOpts);
   m.name = 'car-far';
   m.userData.wearUniforms = paint.userData.wearUniforms;
@@ -322,6 +367,7 @@ export function farMaterial(paintOpts, paint, lamps, glass) {
   const U = {
     uLampE: lamps.uniforms.uLampE,
     uSeat: lamps.uniforms.uSeat,
+    uPlate: { value: plateColor(sheet, plateRegion) },
     uGlass: { value: new THREE.Vector4(gc.r, gc.g, gc.b, glass.opacity) },
     uGlassRough: { value: glass.roughness },
     uWheelY: { value: 0 },
