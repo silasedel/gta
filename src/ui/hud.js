@@ -200,7 +200,7 @@ export function createHUD(game) {
   let streetTimer = 0, curStreet = null, candStreet = null, candN = 0, streetCheck = 0;
 
   // ---------- Death screen ----------
-  const deathEl = el('div', 'ps-death', `<div class="ps-death-flash"></div><div class="ps-death-bar top"></div><div class="ps-death-bar bot"></div><div class="ps-death-card"><div class="ps-death-rule"></div><h1>LIGHTS OUT</h1><p><span>RESPAWNING</span> Southline General Hospital</p></div>`);
+  const deathEl = el('div', 'ps-death', `<div class="ps-death-flash"></div><div class="ps-death-bar top"></div><div class="ps-death-bar bot"></div><div class="ps-death-card"><div class="ps-death-rule"></div><h1>WASTED</h1><p><span>RESPAWNING</span> Southline General Hospital</p></div>`);
   root.appendChild(deathEl);
   const arrestEl = el('div', 'ps-arrest', `<div class="ps-arrest-bars"></div><h1>DETAINED</h1><p class="ps-arrest-fee"></p><small>Released from ${BRAND.name} Central Holding</small>`);
   root.appendChild(arrestEl);
@@ -260,8 +260,9 @@ export function createHUD(game) {
   // Navigation: mouse; keyboard (Q / E tabs, arrows or WASD + Enter on the Settings / Controls pages, map keys on the
   // map, Esc resumes); controller (the bindings run in 'pause' mode: LB / RB tabs, D-pad + A, B or START resumes,
   // sticks pan / zoom the map).
-  const T_MAP = 0, T_WARD = 1, T_SET = 2, T_CTL = 3, T_STATS = 4;
-  const TAB_NAMES = ['MAP', 'WARDROBE', 'SETTINGS', 'CONTROLS', 'STATS'];
+  // tab order (user, Nov 19): Map, Settings, Wardrobe, Controls, Stats; the pause menu always opens on the map
+  const T_MAP = 0, T_SET = 1, T_WARD = 2, T_CTL = 3, T_STATS = 4;
+  const TAB_NAMES = ['MAP', 'SETTINGS', 'WARDROBE', 'CONTROLS', 'STATS'];
   const pause = el('div', 'ps-pause');
   pause.innerHTML = `
     <div class="ps-pause-top">
@@ -273,8 +274,8 @@ export function createHUD(game) {
       <div class="ps-page ps-page-map on"><canvas class="ps-bigmap"></canvas><div class="ps-map-frame"></div><div class="ps-map-zoom"><button data-z="in" title="Zoom in (+)">+</button><button data-z="out" title="Zoom out (−)">−</button><button data-z="fit" title="Whole map (F)">⤢</button><button data-z="me" title="Centre on me (C)">◎</button></div>
         <div class="ps-map-layers"><button class="ps-map-layer" data-layer="subway" title="Subway lines (U)"><i class="ps-ml-ico"></i><span>SUBWAY</span><kbd>U</kbd></button></div>
         <div class="ps-map-loc"></div></div>
-      <div class="ps-page ps-page-ward is-inert"><div class="ps-ward-card"><small>WARDROBE</small><h2>Dress Nico</h2><p class="ps-ward-now"></p><button class="ps-ward-open" data-nav>OPEN WARDROBE</button></div></div>
       <div class="ps-page ps-page-settings is-inert"><div class="ps-settings"></div></div>
+      <div class="ps-page ps-page-ward is-inert"><div class="ps-ward-card"><small>WARDROBE</small><h2>Dress Nico</h2><p class="ps-ward-now"></p><button class="ps-ward-open" data-nav>OPEN WARDROBE</button></div></div>
       <div class="ps-page ps-page-controls is-inert"><div class="ps-controls"></div></div>
       <div class="ps-page ps-page-stats is-inert"><div class="ps-stats-grid"></div></div>
     </div>
@@ -595,7 +596,7 @@ export function createHUD(game) {
       mapView.ppm = mapR.ok() && (mapBounds().maxX - mapBounds().minX) > 2500 ? 0.55 : Math.max(fitPPM() * 1.6, 0.5);
       mountPausePages();
       paintSubwayBtn();
-      setTab(curTab);
+      setTab(T_MAP);
       pauseNavOn();
       pauseLoop();
     } else {

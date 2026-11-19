@@ -1084,7 +1084,7 @@ async function boot() {
       // help prompt
       if (!P.state.inVehicle) {
         let v = game.vehicles.nearest?.(P.position, 4.0); if (v && !atDriverDoor(v)) v = null;
-        game.hud.help?.(v ? (v.isBoat ? 'Press <b>F</b> or <b>E</b> to board boat' : 'Press <b>F</b> to enter vehicle') : null);
+        game.hud.help?.(v ? (v.isBoat ? 'Press <b>F</b> to board boat' : 'Press <b>F</b> to enter vehicle') : null);
       } else game.hud.help?.(null);
       // physics (sub-step to keep ≤1/60)
       // r2-perf (game.physCap, ?physcap=1): at most 3 sub-steps of <= 1/60 s per frame. A slow frame used to run up to 6
