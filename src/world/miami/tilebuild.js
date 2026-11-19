@@ -1415,7 +1415,7 @@ export function createTileBuilder(ctx) {
         const A = [p.o[0], H, p.o[1], p.u, 0], Bv = [q.o[0], H, q.o[1], q.u, 0], Cv = [q.i[0], H, q.i[1], q.u, (q.ro - q.ri) / 2.5], D = [p.i[0], H, p.i[1], p.u, (p.ro - p.ri) / 2.5];
         for (const bt of [tgt, coll]) if (bt) { tri(bt, A, Bv, Cv); tri(bt, A, Cv, D); }
         // curb face along the curb arc (faces the road: away from O) and the back-edge chamfer down to the lawn (toward O)
-        if (curbTgt && CURB3D) { curbLine(curbTgt, [p.o, q.o], [[p.cx, p.sz], [q.cx, q.sz]], { h: H, y0: 0.05, seed: k });
+        if (curbTgt && CURB3D) { curbLine(curbTgt, [p.o, q.o], [[p.cx, p.sz], [q.cx, q.sz]], { h: H, y0: 0.0565, seed: k }); // gutter 6.5 mm over the straight curbs' gutter where the two overlap at the tangent points
           const w = 0.35, a1 = [p.i[0], H, p.i[1]], b1 = [q.i[0], H, q.i[1]], c1 = [q.i[0] - q.cx * w, -0.03, q.i[1] - q.sz * w], d1 = [p.i[0] - p.cx * w, -0.03, p.i[1] - p.sz * w]; quadUp(curbTgt, a1, b1, c1, d1, cc, 0.4); }
         else if (curbTgt) { const fx = (p.cx + q.cx) / 2, fz = (p.sz + q.sz) / 2, fl = Math.hypot(fx, fz) || 1, nx = fx / fl, nz = fz / fl, L = Math.hypot(q.o[0] - p.o[0], q.o[1] - p.o[1]);
           const f = [[p.o[0], 0, p.o[1]], [q.o[0], 0, q.o[1]], [q.o[0], H, q.o[1]], [p.o[0], H, p.o[1]]];

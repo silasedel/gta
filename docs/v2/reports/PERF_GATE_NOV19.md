@@ -28,6 +28,9 @@
 | Traffic respawn: 40 Rapier shape queries x several cars in one frame | 115-640 ms stalls | 2 ms/frame query budget (`vehicles.js`, uncommitted inside the vehicles agent's work: see REQUESTS) |
 | 4K people close-up texture uploads | 230 ms frame | 2K albedo (`npc/people/lib.js`, `?people4k=1`) |
 | Saved Low preset / 0.85 scale (from the laggy days) | quality | reset once to High (`ui/settings/store.js`, `quality.v2.js`) |
+| Traffic special-car spawn search on every manager tick in the first 90 s | 25% of the main thread at spawn | every 1.5 s (`vehicles.js`, uncommitted inside the vehicles agent's work) |
+| Bounding spheres of merged city chunks / batches computed with 3 passes | 50-90 ms streaming steps | sphere from the box (`tilebuild.js`, `city/geo.js`) |
+| Frame pacing off by default (Unlimited) and the 120 Hz panel misread as 60 Hz at boot | judder 120 / 60 / 40 fps | 60 fps cap default, refresh re-estimated live (`settings/schema.js`, `perfGuards.v2.js`) |
 
 ## Still open (measured, not fixed tonight)
 1. V8 full mark-compact GCs: 47-77 a minute, 100-300 ms atomic pauses (`--trace-gc`), even standing still; 60% are
