@@ -5,7 +5,7 @@ import { buildNicoHouse, PLAN } from './index.js';
 import { CAR_SPOTS, PLANTING, LITTER, DRIVE, DRIVE_PUDDLE } from './yard.data.js';
 import { patchPuddles } from '../../ground/puddles.js';
 import { lots as houseLots } from '../houses/lots.js';
-import { R4, P4, toS, plantClear } from './r4/plan4.js';
+import { R4, R8, P4, toS, plantClear, HtoG } from './r4/plan4.js';
 // r2-perf: the yard ground collider as a triangle mesh with the SAME vertices and cell triangulation as the heightfield
 // descriptor. Rapier's heightfield has no BVH, so the player's character controller paid ~2.2 ms per call standing in the
 // yard (3 calls a frame at the spawn: ~7 ms); the trimesh is ~0.13 ms. Same surface. ?hftri=0 = the heightfield (A/B).
@@ -48,13 +48,18 @@ export async function initV2(game) {
   // keys pass: Nico's lot is hand dressed (yard.data.js); reserve it so the countryside scatter and the house generator keep out
   if (!temporary) try { const L = PLAN.lot, cx = (L.x0 + L.x1) / 2, cz = (L.z0 + L.z1) / 2, c = Math.cos(spot.heading || 0), s = Math.sin(spot.heading || 0);
     houseLots.reserve({ x: spot.x + cx * c + cz * s, z: spot.z - cx * s + cz * c, hw: (L.x1 - L.x0) / 2, hd: (L.z1 - L.z0) / 2, ry: spot.heading || 0, id: 'nico_house' }); } catch (e) { /* lots module off */ }
+  // r8 (SPEC r8): the house frame is at world heading pi/4 exactly (corners N / E / S / W, front SW, back NE), whatever the street heading
+  if (R8 && !temporary && !/[?&]nhrot=/.test(typeof location !== 'undefined' ? location.search : '')) P4.rot.theta = Math.PI / 4 - (spot.streetHeading || 0);
   const sea = game.city?.seaLevel ?? -0.12;
   // ground-continuity: the yard sits flush on the ground around it (it used to float 1 m above the water on a 0.88 m ledge
   // with no sides); +4 cm keeps the yard sheet above the terrain's own surface without a step you notice
   const gAt = (x, z) => { const h = game.city?.groundHeightAt?.(x, z); return Number.isFinite(h) && !(game.city?.isWater?.(x, z)) ? h : null; };
   const gs = [gAt(spot.x, spot.z), gAt(spot.x + 12, spot.z), gAt(spot.x - 12, spot.z), gAt(spot.x, spot.z + 12), gAt(spot.x, spot.z - 12)].filter((v) => v !== null);
   const gcOff = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search);
-  const yGround = Number.isFinite(spot.y) ? spot.y : gs.length && !gcOff ? Math.max(sea + 0.1, gs.reduce((a, b) => a + b, 0) / gs.length) + 0.04 : sea + 1.0;
+  // r8 (SPEC: timber seawalls with a drop of a few feet to the water): the lot is built up (fill behind the bulkheads, as Keys lots are);
+  // the yard sheet ramps down to the terrain at its open edges and to the asphalt at the road
+  const R8RAISE = R8 && !temporary ? 0.62 : 0;
+  const yGround = (Number.isFinite(spot.y) ? spot.y : gs.length && !gcOff ? Math.max(sea + 0.1, gs.reduce((a, b) => a + b, 0) / gs.length) + 0.04 : sea + 1.0) + R8RAISE;
   // palms come from the shared vegetation system when it is up (wait briefly for vegetation:ready, else use our own)
   if (!game.vegetation && game.on) {
     await new Promise((res) => {
@@ -168,6 +173,8 @@ export async function initV2(game) {
     return { o, dir, side, w: f.w, n: f.n, rise: f.rise, run: f.run, yTop: o.y }; });
   game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null, parked, carSpots: CAR_SPOTS, stairs };
   if (R4) { game.nicoHouse.r4site = house.r4site; game.nicoHouse.r4oz = house.r4site?.oz ?? P4.oz; }
+  // the house center (body center, yard grade) in world space: shot tools and the minimap blip use it
+  if (R4) { const [cx, cz] = HtoG(0, -7); game.nicoHouse.center = toWorld(new THREE.Vector3(cx, 0, cz)); }
   // other tracks: game.nicoHouse.anchors.{spawn, bed, wardrobe, dock, carport, truck, bike, kayak, skiff, mailbox, hoop, hammock}
   // the player starts right next to the house (on the drive in front of the carport), following the lot in layout.json
   const sp = anchors.spawnYard || anchors.spawn;

@@ -11,3 +11,7 @@ rowboat.glb        Boats/Boat 14 - Worn White Rowboat With Red Interior         
 skiff.glb          Boats/Boat 3 - Small Fishing Boat
 lifebuoy.glb       Lifebuoys/Lifebuoy 3 - Weathered Red Ring With Gray Bands And Rope    Poly Haven pack
 crate.glb          Crates/Crate 1 - Plain Wooden Crate                                   x0.3 (0.6 m cube), loose maps wired
+kitchen/*.glb      r8 (Nico's kitchen): the user's downloads Models/_Inbox/kitchen-appliances.zip (sink, kettle = Boiler_A, coffee maker),
+                   kitchen-utensils.zip (toaster, pot, pan, cutting board, bowl, knife, knife rail, spatula, ladle, wall hooks, cup,
+                   detergent, olive oil, soap, towel) and wooden-kitchen.zip (microwave = the M*_low objects); one object each,
+                   tools/v2/keys/r7/convert_prop.py (blender -Y), textures 512 px (sink 1K); recolored / aged in game (parts/r8_70_interior.js)

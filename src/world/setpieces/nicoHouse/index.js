@@ -14,8 +14,10 @@
 // Parts live in ./parts/*.js; each exports `order` and `build(ctx)` and is picked up automatically.
 import { createKit, createContext } from './kit.js';
 import { PLAN, WALLS, PARTITIONS } from './plan.js';
-import { R4 } from './r4/plan4.js';
+import { R4, R8 } from './r4/plan4.js';
 // r4 (Nov 18, user mock-ups 01-10): the rebuilt house replaces these round-3 parts (?nh=r3 = the old house)
+// r8 (SPEC r8): the diagonal house replaces these r4 parts (?nh8=0 = r7)
+const R4_PARTS_R8 = ['r4_06_water', 'r4_10_house', 'r4_12_annex', 'r4_70_interior', 'r4_46_junk'];
 const R3_PARTS = ['06_dock', '10_structure', '12_frontdeck', '20_shell', '22_openings', '30_roof', '40_fixtures', '45_carport', '47_frontbay', '70_living', '72_kitchen', '74_bedroom', '76_bath_hall'];
 
 const partMods = import.meta.glob('./parts/*.js', { eager: true });
@@ -27,7 +29,7 @@ export async function buildNicoHouse(THREE, opts = {}) {
   const ctx = createContext(THREE, kit, plan, opts);
   ctx.time = opts.timeOfDay ?? 9;
   const parts = Object.entries(partMods).map(([k, m]) => ({ name: k.replace(/^.*\/|\.js$/g, ''), order: m.order ?? 100, build: m.build })).filter((p) => typeof p.build === 'function')
-    .filter((p) => !opts.only || opts.only.includes(p.name)).filter((p) => !opts.skip || !opts.skip.includes(p.name)).filter((p) => (R4 ? !R3_PARTS.includes(p.name) : !p.name.startsWith('r4_')))
+    .filter((p) => !opts.only || opts.only.includes(p.name)).filter((p) => !opts.skip || !opts.skip.includes(p.name)).filter((p) => (R4 ? !R3_PARTS.includes(p.name) : !p.name.startsWith('r4_'))).filter((p) => (R8 ? !R4_PARTS_R8.includes(p.name) : !p.name.startsWith('r8_')))
     .sort((a, b) => a.order - b.order || (a.name < b.name ? -1 : 1));
   const t0 = performance.now(), partMs = {};
   for (const p of parts) {

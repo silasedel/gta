@@ -458,16 +458,27 @@ def place_nico(street_w):
 
 
 def carve_nico(land, o, h):
-    """The set piece needs open water behind its north and east seawalls: carve the bay and the cove into the island."""
-    bay = Polygon([hl(o, h, x, z) for x, z in ((-26, -14.2), (13.4, -14.2), (13.4, -60), (-26, -60))])
-    # r7 (playtest Nov 18 eve, item 12): the round cove beside the house is gone; a straight seawalled Keys canal, 6 m wide, runs from
-    # the bay along the house's +X side to just past its front (the set piece builds the canal's timber walls: parts r4_06 / 05).
-    # Set piece frame: canal x 14.4..20.4 (r7b: east of the annex, mock-up 11), z from the bay to +6.5 (= lot frame S z +2 with the
-    # measured house offset oz ~ 4.5).
-    canal = Polygon([hl(o, h, x, z) for x, z in ((14.4, -20.0), (20.4, -20.0), (20.4, NICO_CANAL_Z1), (14.4, NICO_CANAL_Z1))])
-    return land.difference(unary_union([bay, canal]))
+    """The set piece needs open water behind its bay bulkhead and a straight canal beside the house (SPEC r8).
+    r8 (user, Nov 18 night): the house is DIAGONAL to the compass; its frame H (src/world/setpieces/nicoHouse/r4/plan4.js) is the lot frame
+    turned theta = pi/4 - h about (0, -7) (lot frame shifted by OZ along +Z): -X = SW front, +X = NE back, -Z = NW bay side. The bay
+    bulkhead runs along H z = -16.5 (NW of the house); the canal is 6 m of water (H x 12.6..18.6) from the bay straight in toward the SE to
+    H z = 20 (a dead end). Within the local block around the lot (H x -27..40, z -16.5..34) the land is exactly that; the bay beyond."""
+    th = math.pi / 4 - h; c2, s2 = math.cos(th), math.sin(th)
+    def H(x, z):   # house frame -> world
+        dx, dz = x, z + 7.0
+        sx, sz = dx * c2 + dz * s2, -7.0 - dx * s2 + dz * c2
+        return hl(o, h, sx, sz + NICO_OZ)
+    poly = lambda pts: Polygon([H(x, z) for x, z in pts])
+    block = poly(((-27, -60), (62, -60), (62, 34), (-27, 34)))
+    bay = poly(((-27, -60), (62, -60), (62, -16.5), (-27, -16.5)))
+    canal = poly(((12.6, -17.5), (18.6, -17.5), (18.6, 20.0), (12.6, 20.0)))
+    shore = poly(((-27, -16.5), (62, -16.5), (62, 34), (-27, 34))).difference(canal)
+    NICO_WATER[:] = [dict(ring=[[round(x, 2), round(z, 2)] for x, z in list(canal.exterior.coords)[:-1]], kind='canal', name=None, depth=2.0)]   # r8: build_v3 may add it as inland water (kind canal: no sliver fill)
+    return land.difference(block).union(shore).difference(bay).buffer(0)
 
 
+NICO_OZ = 4.5   # the set piece's pinned lot offset (plan4.js P4.oz)
+NICO_WATER = []
 NICO_CANAL_Z1 = 6.5
 
 # ---------------------------------------------------------------------------------------------------------------- buildings
@@ -937,7 +948,7 @@ def main():
         region=ringl(region), land=land_rings, roads=roads_w, buildings=buildings, piers=piers, areas=areas, grid=gridinfo,
         nico=dict(x=round(o[0], 2), z=round(o[1], 2), heading=round(h, 4), spawnX=round(spawn[0], 2), spawnZ=round(spawn[1], 2),
                   lot=ringl(lot), street='Pelican Point Ln'),
-        joins=[list(P_N), list(P_SW), list(JOIN_NE)])
+        joins=[list(P_N), list(P_SW), list(JOIN_NE)], water=NICO_WATER)
     if bar: out['keysBar'] = bar
     json.dump(out, open(os.path.join(OUT, 'keys_detail.json'), 'w'), separators=(',', ':'))
     print(f"keys_detail.json: region {region.area / 1e6:.2f} km2, land {land.area / 1e6:.3f} km2 in {len(land_rings)} rings, roads {len(roads_w)} "

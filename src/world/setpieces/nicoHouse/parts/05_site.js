@@ -3,7 +3,7 @@
 // fish-cleaning station, ladder and light.
 import { makeGroundMaterial } from '../../../ground/groundMaterial.js';
 import { WEEDS, DRIVE, DRIVE_PUDDLE } from '../yard.data.js';
-import { R4, P4, toS, toG, terraceY, houseBlock, measureSite, StoH, HtoS, inCanal } from '../r4/plan4.js';
+import { R4, R8, P4, toS, toG, terraceY, houseBlock, measureSite, StoH, HtoS, inCanal, inCanalH, inR as inRect } from '../r4/plan4.js';
 export const order = 5;
 // ground pass: the yard sheet uses the terrain's Keys-yard ground (user's sand / grassy-sand scans, hex-tiled) so it matches the
 // lots around it; ?ground2=0 keeps the old shell-floor texture
@@ -45,11 +45,11 @@ export function build(ctx) {
     // the sheet's height at a plan point (also ctx.yardY: decals, puddles and props of part 55 follow the same surface)
     // r4: flat under the new house footprint (S frame), the lawn terrace rising to the bulkhead, the sheet sinking beyond the wall
     // line and past the lot's east / west ends (S frame) so it never runs over the neighbors' yards
-    const underAt = (x, z) => { if (!R4) return (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0; const [sx, sz] = toS(x, z); const inP = (Pv) => sx > Pv.x0 - 0.6 && sx < Pv.x1 + 0.6 && sz > Pv.z0 - 0.6 && sz < Pv.z1 + 0.6; return houseBlock(sx, sz, 0.8) || inP(P4.pavers) || inP(P4.court) ? 1 : 0; };   // r7: flat under the paved carport floor too
-    const edgeS = (x, z) => { if (!R4) return 99; const [sx, sz] = toS(x, z); return Math.min(sx < P4.wallX0 || sx > P4.wallX1 ? sz - P4.wallZ + 1.5 : 99, 19 - sx, sx + 26); };
+    const underAt = (x, z) => { if (!R4) return (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0; const [sx, sz] = toS(x, z); const inP = (Pv) => sx > Pv.x0 - 0.6 && sx < Pv.x1 + 0.6 && sz > Pv.z0 - 0.6 && sz < Pv.z1 + 0.6; if (R8) { const [hx, hz] = StoH(sx, sz); return houseBlock(sx, sz, 0.8) || inRect(P4.pad, hx, hz, 0.6) ? 1 : 0; } return houseBlock(sx, sz, 0.8) || inP(P4.pavers) || inP(P4.court) ? 1 : 0; };   // r7: flat under the paved carport floor too
+    const edgeS = (x, z) => { if (!R4) return 99; const [sx, sz] = toS(x, z); if (R8) { const [hx, hz] = StoH(sx, sz); return Math.min(hx + 30, 33 - hz, hz > P4.canal.z1 + 0.5 ? 27 - hx : 99); }   // r8: the bulkheads hold the fill on the bay and canal sides return Math.min(sx < P4.wallX0 || sx > P4.wallX1 ? sz - P4.wallZ + 1.5 : 99, 19 - sx, sx + 26); };
     const yardY = (x, z) => { const dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2)), under = underAt(x, z), near = Math.max(0, Math.min(1, (Math.hypot(Math.max(0, Math.abs(x + 1.5) - 11.5), Math.max(0, Math.abs(z - 0.25) - 8.75))) / 5));   // flat around the house, its stairs, pads and pots
       const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, edgeS(x, z)) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
-      const rd = roadD(x, z), road = Math.min(1, Math.max(0, (1.1 - rd) / 1.4)), sink = Math.max(1 - keep, road);
+      const rd = roadD(x, z), road = Math.min(1, Math.max(0, R8 ? (2.5 - rd) / 5.0 : (1.1 - rd) / 1.4)), sink = Math.max(1 - keep, road);   // r8: the raised lot ramps over ~5 m to the asphalt
       const swell = (n2(x * 0.09 + 1.3, z * 0.08 - 0.7) * 0.13 + n2(x * 0.21 - 2.1, z * 0.17 + 0.4) * 0.06) * near * (1 - drive * 0.7);   // gentle relief, flat at the house and along the drive
       const bowl = -0.09 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 5.5);   // the drive-end low spot (puddle)
       const fine = (n2(x * 2.3, z * 2.1) * 0.012 + n2(x * 0.6, z * 0.7) * 0.025) * (1 - under) * (1 - drive * 0.5);
@@ -81,14 +81,23 @@ export function build(ctx) {
         const dE = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, (roadD(x, z) + 0.5) * 2.2) - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4, f = Math.max(0, Math.min(1, 1 - (dE - 0.5) / 5));
         const SAND = [1.22, 1.36, 1.56];   // the terrain ring around the lot is shell too (r2-ground): a slightly warmer, sandier shell
         for (let k = 0; k < 3; k++) c[k] = c[k] + (SAND[k] - c[k]) * f * 0.85; }
-      if (R4) { const [sx, sz] = toS(x, z), lawn = Math.max(0, Math.min(1, (-11.5 - sz) / 4)) * (1 - 0.25 * Math.max(0, nB - 0.6)), lt = Math.min(1, lawn * (0.9 + 0.2 * nC));
+      if (R4) { const [sx, sz] = toS(x, z), lawn = R8 ? (() => { const [hx, hz] = StoH(sx, sz); return Math.max(0, Math.min(1, (-11.2 - hz) / 3)) * (hx < P4.canal.x0 ? 1 : 0); })() : Math.max(0, Math.min(1, (-11.5 - sz) / 4)) * (1 - 0.25 * Math.max(0, nB - 0.6)), lt = Math.min(1, lawn * (0.9 + 0.2 * nC));
         const LAWN = [0.42 + 0.12 * n, 0.62 + 0.14 * nC, 0.2 + 0.06 * n];   // thick green St. Augustine lawn, a little patchy
         for (let k = 0; k < 3; k++) c[k] = c[k] + (LAWN[k] - c[k]) * lt; void sx; }
       cols[i * 3] = c[0]; cols[i * 3 + 1] = c[1]; cols[i * 3 + 2] = c[2];
       pa.setY(i, yardY(x, z));
     }
     g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); g.computeVertexNormals();
-    if (R4) { const ix = g.index.array, keep = [], lim = P4.wallZ + 0.1, inWall = (sx) => sx > P4.wallX0 + 0.3 && sx < P4.wallX1 - 0.3, out = new Uint8Array(pa.count);
+    if (R8) { const ix = g.index.array, keep = [], out = new Uint8Array(pa.count), W = P4.wallZ, Cn = P4.canal;
+      // r8: the sheet stops at the bay bulkhead (H z = wallZ) and at the canal's walls; vertices past them snap onto the wall line, just
+      // under the cap; the far side of the canal (the neighbor's land) and the bay are not the yard
+      for (let i = 0; i < pa.count; i++) { const [hx, hz] = StoH(...toS(pa.getX(i), pa.getZ(i))); out[i] = hz < W + 0.1 && hx < Cn.x0 + 0.05 ? 1 : inCanalH(hx, hz, 0.1) ? 2 : (hx > Cn.x1 - 0.1 && hz < Cn.z1 + 0.1) ? 3 : (hz < W + 0.1) ? 3 : 0; }
+      for (let t = 0; t < ix.length; t += 3) { const a = ix[t], b = ix[t + 1], d = ix[t + 2]; if (out[a] && out[b] && out[d]) continue; if (out[a] === 3 || out[b] === 3 || out[d] === 3) continue; keep.push(a, b, d); }
+      for (let i = 0; i < pa.count; i++) { if (!out[i] || out[i] === 3) continue; let [hx, hz] = StoH(...toS(pa.getX(i), pa.getZ(i))); let ox = 0, ozz = 0;
+        if (out[i] === 1) { hz = W + 0.1; ozz = 0.12; } else { const dl = hx - (Cn.x0 - 0.1), dr = Cn.x1 + 0.1 - hx, de = Cn.z1 + 0.1 - hz; if (de < dl && de < dr) { hz = Cn.z1 + 0.1; ozz = 0.12; } else if (dl < dr) { hx = Cn.x0 - 0.1; ox = -0.12; } else { hx = Cn.x1 + 0.1; ox = 0.12; } }
+        const [gx, gz] = toG(...HtoS(hx, hz)); pa.setX(i, gx); pa.setZ(i, gz); pa.setY(i, yardY(...toG(...HtoS(hx + ox, hz + ozz))) - 0.02); }
+      g.setIndex(keep); pa.needsUpdate = true; }
+    else if (R4) { const ix = g.index.array, keep = [], lim = P4.wallZ + 0.1, inWall = (sx) => sx > P4.wallX0 + 0.3 && sx < P4.wallX1 - 0.3, out = new Uint8Array(pa.count);
       for (let i = 0; i < pa.count; i++) { const [sx, sz] = toS(pa.getX(i), pa.getZ(i)); out[i] = inWall(sx) && sz < lim ? 1 : inCanal(sx, sz, 0.1) ? 2 : 0; }
       for (let t = 0; t < ix.length; t += 3) { const a = ix[t], b = ix[t + 1], d = ix[t + 2]; if (out[a] && out[b] && out[d]) continue; keep.push(a, b, d); }
       for (let i = 0; i < pa.count; i++) if (out[i] === 1) { const [sx] = toS(pa.getX(i), pa.getZ(i)), [gx, gz] = toG(sx, lim); pa.setX(i, gx); pa.setZ(i, gz); pa.setY(i, yardY(...toG(sx, lim + 0.12)) - 0.02); }
@@ -108,7 +117,7 @@ export function build(ctx) {
       for (let j = 0; j <= nX; j++) for (let i2 = 0; i2 <= nZ; i2++) { const x = hx0 + (hx1 - hx0) * j / nX, z = hz0 + (hz1 - hz0) * i2 / nZ; hs[j * (nZ + 1) + i2] = yardY(x, z) - (roadD(x, z) < 0.3 || x < x0 + 6 ? 0.06 : 0);
         // r7 (playtest item 8, Nico floated over the dock): beyond the bulkhead the collider drops to the sea bed (it stayed at the
         // lawn height over the water, ~0.4 m above the dock boards, where the drawn sheet had been clipped at the wall)
-        if (R4) { const [sx, sz] = toS(x, z); if ((sz < P4.wallZ + 0.05 && sx > P4.wallX0 - 0.5 && sx < P4.wallX1 + 0.5) || (ctx.r7water && ctx.r7water(sx, sz))) hs[j * (nZ + 1) + i2] = sea - 3.0; } }
+        if (R8) { const [hx, hz] = StoH(...toS(x, z)); if ((hz < P4.wallZ + 0.05 && hx < P4.canal.x1 + 0.5) || inCanalH(hx, hz, -0.05)) hs[j * (nZ + 1) + i2] = sea - 3.0; } else if (R4) { const [sx, sz] = toS(x, z); if ((sz < P4.wallZ + 0.05 && sx > P4.wallX0 - 0.5 && sx < P4.wallX1 + 0.5) || (ctx.r7water && ctx.r7water(sx, sz))) hs[j * (nZ + 1) + i2] = sea - 3.0; } }
       ctx.colliders.push({ shape: 'hf', p: [(hx0 + hx1) / 2, 0, (hz0 + hz1) / 2], nrows: nZ, ncols: nX, heights: hs, scale: [hx1 - hx0, 1, hz1 - hz0], q: [0, 0, 0, 1], tag: 'ground', surface: 'gravel', enabled: true });
       col.box((hx0 + hx1) / 2, R4 ? sea - 4.6 : -1.6, (hz0 + hz1) / 2, hx1 - hx0, 2.6, hz1 - hz0, { tag: 'ground', surface: 'gravel' }); }   // r7: under the sea bed (it stood 0.15 m under the water surface off the bulkhead)   // backstop under it   // not over the open beach edges (the terrain carries those)
   }
@@ -161,12 +170,12 @@ export function build(ctx) {
       const g0 = 0.16 + q() * 0.1; for (let v = 0; v < 6; v++) { const tip = v === 2 || v >= 4 ? 1.5 : 0.8; bc.push(0.13 * tip * (0.8 + q() * 0.5), g0 * 0.95 * tip, 0.05 * tip); } }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(blades, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(bc, 3)); g.computeVertexNormals();
     const gm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide, bumpMap: kit.microTex(), bumpScale: 0.4 }), ms = [], cs = [];
-    const onSlab = R4 ? (x, z) => { const [sx, sz] = StoH(...toS(x, z)); return (sx > P4.pavers.x0 && sx < P4.pavers.x1 && sz > P4.pavers.z0 && sz < P4.pavers.z1) || (sx > P4.deckS.x0 && sx < P4.deckE.x1 && sz > -12.8 && sz < -1.6); } : (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
+    const onSlab = R8 ? (x, z) => { const [sx, sz] = toS(x, z), [hx, hz] = StoH(sx, sz); return houseBlock(sx, sz, 0.1) || inRect(P4.pad, hx, hz, 0.2) || inCanalH(hx, hz, 0.4) || hz < P4.wallZ + 0.3; } : R4 ? (x, z) => { const [sx, sz] = StoH(...toS(x, z)); return (sx > P4.pavers.x0 && sx < P4.pavers.x1 && sz > P4.pavers.z0 && sz < P4.pavers.z1) || (sx > P4.deckS.x0 && sx < P4.deckE.x1 && sz > -12.8 && sz < -1.6); } : (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
     const rc = ctx.opts.roadClear || (() => true);
     const put = (x, z, s = 1) => { if (onSlab(x, z) || !rc(x, z, 0.4)) return; ms.push(M(x, 0.01, z, 0, q() * 6.283, 0, s * (0.7 + q() * 0.9))); const d = q(); cs.push([0.75 + d * 0.5, 0.8 + d * 0.35, 0.6 + d * 0.5]); };
     const line = (ax, az, bx, bz, n, spread = 0.25, s = 1) => { for (let i = 0; i < n; i++) { const t = q(); put(ax + (bx - ax) * t + (q() - 0.5) * spread, az + (bz - az) * t + (q() - 0.5) * spread, s); } };
     if (!R4) for (const x of P.pileXs) for (const z of P.pileZs) for (let i = 0; i < 7; i++) { const a = q() * 6.283; put(x + Math.cos(a) * (0.36 + q() * 0.2), z + Math.sin(a) * (0.36 + q() * 0.2), 0.9); }
-    if (R4) { const lineS = (ax, az, bx, bz, n, sp, sc) => { const [a1, a2] = toG(...HtoS(ax, az)), [b1, b2] = toG(...HtoS(bx, bz)); line(a1, a2, b1, b2, n, sp, sc); };   // r4: at the post feet, the paver edge, the stair feet
+    if (R4 && !R8) { const lineS = (ax, az, bx, bz, n, sp, sc) => { const [a1, a2] = toG(...HtoS(ax, az)), [b1, b2] = toG(...HtoS(bx, bz)); line(a1, a2, b1, b2, n, sp, sc); };   // r4: at the post feet, the paver edge, the stair feet
       for (const x of P4.postXs) for (const z of P4.postZs) { if (x > 6.6 && z < -10.5) continue; const [gx, gz] = toG(...HtoS(x, z)); for (let i = 0; i < 6; i++) { const a = q() * 6.283; put(gx + Math.cos(a) * (0.28 + q() * 0.2), gz + Math.sin(a) * (0.28 + q() * 0.2), 0.9); } }
       lineS(-7.2, -1.1, 6.8, -1.1, 70, 0.3, 1.1); lineS(-7.9, -1.0, -7.9, 3.8, 30, 0.3, 1.0); lineS(-6.5, -1.0, -6.5, 3.8, 30, 0.3, 1.0); lineS(10.9, -12.8, 10.9, -1.6, 40, 0.4, 1.1); }
     if (!R4) line(-8.4, 2.95, -3.6, 2.95, 110, 0.3, 1.3); if (!R4) { line(-3.5, 3.0, -1.0, 3.0, 40, 0.25); line(-0.8, 8.3, 8.0, 8.3, 120, 0.45, 1.2); line(8.1, 8, 8.1, -3.3, 90, 0.5, 1.1); line(-8.9, 5.4, -8.9, -6.5, 70, 0.5); }
