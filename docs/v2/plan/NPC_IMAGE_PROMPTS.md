@@ -41,3 +41,22 @@ Reply with the image only. Ready? I'll send the first character now.
 14. Mari (the female lead), night-out outfit: the same woman as the main female character, in a simple black dress and
     heels, hair down.
 15. Mari, job outfit: the same woman, in a dark fitted jacket, cargo pants, boots, hair tied back.
+
+## More prompts (round 2): pilots and military base people
+
+16. Rural pilot: a sun-weathered man in his 40s in a faded denim shirt with rolled sleeves, khaki work pants, a worn
+    leather belt, scuffed boots, a ball cap with no logo, a headset hanging around his neck.
+17. Seaplane pilot: a fit man in his 30s in a light blue short-sleeve shirt, tan shorts, boat shoes, mirrored aviator
+    sunglasses pushed up on his head, an inflatable life vest worn open, a headset around his neck.
+18. Commercial airline pilot: a clean-shaven man in his 40s in a crisp white short-sleeve pilot shirt with plain gold
+    shoulder boards (no airline logo), a black tie, black trousers, polished black shoes, a plain pilot's cap.
+19. Base guard: a young man in woodland-camo fatigues, a plain tactical vest, a patrol cap, boots, a radio on his vest.
+20. Base guard: a stocky man in desert-tan fatigues, a helmet, a plain armor vest with pouches, knee pads, gloves, boots.
+21. Gate guard: a tall man in a dark navy security-forces uniform, a black beret with no badge, a duty belt (no weapon), boots.
+22. Military mechanic: a man in olive coveralls with the sleeves tied at the waist, a gray t-shirt, ear protection
+    around his neck, work gloves, boots.
+23. Military officer on patrol: a woman in her 40s in a pressed olive uniform shirt and trousers, a plain cap, boots,
+    a clipboard held at her side.
+24. Off-duty soldier: a young man in a tan army t-shirt with no text, camo pants, boots, sunglasses, a dog-tag chain.
+25. Flight-line crew: a man in a bright yellow reflective vest over a gray coverall, ear defenders, gloves, holding two
+    orange marshalling wands at his sides.
