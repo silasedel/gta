@@ -76,11 +76,12 @@ D3. Proximity voice: WebRTC audio between peers, signaled over the existing WebS
 - E2 **Smart NPCs** (friend): daily schedules (home, work, beach, nightlife by hour), reactions (flee, cower, call the
   police, film, fight back by personality), short memory of the player (you robbed them, they recognize you), and group
   behavior. Builds on `src/npc/**` and `src/gameplay/wantedSense.js`.
-- E3 **Stores** (friend): one store system (enter, browse, buy, sell) for guns, clothes, food, car mods. Data-driven
+- E3 **Stores** (friend): one store system (enter, browse, buy, sell) for guns, clothes, **shoes**, food, car mods. Data-driven
   stock and prices on `src/systems/economy.js`, `inventory.js`, `items.js`; interiors from `src/world/interiors/**`. C1
   (Weapon Purchase) uses the gun store.
-- E4 **More missions and the casino heist** (both, after A–C): the heist design is in BIG_UPDATE_PLAN.md section 14. Each
-  mission is one brief on the story framework.
+- E4 **Many small missions** (both, after A–C). **User decision (Nov 19): no big bank or casino heist; drop it.** Instead a
+  steady stream of short, varied missions (deliveries, repo jobs, chases, boat runs, collections, escorts, races, odd jobs
+  for locals), each one brief on the story framework, giving money, unlocks and new contacts.
 
 ## Schedule: a few days, both accounts in parallel
 Agents per account: at most 4–5 at once (more starved CPU and browser slots). Each account works on its own branch and
@@ -125,7 +126,7 @@ that walk and talk together. Extend `src/npc/**`; don't rewrite the crowd render
 ## Hand-off brief: E3 stores (friend; can start now)
 "Southline repo, branch `stores` from `main`. Read `docs/v2/CONVENTIONS.md` and `docs/v2/plan/STORY_START_PLAN.md` E3. Build
 one store system: walk in, browse a clean store UI, buy and sell, with data-driven stock and prices for guns and ammo, clothes
-(hook into the wardrobe), food and drinks, and car mods. Use `src/systems/{economy,inventory,items,money}.js` and existing
+(hook into the wardrobe), **a shoe store (user request, Nov 19)**, food and drinks, and car mods. Use `src/systems/{economy,inventory,items,money}.js` and existing
 interiors in `src/world/interiors/**`. Expose `game.stores.open(id)` and events so missions (the Weapon Purchase mission) can
 use them. Commit often, push the branch, open a PR."
 
