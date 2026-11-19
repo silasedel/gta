@@ -53,7 +53,9 @@ export const PRESETS = {
       scaleMin: 0.67,
       scaleMax: 0.75,
       msaa: 2,
-      minPx: 2016 * 1264,
+      // Nov 19: internal picture 1.6-3.1 MP whatever the display (a 4K backing ran ~5 fps); floor lowered so the scaler has room
+      minPx: 1600 * 1000,
+      maxPx: 2240 * 1400,
     }, // r6 (user: "make the res 2k"): the governor never goes under 0.8 of native and never under 2560x1440 internal (minPx, post.js scaleFloor); it only steps down at all on GPU-bound slow frames. Was 0.65 with a 1920x1080 floor. // // user (Nov 18): the app was 'super laggy' at Retina 2x + MSAA 4x with no headroom: the frame-time governor may now drop the internal scale to 0.65 when frames are slow (full res when light), MSAA 2x (TAA resolves the rest)
     label: 'High',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
@@ -156,6 +158,7 @@ export async function initV2(game) {
   // device pixel ratio for a preset: never below what gives a 1920x1080-class internal picture (by pixel count)
   // and never above the display's own ratio (capped at 2)
   const RES_OLD = /[?&]res2k=0/.test(location.search); // before/after switch
+  const MAX_CANVAS_PX = 5.8e6;
   function dprFor(p) {
     const native = Math.min(window.devicePixelRatio || 1, 2);
     const css = Math.max(1, window.innerWidth * window.innerHeight);
@@ -163,11 +166,14 @@ export async function initV2(game) {
     // r6 2K presets (look.minPx): never fewer drawing-buffer pixels than 2560x1440, also on a 1x display or in a small
     // window (rendered above the display's ratio and scaled down by the browser: supersampled, still crisp). Cap 2.
     const need = !RES_OLD && p.look?.minPx ? Math.min(2, Math.sqrt(p.look.minPx / css)) : 0;
+    // Nov 19 (user: ~5 fps recording on a 1920x1080 @2x mode, i.e. a 4K drawing buffer): the canvas never holds more than
+    // ~5.8 MP (the built-in Retina panel at 2x is 5.7 MP, unchanged); larger backings render at a lower ratio
+    const capPx = (r) => Math.min(r, Math.sqrt(MAX_CANVAS_PX / css));
     if (p.dpr === 'native') {
-      return Math.round(Math.max(native, need) * 100) / 100;
+      return Math.round(capPx(Math.max(native, need)) * 100) / 100;
     }
     if (typeof p.dpr === 'number') {
-      return Math.round(Math.max(need, Math.min(native, Math.max(min, p.dpr))) * 100) / 100;
+      return Math.round(capPx(Math.max(need, Math.min(native, Math.max(min, p.dpr)))) * 100) / 100;
     }
     if (p.dpr === 'mid') {
       return Math.round((min + (native - min) * 0.5) * 100) / 100;

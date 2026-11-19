@@ -583,7 +583,8 @@ export async function initV2(game) {
   // ---------------------------------------------------------------- far tier: instanced crowd on the sidewalks
   const NAV = peds._nav || null;
   // smart-peds (Nov 19): curb waits for a clear road, building-aware doors, purposeful stops. ?pedsmart=0 = before
-  const SMART = !(typeof location !== 'undefined' && /[?&]pedsmart=0/.test(location.search));
+  // off by default until it has been verified in game (Nov 19); ?pedsmart=1 turns it on
+  const SMART = typeof location !== 'undefined' && /[?&]pedsmart=1/.test(location.search);
   const SPACE = NAV?.space || null; // r6-walk: everybody on foot in one spatial hash (src/npc/walk.js)
   let crowd = null;
   // the far tier wears the user's own people (src/npc/people/farCrowd.js: each person's LOD2 mesh, GPU-skinned by the

@@ -199,7 +199,8 @@ export async function createPeds(game) {
   }
   // smart-peds (Nov 19): building footprints from the map data (1 m mask), for both tiers at any distance.
   // '?pedsmart=0' = the previous walking (audit before / after).
-  const SMART = !(typeof location !== 'undefined' && /[?&]pedsmart=0/.test(location.search));
+  // off by default until it has been verified in game (Nov 19); ?pedsmart=1 turns it on
+  const SMART = typeof location !== 'undefined' && /[?&]pedsmart=1/.test(location.search);
   const bld = createBuildingMask(game);
   const inBuilding = (x, z) => SMART && bld.inside(x, z);
   // Which sides of an edge have a walkable lane: footpaths and lot lines of the graph run through the library

@@ -1628,13 +1628,14 @@ export function createPost(game) {
   // internal render scale (VFX_NOTES #4): only the composer targets shrink; the canvas stays at the quality DPR and
   // the last pass (grade) upscales to it. Driven by frame time with hysteresis (see governor).
   let renderScale = 1;
+  let emergencyT = 0; // seconds of very slow frames (governor)
   // hard floor (user requirement): the internal picture never has fewer pixels than 1920x1080
   function scaleFloor() {
     if (game.dynres?.active) return game.dynres.floor ?? 0.5; // r2-perf dynamic resolution (src/render/dynres.v2.js, off by default): its own per-preset floor
     const full = Math.max(1, W * H) * renderer.getPixelRatio() * renderer.getPixelRatio();
     const minPx =
       (!/[?&]res2k=0/.test(location.search) && game.quality?.current?.look?.minPx) || 1920 * 1080; // r6: High / Extra High hold 2560x1440 (quality.v2.js minPx)
-    return Math.min(1, Math.sqrt(minPx / full));
+    return Math.min(1, Math.sqrt(minPx / full), Math.sqrt((game.quality?.current?.look?.maxPx || 2560 * 1440) / full));
   }
   function setSize(w, h) {
     W = Math.max(1, w);
@@ -1679,18 +1680,28 @@ export function createPost(game) {
     const now = performance.now();
     const ms = now - lastNow;
     lastNow = now;
-    if (ms <= 0 || ms > 120) {
-      return; // hidden tab / hitch: ignore
+    if (ms <= 0 || ms > 1000) {
+      return; // hidden tab: ignore
     }
-    clock += ms / 1000;
-    perf.frameMs += (ms - perf.frameMs) * 0.1;
+    // Nov 19: frames slower than 120 ms used to be ignored as hitches, so at 5 fps the scaler never reacted at all;
+    // they now count (clamped), and a run of very slow frames drops the scale fast (emergency below)
+    const slowMs = Math.min(ms, 120);
+    clock += slowMs / 1000;
+    perf.frameMs += (slowMs - perf.frameMs) * 0.1;
     perf.fps = 1000 / perf.frameMs;
     // dynamic render scale from frame time only, with hysteresis: down after 2 s over 17.5 ms, up after 6 s near the
     // 60 fps cap. A raise that is followed by a drop within 10 s blocks raising for 60 s (no pumping at the cap).
     {
       const lk = LOOK_OFF ? null : game.quality?.current?.look;
-      const rsMin = Math.max(lk?.scaleMin ?? 1, scaleFloor());
-      const rsMax = Math.max(lk?.scaleMax ?? 1, rsMin);
+      // Nov 19: the internal picture is capped by pixel count (look.maxPx, about 1440p on High) whatever the display, and
+      // when frames stay slow (under ~25 fps for 2 s) the floor may drop to a 1280x720-class picture until it recovers
+      const fullPx = Math.max(1, W * H) * renderer.getPixelRatio() * renderer.getPixelRatio();
+      const capScale = Math.min(1, Math.sqrt((lk?.maxPx || 2560 * 1440) / fullPx));
+      const panicFloor = Math.min(1, Math.sqrt((1280 * 720) / fullPx));
+      emergencyT = perf.frameMs > 40 ? emergencyT + ms / 1000 : Math.max(0, emergencyT - ms / 1000);
+      const floorNow = emergencyT > 2 ? panicFloor : scaleFloor();
+      const rsMin = Math.min(capScale, Math.max(lk?.scaleMin ?? 1, floorNow));
+      const rsMax = Math.min(capScale, Math.max(lk?.scaleMax ?? 1, rsMin));
       let want = Math.min(rsMax, Math.max(rsMin, renderScale));
       // r2-perf dynamic resolution: while active it owns the scale (target frame time per preset); try/catch -> old governor
       let dr = null;
@@ -1718,7 +1729,11 @@ export function createPost(game) {
         rsOver = 0;
         rsUnder = 0;
       }
-      if (rsOver > 2 && want > rsMin) {
+      if (emergencyT > 2 && want > rsMin) {
+        want = Math.max(rsMin, Math.round((want - 0.1) * 100) / 100); // very slow: step down fast
+        rsOver = 0;
+        rsBlock = 30;
+      } else if (rsOver > 2 && want > rsMin) {
         want = Math.max(rsMin, Math.round((want - 0.05) * 100) / 100);
         rsOver = 0;
         if (rsSinceUp < 10) {
