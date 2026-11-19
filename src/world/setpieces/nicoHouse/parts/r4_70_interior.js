@@ -44,7 +44,7 @@ export function build(ctx) {
     const ops = (ctx.r4openings || []).filter((o) => o.wall === W && o.kind !== 'vent'), L = W.L;
     const top = (u) => (W.gable ? ceilY(W.pt(u, 0)[1]) + 0.05 : yT + 0.12);
     const nB = Math.ceil((L - 2 * T) / 0.15);
-    for (let i = 0; i < nB; i++) { const u0 = T + i * (L - 2 * T) / nB, u1 = T + (i + 1) * (L - 2 * T) / nB, [bxw, bzw] = W.pt((u0 + u1) / 2, -T), tone = bxw > 0.7 && bxw < 4.1 && bzw < -6.2 ? kit.vary(0xcfccc2, r, 0.03) : kit.vary(0x6f6340, r, 0.07);
+    for (let i = 0; i < nB; i++) { const u0 = T + i * (L - 2 * T) / nB, u1 = T + (i + 1) * (L - 2 * T) / nB, [bxw, bzw] = W.pt((u0 + u1) / 2, -T), tone = bxw > 0.7 && bxw < 4.1 && bzw < -6.2 ? kit.vary(0xcfccc2, r, 0.03) : kit.vary(0x8a8458, r, 0.07);
       for (const [s0, s1] of subtract(u0, u1, ops.map((o) => [o.u0 - 0.03, o.u1 + 0.03]), 0.004)) for (const [y0, y1] of [[F + 0.02, 99]]) { const t0 = top(s0), t1 = top(s1), a0 = W.pt(s0 + 0.001, -T), a1 = W.pt(s1 - 0.001, -T), b0 = W.pt(s1 - 0.001, -T + 0.018), b1 = W.pt(s0 + 0.001, -T + 0.018);
         hexa(I, OLIVE, [[a0[0], y0, a0[1]], [a1[0], y0, a1[1]], [b0[0], y0, b0[1]], [b1[0], y0, b1[1]], [a0[0], t0, a0[1]], [a1[0], t1, a1[1]], [b0[0], t1, b0[1]], [b1[0], t0, b1[1]]], { color: tone, wear: 0.15 }); void y1; }
       const um = (u0 + u1) / 2;
@@ -64,7 +64,7 @@ export function build(ctx) {
   { const CB = im.paint({ peel: 'a', fade: 0.05, gloss: 0.8, scale: 0.5 }), a = Math.atan(P.pitch);
     for (const side of [1, -1]) { const zr = P.ridgeZ, ze = side > 0 ? z1 : z0, run = Math.abs(ze - zr), sl = Math.hypot(run, run * P.pitch), n = Math.ceil((x1 - x0) / 0.15);
       for (let i = 0; i < n; i++) { const xa = x0 + i * (x1 - x0) / n, xb = x0 + (i + 1) * (x1 - x0) / n, zc = (zr + ze) / 2, yc = (ceilY(zr) + ceilY(ze)) / 2 + 0.01;
-        box(CB, xb - xa - 0.002, 0.016, sl + 0.02, (xa + xb) / 2, yc, zc, { grain: 2, color: kit.vary(0x5a4a34, r, 0.08), wear: 0.1, bevel: 0.002 }, side * a); } }
+        box(CB, xb - xa - 0.002, 0.016, sl + 0.02, (xa + xb) / 2, yc, zc, { grain: 2, color: kit.vary(0xd3ccb8, r, 0.05), wear: 0.1, bevel: 0.002 }, side * a); } }   // r7d (16): white-washed boards between the dark beams
     const BEAM = im.wood({ dark: true });
     for (let x = x0 + 0.9; x < x1 - 0.5; x += 1.6) box(BEAM, 0.11, 0.22, z1 - z0 - 0.01, x, yT + 0.15, (z0 + z1) / 2, { grain: 2, color: 0x4a3a2a, wear: 0.3, bevel: 0.008 });   // tie beams across the room
     box(BEAM, x1 - x0, 0.26, 0.14, (x0 + x1) / 2, ceilY(P.ridgeZ) - 0.12, P.ridgeZ, { grain: 0, color: 0x46372a, wear: 0.3, bevel: 0.008 });                      // ridge beam
@@ -144,7 +144,18 @@ export function build(ctx) {
     // big conical pendant over the peninsula, one over the living room (06)
     const pend = (x, z, y, R) => { lathe(I, im.plastic(), [[0.03, 0.3], [0.05, 0.26], [R * 0.45, 0.12], [R, 0], [R - 0.008, -0.004], [R * 0.45 - 0.01, 0.116], [0.045, 0.255], [0.027, 0.29]], M(x, y, z), { color: 0xeeebe2, seg: 32 });
       I.cyl(STEEL, 0.004, 0.004, ceilY(z) - y - 0.3, M(x, (ceilY(z) + y + 0.3) / 2, z), { color: 0x333333, seg: 6 }); I.geo(im.emissive(0xfff0d0, 1.6, 'r4bulb'), new THREE.SphereGeometry(0.05, 12, 8), M(x, y + 0.08, z), {}); };
-    pend(penX - 0.1, (penZ0 + penZ1) / 2, F + 1.75, 0.3); pend(-3.6, -7.2, F + 1.95, 0.22);
+    // r7d (16): the big weathered metal cone over the peninsula (galvanized, darkened, a glass diffuser), the white cone in the living room (15)
+    { const px = penX - 0.1, pz = (penZ0 + penZ1) / 2, py = F + 1.62, R = 0.48, GALV = im.metalPaint ? im.metalPaint() : STEEL;
+      lathe(I, GALV, [[0.04, 0.42], [0.07, 0.38], [R * 0.4, 0.22], [R, 0], [R - 0.012, -0.006], [R * 0.4 - 0.012, 0.214], [0.06, 0.37], [0.035, 0.41]], M(px, py, pz), { color: 0x7d7a70, seg: 36, wear: 0.9 });
+      lathe(I, im.glass({ tint: 1 }), [[0.001, 0.02], [R - 0.03, 0.02], [R - 0.03, 0.03], [0.001, 0.03]], M(px, py, pz), { seg: 32 });
+      I.cyl(STEEL, 0.005, 0.005, ceilY(pz) - py - 0.42, M(px, (ceilY(pz) + py + 0.42) / 2, pz), { color: 0x2a2a2a, seg: 6 }); I.geo(im.emissive(0xfff0d0, 1.6, 'r4bulb'), new THREE.SphereGeometry(0.06, 12, 8), M(px, py + 0.12, pz), {}); }
+    pend(-3.6, -7.2, F + 1.95, 0.22);
+    // r7d (16): a big dark ceiling fan with wooden blades in the middle of the room, turning slowly
+    { const fx = -1.2, fz = -7.0, fy = ceilY(fz) - 0.55, FB = kit.batch('r7fan'), FG = new THREE.Group(); FG.position.set(fx, fy, fz); FG.name = 'r7_fan';
+      I.cyl(STEEL, 0.012, 0.012, ceilY(fz) - fy, M(fx, (ceilY(fz) + fy) / 2, fz), { color: 0x1c1b1a, seg: 8 });
+      lathe(FB, im.metalPaint ? im.metalPaint() : STEEL, [[0.001, -0.12], [0.1, -0.1], [0.13, -0.04], [0.12, 0.02], [0.05, 0.06], [0.001, 0.07]], null, { color: 0x1f1d1b, seg: 24 });
+      for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2; FB.box(im.wood({ dark: true }), 0.62, 0.012, 0.14, M(Math.cos(a) * 0.45, -0.06, -Math.sin(a) * 0.45, 0, a, 0.08), { grain: 0, color: 0x4a3423, bevel: 0.004 }); FB.box(STEEL, 0.16, 0.02, 0.03, M(Math.cos(a) * 0.16, -0.06, -Math.sin(a) * 0.16, 0, a, 0), { color: 0x1c1c1c }); }
+      FB.build(FG, { cast: false }); Fr.groups.int.add(FG); ctx.updaters.push((dt) => { FG.rotation.y += dt * 1.6; }); }
     const kl = Fr.light({ id: 'r4_kitchen', pos: [penX - 0.1, F + 1.7, (penZ0 + penZ1) / 2], color: 0xffd9a8, intensity: 28, range: 6, on: false }), ll = Fr.light({ id: 'r4_living', pos: [-3.6, F + 1.9, -7.2], color: 0xffd6a0, intensity: 26, range: 7, on: false });
     const sw = { manual: null }; ctx.updaters.push((dt, env) => { const t = env.timeOfDay ?? 12, auto = t < 7 || t > 18.3; kl.on = ll.on = sw.manual ?? auto; });
     Fr.interact({ id: 'switch_kitchen', kind: 'switch', label: () => (kl.on ? 'Lights off' : 'Lights on'), pos: [0.65, F + 1.3, -5.0], radius: 1.1, use: () => { sw.manual = !kl.on; } });
@@ -198,13 +209,13 @@ export function build(ctx) {
     Fr.interact({ id: 'terrarium', kind: 'look', label: 'Look at the corn snake', pos: [tx, baseY + 0.3, tz], radius: 1.2, use: (env) => { env?.notify?.('Noodle is coiled up on the bark. She looks fine.'); return true; } });
   }
   // ================= living room (06) =================
-  // user review 2: the set is built as before and turned 90 deg: the sofa stands under the front window facing north, the TV faces it
-  // with its back toward the sliding doors
-  const FrO = Fr, T2 = (x, z) => [3.0 + z, -10.1 - x];
-  { const LI = kit.batch('r4living'), LG = new THREE.Group(); LG.name = 'r4_living'; LG.rotation.y = PI / 2; LG.position.set(3.0, 0, -10.1); FrO.groups.int.add(LG);
+  // r7d (MAIN mock-ups 15 / 16): the sofa stands against the west wall under the window, facing east; the TV faces it with its back to
+  // the room (15 looks from the room's south-east part into the corner of the west wall and the slider wall)
+  const FrO = Fr, T2 = (x, z) => [x, z];
+  { const LI = kit.batch('r4living'), LG = new THREE.Group(); LG.name = 'r4_living'; LG.rotation.y = 0; FrO.groups.int.add(LG);
     const I = LI, box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => LI.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
-    const Fr = { col: { box: (x, y, z, sx, sy, sz, o = {}) => { const [a, b] = T2(x, z); return FrO.col.box(a, y, b, sz, sy, sx, o); } }, interact: (it) => { const [a, b] = T2(it.pos[0], it.pos[2]); return FrO.interact({ ...it, pos: [a, it.pos[1], b] }); }, v: (x, y, z) => { const [a, b] = T2(x, z); return FrO.v(a, y, b); } };
-    const sx = x0 + 0.48, szc = -6.6, SL = 2.0, CANE = im.pbr('tatami_mat', { rep: 0.2 }), cane = 0x9a7046;
+    const Fr = { col: { box: (x, y, z, sx, sy, sz, o = {}) => { const [a, b] = T2(x, z); return FrO.col.box(a, y, b, sx, sy, sz, o); } }, interact: (it) => { const [a, b] = T2(it.pos[0], it.pos[2]); return FrO.interact({ ...it, pos: [a, it.pos[1], b] }); }, v: (x, y, z) => { const [a, b] = T2(x, z); return FrO.v(a, y, b); } };
+    const sx = x0 + 0.48, szc = -7.6, SL = 2.0, CANE = im.pbr('tatami_mat', { rep: 0.2 }), cane = 0x9a7046;
     // r7b (mock-up 15): green palm-leaf print on cream
     const CUSH = im.art('r7cush', 512, 512, (g, w, h) => { g.fillStyle = '#d9d2b6'; g.fillRect(0, 0, w, h); const q = kit.rng(21);
       for (let i = 0; i < 46; i++) { const x = q() * w, y = q() * h, a = q() * 6.28, L = 60 + q() * 90, c = ['#2f5a32', '#3f7340', '#56874a', '#264a2a'][i % 4];
@@ -217,10 +228,13 @@ export function build(ctx) {
     for (const [ya, xa] of [[F + 0.32, 0.41], [F + 0.12, 0.41]]) I.tube(CANE, [[sx + xa, ya, szc - SL / 2], [sx + xa, ya, szc + SL / 2]], 0.02, { seg: 8, color: cane, steps: 6 });
     I.tube(CANE, [[sx - 0.35, F + 0.86, szc - SL / 2], [sx - 0.35, F + 0.86, szc + SL / 2]], 0.022, { seg: 8, color: cane, steps: 6 });
     box(CANE, 0.75, 0.04, SL - 0.06, sx + 0.03, F + 0.34, szc, { color: cane, bevel: 0.01 });
-    for (const dz of [-SL / 4, SL / 4]) { box(CUSH, 0.7, 0.13, SL / 2 - 0.03, sx + 0.05, F + 0.43, szc + dz, { color: 0xffffff, bevel: 0.045 }); box(CUSH, 0.16, 0.5, SL / 2 - 0.05, sx - 0.24, F + 0.72, szc + dz, { color: 0xf0f0f0, bevel: 0.05 }, 0, 0, 0.12); }
-    box(im.fabric('cotton_jersey', { rep: 0.2 }), 0.12, 0.38, 0.42, sx - 0.12, F + 0.68, szc + SL / 2 - 0.35, { color: 0xb8ad8e, bevel: 0.05 }, 0, 0.2, 0.25);
+    // r7d (15): a THREE-seat rattan sofa: three seat and three back cushions in the palm-leaf print, rolled cane arms, a striped pillow
+    for (const dz of [-SL / 3, 0, SL / 3]) { box(CUSH, 0.7, 0.14, SL / 3 - 0.025, sx + 0.05, F + 0.43, szc + dz, { color: 0xffffff, bevel: 0.05 }); box(CUSH, 0.17, 0.5, SL / 3 - 0.035, sx - 0.24, F + 0.72, szc + dz, { color: 0xf0f0f0, bevel: 0.06 }, 0, 0, 0.12); }
+    for (const sd of [-1, 1]) { const pts = []; for (let i = 0; i <= 16; i++) { const t = i / 16; pts.push([sx + 0.42 - t * 0.8, F + 0.6 + Math.sin(t * Math.PI) * 0.06, szc + sd * (SL / 2 + 0.02)]); } I.tube(CANE, pts, 0.04, { seg: 10, color: cane, steps: 24 }); }
+    { const STR = im.art('r7stripe', 128, 128, (g, w, h) => { for (let x = 0; x < w; x += 16) { g.fillStyle = (x / 16) % 2 ? '#d8cfb4' : '#7c8a6a'; g.fillRect(x, 0, 16, h); } }, { rough: 0.95 });
+      box(STR, 0.14, 0.4, 0.44, sx - 0.12, F + 0.7, szc + SL / 2 - 0.35, { color: 0xffffff, bevel: 0.06 }, 0, 0.2, 0.25); }
     Fr.col.box(sx, F + 0.42, szc, 0.85, 0.84, SL, { tag: 'furniture' });
-    ctx.anchors.sofa = { pos: Fr.v(sx + 0.1, F, szc), heading: PI - 0.72 + FrO.th };
+    ctx.anchors.sofa = { pos: Fr.v(sx + 0.1, F, szc), heading: PI / 2 - 0.72 + FrO.th };
     // r7 (user, Nov 18 eve): THE coffee table is the user's downloaded model (Models/_Inbox/coffee-table.zip -> assets/models/keys/
     // coffee_table.glb by tools/v2/keys/r7/convert_coffee_table.py): X / Z as shipped (1.2 x 0.5 m), height cut to 55 % (0.31 m), long
     // side along the sofa as in 06; the ashtray on its top. The code-built table stays as the fallback if the model fails to load.
@@ -249,14 +263,14 @@ export function build(ctx) {
     const tv = { on: false }; Fr.interact({ id: 'tv', kind: 'tv', label: () => (tv.on ? 'Turn off TV' : 'Watch TV'), pos: [vx - 0.3, F + 1.0, vz], radius: 1.8, use: (env) => { tv.on = !tv.on; tvM.emissive.set(0x5a7088); tvM.emissiveIntensity = tv.on ? 0.9 : 0; env?.emit?.('tv:toggle', { on: tv.on }); return tv.on; } });
     // r7b (mock-up 15): a rattan armchair beside the sofa, a small folding wood side table between them with the user's lamp: the stand of
     // their lamp-table download (keys/lamp_base.glb, given a worn brass finish) under the shade of their white modern lamp (keys/lamp_shade.glb)
-    { const ax = sx + 0.15, az = szc - SL / 2 - 1.15, AL = 0.78;
+    { const ax = sx + 0.15, az = szc + SL / 2 + 1.15, AL = 0.78;
       for (const dz of [-AL / 2, AL / 2]) { I.tube(CANE, [[ax + 0.4, F, az + dz], [ax + 0.42, F + 0.55, az + dz], [ax + 0.1, F + 0.62, az + dz], [ax - 0.3, F + 0.6, az + dz], [ax - 0.34, F + 0.9, az + dz]], 0.028, { seg: 10, color: cane, steps: 30 });
         I.tube(CANE, [[ax - 0.35, F, az + dz], [ax - 0.36, F + 0.85, az + dz]], 0.025, { seg: 10, color: cane, steps: 8 }); }
       I.tube(CANE, [[ax - 0.35, F + 0.86, az - AL / 2], [ax - 0.35, F + 0.86, az + AL / 2]], 0.022, { seg: 8, color: cane, steps: 6 });
       box(CANE, 0.75, 0.04, AL - 0.06, ax + 0.03, F + 0.34, az, { color: cane, bevel: 0.01 });
       box(CUSH, 0.7, 0.13, AL - 0.08, ax + 0.05, F + 0.43, az, { color: 0xffffff, bevel: 0.045 }); box(CUSH, 0.16, 0.5, AL - 0.1, ax - 0.24, F + 0.72, az, { color: 0xf0f0f0, bevel: 0.05 }, 0, 0, 0.12);
       Fr.col.box(ax, F + 0.42, az, 0.85, 0.84, AL, { tag: 'furniture' });
-      const stx = sx + 0.05, stz = szc - SL / 2 - 0.42, TT = im.pbr('wood_table_worn', { rep: 0.6 }), top = F + 0.58;
+      const stx = sx + 0.05, stz = szc + SL / 2 + 0.42, TT = im.pbr('wood_table_worn', { rep: 0.6 }), top = F + 0.58;
       box(TT, 0.42, 0.03, 0.42, stx, top - 0.015, stz, { grain: 0, color: 0xb08a5e, wear: 0.5, bevel: 0.006 });
       for (const s2 of [-1, 1]) { I.strut(TT, [stx - 0.17, F, stz + s2 * 0.17], [stx + 0.17, top - 0.04, stz - s2 * 0.17], 0.03, 0.02, { color: 0x9a7650 }); }
       for (const s2 of [-1, 1]) I.strut(TT, [stx + 0.17, F, stz + s2 * 0.17], [stx - 0.17, top - 0.04, stz + s2 * 0.17 * -1], 0.03, 0.02, { color: 0x9a7650 });
@@ -266,9 +280,25 @@ export function build(ctx) {
         sh.position.set(stx, top + 0.27, stz); LG.add(sh); }).catch(() => {}));
       const lampShades = [], [lx, lz] = T2(stx, stz), ll = FrO.light({ id: 'r7_side_lamp', pos: [lx, top + 0.42, lz], color: 0xffcf96, intensity: 22, range: 5, on: false });
       ctx.updaters.push((dt, env) => { const t = env?.timeOfDay ?? 12, on = t < 7 || t > 17.5; ll.on = on; for (const m of lampShades) m.emissiveIntensity = on ? 0.9 : 0; }); }
+    // r7d (16): along the north wall between the slider and the kitchen: a low wooden console with drawers and baskets, books and shells
+    // on it, a tall floor lamp with a woven shade, a potted plant, a yellow boogie board and blue buckets
+    { const cz = z0 + 0.25, cx = -0.95, CW2 = im.wood({ dark: false }), BSK = im.pbr('tatami_mat', { rep: 0.3 });
+      box(CW2, 1.5, 0.05, 0.42, cx, F + 0.78, cz, { grain: 0, color: 0xa07a4e, wear: 0.4, bevel: 0.008 }); box(CW2, 1.44, 0.3, 0.38, cx, F + 0.6, cz, { grain: 0, color: 0x8f6c45, wear: 0.4, bevel: 0.006 });
+      for (const dx of [-0.55, 0, 0.55]) { box(CW2, 0.4, 0.22, 0.01, cx + dx, F + 0.6, cz + 0.195, { grain: 0, color: 0x9c7850, wear: 0.4 }); I.cyl(im.metalPaint(), 0.012, 0.012, 0.03, M(cx + dx, F + 0.6, cz + 0.21, PI / 2, 0, 0), { color: 0x2a2a2a, seg: 8 }); }
+      box(CW2, 1.44, 0.03, 0.38, cx, F + 0.12, cz, { grain: 0, color: 0x8f6c45 }); for (const dx of [-0.75, 0.75]) box(CW2, 0.05, 0.78, 0.42, cx + dx, F + 0.39, cz, { grain: 1, color: 0x8a6842 });
+      for (const dx of [-0.45, 0.05, 0.5]) box(BSK, 0.4, 0.26, 0.32, cx + dx, F + 0.27, cz, { color: 0xb89a66, bevel: 0.03 });
+      for (let k = 0; k < 5; k++) box(im.matte(), 0.04, 0.22, 0.16, cx - 0.5 + k * 0.045, F + 0.92, cz, { color: [0x8a2f2a, 0x2f4a6a, 0xd8cfb4, 0x3f6a45, 0x6a5a3a][k], bevel: 0.004 });
+      for (const [dx, sc] of [[0.2, 1], [0.38, 0.8]]) lathe(I, im.plasticGloss(), [[0.001, 0], [0.05 * sc, 0.01], [0.06 * sc, 0.04], [0.02 * sc, 0.07], [0.001, 0.08]], M(cx + dx, F + 0.805, cz), { color: 0xe8dccb, seg: 10 });
+      const lx = cx + 1.05; I.cyl(im.metalPaint(), 0.012, 0.012, 1.5, M(lx, F + 0.75, cz + 0.05), { color: 0x2a2622, seg: 8 }); I.cyl(im.metalPaint(), 0.14, 0.15, 0.02, M(lx, F + 0.01, cz + 0.05), { color: 0x2a2622, seg: 16 });
+      lathe(I, BSK, [[0.12, 0], [0.2, 0.0], [0.17, 0.3], [0.1, 0.3]], M(lx, F + 1.4, cz + 0.05), { color: 0xcaa874, seg: 18 });
+      lathe(I, im.paint({ peel: 'a', fade: 0.1, gloss: 0.6, scale: 0.5 }), [[0.001, 0], [0.12, 0], [0.16, 0.28], [0.001, 0.26]], M(cx - 1.05, F, cz + 0.05), { color: 0xb5603a, seg: 16 });
+      for (let k = 0; k < 9; k++) { const a = k * 2.4; I.strut(im.plastic(), [cx - 1.05, F + 0.26, cz + 0.05], [cx - 1.05 + Math.cos(a) * 0.3, F + 0.75 + (k % 3) * 0.15, cz + 0.05 + Math.sin(a) * 0.3], 0.08, 0.006, { color: 0x3f7a34 }); }
+      box(im.plasticGloss(), 0.52, 1.0, 0.06, cx - 1.45, F + 0.5, cz + 0.08, { color: 0xe8c22a, bevel: 0.08 }, -0.12, 0, 0);
+      for (const [dx, dz2] of [[-1.5, 0.45], [-1.15, 0.5]]) lathe(I, im.plastic(), [[0.001, 0], [0.12, 0], [0.15, 0.28], [0.14, 0.29], [0.001, 0.29]], M(cx + dx, F, cz + dz2), { color: 0x2f62b8, seg: 14 });
+      Fr.col.box(cx, F + 0.4, cz, 1.55, 0.8, 0.45, { tag: 'furniture' }); }
     // clutter in the corner (06): fishing rod leaning, cardboard boxes, a framed picture leaning on the wall
-    const CB = im.matte(); box(CB, 0.45, 0.32, 0.4, x0 + 0.3, F + 0.16, -4.5, { color: 0xa07f56, bevel: 0.01 }); box(CB, 0.4, 0.26, 0.35, x0 + 0.32, F + 0.45, -4.55, { color: 0xb18d61, bevel: 0.01 }, 0, 0.2);
-    I.rod(im.plasticGloss(), [x0 + 0.12, F + 0.02, -4.0], [x0 + 0.05, F + 2.2, -4.15], 0.008, { color: 0x1f1f1f }); I.cyl(CHROME, 0.03, 0.03, 0.05, M(x0 + 0.11, F + 0.5, -4.02, 0, 0, PI / 2), { color: 0x9c9c98, seg: 12 });
+    const CB = im.matte(); box(CB, 0.45, 0.32, 0.4, x0 + 0.3, F + 0.16, -9.75, { color: 0xa07f56, bevel: 0.01 }); box(CB, 0.4, 0.26, 0.35, x0 + 0.32, F + 0.45, -9.8, { color: 0xb18d61, bevel: 0.01 }, 0, 0.2);
+    I.rod(im.plasticGloss(), [x0 + 0.12, F + 0.02, -9.2], [x0 + 0.05, F + 2.2, -9.35], 0.008, { color: 0x1f1f1f }); I.cyl(CHROME, 0.03, 0.03, 0.05, M(x0 + 0.11, F + 0.5, -9.22, 0, 0, PI / 2), { color: 0x9c9c98, seg: 12 });
     box(im.wood({ dark: true }), 0.04, 0.6, 0.8, x0 + 0.06, F + 0.32, -8.9, { color: 0x3a2a1c }, 0, 0, -0.1);
     LI.build(LG, { cast: false });
   }
@@ -321,6 +351,11 @@ export function build(ctx) {
   }
   // interior sun shafts: soft dusty light cones from the back windows (cheap additive cards are avoided: a faint volumetric
   // box per window with view-angle fade would be a card; here only the warm fill lights near the windows)
-  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'window' && !q.frosted)) { const [x, z] = o.wall.pt(o.u, -T - 0.8); Fr.light({ id: 'r4_win_' + o.id, pos: [x, (o.y0 + o.y1) / 2, z], color: 0xffe2b8, intensity: 27, range: 6.2, on: true }); }
+  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'window' && !q.frosted)) { const [x, z] = o.wall.pt(o.u, -T - 0.8); Fr.light({ id: 'r4_win_' + o.id, pos: [x, (o.y0 + o.y1) / 2, z], color: 0xffe2b8, intensity: 46, range: 7.5, on: true }); }
+  // r7d (15 / 16: warm daylight, the room not dark): the slider and the front door throw daylight in too, and a soft warm fill under the
+  // ridge keeps the corners readable by day (off at night: the lamps take over)
+  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'slider')) { const [x, z] = o.wall.pt(o.u, -T - 1.2); Fr.light({ id: 'r7_day_' + o.id, pos: [x, F + 1.3, z], color: 0xffe6c4, intensity: 60, range: 9, on: true }); }
+  { const fills = [[-4.4, -7.0], [-1.2, -6.0], [2.4, -8.2]].map(([x, z], i) => Fr.light({ id: 'r7_fill_' + i, pos: [x, F + 2.3, z], color: 0xffe3bd, intensity: 70, range: 9, on: true }));
+    ctx.updaters.push((dt, env) => { const t = env.timeOfDay ?? 12, day = t > 6.8 && t < 18.6; for (const l of fills) l.on = day; }); }
   Fr.build();
 }

@@ -41,7 +41,7 @@ export function build(ctx) {
     Fr.col.box(x, 1.6, z, ps + 0.02, 3.2, ps + 0.02, { tag: 'pile' });
   }
   // beams along X on every Z line: 3-ply 2x12, top flush with the joist bottoms, ends cut 2 cm past the outer posts
-  const beamLines = [-12.8, -10.4, -7.0, -3.6, -1.6].map((z) => ({ z, x0: -8.5, x1: 8.5 }));
+  const W0 = P.W0, BZ0 = P.BZ0, beamLines = [BZ0, -10.4, -7.0, -3.6, -1.6].map((z) => ({ z, x0: W0, x1: 8.5 }));
   for (const L of beamLines) {
     const x0 = L.x0 - ps / 2 - 0.02, x1 = L.x1 + ps / 2 + 0.02, n = Math.ceil((x1 - x0) / 5.2);
     for (let i = 0; i < n; i++) { const a = x0 + (x1 - x0) * i / n, b = x0 + (x1 - x0) * (i + 1) / n - 0.004;
@@ -53,17 +53,17 @@ export function build(ctx) {
   for (const [x, z] of posts) {
     const onX = beamLines.find((L) => Math.abs(L.z - z) < 0.01);
     if (onX) { if (x > onX.x0 + 0.1) knee(x, z, -1, 0); if (x < onX.x1 - 0.1) knee(x, z, 1, 0); }
-    if (x === -8.5 || x === 8.5) { if (z > -12.7) knee(x, z, 0, -1); if (z < -1.7) knee(x, z, 0, 1); }
+    if (x === W0 || x === 8.5) { if (z > BZ0 + 0.1) knee(x, z, 0, -1); if (z < -1.7) knee(x, z, 0, 1); }
   }
   // joists along Z (on the beams), the platform outline per x
-  const zSpan = () => [-12.8 - 0.08, -1.6 + 0.08];
-  const jx = []; for (let x = -8.5 - ps / 2 + 0.03; x < 8.5 + ps / 2 - 0.02; x += J.oc) jx.push(x);
+  const zSpan = () => [BZ0 - 0.08, -1.6 + 0.08];
+  const jx = []; for (let x = W0 - ps / 2 + 0.03; x < 8.5 + ps / 2 - 0.02; x += J.oc) jx.push(x);
   for (const x of jx) { const [z0, z1] = zSpan(x); box(WOOD, J.t, J.d, z1 - z0 - 0.004, x, joistBot + J.d / 2, (z0 + z1) / 2, { grain: 2, color: kit.vary(kit.mul(C.deckDark, 0.95), r, 0.1), wear: 0.4, bevel: 0.003, shade: [0.8, 1] }); }
   // rim boards around the platform (the visible deck edge band), proud of the joist ends
   const rim = (x0, z0, x1, z1) => { const hz = Math.abs(z1 - z0) < 0.01, len = hz ? Math.abs(x1 - x0) : Math.abs(z1 - z0);
     box(WOOD, hz ? len : 0.045, J.d + 0.02, hz ? 0.045 : len, (x0 + x1) / 2, joistBot + J.d / 2 + 0.005, (z0 + z1) / 2, { grain: hz ? 0 : 2, color: gray(0.9), wear: 0.7, bevel: 0.006, shade: [0.85, 1] }); };
-  const ex = 0.0225, E0 = -12.8 - 0.08 - ex, E1 = -1.6 + 0.08 + ex;
-  const RX0 = -8.5 - ps / 2 - 0.05, RX1 = 8.5 + ps / 2 + 0.05;
+  const ex = 0.0225, E0 = BZ0 - 0.08 - ex, E1 = -1.6 + 0.08 + ex;
+  const RX0 = W0 - ps / 2 - 0.05, RX1 = 8.5 + ps / 2 + 0.05;
   rim(RX0, E0, RX1 + 0.02, E0); rim(RX0, E1, RX1 + 0.02, E1); rim(RX1, E0 + ex, RX1, E1 - ex); rim(RX0 + ex, E0 + ex, RX0 + ex, E1 - ex);
   // plywood subfloor under the rooms (seen from below), joints between sheets
   const PLY = mat.pbr('plywood', { rep: 1.2, grunge: true }), Bd = P.body;
@@ -80,7 +80,7 @@ export function build(ctx) {
       const fresh = r() < 0.04, tone = fresh ? kit.vary(0xc9b48a, r, 0.06) : gray(0.86 + r() * 0.24), len = xe - x - 0.005;
       box(WOOD, len, db.t, db.w, (x + xe) / 2, F - db.t / 2 + (r() - 0.5) * 0.002, z, { grain: 0, color: tone, wear: fresh ? 0.1 : 0.35 + r() * 0.5, bevel: 0.005 }, (r() - 0.5) * 0.008);
       for (const j of jx) if (j > x + 0.03 && j < xe - 0.03) for (const dz of [-0.04, 0.04]) screws.push(M(j, F + 0.0006, z + dz)); x = xe; } };
-  for (let z = -12.8 - 0.08 + pitch / 2; z < -1.6 + 0.08 - db.w / 2 + 0.01; z += pitch) {
+  for (let z = BZ0 - 0.08 + pitch / 2; z < -1.6 + 0.08 - db.w / 2 + 0.01; z += pitch) {
     if (z < -10.4 - db.w / 2 || z > -3.6 + db.w / 2) deckRow(z, RX0 + 0.02, RX1 + 0.04);
     else { deckRow(z, RX0 + 0.02, -6.5 - 0.17); deckRow(z, 6.5 + 0.17, RX1 + 0.04); }
   }

@@ -29,12 +29,16 @@ export const P4 = {
   body: { x0: -6.5, x1: 6.5, z0: -10.4, z1: -3.6 },
   ridgeZ: -7.0, pitch: 0.42, eave: 0.55, rake: 0.42,
   // wraparound deck (N, E, S) at F; the west end is the house wall
-  deckN: { x0: -8.5, x1: 8.5, z0: -12.8, z1: -10.4 },
-  deckE: { x0: 6.5, x1: 8.5, z0: -12.8, z1: -1.6 },
-  deckS: { x0: -8.5, x1: 8.5, z0: -3.6, z1: -1.6 },
-  deckW: { x0: -8.5, x1: -6.5, z0: -12.8, z1: -1.6 },
+  // r7d (MAIN mock-up 14): the west gable deck is the big one: it reaches 5 m past the west wall on its own posts
+  W0: -11.5,
+  // r7d (MAIN mock-up 18): only a short upper deck outside the slider (1.3 m), the lower deck right below it
+  BZ0: -11.7,
+  deckN: { x0: -11.5, x1: 8.5, z0: -11.7, z1: -10.4 },
+  deckE: { x0: 6.5, x1: 8.5, z0: -11.7, z1: -1.6 },
+  deckS: { x0: -11.5, x1: 8.5, z0: -3.6, z1: -1.6 },
+  deckW: { x0: -11.5, x1: -6.5, z0: -11.7, z1: -1.6 },
   // posts (whitewashed 10x10 timbers) and beam lines
-  postXs: [-8.5, -6.5, -2.2, 2.2, 6.5, 8.5], postZs: [-12.8, -10.4, -7.0, -3.6, -1.6], post: 0.24,
+  postXs: [-11.5, -9.0, -6.5, -2.2, 2.2, 6.5, 8.5], postZs: [-11.7, -10.4, -7.0, -3.6, -1.6], post: 0.24,
   beam: { d: 0.29, t: 0.05 }, joist: { d: 0.235, t: 0.045, oc: 0.406 }, board: { w: 0.14, t: 0.035, gap: 0.01 },
   rail: { h: 1.0, post: 0.1, bal: 0.042, oc: 0.12 },
   rise: 0.18, run: 0.28,
@@ -43,19 +47,19 @@ export const P4 = {
   stairE: { pad: { x0: 8.62, x1: 9.9, z0: -5.2, z1: -4.1 } },
   stairF: { pad: { x0: -8.62, x1: -7.4, z0: -1.5, z1: -0.2 } },   // front (hoop side), r6: head pad at the front corner, then ONE flight down +X along the front face to the hoop
                                        // east side: down -Z to the bay corner
-  stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: -5.4, x1: -4.1, z0: -14.05, z1: -12.8 } },   // r7b: the short steps from the back deck down to the lower deck, left of the slider (18)   // runs -X from the landing
+  stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: -5.4, x1: -4.1, z0: -13.0, z1: -11.7 } },   // r7b: the short steps from the back deck down to the lower deck, left of the slider (18)   // runs -X from the landing
   // r7b (user's MAIN mock-up 11, from the driveway): the main stair from a head pad at the deck's front-east corner, two flights with a
   // landing, down to a step platform in front of the ANNEX, a lower teal room east of the house with the lower back-deck level on its roof
-  mainStair: { pad: { x0: -8.67, x1: -7.3, z0: -1.55, z1: -0.35 }, annexStep: { z0: -8.5, z1: -7.3 } },   // r7b (mock-up 14): head pad at the front-WEST corner (the dish), two flights down +X along the front
+  mainStair: { pad: { x0: -11.67, x1: -10.3, z0: -1.55, z1: -0.35 }, annexStep: { z0: -8.5, z1: -7.3 } },   // r7b (mock-up 14): head pad at the front-WEST corner (the dish), two flights down +X along the front
   // r7b (mock-up 13): the annex runs from under the back half of the house out past its east edge; its door faces the pad under the
   // house; the part outside the main deck carries the lower deck level (11)
   // r7b (18 / 19 / 17): the lower back-deck level behind the house (0.85 m under the main deck: the short steps left of the slider), on
   // around over the annex along the canal; a stair from its west end down to the lawn
-  lowerDeck: { x0: -5.0, x1: 12.06, z0: -16.6, z1: -12.86, stair: { z0: -16.4, z1: -15.2 } },
+  lowerDeck: { x0: -5.0, x1: 12.06, z0: -18.1, z1: -11.76, stair: { z0: -17.9, z1: -16.7 } },
   annex: { x0: 2.2, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.4, deckY: 2.75, deckX0: 8.62 },
   // ground-floor room under the east end (10: teal board-and-batten, white slider window, hose reel, vine)
   groundRoom: { x0: 2.2, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.6 },   // r7b: = the annex footprint (pavers skip it)
-  pavers: { x0: -9.8, x1: 8.6, z0: -12.6, z1: -0.3 },   // r7 (playtest item 3): the carport floor reaches out under the whole deck and both stairs
+  pavers: { x0: -12.6, x1: 8.6, z0: -12.6, z1: -0.3 },   // r7 (playtest item 3): the carport floor reaches out under the whole deck and both stairs
   court: { x0: -3.6, x1: 3.6, z0: -0.3, z1: 3.9 },     // r7: ... and flattens out past the front edge as the hoop court (10)
   // interior (clear spaces at floor level)
   hall: { x0: -0.7, x1: 0.7, z0: -5.6, z1: -3.6 },
@@ -110,12 +114,13 @@ export function terraceY(x, z) {
   return P4.lawnTop * e * l;
 }
 // plants also keep out of the hoop side's apron (10: the secondary drive runs there) and the main drive in front of the corner
-export function plantClear(sx, sz, pad = 0) { if (houseBlock(sx, sz, pad) || inCanal(sx, sz, pad + 0.6)) return true; const [x, z] = StoH(sx, sz); return inR({ x0: -8.5, x1: 11.5, z0: -1.6, z1: 10 }, x, z, pad) || inR({ x0: -9, x1: 1, z0: -14, z1: -1 }, x, z, pad); }
+export function plantClear(sx, sz, pad = 0) { if (houseBlock(sx, sz, pad) || inCanal(sx, sz, pad + 0.6)) return true; const [x, z] = StoH(sx, sz); return inR({ x0: -8.5, x1: 11.5, z0: -1.6, z1: 10 }, x, z, pad) || inR({ x0: -12, x1: 1, z0: -14, z1: -1 }, x, z, pad)
+  || inR({ x0: -19, x1: -4, z0: -3, z1: 9.5 }, x, z, pad); }   // r7d: the low north view from the drive (14) looks over open ground at the west deck
 // true where the house, decks, stairs or the ground room stand (plants, weeds and yard props keep out). S frame.
 export function houseBlock(sx, sz, pad = 0) {
   const P = P4, [x, z] = StoH(sx, sz);
-  return inR({ x0: -8.6, x1: 8.6, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
-    || inR({ x0: -8.8, x1: 0.2, z0: -1.7, z1: -0.1 }, x, z, pad)   // r7b: main stair along the front (two flights, landing, foot platform)
+  return inR({ x0: P.W0 - 0.1, x1: 8.6, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
+    || inR({ x0: P.W0 - 0.3, x1: -2.6, z0: -1.7, z1: -0.1 }, x, z, pad)   // r7b: main stair along the front (two flights, landing, foot platform)
     || inR({ x0: 2.0, x1: 12.2, z0: -10.6, z1: -3.4 }, x, z, pad)          // r7b: the annex
-    || inR({ x0: -9.4, x1: 12.2, z0: -16.8, z1: -12.7 }, x, z, pad);          // r7b: the lower deck and its stair to the lawn
+    || inR({ x0: -9.4, x1: 12.2, z0: -18.3, z1: -11.6 }, x, z, pad);          // r7b: the lower deck and its stair to the lawn
 }

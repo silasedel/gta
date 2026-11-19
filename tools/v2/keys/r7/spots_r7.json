@@ -203,8 +203,8 @@
    1
   ],
   "tod": 11,
-  "fov": 68,
-  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-14.6,1.0,7.4),l=W(-7.2,4.6,-8.8);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=68;cam.updateProjectionMatrix();return true;};",
+  "fov": 74,
+  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-14.2,0.9,5.2),l=W(-6.6,5.2,-8.2);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=74;cam.updateProjectionMatrix();return true;};",
   "ref": "r4/14_MAIN_looking_north_low"
  },
  "s11_drive": {
@@ -268,7 +268,7 @@
   ],
   "tod": 10,
   "fov": 72,
-  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-4.6,5.1,-4.3),l=W(-2.55,4.8,-8.86);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=72;cam.updateProjectionMatrix();return true;};",
+  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-1.4,5.2,-4.3),l=W(-6.4,4.2,-10.0);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=72;cam.updateProjectionMatrix();return true;};",
   "ref": "r4/15_MAIN_living_room_looking_north"
  },
  "s16_kitchen": {
@@ -283,8 +283,8 @@
    1
   ],
   "tod": 10,
-  "fov": 74,
-  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-5.6,6.0,-6.8),l=W(3.0,4.1,-7.6);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=74;cam.updateProjectionMatrix();return true;};",
+  "fov": 78,
+  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-5.4,6.1,-6.4),l=W(3.5,4.0,-6.6);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=78;cam.updateProjectionMatrix();return true;};",
   "ref": "r4/16_MAIN_kitchen_wide_looking_south"
  },
  "s17_water": {
@@ -316,7 +316,7 @@
   ],
   "tod": 10,
   "fov": 70,
-  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-3.1,5.2,-9.9),l=W(1.0,4.0,-19.1);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=70;cam.updateProjectionMatrix();return true;};",
+  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-3.1,5.45,-10.0),l=W(0.6,3.5,-19.1);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=70;cam.updateProjectionMatrix();return true;};",
   "ref": "r4/18_MAIN_view_from_slider_north"
  },
  "s19_gym": {

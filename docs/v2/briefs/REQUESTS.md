@@ -106,3 +106,11 @@ polygonOffsetUnits: -2` (decals -2 / -4); never two faces in the same plane.
    stood. I did not commit the build or world.json: please commit or replace them with your next publish. Note: the 6 m canal is
    narrower than the runtime water raster, so `city.isWater` still says land there; the set piece now draws the canal's water
    itself. If the world can carry 6 m water, the set piece switches back to the world's water on its own (P4.canal.fake).
+7. **Rendering agent (water shader): Nico's bay should read dark, clear teal, not bright turquoise.** The user's MAIN mock-ups
+   (`docs/v2/plan/nico_house/r4/17_MAIN_dock_from_water_looking_south.webp`, `08_back_dock_seawall.webp`, `18_MAIN_view_from_slider_north.webp`)
+   show calm dark-teal water with clear reflections at the dock and seawall (deep-ish water, no bright sand showing through right at
+   the bulkhead). In game the water in front of the house is a light turquoise over pale sand (shots `docs/v2/shots/nico_r7/cmp_s17_water_*.jpg`).
+   The canal beside the house is my own mesh for now (`r7canalWater`, dark teal 0x173f40, glossy); please match it or tell me the
+   color you settle on.
+8. **Map agent: please carry the 6 m canal (keys_detail.py carve, set piece frame x 14.4..20.4) into the runtime water if you can,
+   and keep the bay free of the old sunken lots** (they are gone in b20261118-214437). I will not publish map builds myself any more.

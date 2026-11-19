@@ -54,9 +54,9 @@ export function build(ctx) {
       for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const sw = win.w / 2 + 0.04, [bx, bz] = pt(win.u + s * (win.w / 2 + 0.16 + sw / 2) - s * sw / 2 + s * sw * (k + 0.5) / 3, BT + 0.04); box(DOORP, sw / 3 - 0.004, win.y1 - win.y0 + 0.1, 0.022, bx, (win.y0 + win.y1) / 2, bz, { grain: 1, color: kit.vary(C.shutter, r, 0.06), wear: 0.4 }, 0, ry); } }
     // the purple neon strip over the door (11 / 12): a glowing tube in a small white channel, a lamp in the lamp system at night
     { const [x, z] = pt(door.u, BT + 0.06), NEON = mat.emissive(0x9a5cff, 3.2, 'r7neon');
-      box(PL, 0.62, 0.05, 0.05, x, door.y1 + 0.27, z, { color: 0xdedbd2 }, 0, ry);
-      D.cyl(NEON, 0.012, 0.012, 0.56, M(x, door.y1 + 0.25, z + 0.02, 0, ry, Math.PI / 2), { seg: 10 });
-      const [lx, lz] = pt(door.u, 0.6); const nl = Fr.light({ id: 'r7_neon', pos: [lx, door.y1 + 0.3, lz], color: 0x8a52ff, intensity: 34, range: 6.5, on: false });
+      const [nx2, nz2] = pt(door.u, BT + 0.09); box(PL, 0.5, 0.3, 0.1, nx2, H + 0.3, nz2, { color: 0x2a2a30, bevel: 0.01 }, 0, ry);   // r7d (13): a neon box on the lattice above the door
+      for (const dy of [-0.07, 0, 0.07]) { const [tx2, tz2] = pt(door.u, BT + 0.145); D.cyl(NEON, 0.013, 0.013, 0.4, M(tx2, H + 0.3 + dy, tz2, 0, ry, Math.PI / 2), { seg: 10 }); }
+      const [lx, lz] = pt(door.u, 0.6); const nl = Fr.light({ id: 'r7_neon', pos: [lx, H + 0.2, lz], color: 0x8a52ff, intensity: 34, range: 6.5, on: false });
       ctx.updaters.push((dt, env) => { const t = env?.timeOfDay ?? 12; nl.on = t < 6.4 || t > 18.2; NEON.emissiveIntensity = nl.on ? 3.2 : 0.6; }); }
     // hose reel left of the door, the barrel right of the window, terracotta pots by the stair foot / door
     ctx.async.push(kit.model('garden_hose_wall_mounted_01').then((m) => { if (!m) return; const [x, z] = pt(door.u - 0.95, BT + 0.05); m.position.set(x, 0.85, z); m.rotation.y = ry; Fr.groups.ext.add(m); }));
@@ -110,7 +110,7 @@ export function build(ctx) {
       const bar = (x, y, z, len, ry, plates) => { D.cyl(STEEL, 0.014, 0.014, len, M(x, y, z, 0, ry, Math.PI / 2), { color: 0xb8b8b4, seg: 10 });
         const ux = Math.cos(ry), uz = -Math.sin(ry); for (const sd of [-1, 1]) for (let k = 0; k < plates; k++) plate(x + ux * sd * (len / 2 - 0.12 - k * 0.04), y, z + uz * sd * (len / 2 - 0.12 - k * 0.04), 0.225 - k * 0.03, ry); };
       // patio table + umbrella + chairs (19)
-      { const tx = 10.3, tz = -14.7;
+      { const tx = 10.3, tz = -15.9;
         lathe(B, PL, [[0.001, 0.72], [0.5, 0.72], [0.5, 0.74], [0.001, 0.75]], M(tx, y0, tz), { color: 0x8d9092, seg: 28 }); D.cyl(PL, 0.05, 0.25, 0.72, M(tx, y0 + 0.36, tz), { color: 0x7d8082, seg: 14 });
         box(mat.paint({ peel: 'a', fade: 0, gloss: 0.5 }), 0.21, 0.004, 0.28, tx + 0.15, y0 + 0.752, tz - 0.1, { color: 0xc94b3a, bevel: 0 }, 0, 0.4, 0, D);   // magazine
         D.cyl(STEEL, 0.02, 0.02, 2.3, M(tx, y0 + 1.15, tz), { color: 0xcfccc4, seg: 10 });
@@ -121,20 +121,20 @@ export function build(ctx) {
           for (const [dx, dz] of [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]]) D.cyl(STEEL, 0.012, 0.012, 0.42, M(cx + dx, y0 + 0.21, cz + dz), { color: 0x3a3a38, seg: 6 }); }
         Fr.col.cyl(tx, y0 + 0.4, tz, 0.55, 0.8, { tag: 'furniture' }); }
       // plywood platform with a loose bar on its black mat, bench + rack + loaded bar, plate tree, the green mat with kettlebells
-      box(PLY, 2.2, 0.04, 1.2, 6.4, y0 + 0.02, -14.9, { color: 0xc9a77a, wear: 0.6, bevel: 0.006 }); box(RUBM, 1.0, 0.02, 1.1, 6.4, y0 + 0.05, -14.9, { color: 0x151515, bevel: 0.004 });
-      bar(6.4, y0 + 0.285, -14.9, 2.1, 0, 2);
-      { const bx = 4.4, bz = -15.6; box(PL, 1.15, 0.08, 0.3, bx, y0 + 0.44, bz, { color: 0x1c1c1c, bevel: 0.03 }); for (const dz of [-0.45, 0.45]) box(IRON, 0.05, 0.4, 0.05, bx + dz, y0 + 0.2, bz, { color: 0x2a2a2a });
+      box(PLY, 2.2, 0.04, 1.2, 6.4, y0 + 0.02, -16.3, { color: 0xc9a77a, wear: 0.6, bevel: 0.006 }); box(RUBM, 1.0, 0.02, 1.1, 6.4, y0 + 0.05, -16.3, { color: 0x151515, bevel: 0.004 });
+      bar(6.4, y0 + 0.285, -16.3, 2.1, 0, 2);
+      { const bx = 4.4, bz = -17.0; box(PL, 1.15, 0.08, 0.3, bx, y0 + 0.44, bz, { color: 0x1c1c1c, bevel: 0.03 }); for (const dz of [-0.45, 0.45]) box(IRON, 0.05, 0.4, 0.05, bx + dz, y0 + 0.2, bz, { color: 0x2a2a2a });
         for (const sd of [-1, 1]) { box(IRON, 0.05, 1.25, 0.05, bx + sd * 0.55, y0 + 0.62, bz - 0.4, { color: 0x2a2a2a }); box(IRON, 0.05, 0.05, 0.5, bx + sd * 0.55, y0 + 0.02, bz - 0.2, { color: 0x2a2a2a }); }
         bar(bx, y0 + 1.15, bz - 0.4, 2.0, 0, 3); Fr.col.box(bx, y0 + 0.5, bz - 0.15, 1.3, 1.0, 0.7, { tag: 'furniture' }); }
-      { const px = 8.1, pz = -15.9; D.cyl(IRON, 0.02, 0.02, 0.9, M(px, y0 + 0.45, pz), { color: BLK, seg: 8 }); box(IRON, 0.5, 0.03, 0.5, px, y0 + 0.015, pz, { color: BLK });
+      { const px = 8.1, pz = -17.3; D.cyl(IRON, 0.02, 0.02, 0.9, M(px, y0 + 0.45, pz), { color: BLK, seg: 8 }); box(IRON, 0.5, 0.03, 0.5, px, y0 + 0.015, pz, { color: BLK });
         for (let k = 0; k < 5; k++) plate(px + (k % 2 ? 0.06 : -0.06), y0 + 0.25 + k * 0.13, pz, 0.12 + (k % 3) * 0.04, Math.PI / 2, Math.PI / 2); Fr.col.cyl(px, y0 + 0.45, pz, 0.25, 0.9, { tag: 'prop' }); }
-      box(RUBM, 1.8, 0.012, 0.9, 2.0, y0 + 0.006, -14.6, { color: 0x2f6b3a, bevel: 0.003 });
-      for (const [kx, kz, ks] of [[2.5, -14.4, 1], [2.8, -14.7, 0.8]]) { lathe(D, IRON, [[0.001, 0], [0.09 * ks, 0.01], [0.11 * ks, 0.1 * ks], [0.08 * ks, 0.18 * ks], [0.001, 0.19 * ks]], M(kx, y0 + 0.012, kz), { color: BLK, seg: 14 }); D.geo(IRON, new THREE.TorusGeometry(0.06 * ks, 0.014, 6, 16, Math.PI), M(kx, y0 + 0.012 + 0.19 * ks, kz), { color: BLK }); }
+      box(RUBM, 1.8, 0.012, 0.9, 2.0, y0 + 0.006, -15.6, { color: 0x2f6b3a, bevel: 0.003 });
+      for (const [kx, kz, ks] of [[2.5, -15.4, 1], [2.8, -15.7, 0.8]]) { lathe(D, IRON, [[0.001, 0], [0.09 * ks, 0.01], [0.11 * ks, 0.1 * ks], [0.08 * ks, 0.18 * ks], [0.001, 0.19 * ks]], M(kx, y0 + 0.012, kz), { color: BLK, seg: 14 }); D.geo(IRON, new THREE.TorusGeometry(0.06 * ks, 0.014, 6, 16, Math.PI), M(kx, y0 + 0.012 + 0.19 * ks, kz), { color: BLK }); }
       // black gas grill, red / white cooler, rope coil
-      { const gx = -3.9, gz = -15.7; box(MPt(), 0.55, 0.45, 0.85, gx, y0 + 0.75, gz, { color: 0x1d1d1e, bevel: 0.05 }); box(MPt(), 0.5, 0.55, 0.8, gx, y0 + 0.28, gz, { color: 0x242425, bevel: 0.01 });
+      { const gx = -3.9, gz = -17.2; box(MPt(), 0.55, 0.45, 0.85, gx, y0 + 0.75, gz, { color: 0x1d1d1e, bevel: 0.05 }); box(MPt(), 0.5, 0.55, 0.8, gx, y0 + 0.28, gz, { color: 0x242425, bevel: 0.01 });
         for (const dz of [-0.6, 0.6]) box(MPt(), 0.45, 0.03, 0.32, gx, y0 + 0.9, gz + dz, { color: 0x2c2c2c }); Fr.col.box(gx, y0 + 0.5, gz, 0.6, 1.0, 1.5, { tag: 'prop' }); }
-      box(PL, 0.42, 0.36, 0.62, -2.9, y0 + 0.18, -15.9, { color: 0xb5332a, bevel: 0.03 }); box(PL, 0.44, 0.06, 0.64, -2.9, y0 + 0.39, -15.9, { color: 0xeeeeea, bevel: 0.02 });
-      { const pts = []; for (let k = 0; k < 90; k++) { const t = k / 90, a = t * 6.283 * 5, rr = 0.06 + t * 0.16; pts.push([-1.8 + Math.cos(a) * rr, y0 + 0.015 + (k % 18) * 0.0008, -15.8 + Math.sin(a) * rr]); } D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.012, { seg: 6, color: 0xd9d2b8, steps: 150 }); }
+      box(PL, 0.42, 0.36, 0.62, -2.9, y0 + 0.18, -17.4, { color: 0xb5332a, bevel: 0.03 }); box(PL, 0.44, 0.06, 0.64, -2.9, y0 + 0.39, -17.4, { color: 0xeeeeea, bevel: 0.02 });
+      { const pts = []; for (let k = 0; k < 90; k++) { const t = k / 90, a = t * 6.283 * 5, rr = 0.06 + t * 0.16; pts.push([-1.8 + Math.cos(a) * rr, y0 + 0.015 + (k % 18) * 0.0008, -17.2 + Math.sin(a) * rr]); } D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.012, { seg: 6, color: 0xd9d2b8, steps: 150 }); }
       // the yellow / blue zig-zag towel over the east rail (18 / 19)
       { const ZZ = mat.art('r7towel', 256, 512, (g, w, h) => { g.fillStyle = '#f2c233'; g.fillRect(0, 0, w, h); g.fillStyle = '#2e5fae'; for (let y = 0; y < h; y += 64) { g.beginPath(); for (let x = 0; x <= w; x += 32) g.lineTo(x, y + ((x / 32) % 2 ? 26 : 0)); for (let x = w; x >= 0; x -= 32) g.lineTo(x, y + 18 + ((x / 32) % 2 ? 26 : 0)); g.fill(); } }, { rough: 0.95 });
         const rz = P.lowerDeck.z0 + 0.03; for (const sd of [-1, 1]) box(ZZ, 0.7, 0.62, 0.012, 0.6, dY + 0.72, rz + sd * 0.09, { color: 0xffffff, bevel: 0.004 }); box(ZZ, 0.7, 0.012, 0.19, 0.6, dY + 1.04, rz, { color: 0xffffff, bevel: 0.004 }); }
@@ -157,6 +157,32 @@ export function build(ctx) {
       for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.castShadow = true; m.raycast = () => {}; inner.add(m); }
       inner.updateMatrixWorld(true); const wb = new THREE.Box3().setFromObject(inner); const k = Math.min(1, 5.2 / Math.max(0.1, wb.max.z - wb.min.z)); g.scale.setScalar(k);
       g.position.set(bx - (wb.min.x + wb.max.x) / 2 * k, 0.55 - wb.min.y * k, bz - 0.3 - (wb.min.z + wb.max.z) / 2 * k); Fr.groups.detail.add(g); }).catch(() => {}));
+  }
+  // ---------- r7d (MAIN mock-up 13): the life under the house: lattice over the annex door, a wall lamp, the meter box and conduit,
+  // a green steel drum and a small propane tank left of the door, a small table and pots right of it, string lights along the back
+  // beam, a white downpipe on the near front post, vines up the posts ----------
+  { const xw = A.x0 - 0.03, dz0 = A.z0 + door.u, LTW = mat.paint({ peel: 'a', fade: 0.6, gloss: 0.9 }), yb = (ctx.r4?.beamBot ?? 3.04) - 0.02;
+    for (const [sg] of [[1], [-1]]) for (let k = -8; k < 16; k++) { const c0 = dz0 - 0.9 + k * 0.12, a0 = [c0, H], a1 = [c0 + sg * (yb - H), yb];
+      const zA = Math.max(dz0 - 0.9, Math.min(dz0 + 0.9, a0[0])), zB = Math.max(dz0 - 0.9, Math.min(dz0 + 0.9, a1[0])); if (Math.abs(zB - zA) < 0.05) continue;
+      const yA = H + Math.abs(zA - a0[0]), yB = yb - Math.abs(zB - a1[0]); B.strut(LTW, [xw - (sg > 0 ? 0.01 : 0.025), yA, zA], [xw - (sg > 0 ? 0.01 : 0.025), yB, zB], 0.035, 0.012, { color: 0xe2ddd0, rand: r }); }
+    box(LTW, 0.05, 0.06, 1.9, xw - 0.02, H + 0.03, dz0, { color: 0xe2ddd0 }); box(LTW, 0.05, 0.06, 1.9, xw - 0.02, yb - 0.03, dz0, { color: 0xe2ddd0 });
+    // wall lamp, meter box, conduit
+    lathe(D, mat.metalPaint(), [[0.001, 0], [0.05, 0], [0.06, 0.1], [0.04, 0.16], [0.001, 0.17]], M(xw - 0.08, 1.95, dz0 + 0.62), { color: 0xcfccc4, seg: 14 });
+    box(mat.metalPaint(), 0.14, 0.38, 0.28, xw - 0.07, 1.35, dz0 - 1.15, { color: 0x8e918c, bevel: 0.01 }); D.cyl(STEEL, 0.014, 0.014, yb - 1.55, M(xw - 0.04, (yb + 1.55) / 2, dz0 - 1.15), { color: 0x9a9890, seg: 8 });
+    D.cyl(STEEL, 0.012, 0.012, 1.6, M(xw - 0.04, 1.6, dz0 - 1.35, Math.PI / 2, 0, 0), { color: 0x9a9890, seg: 8 });
+    // green steel drum and a small silver propane tank (left of the door), a small table with pots (right of it)
+    { const gx = xw - 0.45, gz = dz0 - 0.85; D.cyl(mat.metalPaint(), 0.29, 0.29, 0.88, M(gx, 0.5, gz), { color: 0x3d6b45, seg: 24, wear: 0.6 }); for (const yy of [0.32, 0.68]) D.geo(STEEL, new THREE.TorusGeometry(0.295, 0.012, 4, 28), M(gx, yy, gz, Math.PI / 2, 0, 0), { color: 0x2f5536 }); Fr.col.cyl(gx, 0.5, gz, 0.3, 0.9, { tag: 'prop' });
+      const tx2 = xw - 0.35, tz2 = dz0 - 1.45; lathe(D, mat.metalPaint(), [[0.001, 0.06], [0.14, 0.08], [0.15, 0.3], [0.12, 0.42], [0.04, 0.46], [0.001, 0.46]], M(tx2, 0.04, tz2), { color: 0xc9cbcb, seg: 18 }); D.cyl(STEEL, 0.03, 0.03, 0.08, M(tx2, 0.54, tz2), { color: 0x9a9a96, seg: 10 }); Fr.col.cyl(tx2, 0.3, tz2, 0.16, 0.55, { tag: 'prop' });
+      const sx2 = xw - 0.35, sz2 = dz0 + 0.95; box(mat.wood(), 0.4, 0.03, 0.4, sx2, 0.62, sz2, { grain: 0, color: 0x8a6a48, wear: 0.6 }); for (const [dx, dzz] of [[-0.16, -0.16], [0.16, -0.16], [-0.16, 0.16], [0.16, 0.16]]) box(mat.wood(), 0.03, 0.6, 0.03, sx2 + dx, 0.31, sz2 + dzz, { grain: 1, color: 0x7a5c3e }); Fr.col.box(sx2, 0.32, sz2, 0.42, 0.64, 0.42, { tag: 'furniture' }); }
+    // string lights along the back beam under the house (warm bulbs, glowing at night)
+    { const BULB = mat.emissive(0xffd79a, 0.4, 'r7string'), ys = yb - 0.08, zS = (P.BZ0 ?? -11.7) + 0.15, pts = [];
+      for (let i = 0; i <= 40; i++) { const t = i / 40, x = -8.8 + t * 10.6, sag = 0.18 * Math.abs(Math.sin(t * Math.PI * 4)); pts.push([x, ys - sag, zS]); } D.tube(mat.rubber(), pts, 0.004, { seg: 4, color: 0x151515, steps: 120 });
+      for (let i = 1; i < 40; i += 2) { const p = pts[i]; D.geo(BULB, new THREE.SphereGeometry(0.03, 8, 6), M(p[0], p[1] - 0.04, p[2]), {}); }
+      ctx.updaters.push((dt, env) => { const t = env?.timeOfDay ?? 12; BULB.emissiveIntensity = (t < 6.6 || t > 18.3) ? 3.0 : 0.4; }); }
+    // white downpipe on the near front post (2.2, -1.6) and vines up three posts
+    { const WP = mat.plastic(), px = 2.2 - 0.17, pz = -1.6 + 0.1; D.cyl(WP, 0.04, 0.04, yb - 0.4, M(px, (yb + 0.4) / 2, pz), { color: 0xeeeeea, seg: 12 }); D.tube(WP, [[px, 0.42, pz], [px, 0.3, pz], [px - 0.1, 0.16, pz], [px - 0.35, 0.12, pz]], 0.04, { seg: 10, color: 0xeeeeea, steps: 16 }); }
+    { const VINE = mat.plastic(); for (const [vx, vz] of [[2.2, -1.6], [-2.2, -1.6], [2.2, -3.6]]) { const pts = []; for (let i = 0; i <= 40; i++) { const t = i / 40, a = t * 9 + vx; pts.push([vx + Math.cos(a) * 0.15, 0.05 + t * (yb - 0.1), vz + Math.sin(a) * 0.15]); }
+        D.tube(VINE, pts, 0.008, { seg: 4, color: 0x4a5a2a, steps: 90 }); for (let i = 2; i < 40; i += 2) { const p = pts[i]; B.strut(VINE, p, [p[0] + Math.cos(i) * 0.12, p[1] + 0.08, p[2] + Math.sin(i) * 0.12], 0.07, 0.004, { color: kit.vary(0x4f7a32, r, 0.15), rand: r }); } } }
   }
   Fr.anchor('annexDoor', 11.9, 0, A.z1 + 0.8, 0);
   B.build(Fr.groups.ext); D.build(Fr.groups.detail);
