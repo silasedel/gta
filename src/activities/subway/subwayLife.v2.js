@@ -5,7 +5,7 @@
 // Melee works as anywhere: they fight back; beat a crew and you pick up the cash they drop.
 // API (game.subwayLife): { state, crew, hobos, populate(), clear() }. Off with ?subwaylife=0.
 import * as THREE from 'three';
-import { getHub, help, notify, canAct, say, payCash, sfx, loadGLB, fit, shadows, canvasTex } from '../common.js';
+import { getHub, help, notify, canAct, say, payCash, sfx, loadGLB, fit, shadows, canvasTex, castPed, stillOurs } from '../common.js';
 import { createCrew } from '../crew.js';
 import { SUBWAY_CAST } from '../sites.data.js';
 
@@ -28,14 +28,14 @@ export async function initV2(game) {
   const W = (x, z, y = PLAT_Y) => M().root.localToWorld(new THREE.Vector3(x, y, z));
   const faceTrack = () => M().root.rotation.y + Math.PI;
 
-  function spawn(x, z, outfit, style, heading, seed) {
+  function spawn(x, z, outfit, style, heading, seed, any = false) {
     const peds = game.peds; if (!peds?.spawnAt) return null;
     const w = W(x, z);
-    let p = null; try { p = peds.spawnAt(w, { outfit }); } catch (e) { p = null; }
+    const p = castPed(game, w, outfit, 6, any);
     if (!p) return null;
     p.pinned = 1e9; p.v21 = { venue: 'subway', y: w.y }; p.nav = null; p.group = null; p.target = null;
     p.state = 'talk'; p.act = 'talk'; p.stateT = 1e9; p.idleStyle = style; p.heading = heading;
-    p.pos.copy(w); p.groundY = w.y; p.health = 100; p.seed = seed;
+    p.pos.copy(w); p.groundY = w.y; p.health = 100; p.seed = seed; p.floorY = w.y; p.style0 = style;
     if (p.root) { p.root.position.copy(w); p.root.rotation.y = heading; }
     return p;
   }
@@ -55,11 +55,11 @@ export async function initV2(game) {
     for (let i = 0; i < 3; i++) { const b = add(new THREE.SphereGeometry(0.32, 10, 8), bag, s * (66.5 + i * 0.5), 0.26, 15.5 - i * 0.6); b.scale.set(1, 0.85 + Math.random() * 0.3, 1); }
     // burning drum: the user's steel drum (converted GLB) with a fire of crossed flame cards (unlit, flickering)
     const drumAt = W(s * 58, 13.8);
-    loadGLB('assets/models/keys/steel_drum.glb').then((m) => { if (!m || !L.props) return; const d = shadows(fit(m, { height: 0.9 })); d.position.copy(drumAt); g.add(d); });
+    loadGLB('assets/models/keys/steel_drum.glb').then((m) => { if (!m || !L.props) return; const d = shadows(fit(m, { height: 0.9 })); d.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.color?.setHex(0x5a3a26); o.material.roughness = 0.9; } }); d.position.copy(drumAt); g.add(d); });
     fireMat ||= new THREE.MeshBasicMaterial({ map: canvasTex(128, 256, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h * 0.85, 4, w / 2, h * 0.75, h * 0.7); gr.addColorStop(0, 'rgba(255,250,210,1)'); gr.addColorStop(0.25, 'rgba(255,190,60,.95)'); gr.addColorStop(0.6, 'rgba(230,80,20,.5)'); gr.addColorStop(1, 'rgba(120,20,0,0)'); c.fillStyle = gr; c.beginPath(); c.moveTo(w * 0.1, h); c.quadraticCurveTo(w * 0.05, h * 0.4, w * 0.5, 0); c.quadraticCurveTo(w * 0.95, h * 0.4, w * 0.9, h); c.fill(); }), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
     const fire = new THREE.Group(); fire.position.copy(drumAt); fire.position.y += 0.9;
     for (let i = 0; i < 3; i++) { const f = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.85), fireMat); f.position.y = 0.38; f.rotation.y = (i / 3) * Math.PI; fire.add(f); }
-    const glow = new THREE.Mesh(new THREE.CircleGeometry(2.2, 24), new THREE.MeshBasicMaterial({ color: 0xff7a2a, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending }));
+    const glow = new THREE.Mesh(new THREE.CircleGeometry(3, 32), new THREE.MeshBasicMaterial({ map: canvasTex(128, 128, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(255,150,60,1)'); gr.addColorStop(0.4, 'rgba(255,110,40,.35)'); gr.addColorStop(1, 'rgba(255,90,20,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); }), transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
     glow.rotation.x = -Math.PI / 2; glow.position.copy(drumAt); glow.position.y += 0.02;
     g.add(fire, glow); g.userData.fire = fire; g.userData.glow = glow; g.userData.fireAt = drumAt;
     game.scene.add(g);
@@ -67,7 +67,7 @@ export async function initV2(game) {
   }
 
   // ---------------------------------------------------------------- populate one visit
-  function populate() {
+  function populate(o = {}) {
     clear();
     const m = M(); if (!m?.root || m.mode !== 'platform') return;
     const st = m.stations[m.here]; if (!st) return;
@@ -79,24 +79,24 @@ export async function initV2(game) {
     const spots = [
       [end * 63.6, 15.0, 'sitGround', ft + 0.3], [end * 60.6, 15.0, 'lie', ft + Math.PI / 2 * end], [end * 56.5, 12.6, null, ft - 0.6 * end], [end * 59.2, 12.4, 'lean_wall', ft],
     ].slice(0, cast.hobos);
-    spots.forEach(([x, z, style, hd], i) => { const p = spawn(x, z, 'rough', style, hd, 100 + i); if (p) { p.hobo = { style, asked: false, kind: style === null ? 'ask' : 'mutter' }; L.hobos.push(p); } });
-    if (Math.random() < cast.crew) {
+    // spawn one person per few frames (casting retries are not free); the one who asks for change first
+    spots.sort((a, b) => (a[2] === null ? -1 : 0) - (b[2] === null ? -1 : 0));
+    L.jobs = spots.map(([x, z, style, hd], i) => () => { const p = spawn(x, z, 'rough', style, hd, 100 + i, style === null); if (p) { p.hobo = { style, asked: false, kind: style === null ? 'ask' : 'mutter' }; L.hobos.push(p); } });
+    if (o.crew ?? Math.random() < cast.crew) {
       const n = 2 + (Math.random() < 0.6 ? 1 : 0);
       const cx = -end * 58, cz = 9.5;
       for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2 + 0.4, x = cx + Math.cos(a) * 1.1, z = cz + Math.sin(a) * 1.1;
-        const p = spawn(x, z, 'gang', i === 0 ? 'talk' : (i === 1 ? 'cross_arms' : null), Math.atan2(cx - x, cz - z) + M().root.rotation.y, 200 + i);
-        if (p) L.crewPeds.push(p);
+        L.jobs.push(() => { const p = spawn(x, z, 'gang', i === 0 ? 'talk' : (i === 1 ? 'cross_arms' : null), Math.atan2(cx - x, cz - z) + M().root.rotation.y, 200 + i, i === 0); if (p) L.crewPeds.push(p); });
       }
-      if (L.crewPeds.length) {
-        L.crew = createCrew(game, { peds: L.crewPeds, name: 'Platform crew', knife: cast.knife, noticeR: 11, onEnd: (o) => { game.emit?.('activity:end', { id: 'subwayCrew', outcome: o }); } });
-      }
+      L.jobs.push(() => { if (L.crewPeds.length) L.crew = createCrew(game, { peds: L.crewPeds, name: 'Platform crew', knife: cast.knife, noticeR: 11, onEnd: (o) => { game.emit?.('activity:end', { id: 'subwayCrew', outcome: o }); } }); });
     }
+    L.jobT = 0;
     game.emit?.('activity:start', { id: 'subwayLife', station: st.id, hobos: L.hobos.length, crew: L.crewPeds.length });
   }
   function clear() {
-    for (const p of [...L.hobos, ...L.crewPeds]) { if (!p?.active) continue; p.pinned = 0; p.v21 = null; p.despawnNow = true; }
-    L.hobos = []; L.crewPeds = []; L.crew = null; L.pushy = null;
+    for (const p of [...L.hobos, ...L.crewPeds]) { if (!stillOurs(p)) continue; p.pinned = 0; p.v21 = null; p.despawnNow = true; }
+    L.hobos = []; L.crewPeds = []; L.crew = null; L.pushy = null; L.jobs = [];
     if (L.props) { game.scene.remove(L.props); L.props = null; }
     help(game, 'subway', null); help(game, 'crew', null);
     L.state = 'off';
@@ -150,7 +150,15 @@ export async function initV2(game) {
       else if (prev === 'platform') clear();
     } else if (mode === 'platform' && L.state === 'on' && m.here !== L.here) populate();
     if (L.state !== 'on') return;
-    if (L.props) { const f = L.props.userData.fire, t = performance.now() / 1000; f.scale.set(1 + Math.sin(t * 13) * 0.08, 0.9 + Math.sin(t * 9.3) * 0.15 + Math.sin(t * 21) * 0.05, 1); f.rotation.y += dt * 0.7; L.props.userData.glow.material.opacity = 0.13 + Math.sin(t * 11) * 0.03 + Math.random() * 0.02; }
+    if (L.jobs?.length && (L.jobT -= dt) <= 0) { L.jobT = 0.12; try { L.jobs.shift()(); } catch (e) { console.warn('[subwayLife] spawn', e); } }
+    if (L.props) { const f = L.props.userData.fire, t = performance.now() / 1000; f.scale.set(1 + Math.sin(t * 13) * 0.08, 0.9 + Math.sin(t * 9.3) * 0.15 + Math.sin(t * 21) * 0.05, 1); f.rotation.y += dt * 0.7; L.props.userData.glow.material.opacity = 0.42 + Math.sin(t * 11) * 0.08 + Math.random() * 0.06; }
+    // drop people the crowd took back (pool recycling), keep everyone on the platform floor and in their pose
+    L.hobos = L.hobos.filter(stillOurs); L.crewPeds = L.crewPeds.filter((p) => stillOurs(p) || (p.active && p.dead));   // (the crowd code resets idle styles of 'talk' people)
+    for (const p of [...L.hobos, ...L.crewPeds]) {
+      if (!p.active) continue;
+      if (Math.abs(p.pos.y - p.floorY) > 0.01) { p.pos.y = p.floorY; if (p.root) p.root.position.y = p.floorY; try { const t = p.body?.translation(); if (t && Math.abs(t.y - p.floorY - 0.9) > 0.3) p.body.setTranslation({ x: p.pos.x, y: p.floorY + 0.9, z: p.pos.z }, true); } catch (e) { /* */ } }
+      if (p.state === 'talk' && p.style0 !== undefined && (!p.hobo || p.hobo.kind === 'mutter' || (p.hobo.kind === 'ask' && !p.hobo.asked)) && !(L.crew && L.crew.state !== 'idle' && L.crewPeds.includes(p))) p.idleStyle = p.style0;
+    }
     hoboTick(dt);
     L.crew?.tick(dt);
   });

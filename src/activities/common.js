@@ -202,3 +202,31 @@ export function findShore(game, x, z, o = {}) {
   const { wet, dx, dz } = best;
   return { shore: { x: x + dx * (wet - 1), z: z + dz * (wet - 1) }, out: { x: dx, z: dz }, wet, heading: Math.atan2(-dx, -dz), depth };
 }
+
+// ---------------------------------------------------------------- casting: a ped of the right kind of person
+// The crowd's casting fills 'gang' / 'rough' from whoever fits the area when the few real gang members / the homeless man
+// are already used nearby: retry a few times and keep only people who look the part (rejects vanish at once).
+const NOT_STREET = /manager|mail_carrier|delivery|vendor|jogger|surfer|farmer|ranger|hunter|guide|business|tourist|police|swat|detective|kid|lifeguard|nurse|paramedic|chef|maid|valet|bartender|server|office|student|beachgoer|swimmer/;
+const ACCEPT = {
+  gang: (m) => m.role === 'gang' || (m.g === 'm' && !NOT_STREET.test(m.role) && !/retiree/.test(m.role) && (m.years ?? 30) < 45),
+  rough: (m) => m.role === 'homeless' || (m.g === 'm' && !NOT_STREET.test(m.role) && (m.years ?? 40) > 24),
+  security: (m) => m.g === 'm' && /security|bouncer|bodybuilder|police|gang|worker|construction/.test(m.role),
+};
+export function castPed(game, pos, outfit, tries = 5, any = false) {
+  const ok = ACCEPT[outfit] || (() => true);
+  let last = null;
+  for (let i = 0; i < tries; i++) {
+    let p = null; try { p = game.peds?.spawnAt?.(pos, { outfit }); } catch (e) { p = null; }
+    if (!p) return last;
+    const m = p.char?.personMeta;
+    if (!m || ok(m)) { if (last) { last.despawnNow = true; if (last.root) last.root.visible = false; } p._actChar = tok(p); return p; }
+    if (last) { last.despawnNow = true; if (last.root) last.root.visible = false; }
+    last = p; p.pinned = 0.5;
+  }
+  if (last && any) { last._actChar = tok(last); return last; }
+  if (last) { last.despawnNow = true; if (last.root) last.root.visible = false; }
+  return null;
+}
+/** is this ped still the one castPed gave us (the crowd recycles peds when its pool runs dry)? */
+export const stillOurs = (p) => !!(p && p.active && !p.dead && p._actChar && tok(p) === p._actChar);
+function tok(p) { return p.identity || p.look || p.applied || p.char; }

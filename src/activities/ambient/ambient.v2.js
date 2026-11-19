@@ -8,7 +8,7 @@
 //     if you hang around, and fight as a group (src/activities/crew.js).
 // API (game.ambientLife): { stats(), performers, crews, hobos }. Off with ?ambient=0 (parts: ?ambient=perf,fish,hobo,gang).
 import * as THREE from 'three';
-import { getHub, help, canAct, say, payCash, sfx, findShore, local, groundY, loadGLB, fit, shadows, canvasTex, notify } from '../common.js';
+import { getHub, help, canAct, say, payCash, sfx, findShore, local, groundY, loadGLB, fit, shadows, canvasTex, notify, castPed, stillOurs } from '../common.js';
 import { createCrew } from '../crew.js';
 import { AMBIENT_PERFORMERS, AMBIENT_FISHING, HOBO_DISTRICTS, GANG_DISTRICTS } from '../sites.data.js';
 
@@ -141,13 +141,13 @@ export async function initV2(game) {
   let scanT = 0, gangCd = 0;
   const lean = (x, z, r) => { try { return city.leanSpotsNear?.(x, z, r) || []; } catch (e) { return []; } };
   const spawnPed = (pos, outfit, style, heading) => {
-    let p = null; try { p = game.peds?.spawnAt?.(new THREE.Vector3(pos.x, pos.y ?? groundY(game, pos.x, pos.z), pos.z), { outfit }); } catch (e) { p = null; }
+    const p = castPed(game, new THREE.Vector3(pos.x, pos.y ?? groundY(game, pos.x, pos.z), pos.z), outfit);
     if (!p) return null;
-    p.pinned = 1e9; p.v21 = { ambient: true }; p.nav = null; p.group = null; p.state = 'talk'; p.act = 'talk'; p.stateT = 1e9; p.idleStyle = style; p.heading = heading;
+    p.pinned = 1e9; p.v21 = { ambient: true }; p.nav = null; p.group = null; p.state = 'talk'; p.act = 'talk'; p.stateT = 1e9; p.idleStyle = style; p.style0 = style; p.heading = heading;
     if (p.root) { p.root.position.copy(p.pos); p.root.rotation.y = heading; }
     return p;
   };
-  const freeP = (p) => { if (p?.active) { p.pinned = 0; p.v21 = null; if (p.state === 'talk') { p.state = 'walk'; p.act = 'walk'; p.idleStyle = null; } } };
+  const freeP = (p) => { if (stillOurs(p)) { p.pinned = 0; p.v21 = null; if (p.state === 'talk') { p.state = 'walk'; p.act = 'walk'; p.idleStyle = null; } } };
   let cardMat = null;
   function hoboSpawn() {
     const pp = P(); const spots = lean(pp.x, pp.z, 90).filter((s) => { const d = Math.hypot(s.pos.x - pp.x, s.pos.z - pp.z); return d > 35 && !A.hobos.some((h) => Math.hypot(h.p.pos.x - s.pos.x, h.p.pos.z - s.pos.z) < 40); });
@@ -182,7 +182,7 @@ export async function initV2(game) {
       const dist = (() => { try { return city.districtAt(pp.x, pp.z) || ''; } catch (e) { return ''; } })();
       const indoor = game.player.state?.indoor || game.metro?.mode && game.metro.mode !== 'street';
       // retire far ones
-      for (const h of A.hobos.slice()) if (!h.p.active || Math.hypot(h.p.pos.x - pp.x, h.p.pos.z - pp.z) > 160) { freeP(h.p); game.scene.remove(h.card); A.hobos.splice(A.hobos.indexOf(h), 1); }
+      for (const h of A.hobos.slice()) if (!stillOurs(h.p) || Math.hypot(h.p.pos.x - pp.x, h.p.pos.z - pp.z) > 160) { freeP(h.p); game.scene.remove(h.card); A.hobos.splice(A.hobos.indexOf(h), 1); }
       for (const c of A.crews.slice()) if (Math.hypot(c.at.x - pp.x, c.at.z - pp.z) > 200 || c.crew.state === 'done' && Math.hypot(c.at.x - pp.x, c.at.z - pp.z) > 60) { c.crew.release(); A.crews.splice(A.crews.indexOf(c), 1); }
       if (!indoor && !game.player.state?.inVehicle) {
         if (on('hobo') && HOBO_RE.test(dist) && A.hobos.length < 3) hoboSpawn();
@@ -202,7 +202,8 @@ export async function initV2(game) {
       help(game, 'hobo', 'Press <b>E</b> to give him $5');
       if (game.input.pressed('KeyE')) { ask.done = true; help(game, 'hobo', null); if (payCash(game, 5, { to: 'A man on the street', memo: 'Spare change', category: 'gift', accepts: ['cash'] })) { say(game, 'Hobo', 'Bless you, man. Bless you.', 2200, '#c9b38a'); game.stats?.add?.('charity', 5); } else say(game, 'Hobo', 'Broke too, huh? I feel you.', 2200, '#c9b38a'); }
     } else help(game, 'hobo', null);
-    for (const c of A.crews) c.crew.tick(dt);
+    for (const c of A.crews) { for (const p of c.peds) if (p.active && p.state === 'talk' && c.crew.state === 'idle') p.idleStyle = p.style0; c.crew.tick(dt); }
+    for (const h of A.hobos) if (h.p.active && h.p.state === 'talk' && !h.asked) h.p.idleStyle = h.p.style0;
     void sfx; void local; void canvasTex;
   });
   H.api('ambientLife', { stats: () => ({ performers: A.performers.filter((p) => p.root).length, fishers: A.fishers.filter((f) => f.root).length, hobos: A.hobos.length, crews: A.crews.length }), performers: A.performers, crews: A.crews, hobos: A.hobos });

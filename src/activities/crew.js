@@ -3,7 +3,7 @@
 //   const c = createCrew(game, { peds, lines, knife: 0..1, mug: true, name, onEnd(outcome) })
 //   c.tick(dt) each frame while active; c.release() when the area is dropped; c.state: 'idle' | 'watch' | 'mug' | 'fight' | 'done'
 // Outcomes: 'paid' (you handed over cash), 'beaten' (all of them down: they drop cash), 'fled' (you got away), 'calm'.
-import { help, notify, canAct, say, earnCash, sfx, fmt } from './common.js';
+import { help, notify, canAct, say, earnCash, sfx, fmt, stillOurs } from './common.js';
 import { keepFighting, pedOut, release } from '../jobs/kit.js';
 
 const DEF_LINES = {
@@ -22,7 +22,7 @@ export function createCrew(game, o) {
   const pick = (a) => a[(Math.random() * a.length) | 0];
   const C = { state: 'idle', t: 0, peds, near: 0, knifeT: 0 };
   const P = () => game.player.position;
-  const alive = () => peds.filter((p) => !pedOut(p) && p.state !== 'down' && p.state !== 'gettingUp' && !p.rag);
+  const alive = () => peds.filter((p) => !pedOut(p) && (!p._actChar || stillOurs(p)) && p.state !== 'down' && p.state !== 'gettingUp' && !p.rag);
   const leader = () => alive()[0] || null;
   const d2 = (p) => Math.hypot(p.pos.x - P().x, p.pos.z - P().z);
   const face = (p, dt) => { const a = Math.atan2(P().x - p.pos.x, P().z - p.pos.z); let da = a - p.heading; da = Math.atan2(Math.sin(da), Math.cos(da)); p.heading += da * Math.min(1, dt * 4); if (p.root) p.root.rotation.y = p.heading; };

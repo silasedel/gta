@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { buildYacht } from '../../vehicles/yachts/buildYacht.js';
 import { PARTY_YACHT, MD, FLY } from './partyYacht.def.js';
-import { getHub, blip, help, notify, canAct, getPanelSafe, say, earnCash, payCash, pill, sfx, findShore, local, groundY, fmt, canvasTex } from '../common.js';
+import { getHub, blip, help, notify, canAct, getPanelSafe, say, earnCash, payCash, pill, sfx, findShore, local, groundY, fmt, canvasTex, castPed } from '../common.js';
 import { standMats } from '../jetski/stand.js';
 import { keepFighting, pedOut } from '../../jobs/kit.js';
 import { YACHT_PARTY } from '../sites.data.js';
@@ -189,7 +189,7 @@ export async function initV2(game) {
   }
   function pedAt(lx, ly, lz, heading, outfit, worldPos) {
     const w = worldPos || Y.toW(lx, ly, lz);
-    let p = null; try { p = game.peds?.spawnAt?.(w, { outfit }); } catch (e) { p = null; }
+    const p = castPed(game, w, outfit);
     if (!p) return null;
     p.pinned = 1e9; p.v21 = { venue: 'yacht', y: w.y }; p.nav = null; p.group = null; p.state = 'talk'; p.act = 'talk'; p.stateT = 1e9;
     p.idleStyle = 'cross_arms'; p.heading = heading; p.pos.copy(w); p.groundY = w.y; p.health = 140; p.tough = true;
@@ -303,6 +303,7 @@ export async function initV2(game) {
     if (Y.refusedT > 0) Y.refusedT -= dt;
     if (Y.bannedT > 0 && (Y.bannedT -= dt) <= 0 && Y.status === 'banned') Y.status = 'outside';
     lightsTick(dt); musicTick();
+    for (const p of [Y.peds.bouncer, Y.peds.guard]) if (p?.active && p.home) { if (Math.abs(p.pos.y - p.home.y) > 0.01) { p.pos.y = p.home.y; if (p.root) p.root.position.y = p.home.y; } if (p.state === 'talk') p.idleStyle = 'cross_arms'; }
     // staged people: small life (turn the drinkers now and then, someone says a line when you pass)
     const now = performance.now() / 1000;
     for (const h of Y.guests) if (h.root.position.distanceTo(P()) < 2.2 && (!h.saidT || now - h.saidT > 25) && Y.status !== 'outside' && !Y.spotted && h !== Y.barman && h.home.pose !== 'lie') { h.saidT = now; if (Math.random() < 0.5) say(game, GUEST, GUEST_LINES[(Math.random() * GUEST_LINES.length) | 0], 2600, '#ff5fa8'); }
