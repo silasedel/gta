@@ -10,6 +10,7 @@
 import { R4, P4, inR } from '../r4/plan4.js';
 import { frame } from '../r4/frame.js';
 import { makeGeo } from '../r4/geo.js';
+import { glb } from '../r4/glb.js';
 import { POLES, SERVICE_POLE } from '../yard.data.js';
 import { toS, StoH } from '../r4/plan4.js';
 export const order = 10;
@@ -452,6 +453,9 @@ export function build(ctx) {
     for (const sd of [-1, 1]) Db.strut(STEEL, [sd * Rd * 0.72, Rd * Rd * 0.52 / 1.5 - 0.02, -Rd * 0.69], [lnb[0] + sd * 0.02, lnb[1] - 0.05, lnb[2]], 0.01, 0.01, { color: 0xb2b0a8 });   // two stays
     Db.box(PLAST, 0.075, 0.1, 0.075, M(lnb[0], lnb[1], lnb[2]), { color: 0x2b2b2b, bevel: 0.012 }); Db.cyl(PLAST, 0.032, 0.026, 0.07, M(lnb[0], lnb[1] - 0.07, lnb[2] + 0.02, 0.3, 0, 0), { color: 0xd9d6cc, seg: 12 });   // LNB body + feed horn
     Db.build(dish); Fr.groups.ext.add(dish);
+    // r7e: the user's satellite dish download (home-tv-satellite-dish, decimated, sun-chalked), on the mast's top in place of the code dish
+    glb(kit, 'sat_dish.glb', { pos: [px + 0.05, y1 - 0.62, pz], ry: Math.atan2(aim.x, aim.z) - Math.PI / 2, mat: (m) => { m.color.lerp(new THREE.Color(0xcfccc0), 0.5); m.roughness = Math.max(0.6, m.roughness ?? 0.6); } })
+      .then((g) => { if (!g) return; Fr.groups.ext.add(g); dish.visible = false; });
     { const lw = new V3(...lnb).applyMatrix4(dish.matrix), bk = new V3(0, -0.14, 0).applyMatrix4(dish.matrix);   // coax: LNB -> back of the dish -> down the mast -> under the deck
       D.tube(RUB, [[lw.x, lw.y, lw.z], [(lw.x + bk.x) / 2, Math.min(lw.y, bk.y) - 0.16, (lw.z + bk.z) / 2], [bk.x, bk.y - 0.03, bk.z], [px + 0.03, y1 - 0.45, pz + 0.01], [px + 0.032, F + 0.1, pz + 0.012], [px + 0.035, y0 + 0.02, pz + 0.01], [px + 0.2, y0 - 0.03, pz - 0.15]], 0.006, { seg: 5, color: 0x151515, steps: 60 }); }
     Fr.col.box(px, F + 0.8, pz, 0.1, 1.9, 0.1, { tag: 'pole' }); }

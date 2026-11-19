@@ -24,7 +24,9 @@ export const CAR_SPOTS = [
 // r7 (playtest Nov 18 eve, item 6; mock-up r4/01 roof view): the house is square to the street again, so the drive runs STRAIGHT out of
 // the front of the house to the STOP corner (lot frame S: x ~ -5.8 .. -4.1 from the end of Pelican Point Ln at z ~ 28 to the pickup at z ~ 7.5),
 // then bends under the front deck to the carport. Same yard frame G as everything here (converted from S with r4/plan4.js toG).
-export const DRIVE = { main: [[-25.56, 20.35], [-19.44, 14.28], [-15.03, 10.16], [-11.03, 6.36]], branch: [[-11.03, 6.36], [-7.78, 4.02], [-4.03, 2.78]], halfWidth: 2.2 };
+export const DRIVE = { main: [[-25.56, 20.35], [-19.44, 14.28], [-15.03, 10.16], [-11.03, 6.36]], branch: [[-11.03, 6.36], [-7.78, 4.02], [-4.03, 2.78]], halfWidth: 2.2,
+  // r7e (MAIN mock-up 14): a second track curves off by the pickup, round a grassy island and in under the big west deck
+  loop: [[-11.52, 6.92], [-14.39, 4.27], [-16.36, 0.15], [-15.19, -3.61], [-12.37, -5.0], [-9.43, -4.41]], island: { x: -12.73, z: -0.65, r: 2.1 } };
 
 // ---- white lattice planter box between the deck and the drive (bougainvillea grows out of it, part 50) ----
 // [ax, az, bx, bz] runs; height of the lattice, depth of the box
@@ -37,6 +39,7 @@ export const BINS = [
   { x: -12.85, z: 12.75, piece: 'trashcan_blue', h: 2.7, tint: [1.0, 1.0, 1.05] },   // by the planter (mock-up: two blue carts, a galvanized can in front)
   { x: -12.95, z: 13.5, piece: 'trashcan_blue', h: 2.45, tint: [0.88, 0.92, 1.0] },
   { x: -12.25, z: 11.75, can: 'galv', h: 0 },
+  { x: -11.38, z: -0.67, can: 'galv', h: 0 },   // r7e: the silver can on the island's edge (14)
   { x: -18.05, z: 9.45, piece: 'trashcan_blue', h: 2.3, tint: [0.95, 0.95, 1.0] },   // the pair beyond the classic's hood
   { x: -18.5, z: 8.85, piece: 'trashcan_blue', h: 2.6, tint: [0.9, 0.93, 1.02] },
 ];
@@ -76,6 +79,7 @@ export const ROCKS = [
   [-13.86, 3.21, 2, 0.22, 0.4, 0.04], [-15.25, 5.18, 5, 0.18, 2.1, 0.03], [-17.07, 6.78, 1, 0.2, 1.2, 0.04], [-18.78, 8.47, 6, 0.2, 4.0, 0.04],
   [-20.09, 10.51, 3, 0.19, 0.9, 0.04], [-21.62, 12.36, 4, 0.21, 2.8, 0.04], [-23.48, 13.92, 2, 0.18, 5.0, 0.03], [-25.05, 15.74, 5, 0.22, 1.6, 0.04],
   [-10.35, 10.28, 6, 0.16, 0.3, 0.03], [-12.34, 12.78, 3, 0.17, 2.2, 0.03],
+  [-11.41, 1.17, 2, 0.2, 0.5, 0.04], [-13.15, 1.09, 5, 0.17, 1.9, 0.03], [-14.65, -0.51, 1, 0.21, 3.1, 0.04], [-14.6, -1.98, 6, 0.18, 4.4, 0.04], [-13.01, -2.61, 3, 0.2, 5.2, 0.04], [-10.93, -1.07, 4, 0.16, 0.9, 0.03],   // r7e: round the grassy island (14)
   [-9.8, 26.6, 3, 0.26, 2.6, 0.05], [-6.0, 27.2, 4, 0.3, 0.9, 0.06], [-3.0, 27.6, 2, 0.24, 5.1, 0.04], [1.0, 27.6, 5, 0.26, 3.3, 0.05], [5.5, 27.6, 1, 0.22, 0.2, 0.04], [8.5, 27.3, 6, 0.28, 1.7, 0.05],   // frontage on the east leg
   [-25.2, 3.5, 3, 0.25, 1.0, 0.05], [-25.0, 8.6, 4, 0.22, 2.0, 0.04],   // west verge
   [-6.5, 15.0, 3, 0.16, 1.0, 0.03], [-3.0, 19.5, 6, 0.17, 0.5, 0.03], [-15.0, 2.0, 2, 0.2, 3.9, 0.04],
@@ -104,6 +108,7 @@ export const TRACKS = [   // polylines of the left / right tire, width 0.3 (soft
   { pts: [[-11.23, 6.58], [-7.78, 4.02], [-4.6, 2.9]], gauge: 1.6 },
 ];
 export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed shell / marl dust) | 'matted' | 'leaves']
+  [-12.73, -0.65, 2.0, 1.0, 'matted'], [-13.4, 0.2, 1.4, 0.95, 'matted'], [-12.0, -1.5, 1.3, 0.95, 'matted'],   // r7e: the grassy island (14)
   // (no 'shell' patches: the yard sheet itself is the pale shell floor; decal rims on it read as patch edges, user review shot_27)
   // matted, sun-dried grass: the verge by the roll-off, under the classic, the strip between the drive and the deck, the front
   [-21.0, 15.5, 3.0, 0.8, 'matted'], [-15.0, 3.5, 3.2, 0.75, 'matted'], [-11.0, 4.0, 2.4, 0.7, 'matted'], [-14.0, 11.2, 1.6, 0.7, 'matted'], [-8.5, 13.0, 2.6, 0.6, 'matted'],

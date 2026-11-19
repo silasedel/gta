@@ -12,6 +12,7 @@ import { R4, P4 } from '../r4/plan4.js';
 import { frame } from '../r4/frame.js';
 import { makeGeo } from '../r4/geo.js';
 import { loadKeysModels } from '../models.js';
+import { glb } from '../r4/glb.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 export const order = 70;
 
@@ -115,13 +116,19 @@ export function build(ctx) {
     box(GREEN, xb - xa, 0.72, 0.32, (xa + xb) / 2, F + 1.86, z0 + 0.16, { color: kit.mul(green(), 0.8), wear: 0.2 });
     for (let i = 0; i < n; i++) { const xm = xa + (xb - xa) * (i + 0.5) / n; box(GREEN, (xb - xa) / n - 0.012, 0.68, 0.02, xm, F + 1.86, z0 + 0.33, { color: green(), wear: 0.25 }); knob(xm + ((i % 2) ? -1 : 1) * ((xb - xa) / n * 0.35), F + 1.62, z0 + 0.344, 0); } }
   // old white fridge (top freezer), against the back room wall, facing west into the kitchen (07)
-  { const fx = KT.x1 - 0.42, fz = z0 + 0.5, FR = im.plasticGloss(), H = 1.68, Wd = 0.76, Dd = 0.7, fc = 0xe8e4d6;
+  { const fx = KT.x1 - 0.42, fz = z0 + 0.5, FR = im.plasticGloss(), H = 1.68, Wd = 0.76, Dd = 0.7, fc = 0xe8e4d6, FB = kit.batch('r7fridgeCode'), FG = new THREE.Group();
+    const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => FB.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
     box(FR, Dd, H, Wd, fx, F + 0.02 + H / 2, fz, { color: kit.mul(fc, 0.96), bevel: 0.035 });
     box(FR, 0.04, H * 0.3 - 0.02, Wd - 0.03, fx - Dd / 2 - 0.02, F + H - H * 0.15 + 0.01, fz, { color: fc, bevel: 0.015 }); box(FR, 0.04, H * 0.68 - 0.02, Wd - 0.03, fx - Dd / 2 - 0.02, F + 0.03 + H * 0.34, fz, { color: fc, bevel: 0.015 });
     for (const [y0, y1] of [[F + H * 0.75, F + H * 0.95], [F + H * 0.42, F + H * 0.66]]) box(CHROME, 0.04, y1 - y0, 0.03, fx - Dd / 2 - 0.06, (y0 + y1) / 2, fz + Wd / 2 - 0.08, { color: 0xbab6ac, bevel: 0.01 });
     const MAG = im.plastic(); for (let k = 0; k < 9; k++) { const yy = F + 0.9 + r() * 0.75, zz = fz - 0.3 + r() * 0.5, c = [0xc23b2e, 0x2f6fb0, 0xe5c13a, 0x2c8a4a, 0xf2f0ea][k % 5];
       if (k < 4) box(im.matte(), 0.004, 0.1 + r() * 0.06, 0.08 + r() * 0.04, fx - Dd / 2 - 0.045, yy, zz, { color: 0xf3efe0, bevel: 0 }, 0, 0, (r() - 0.5) * 0.2);
       box(MAG, 0.012, 0.03, 0.04, fx - Dd / 2 - 0.05, yy + 0.05, zz, { color: c, bevel: 0.004 }); }
+    FB.build(FG); Fr.groups.int.add(FG);
+    // r7e: the user's fridge download (house-props-fridge, right style but too new) aged into Nico's old cream top-freezer: yellowed
+    // enamel, duller, its own magnets and notes kept; the code-built fridge above stays only until it loads
+    glb(kit, 'fridge_old.glb', { interior: true, pos: [fx, F + 0.02, fz], ry: Math.PI, mat: (m) => { const c = m.color, l = (c.r + c.g + c.b) / 3; if (l > 0.6) { c.setRGB(0.9, 0.85, 0.72); m.roughness = 0.55; m.metalness = 0; } } })
+      .then((g) => { if (!g) return; Fr.groups.int.add(g); FG.visible = false; });
     Fr.col.box(fx, F + H / 2, fz, Dd, H, Wd, { tag: 'furniture' }); }
   // peninsula from the back wall at x = KT.x0 + 0.35, stools on the living side, conical pendant (07)
   const penX = KT.x0 + 0.3, penZ0 = z0 + 0.62, penZ1 = -7.55;
@@ -223,6 +230,10 @@ export function build(ctx) {
         for (let k = 1; k < 14; k++) { const t = k / 14 * L, l = Math.sin(k / 14 * Math.PI) * (22 + q() * 10); g.strokeStyle = c; g.lineWidth = 4 + q() * 2;
           for (const s of [-1, 1]) { g.beginPath(); g.moveTo(t, 0); g.quadraticCurveTo(t + 6, s * l * 0.5, t + 12, s * l); g.stroke(); } } g.restore(); } }, { rough: 0.95 });
     CUSH.userData.uvScale = 0.6;
+    // r7e: THE sofa is the user's woven rattan sofa download: its bamboo / rattan darkened to old honey-brown, its plain white cushions
+    // re-covered with the palm-leaf print painted here (mock-up 15), a striped pillow added; the code-built sofa below stands in
+    // only until the model has loaded
+    const SB = kit.batch('r7sofaCode'), SG = new THREE.Group(); { const I = SB, box = (m, sx2, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => SB.box(m, sx2, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
     for (const dz of [-SL / 2, SL / 2]) { I.tube(CANE, [[sx + 0.4, F, szc + dz], [sx + 0.42, F + 0.55, szc + dz], [sx + 0.1, F + 0.62, szc + dz], [sx - 0.3, F + 0.6, szc + dz], [sx - 0.34, F + 0.9, szc + dz]], 0.028, { seg: 10, color: cane, steps: 30 });
       I.tube(CANE, [[sx - 0.35, F, szc + dz], [sx - 0.36, F + 0.85, szc + dz]], 0.025, { seg: 10, color: cane, steps: 8 }); }
     for (const [ya, xa] of [[F + 0.32, 0.41], [F + 0.12, 0.41]]) I.tube(CANE, [[sx + xa, ya, szc - SL / 2], [sx + xa, ya, szc + SL / 2]], 0.02, { seg: 8, color: cane, steps: 6 });
@@ -231,6 +242,13 @@ export function build(ctx) {
     // r7d (15): a THREE-seat rattan sofa: three seat and three back cushions in the palm-leaf print, rolled cane arms, a striped pillow
     for (const dz of [-SL / 3, 0, SL / 3]) { box(CUSH, 0.7, 0.14, SL / 3 - 0.025, sx + 0.05, F + 0.43, szc + dz, { color: 0xffffff, bevel: 0.05 }); box(CUSH, 0.17, 0.5, SL / 3 - 0.035, sx - 0.24, F + 0.72, szc + dz, { color: 0xf0f0f0, bevel: 0.06 }, 0, 0, 0.12); }
     for (const sd of [-1, 1]) { const pts = []; for (let i = 0; i <= 16; i++) { const t = i / 16; pts.push([sx + 0.42 - t * 0.8, F + 0.6 + Math.sin(t * Math.PI) * 0.06, szc + sd * (SL / 2 + 0.02)]); } I.tube(CANE, pts, 0.04, { seg: 10, color: cane, steps: 24 }); }
+    }
+    SB.build(SG, { cast: false }); LG.add(SG);
+    glb(kit, 'rattan_sofa.glb', { interior: true, pos: [sx + 0.02, F, szc], ry: Math.PI / 2, mat: (m, n) => { const nm = (m.name || '') + (n.name || '');
+        if (/fabric/i.test(nm)) { m.map = CUSH.map; m.color.setRGB(1, 1, 1); m.roughness = 0.95; m.needsUpdate = true; }
+        else if (/wood|rattan/i.test(nm)) { m.color.setRGB(0.55, 0.42, 0.3); m.roughness = Math.max(0.6, m.roughness ?? 0.6); }
+        else if (/metal/i.test(nm)) { m.color.setRGB(0.3, 0.27, 0.22); } } })
+      .then((g) => { if (!g) return; LG.add(g); SG.visible = false; });
     { const STR = im.art('r7stripe', 128, 128, (g, w, h) => { for (let x = 0; x < w; x += 16) { g.fillStyle = (x / 16) % 2 ? '#d8cfb4' : '#7c8a6a'; g.fillRect(x, 0, 16, h); } }, { rough: 0.95 });
       box(STR, 0.14, 0.4, 0.44, sx - 0.12, F + 0.7, szc + SL / 2 - 0.35, { color: 0xffffff, bevel: 0.06 }, 0, 0.2, 0.25); }
     Fr.col.box(sx, F + 0.42, szc, 0.85, 0.84, SL, { tag: 'furniture' });

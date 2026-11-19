@@ -2,7 +2,7 @@
 # from the shipped maps. Never runs scripts from the download (blender -Y).
 #   blender -b -Y --python-exit-code 1 --python convert_prop.py -- <model> <out.glb> key=value ...
 #   keys: base= rough= metal= normal= (texture paths), len=<target longest horizontal size m, 0 = keep (cm/mm sources are auto-scaled)>,
-#         hk=<height multiplier>, h=<target height m>, keepmat=<material name to keep>, zcut=<drop faces above this source z>, rx=<degrees about X first (a source lying flat)>, rough_inv=1 (the 'rough' map is a gloss / reflection map)
+#         hk=<height multiplier>, h=<target height m>, keepmat=<material name to keep>, keepobj= / dropobj=<regex>, keepx= / maxx=<object center x range>, rz=<deg about up>, dec=<decimate ratio>, zcut=<drop faces above this source z>, rx=<degrees about X first (a source lying flat)>, rough_inv=1 (the 'rough' map is a gloss / reflection map)
 import bpy, sys, os, mathutils
 a = sys.argv[sys.argv.index('--') + 1:]
 src, out = a[0], a[1]; kv = dict(x.split('=', 1) for x in a[2:])
@@ -10,11 +10,21 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 ext = os.path.splitext(src)[1].lower()
 if ext == '.fbx': bpy.ops.import_scene.fbx(filepath=src)
 elif ext == '.obj': bpy.ops.wm.obj_import(filepath=src)
+elif ext == '.blend':
+    with bpy.data.libraries.load(src) as (fa, fb): fb.objects = fa.objects
+    for ob in fb.objects:
+        if ob: bpy.context.scene.collection.objects.link(ob)
 else: bpy.ops.import_scene.gltf(filepath=src)
+import re as _re
+for ob in [o for o in bpy.context.scene.objects if o.type == 'MESH']:   # keepobj= / dropobj= (regex on object names), keepx= (bbox center x >= value)
+    c = sum((ob.matrix_world @ mathutils.Vector(v) for v in ob.bound_box), mathutils.Vector()) / 8
+    if (kv.get('keepobj') and not _re.search(kv['keepobj'], ob.name)) or (kv.get('dropobj') and _re.search(kv['dropobj'], ob.name)) or ('keepx' in kv and c.x < float(kv['keepx'])) or ('maxx' in kv and c.x > float(kv['maxx'])):
+        bpy.data.objects.remove(ob, do_unlink=True)
 obs = [o for o in bpy.context.scene.objects if o.type == 'MESH']
 bpy.ops.object.select_all(action='DESELECT')
 for o in obs: o.select_set(True)
 bpy.context.view_layer.objects.active = obs[0]
+bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')   # parents' transforms (FBX unit scales) baked in before the join
 if len(obs) > 1: bpy.ops.object.join()
 o = bpy.context.view_layer.objects.active
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
@@ -26,6 +36,9 @@ if kv.get('keepmat'):   # keep only the faces of this material (one part of a mu
 if kv.get('zcut'):   # drop every face whose center is above this source height (e.g. a lamp's own shade, keep its stand)
     zc = float(kv['zcut']); bm = bmesh.new(); bm.from_mesh(o.data); bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.calc_center_median().z > zc], context='FACES')
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS'); bm.to_mesh(o.data); bm.free(); o.data.update()
+if float(kv.get('rz', 0)): o.data.transform(mathutils.Matrix.Rotation(math.radians(float(kv['rz'])), 4, 'Z')); o.data.update()
+if float(kv.get('dec', 0)):
+    md = o.modifiers.new('dec', 'DECIMATE'); md.ratio = float(kv['dec']); bpy.ops.object.modifier_apply(modifier=md.name)
 if float(kv.get('rx', 0)): o.data.transform(mathutils.Matrix.Rotation(math.radians(float(kv['rx'])), 4, 'X')); o.data.update()
 vs = [v.co for v in o.data.vertices]
 mn = mathutils.Vector((min(v.x for v in vs), min(v.y for v in vs), min(v.z for v in vs))); mx = mathutils.Vector((max(v.x for v in vs), max(v.y for v in vs), max(v.z for v in vs)))

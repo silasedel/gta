@@ -7,6 +7,7 @@ import { R4, P4 } from '../r4/plan4.js';
 import { frame } from '../r4/frame.js';
 import { makeGeo } from '../r4/geo.js';
 import { loadKeysModels } from '../models.js';
+import { glb } from '../r4/glb.js';
 export const order = 12;
 
 export function build(ctx) {
@@ -106,38 +107,49 @@ export function build(ctx) {
     // a gray / yellow umbrella, a flat bench with a rack and a loaded bar, a loose bar on a black rubber mat, a plate tree, a plywood
     // lifting platform, the green mat with kettlebells, a black gas grill, a red / white cooler, a rope coil, the zig-zag towel on the rail
     { const IRON = mat.metalPaint(), RUBM = mat.rubber(), PLY = mat.pbr('plywood', { rep: 1.0, grunge: true }), BLK = 0x1b1b1c, y0 = dY;
-      const plate = (x, y, z, r2, ry = 0, rz = Math.PI / 2) => { D.cyl(IRON, r2, r2, 0.035, M(x, y, z, 0, ry, rz), { color: BLK, seg: 20 }); };
+      // r7e (the user's downloads, adapted): real iron plates (weight-lifting-plates: the 45 lb plate, scaled per size), the user's weight
+      // bench with its rack (frame repainted black, pad black vinyl), the gas grill (bbq-grills, the cart grill only, aged), the gray
+      // plastic patio set (dirty-plastic-chairs-tables: the table stretched to 1.4 m, four chairs, sun-faded gray), the yoga mats
+      // (yoga-mats-psx: one teal by the weights, one gray flat), the cooler, the rope coil
+      const DG = Fr.groups.detail, aging = (k = 0.85) => (m) => { m.color?.multiplyScalar(k); m.roughness = Math.max(0.55, m.roughness ?? 0.6); };
+      const plate = (x, y, z, r2, ry = 0, rz = Math.PI / 2) => { const s = r2 / 0.225; glb(kit, 'plate_45.glb', { parent: DG, pos: [x, y, z], scale: [s, 1.2, s], mat: (m) => { m.color.setRGB(0.16, 0.16, 0.17); m.metalness = 0.6; m.roughness = 0.55; } }).then((g) => { if (!g) return; g.rotation.set(0, ry, rz, 'YXZ'); g.position.y -= 0; }); };
       const bar = (x, y, z, len, ry, plates) => { D.cyl(STEEL, 0.014, 0.014, len, M(x, y, z, 0, ry, Math.PI / 2), { color: 0xb8b8b4, seg: 10 });
-        const ux = Math.cos(ry), uz = -Math.sin(ry); for (const sd of [-1, 1]) for (let k = 0; k < plates; k++) plate(x + ux * sd * (len / 2 - 0.12 - k * 0.04), y, z + uz * sd * (len / 2 - 0.12 - k * 0.04), 0.225 - k * 0.03, ry); };
+        const ux = Math.cos(ry), uz = -Math.sin(ry); for (const sd of [-1, 1]) for (let k = 0; k < plates; k++) plate(x + ux * sd * (len / 2 - 0.14 - k * 0.045), y, z + uz * sd * (len / 2 - 0.14 - k * 0.045), 0.225 - k * 0.03, ry); };
       // patio table + umbrella + chairs (19)
-      { const tx = 10.3, tz = -15.9;
-        lathe(B, PL, [[0.001, 0.72], [0.5, 0.72], [0.5, 0.74], [0.001, 0.75]], M(tx, y0, tz), { color: 0x8d9092, seg: 28 }); D.cyl(PL, 0.05, 0.25, 0.72, M(tx, y0 + 0.36, tz), { color: 0x7d8082, seg: 14 });
-        box(mat.paint({ peel: 'a', fade: 0, gloss: 0.5 }), 0.21, 0.004, 0.28, tx + 0.15, y0 + 0.752, tz - 0.1, { color: 0xc94b3a, bevel: 0 }, 0, 0.4, 0, D);   // magazine
+      { const tx = 10.3, tz = -15.9, GRAY = (m) => { m.color.setRGB(0.6, 0.61, 0.6); m.roughness = 0.75; m.metalness = 0; m.map = null; m.needsUpdate = true; };
+        glb(kit, 'plastic_table.glb', { parent: DG, pos: [tx, y0, tz], scale: [1.5, 1, 1.0], mat: GRAY });
+        box(mat.paint({ peel: 'a', fade: 0, gloss: 0.5 }), 0.21, 0.004, 0.28, tx + 0.15, y0 + 0.725, tz - 0.1, { color: 0xc94b3a, bevel: 0 }, 0, 0.4, 0, D);   // magazine
         D.cyl(STEEL, 0.02, 0.02, 2.3, M(tx, y0 + 1.15, tz), { color: 0xcfccc4, seg: 10 });
         lathe(B, mat.fabric('cotton_jersey', { rep: 0.4 }), [[0.001, 0.42], [0.5, 0.3], [1.05, 0.08], [1.12, 0.0], [1.1, -0.06], [1.02, 0.05], [0.45, 0.24], [0.001, 0.36]], M(tx, y0 + 2.0, tz), { color: 0x9c9d98, seg: 8, wear: 0.3 });
         lathe(B, mat.fabric('cotton_jersey', { rep: 0.4 }), [[1.1, -0.065], [1.13, -0.06], [1.13, -0.16], [1.11, -0.16]], M(tx, y0 + 2.0, tz), { color: 0xe3b62a, seg: 8 });   // yellow valance
-        for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + 0.4, cx = tx + Math.cos(a) * 0.82, cz = tz + Math.sin(a) * 0.82, ry = -a + Math.PI / 2;
-          box(mat.pbr('tatami_mat', { rep: 0.3 }), 0.46, 0.06, 0.46, cx, y0 + 0.44, cz, { color: 0x6b5035, bevel: 0.02 }, 0, ry); box(mat.pbr('tatami_mat', { rep: 0.3 }), 0.46, 0.46, 0.05, cx + Math.cos(a) * 0.22, y0 + 0.7, cz + Math.sin(a) * 0.22, { color: 0x6b5035, bevel: 0.02 }, -0.12, ry);
-          for (const [dx, dz] of [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]]) D.cyl(STEEL, 0.012, 0.012, 0.42, M(cx + dx, y0 + 0.21, cz + dz), { color: 0x3a3a38, seg: 6 }); }
-        Fr.col.cyl(tx, y0 + 0.4, tz, 0.55, 0.8, { tag: 'furniture' }); }
-      // plywood platform with a loose bar on its black mat, bench + rack + loaded bar, plate tree, the green mat with kettlebells
+        for (const [dx, dz, ry] of [[-0.95, -0.15, Math.PI / 2], [0.95, 0.1, -Math.PI / 2], [-0.3, 0.75, Math.PI + 0.1], [0.35, -0.75, 0.05]]) glb(kit, 'plastic_chair.glb', { parent: DG, pos: [tx + dx, y0, tz + dz], ry, mat: GRAY });
+        Fr.col.box(tx, y0 + 0.4, tz, 1.4, 0.8, 0.9, { tag: 'furniture' }); }
+      // plywood platform with a loose bar on its black mat, the user's bench with its loaded rack, the plate tree, mats, kettlebells
       box(PLY, 2.2, 0.04, 1.2, 6.4, y0 + 0.02, -16.3, { color: 0xc9a77a, wear: 0.6, bevel: 0.006 }); box(RUBM, 1.0, 0.02, 1.1, 6.4, y0 + 0.05, -16.3, { color: 0x151515, bevel: 0.004 });
       bar(6.4, y0 + 0.285, -16.3, 2.1, 0, 2);
-      { const bx = 4.4, bz = -17.0; box(PL, 1.15, 0.08, 0.3, bx, y0 + 0.44, bz, { color: 0x1c1c1c, bevel: 0.03 }); for (const dz of [-0.45, 0.45]) box(IRON, 0.05, 0.4, 0.05, bx + dz, y0 + 0.2, bz, { color: 0x2a2a2a });
-        for (const sd of [-1, 1]) { box(IRON, 0.05, 1.25, 0.05, bx + sd * 0.55, y0 + 0.62, bz - 0.4, { color: 0x2a2a2a }); box(IRON, 0.05, 0.05, 0.5, bx + sd * 0.55, y0 + 0.02, bz - 0.2, { color: 0x2a2a2a }); }
-        bar(bx, y0 + 1.15, bz - 0.4, 2.0, 0, 3); Fr.col.box(bx, y0 + 0.5, bz - 0.15, 1.3, 1.0, 0.7, { tag: 'furniture' }); }
+      { const bx = 4.4, bz = -17.0;
+        glb(kit, 'weight_bench.glb', { parent: DG, pos: [bx, y0, bz], ry: Math.PI, mat: (m, n) => { const c = m.color, l = (c.r + c.g + c.b) / 3; m.map = null; if (l > 0.55) { c.setRGB(0.2, 0.2, 0.21); m.metalness = 0.6; m.roughness = 0.45; } else { c.setRGB(0.05, 0.05, 0.055); m.metalness = 0; m.roughness = 0.6; } m.needsUpdate = true; void n; } });
+        Fr.col.box(bx, y0 + 0.5, bz, 1.6, 1.0, 1.2, { tag: 'furniture' }); }
       { const px = 8.1, pz = -17.3; D.cyl(IRON, 0.02, 0.02, 0.9, M(px, y0 + 0.45, pz), { color: BLK, seg: 8 }); box(IRON, 0.5, 0.03, 0.5, px, y0 + 0.015, pz, { color: BLK });
         for (let k = 0; k < 5; k++) plate(px + (k % 2 ? 0.06 : -0.06), y0 + 0.25 + k * 0.13, pz, 0.12 + (k % 3) * 0.04, Math.PI / 2, Math.PI / 2); Fr.col.cyl(px, y0 + 0.45, pz, 0.25, 0.9, { tag: 'prop' }); }
-      box(RUBM, 1.8, 0.012, 0.9, 2.0, y0 + 0.006, -15.6, { color: 0x2f6b3a, bevel: 0.003 });
+      glb(kit, 'yoga_mat.glb', { parent: DG, pos: [2.2, y0 + 0.004, -15.6], ry: Math.PI / 2, mat: (m) => { m.color.setRGB(0.12, 0.5, 0.46); m.roughness = 0.85; m.map = null; m.needsUpdate = true; } });   // teal, by the weights (19)
+      glb(kit, 'yoga_mat.glb', { parent: DG, pos: [0.3, y0 + 0.004, -16.9], ry: 0.15, mat: (m) => { m.color.setRGB(0.42, 0.44, 0.45); m.roughness = 0.85; m.map = null; m.needsUpdate = true; } });   // one more lying flat
       for (const [kx, kz, ks] of [[2.5, -15.4, 1], [2.8, -15.7, 0.8]]) { lathe(D, IRON, [[0.001, 0], [0.09 * ks, 0.01], [0.11 * ks, 0.1 * ks], [0.08 * ks, 0.18 * ks], [0.001, 0.19 * ks]], M(kx, y0 + 0.012, kz), { color: BLK, seg: 14 }); D.geo(IRON, new THREE.TorusGeometry(0.06 * ks, 0.014, 6, 16, Math.PI), M(kx, y0 + 0.012 + 0.19 * ks, kz), { color: BLK }); }
-      // black gas grill, red / white cooler, rope coil
-      { const gx = -3.9, gz = -17.2; box(MPt(), 0.55, 0.45, 0.85, gx, y0 + 0.75, gz, { color: 0x1d1d1e, bevel: 0.05 }); box(MPt(), 0.5, 0.55, 0.8, gx, y0 + 0.28, gz, { color: 0x242425, bevel: 0.01 });
-        for (const dz of [-0.6, 0.6]) box(MPt(), 0.45, 0.03, 0.32, gx, y0 + 0.9, gz + dz, { color: 0x2c2c2c }); Fr.col.box(gx, y0 + 0.5, gz, 0.6, 1.0, 1.5, { tag: 'prop' }); }
+      // the gas grill (aged), red / white cooler, rope coil
+      { const gx = -3.9, gz = -17.2; glb(kit, 'gas_grill.glb', { parent: DG, pos: [gx, y0, gz], ry: 0, mat: aging(0.8) }); Fr.col.box(gx, y0 + 0.5, gz, 1.05, 1.0, 0.62, { tag: 'prop' }); }
       box(PL, 0.42, 0.36, 0.62, -2.9, y0 + 0.18, -17.4, { color: 0xb5332a, bevel: 0.03 }); box(PL, 0.44, 0.06, 0.64, -2.9, y0 + 0.39, -17.4, { color: 0xeeeeea, bevel: 0.02 });
       { const pts = []; for (let k = 0; k < 90; k++) { const t = k / 90, a = t * 6.283 * 5, rr = 0.06 + t * 0.16; pts.push([-1.8 + Math.cos(a) * rr, y0 + 0.015 + (k % 18) * 0.0008, -17.2 + Math.sin(a) * rr]); } D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.012, { seg: 6, color: 0xd9d2b8, steps: 150 }); }
-      // the yellow / blue zig-zag towel over the east rail (18 / 19)
-      { const ZZ = mat.art('r7towel', 256, 512, (g, w, h) => { g.fillStyle = '#f2c233'; g.fillRect(0, 0, w, h); g.fillStyle = '#2e5fae'; for (let y = 0; y < h; y += 64) { g.beginPath(); for (let x = 0; x <= w; x += 32) g.lineTo(x, y + ((x / 32) % 2 ? 26 : 0)); for (let x = w; x >= 0; x -= 32) g.lineTo(x, y + 18 + ((x / 32) % 2 ? 26 : 0)); g.fill(); } }, { rough: 0.95 });
-        const rz = P.lowerDeck.z0 + 0.03; for (const sd of [-1, 1]) box(ZZ, 0.7, 0.62, 0.012, 0.6, dY + 0.72, rz + sd * 0.09, { color: 0xffffff, bevel: 0.004 }); box(ZZ, 0.7, 0.012, 0.19, 0.6, dY + 1.04, rz, { color: 0xffffff, bevel: 0.004 }); }
+      // the yellow / blue zig-zag beach towel draped over the back rail (18 / 19): a real cloth sheet over the cap rail, down both sides,
+      // folds along its length, a fringe edge, terry relief (the towel download's normal map), my zig-zag print
+      { const ZZ = mat.art('r7towel', 256, 512, (g, w, h) => { g.fillStyle = '#f2c233'; g.fillRect(0, 0, w, h); g.fillStyle = '#2e5fae'; for (let y = 0; y < h; y += 64) { g.beginPath(); for (let x = 0; x <= w; x += 32) g.lineTo(x, y + ((x / 32) % 2 ? 26 : 0)); for (let x = w; x >= 0; x -= 32) g.lineTo(x, y + 18 + ((x / 32) % 2 ? 26 : 0)); g.fill(); } g.fillStyle = 'rgba(255,255,255,0.9)'; g.fillRect(0, 0, w, 10); g.fillRect(0, h - 10, w, 10); }, { rough: 0.98 });
+        const TM = new THREE.MeshStandardMaterial({ map: ZZ.map, roughness: 1, metalness: 0, side: THREE.DoubleSide }); TM.name = 'r7towel:cloth';
+        new THREE.TextureLoader().load((import.meta.env?.BASE_URL ?? '/') + 'assets/models/keys/tex/towel_terry_normal.jpg', (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 4); TM.normalMap = t; TM.normalScale.set(1.2, 1.2); TM.needsUpdate = true; });
+        const W2 = 0.72, Lt = 1.5, nu = 18, nv = 48, g = new THREE.PlaneGeometry(W2, Lt, nu, nv), pa = g.attributes.position, rz = P.lowerDeck.z0 + 0.03, yTop = dY + 1.06, R2 = 0.08;
+        for (let i = 0; i < pa.count; i++) { const u = pa.getX(i), v = pa.getY(i) + Lt / 2, a = (v - 0.62) / R2;   // v: 0 .. Lt along the towel; 0.62 hangs on the water side, the rest on the deck side
+          let y, z; if (a < 0) { y = yTop - (0.62 - v); z = rz - R2; } else if (a < Math.PI) { y = yTop + Math.sin(a) * R2 * 0.6; z = rz - Math.cos(a) * R2; } else { y = yTop - (v - 0.62 - Math.PI * R2); z = rz + R2; }
+          const fold = Math.sin(u * 17 + v * 2.1) * 0.012 * Math.min(1, Math.abs(yTop - y) * 2) + Math.sin(u * 7.3) * 0.006, flare = Math.max(0, yTop - y - 0.35) * 0.05 * Math.sign(z - rz);
+          pa.setXYZ(i, 0.6 + u * (1 + Math.max(0, yTop - y - 0.3) * 0.04), y, z + fold * Math.sign(z - rz || 1) + flare); }
+        g.computeVertexNormals(); const tw = new THREE.Mesh(g, TM); tw.name = 'r7_towel'; tw.castShadow = true; tw.receiveShadow = true; tw.raycast = () => {}; Fr.groups.detail.add(tw); }
     }
   }
   // ---------- the fluorescent tube light in the carport under the house (11) ----------
@@ -168,22 +180,38 @@ export function build(ctx) {
     box(LTW, 0.05, 0.06, 1.9, xw - 0.02, H + 0.03, dz0, { color: 0xe2ddd0 }); box(LTW, 0.05, 0.06, 1.9, xw - 0.02, yb - 0.03, dz0, { color: 0xe2ddd0 });
     // wall lamp, meter box, conduit
     lathe(D, mat.metalPaint(), [[0.001, 0], [0.05, 0], [0.06, 0.1], [0.04, 0.16], [0.001, 0.17]], M(xw - 0.08, 1.95, dz0 + 0.62), { color: 0xcfccc4, seg: 14 });
-    box(mat.metalPaint(), 0.14, 0.38, 0.28, xw - 0.07, 1.35, dz0 - 1.15, { color: 0x8e918c, bevel: 0.01 }); D.cyl(STEEL, 0.014, 0.014, yb - 1.55, M(xw - 0.04, (yb + 1.55) / 2, dz0 - 1.15), { color: 0x9a9890, seg: 8 });
+    // r7e: the user's meter download (electric-meter-with-fuse-boxes), cut down to its size here, on the wall left of the door, conduit up to the beam
+    glb(kit, 'meter_boxes.glb', { parent: Fr.groups.detail, pos: [xw - 0.07, 0.75, dz0 - 1.3], ry: -Math.PI / 2, scale: 0.8, mat: (m) => { m.roughness = Math.max(0.6, m.roughness ?? 0.6); m.color.multiplyScalar(0.85); } });
+    D.cyl(STEEL, 0.014, 0.014, yb - 1.55, M(xw - 0.04, (yb + 1.55) / 2, dz0 - 1.15), { color: 0x9a9890, seg: 8 });
     D.cyl(STEEL, 0.012, 0.012, 1.6, M(xw - 0.04, 1.6, dz0 - 1.35, Math.PI / 2, 0, 0), { color: 0x9a9890, seg: 8 });
     // green steel drum and a small silver propane tank (left of the door), a small table with pots (right of it)
-    { const gx = xw - 0.45, gz = dz0 - 0.85; D.cyl(mat.metalPaint(), 0.29, 0.29, 0.88, M(gx, 0.5, gz), { color: 0x3d6b45, seg: 24, wear: 0.6 }); for (const yy of [0.32, 0.68]) D.geo(STEEL, new THREE.TorusGeometry(0.295, 0.012, 4, 28), M(gx, yy, gz, Math.PI / 2, 0, 0), { color: 0x2f5536 }); Fr.col.cyl(gx, 0.5, gz, 0.3, 0.9, { tag: 'prop' });
-      const tx2 = xw - 0.35, tz2 = dz0 - 1.45; lathe(D, mat.metalPaint(), [[0.001, 0.06], [0.14, 0.08], [0.15, 0.3], [0.12, 0.42], [0.04, 0.46], [0.001, 0.46]], M(tx2, 0.04, tz2), { color: 0xc9cbcb, seg: 18 }); D.cyl(STEEL, 0.03, 0.03, 0.08, M(tx2, 0.54, tz2), { color: 0x9a9a96, seg: 10 }); Fr.col.cyl(tx2, 0.3, tz2, 0.16, 0.55, { tag: 'prop' });
+    { const gx = xw - 0.45, gz = dz0 - 0.85;   // r7e: the user's steel drum painted green (worn), their small propane tank
+      glb(kit, 'steel_drum.glb', { parent: Fr.groups.detail, pos: [gx, 0.06, gz], mat: (m) => { m.color.setRGB(0.22, 0.4, 0.25); m.metalness = 0.5; m.roughness = 0.6; } }); Fr.col.cyl(gx, 0.5, gz, 0.27, 0.9, { tag: 'prop' });
+      const tx2 = xw - 0.35, tz2 = dz0 - 1.45; glb(kit, 'propane_small.glb', { parent: Fr.groups.detail, pos: [tx2, 0.06, tz2], mat: (m) => { m.metalness = 0.4; m.roughness = 0.5; } }); Fr.col.cyl(tx2, 0.3, tz2, 0.18, 0.55, { tag: 'prop' });
       const sx2 = xw - 0.35, sz2 = dz0 + 0.95; box(mat.wood(), 0.4, 0.03, 0.4, sx2, 0.62, sz2, { grain: 0, color: 0x8a6a48, wear: 0.6 }); for (const [dx, dzz] of [[-0.16, -0.16], [0.16, -0.16], [-0.16, 0.16], [0.16, 0.16]]) box(mat.wood(), 0.03, 0.6, 0.03, sx2 + dx, 0.31, sz2 + dzz, { grain: 1, color: 0x7a5c3e }); Fr.col.box(sx2, 0.32, sz2, 0.42, 0.64, 0.42, { tag: 'furniture' }); }
     // string lights along the back beam under the house (warm bulbs, glowing at night)
-    { const BULB = mat.emissive(0xffd79a, 0.4, 'r7string'), ys = yb - 0.08, zS = (P.BZ0 ?? -11.7) + 0.15, pts = [];
-      for (let i = 0; i <= 40; i++) { const t = i / 40, x = -8.8 + t * 10.6, sag = 0.18 * Math.abs(Math.sin(t * Math.PI * 4)); pts.push([x, ys - sag, zS]); } D.tube(mat.rubber(), pts, 0.004, { seg: 4, color: 0x151515, steps: 120 });
-      for (let i = 1; i < 40; i += 2) { const p = pts[i]; D.geo(BULB, new THREE.SphereGeometry(0.03, 8, 6), M(p[0], p[1] - 0.04, p[2]), {}); }
-      ctx.updaters.push((dt, env) => { const t = env?.timeOfDay ?? 12; BULB.emissiveIntensity = (t < 6.6 || t > 18.3) ? 3.0 : 0.4; }); }
+    { // r7e: proper string lights: black cord sagging between cup hooks on the beam, a socket and a clear glass bulb with a warm glowing
+      // filament every 0.5 m (glass: transparent, the filament glows strongly at night, faintly by day)
+      const FIL = mat.emissive(0xffc477, 0.3, 'r7filament'), GL2 = new THREE.MeshPhysicalMaterial({ color: 0xfff6e8, roughness: 0.05, metalness: 0, transmission: 0.0, transparent: true, opacity: 0.28, depthWrite: false }); GL2.name = 'r7bulbGlass';
+      const ys = yb - 0.04, zS = (P.BZ0 ?? -11.7) + 0.15, x0s = -8.8, x1s = 1.8, hooks = 6, pts = [];
+      for (let i = 0; i <= 80; i++) { const t = i / 80, x = x0s + t * (x1s - x0s), seg = t * hooks, f = seg - Math.floor(seg); pts.push([x, ys - 0.22 * 4 * f * (1 - f), zS]); }
+      D.tube(mat.rubber(), pts, 0.004, { seg: 4, color: 0x111111, steps: 160 });
+      for (let h = 0; h <= hooks; h++) { const x = x0s + h / hooks * (x1s - x0s); D.tube(STEEL, [[x, ys + 0.035, zS], [x, ys - 0.005, zS], [x + 0.02, ys - 0.02, zS]], 0.003, { seg: 4, color: 0x8a8a86, steps: 6 }); }
+      const glassG = new THREE.SphereGeometry(0.028, 12, 9), bulbs = [];
+      for (let i = 3; i < 80; i += 4) { const p = pts[i]; D.cyl(mat.plastic(), 0.011, 0.011, 0.035, M(p[0], p[1] - 0.02, p[2]), { color: 0x151515, seg: 8 }); D.cyl(FIL, 0.003, 0.003, 0.025, M(p[0], p[1] - 0.065, p[2]), { seg: 4 }); bulbs.push([p[0], p[1] - 0.065, p[2]]); }
+      const gm = new THREE.InstancedMesh(glassG, GL2, bulbs.length); bulbs.forEach((b, k) => gm.setMatrixAt(k, M(b[0], b[1], b[2]))); gm.name = 'r7_string_glass'; gm.raycast = () => {}; gm.renderOrder = 8; Fr.groups.detail.add(gm);
+      const sl = Fr.light({ id: 'r7_string', pos: [(x0s + x1s) / 2, ys - 0.25, zS + 0.3], color: 0xffc98a, intensity: 18, range: 9, on: false });
+      ctx.updaters.push((dt, env) => { const t = env?.timeOfDay ?? 12, on = t < 6.6 || t > 18.3; FIL.emissiveIntensity = on ? 9.0 : 0.3; sl.on = on; }); }
     // white downpipe on the near front post (2.2, -1.6) and vines up three posts
     { const WP = mat.plastic(), px = 2.2 - 0.17, pz = -1.6 + 0.1; D.cyl(WP, 0.04, 0.04, yb - 0.4, M(px, (yb + 0.4) / 2, pz), { color: 0xeeeeea, seg: 12 }); D.tube(WP, [[px, 0.42, pz], [px, 0.3, pz], [px - 0.1, 0.16, pz], [px - 0.35, 0.12, pz]], 0.04, { seg: 10, color: 0xeeeeea, steps: 16 }); }
     { const VINE = mat.plastic(); for (const [vx, vz] of [[2.2, -1.6], [-2.2, -1.6], [2.2, -3.6]]) { const pts = []; for (let i = 0; i <= 40; i++) { const t = i / 40, a = t * 9 + vx; pts.push([vx + Math.cos(a) * 0.15, 0.05 + t * (yb - 0.1), vz + Math.sin(a) * 0.15]); }
         D.tube(VINE, pts, 0.008, { seg: 4, color: 0x4a5a2a, steps: 90 }); for (let i = 2; i < 40; i += 2) { const p = pts[i]; B.strut(VINE, p, [p[0] + Math.cos(i) * 0.12, p[1] + 0.08, p[2] + Math.sin(i) * 0.12], 0.07, 0.004, { color: kit.vary(0x4f7a32, r, 0.15), rand: r }); } } }
   }
+  // r7e (MAIN mock-up 14): the tall bunch-grass clump with purple flowers on the grassy island in the drive's curve
+  { const gx = -10.6, gz = 2.9, gy = (ctx.yardY ? ctx.yardY(...Fr.toG(gx, gz)) : 0), GR = mat.plastic(), FL = mat.plastic(), q = kit.rng(1414);
+    for (let k = 0; k < 70; k++) { const a = q() * 6.283, d = Math.sqrt(q()) * 0.35, h = 0.6 + q() * 0.7, lean = 0.15 + q() * 0.35, bx = gx + Math.cos(a) * d, bz = gz + Math.sin(a) * d;
+      B.strut(GR, [bx, gy, bz], [bx + Math.cos(a) * lean * h, gy + h, bz + Math.sin(a) * lean * h], 0.018, 0.003, { color: kit.vary(k % 5 ? 0x6f8a3a : 0x9a9a52, q, 0.12), rand: q });
+      if (k % 4 === 0) D.geo(FL, new THREE.SphereGeometry(0.03, 6, 5), M(bx + Math.cos(a) * lean * h, gy + h + 0.02, bz + Math.sin(a) * lean * h), { color: kit.vary(0x8e4fb5, q, 0.1) }); } }
   Fr.anchor('annexDoor', 11.9, 0, A.z1 + 0.8, 0);
   B.build(Fr.groups.ext); D.build(Fr.groups.detail);
   for (const g of [Fr.groups.ext, Fr.groups.detail]) g.traverse((o) => { const m = o.material; if (!m || m.userData?.r4matte || m.transparent) return; m.userData.r4matte = true; m.envMapIntensity = Math.min(m.envMapIntensity ?? 1, m.metalness > 0.5 ? 0.6 : 0.35); });

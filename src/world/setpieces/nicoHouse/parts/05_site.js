@@ -37,7 +37,7 @@ export function build(ctx) {
   const roadD = (x, z) => { const fx = Math.max(0, Math.min(RG.nx - 1.001, x - x0)), fz = Math.max(0, Math.min(RG.nz - 1.001, z - z0)), i = fx | 0, j = fz | 0, u = fx - i, v = fz - j, A = RG.a, n = RG.nx;
     return (A[j * n + i] * (1 - u) + A[j * n + i + 1] * u) * (1 - v) + (A[(j + 1) * n + i] * (1 - u) + A[(j + 1) * n + i + 1] * u) * v; };
   const segD = (x, z, pts) => { let best = 1e9; for (let i = 0; i < pts.length - 1; i++) { const [ax, az] = pts[i], [bx, bz] = pts[i + 1], dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t)); } return best; };
-  const driveD = (x, z) => Math.min(segD(x, z, DRIVE.main), segD(x, z, DRIVE.branch) + 0.4);
+  const driveD = (x, z) => Math.min(segD(x, z, DRIVE.main), segD(x, z, DRIVE.branch) + 0.4, DRIVE.loop ? segD(x, z, DRIVE.loop) + 0.9 : 1e9);   // r7e: + the loop round the island (a little narrower)
   ctx.driveD = driveD;
   { const nx = 92, nz = 110, g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, 0, (z0 + z1) / 2);
     const pa = g.attributes.position, cols = new Float32Array(pa.count * 3), n2 = (x, z) => Math.sin(x * 0.37 + Math.sin(z * 0.23) * 2) * Math.cos(z * 0.31 + Math.sin(x * 0.19) * 2);
