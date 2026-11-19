@@ -1,0 +1,38 @@
+[
+ {
+  "id": "gator_gus",
+  "kind": "tour",
+  "x": -1654,
+  "z": -898.6,
+  "heading": 1.963,
+  "dW": 16,
+  "rd": 45
+ },
+ {
+  "id": "stilt_south",
+  "kind": "stilt",
+  "x": -2594.8,
+  "z": -419.8,
+  "heading": 3.142,
+  "dW": 28,
+  "rd": 107
+ },
+ {
+  "id": "tarp_north",
+  "kind": "tarp",
+  "x": -2463.4,
+  "z": -1470,
+  "heading": 3.142,
+  "dW": 32,
+  "rd": 115
+ },
+ {
+  "id": "stilt_west",
+  "kind": "stilt",
+  "x": -2865,
+  "z": -967.2,
+  "heading": 1.178,
+  "dW": 12,
+  "rd": 118
+ }
+]

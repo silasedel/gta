@@ -1,0 +1,36 @@
+{
+ "set": "before",
+ "when": "2026-11-19T03:40:44.013Z",
+ "runs": {
+  "A": {
+   "ground_noon": {
+    "avgMs": 202.41,
+    "p95Ms": 567.8,
+    "calls": 702,
+    "tris": 7762814
+   },
+   "aerial_noon": {
+    "avgMs": 137.53,
+    "p95Ms": 598.2,
+    "calls": 656,
+    "tris": 4540411
+   },
+   "low_dawn": {
+    "avgMs": 170.84,
+    "p95Ms": 611.8,
+    "calls": 649,
+    "tris": 7666736
+   },
+   "deep_ground": {
+    "avgMs": 132.98,
+    "p95Ms": 446.1,
+    "calls": 803,
+    "tris": 6301973
+   }
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 500 (Internal Server Error) http://127.0.0.1:5200/src/world/setpieces/nicoHouse/parts/r4_10_house.js?t=1795059075772",
+  "ERR [v2:./world/setpieces/nicoHouse/nicoHouse.v2.js] failed TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:5200/src/world/setpieces/nicoHouse/nicoHouse.v2.js?t=1795059075772"
+ ]
+}
