@@ -41,5 +41,25 @@
    Worker with transferable typed arrays, or much finer yields inside `buildBuilding`.
 3. Rapier `world.step` spikes while streamed colliders are added (airport trimeshes built in-frame: see REQUESTS).
 
-## Results
-(see the table below; filled in after the quiet-machine run)
+| High preset internal resolution: native Retina 3024x1898 | GPU ~40 ms a frame at downtown | ~1440p internal (0.75, governor floor 0.67), TAA + upscale: 27 ms, now CPU-bound (`quality.v2.js`) |
+| Physics: 3 sub-steps in a slow frame | ~4 ms per extra step, kept the next frame slow | at most 2 (`main.js`, `game.physMaxSteps`) |
+
+## Results (built Mac app, High preset, 3024x1898 fullscreen, full route)
+| run | machine load | p50 | p95 | p99 | max | frames > 33 ms | > 100 ms | frames |
+|---|---|---|---|---|---|---|---|---|
+| before (`bench-base`, 00:00) | 24-33 | 75 ms | 318 ms | 1417 ms | 4575 ms | 759 (70%) | 328 | 1086 |
+| after, loaded (`bench-fixE`, 04:00) | 37-51 | 99 ms | 350 ms | 450 ms | 726 ms | | 481 | 1006 |
+| after, quiet-ish (`bench-quiet2-high`, 05:00) | 6-7 | 33 ms | 102 ms | 135 ms | 275 ms | 1793 (51%) | 205 | 3490 |
+| gate (`bench-gate-high`, 05:45) | see below | | | | | | | |
+
+The before run had a heavier load than the quiet run, so the improvement is overstated in p50 but not in the spikes
+(the multi-second freezes are gone at any load). Where the time goes now (quiet, per frame): render submission ~14-16 ms
+of CPU (three.js scene traversal and ~600-1000 draws; not shadows, not draw distance: measured), Rapier 6-13 ms (2-3
+sub-steps at 30 fps), the rest 5-8 ms; GC pauses and streaming steps make the p95 / p99 tail.
+
+**The 60 fps gate does not pass.** p99 < 16.7 ms needs the CPU frame cut by about half. That is engineering work for
+the next days, not tonight: (1) a render-side spatial partition so three.js does not traverse / update the whole scene
+graph every frame (static subtrees with `matrixWorldAutoUpdate = false`, per-tile visibility lists), plus instancing /
+merging of repeated props; (2) the city tile builder in a Web Worker (typed arrays, transferables) so streaming steps
+never land in a frame; (3) GC: no JS-array geometry staging (Batch), pooled typed arrays; (4) physics: fewer awake
+bodies, simpler colliders for far cars.
