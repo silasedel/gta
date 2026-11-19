@@ -27,7 +27,7 @@ await withBrowser({ width: 960, height: 540, maxSeconds: +(o.max || 600) }, asyn
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function' && !!game.nicoHouse", 600);
   await startGame(b);
   const res = [];
-  for (const t of TESTS) {
+  for (const t of TESTS.filter((q) => !o.only || o.only.split(',').includes(q.id))) {
     await b.eval(`(() => { const T = game.THREE, NH = game.nicoHouse, P4 = { th: Math.PI / 4 - NH.spot.streetHeading, oz: NH.r4oz };
       const h = NH.spot.streetHeading, c = Math.cos(h), s = Math.sin(h), c2 = Math.cos(P4.th), s2 = Math.sin(P4.th);
       window.__HtoW = (x, z) => { const dx = x, dz = z + 7, xs = dx * c2 + dz * s2, zs = -7 - dx * s2 + dz * c2; return [NH.spot.x + xs * c + (zs + P4.oz) * s, NH.spot.z - xs * s + (zs + P4.oz) * c]; };
@@ -43,13 +43,15 @@ await withBrowser({ width: 960, height: 540, maxSeconds: +(o.max || 600) }, asyn
       await b.sleep(250);
     }
     await b.key('KeyW', true);
-    await b.sleep(t.secs * 1000);
+    const trace = [];
+    for (let k = 0; k < t.secs * 2; k++) { await b.sleep(500); if (o.trace) trace.push(await b.eval(`(() => { const p = game.player.position, [x, z] = __WtoH(p.x, p.z); return [+x.toFixed(2), +(p.y - game.nicoHouse.group.position.y).toFixed(2), +z.toFixed(2)]; })()`)); }
+    if (o.trace) console.log('trace', t.id, JSON.stringify(trace));
     await b.key('KeyW', false);
     await b.sleep(400);
     const r = await b.eval(`(() => { const p = game.player.position, [x, z] = __WtoH(p.x, p.z), y = p.y - game.nicoHouse.group.position.y; return { x: +x.toFixed(2), y: +y.toFixed(2), z: +z.toFixed(2) }; })()`);
     const ok = Function('x', 'y', 'z', 'return ' + t.expect)(r.x, r.y, r.z);
     res.push({ id: t.id, end: r, expect: t.expect, ok }); console.log(ok ? 'PASS' : 'FAIL', t.id, JSON.stringify(r), t.expect);
   }
-  fs.writeFileSync('docs/v2/shots/nico_r8/walk8.json', JSON.stringify({ when: new Date().toISOString(), res, errors: [...new Set(b.errors)].slice(0, 20) }, null, 1));
+  if (!o.only) fs.writeFileSync('docs/v2/shots/nico_r8/walk8.json', JSON.stringify({ when: new Date().toISOString(), res, errors: [...new Set(b.errors)].slice(0, 20) }, null, 1));
   if (b.errors.length) console.log('ERRORS\n' + [...new Set(b.errors)].slice(0, 20).join('\n'));
 });
