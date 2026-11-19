@@ -280,7 +280,7 @@ export function createZone(game, cfg) {
         c.sus = k > 0 ? Math.min(1, c.sus + dt3 * (0.45 + 2.0 * k)) : Math.max(0, c.sus - dt3 * 0.25);
         if (c.sus >= 1 && k > 0) alert(t, 'camera');
       }
-      const red = c.sus > 0.05; c.coneM.color.setHex(red ? (c.sus >= 1 ? 0xff2a1a : 0xffa020) : 0xfff3c0); c.coneM.opacity = red ? 0.1 + c.sus * 0.08 : 0.06;
+      const red = c.sus > 0.05; c.coneM.color.setHex(red ? (c.sus >= 1 ? 0xff2a1a : 0xffa020) : 0xfff3c0); c.coneM.opacity = (red ? 0.06 + c.sus * 0.05 : 0.05) * clamp(d / 25, 0.35, 1);   // fainter when you stand in it
       c.led.visible = ((game.clock?.elapsed ?? 0) * 2 % 1) < 0.5;
       if (c.sus > maxSus) maxSus = c.sus;
     }

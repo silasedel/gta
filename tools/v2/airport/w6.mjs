@@ -51,5 +51,30 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 280) }, asy
     await b.screenshot(OUT + '/heli_fly.jpg');
     await ev(`(() => { window.__k = new Set(); })()`);
   }
+  if (only === 'climb') {
+    await ev(`game.teleport(-4440, undefined, 6040, -1.4)`);
+    await b.waitFor(`game.base && game.base.state === 'live' && game.base.zone`, 120).catch(() => log('base not live'));
+    const i = +(o.spot || 1) - 1;
+    await ev(`(() => { const s = game.base.plan.climbSpots[${i}]; game.teleport(s.x - s.nx * 0.9, undefined, s.z - s.nz * 0.9, Math.atan2(s.nx, s.nz)); })()`); await b.sleep(4000);
+    await ev(`(() => { const s = game.base.plan.climbSpots[${i}]; game.player.heading = Math.atan2(s.nx, s.nz); game.cameraYaw = game.player.heading + Math.PI; })()`); await b.sleep(500);
+    log('climb', await ev(`game.airport.climb.tryClimb()`));
+    await b.sleep(1500); await b.screenshot(OUT + '/climbing.jpg'); await b.sleep(3000);
+    log('after', await ev(`({ inside: !!game.airport.inAirside(game.player.position.x, game.player.position.z) || game.base.zone.state, sus: game.base.zone.state.sus, alert: game.base.zone.state.alert, wanted: game.wanted?.level, cams: game.base.zone.cams.map(c => +c.sus.toFixed(2)), guards: game.base.zone.guards.map(g => +g.sus.toFixed(2)) })`));
+    log('prof', await ev(`(() => { const c = game.city; let t0 = performance.now(); for (let k = 0; k < 1000; k++) c.groundHeightAt(-4600 + k * 0.1, 6000); const g = (performance.now() - t0).toFixed(3); const W = game.world, R = game.RAPIER; t0 = performance.now(); for (let k = 0; k < 200; k++) W.castRay(new R.Ray({ x: -4600, y: 3, z: 6000 }, { x: 1, y: 0, z: 0 }), 40, true, R.QueryFilterFlags.EXCLUDE_DYNAMIC); return { ground1000: g, ray200: (performance.now() - t0).toFixed(3) }; })()`));
+    const t = await ev(`(() => { const z = game.base.zone; const t0 = performance.now(); for (let k = 0; k < 50; k++) z.update(1/60); return ((performance.now() - t0) / 50).toFixed(3) + ' ms/update'; })()`); log('zone cost', t);
+  }
+  if (only === 'air') {   // a helicopter at the base: normal approach + landing is fine; buzzing the guards is not
+    await ev(`game.teleport(-4440, undefined, 6040, -1.4)`);
+    await b.waitFor(`game.base && game.base.state === 'live' && game.base.zone && game.heli`, 120).catch(() => log('base not live'));
+    await ev(`(() => { const H = game.heli.spawn(new THREE.Vector3(-4400, 0, 6128), -Math.PI / 2); window.__H = H; return 1; })()`).catch(() => {});
+    log('spawn', await ev(`(() => { const H = game.heli.list[game.heli.list.length - 1]; H.pos.set(-4330, 45, 6128); H.onGround = false; H.rotor = 1; game.enterVehicle(H); return game.player.state.vehicle === H; })()`));
+    await ev(`(() => { window.__k = new Set(['KeyS']); const i = game.input; i.__down = i.down; i.down = (c) => window.__k.has(c) || i.__down(c); })()`);
+    await b.sleep(8000);
+    log('desc', await ev(`(() => { const H = game.player.state.vehicle; return { agl: H.agl.toFixed(1), air: game.base.zone.state.air.toFixed(2), alert: game.base.zone.state.alert }; })()`));
+    await ev(`(() => { window.__k = new Set(['KeyI']); })()`); await b.sleep(7000);
+    log('low fast', await ev(`(() => { const H = game.player.state.vehicle; return { agl: H.agl.toFixed(1), kmh: Math.round(H.speedKmh), air: game.base.zone.state.air.toFixed(2), alert: game.base.zone.state.alert, why: game.base.zone.state.why, wanted: game.wanted?.level }; })()`));
+    await b.screenshot(OUT + '/heli_base.jpg');
+    await ev(`(() => { window.__k = new Set(); })()`);
+  }
   log('CONSOLE ERRORS', b.errors.length, JSON.stringify([...new Set(b.errors)].slice(0, 12)).slice(0, 2500));
 });
