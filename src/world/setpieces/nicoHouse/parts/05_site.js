@@ -96,7 +96,10 @@ export function build(ctx) {
       for (let i = 0; i < pa.count; i++) { if (!out[i] || out[i] === 3) continue; let [hx, hz] = StoH(...toS(pa.getX(i), pa.getZ(i))); let ox = 0, ozz = 0;
         if (out[i] === 1) { hz = W + 0.1; ozz = 0.12; } else { const dl = hx - (Cn.x0 - 0.1), dr = Cn.x1 + 0.1 - hx, de = Cn.z1 + 0.1 - hz; if (de < dl && de < dr) { hz = Cn.z1 + 0.1; ozz = 0.12; } else if (dl < dr) { hx = Cn.x0 - 0.1; ox = -0.12; } else { hx = Cn.x1 + 0.1; ox = 0.12; } }
         const [gx, gz] = toG(...HtoS(hx, hz)); pa.setX(i, gx); pa.setZ(i, gz); pa.setY(i, yardY(...toG(...HtoS(hx + ox, hz + ozz))) - 0.02); }
-      g.setIndex(keep); pa.needsUpdate = true; }
+      { const hx = new Float32Array(pa.count), hz = new Float32Array(pa.count); for (let i = 0; i < pa.count; i++) { const h = StoH(...toS(pa.getX(i), pa.getZ(i))); hx[i] = h[0]; hz[i] = h[1]; }
+        const k2 = []; for (let t = 0; t < keep.length; t += 3) { const a = keep[t], b = keep[t + 1], d = keep[t + 2], cx = (hx[a] + hx[b] + hx[d]) / 3, cz = (hz[a] + hz[b] + hz[d]) / 3, mn = Math.min(hx[a], hx[b], hx[d]), mx = Math.max(hx[a], hx[b], hx[d]);
+          if (inCanalH(cx, cz, -0.05) || (mn < Cn.x0 - 0.02 && mx > Cn.x1 + 0.02 && cz < Cn.z1)) continue; k2.push(a, b, d); }   /* no sheet across the canal (its far bank is sheeted too) */
+        g.setIndex(k2); } pa.needsUpdate = true; }
     else if (R4) { const ix = g.index.array, keep = [], lim = P4.wallZ + 0.1, inWall = (sx) => sx > P4.wallX0 + 0.3 && sx < P4.wallX1 - 0.3, out = new Uint8Array(pa.count);
       for (let i = 0; i < pa.count; i++) { const [sx, sz] = toS(pa.getX(i), pa.getZ(i)); out[i] = inWall(sx) && sz < lim ? 1 : inCanal(sx, sz, 0.1) ? 2 : 0; }
       for (let t = 0; t < ix.length; t += 3) { const a = ix[t], b = ix[t + 1], d = ix[t + 2]; if (out[a] && out[b] && out[d]) continue; keep.push(a, b, d); }
