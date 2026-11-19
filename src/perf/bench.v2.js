@@ -15,7 +15,7 @@ const ROUTE = [
   { id: 'walk', kind: 'walk', secs: 12, tod: 11 },
   { id: 'keys', kind: 'drive', at: [-836, 5272], secs: 35, tod: 12, speed: 27 },
   { id: 'downtown', kind: 'drive', at: [407, -110], secs: 35, tod: 15, speed: 22 },
-  { id: 'beach', kind: 'walk', at: [2332, -660], secs: 15, tod: 13 },
+  { id: 'beach', kind: 'walk', at: [2745, -660], secs: 15, tod: 13 }, // on the sand (2332, -660 is the district center, inside a store)
   { id: 'night', kind: 'drive', at: [407, -110], secs: 30, tod: 22, speed: 22 },
   { id: 'house', kind: 'walk', house: true, secs: 15, tod: 16 }, // Nico's house and dock (the story start)
 ];
