@@ -627,6 +627,22 @@ export function createEngine(game, opts = {}) {
     }
     viewCull.culled = n;
   }
+  // shops perf pass (Nov 19): a store's fixtures and products are fine dressing. Beyond DETAIL_R m (player distance) its
+  // merged meshes draw only their coarse prefix (shell, storefront, doors, lights: Geo `fine`), fixture-only meshes and
+  // the product field are hidden. game.interiorDetailR = Infinity (or ?shopdetail=0) always draws everything.
+  const DETAIL_R = /[?&]shopdetail=0\b/.test(globalThis.location?.search || '') ? Infinity : 48;
+  function applyDetail(s, b) {
+    if (!b.fine || b.revealQ) return;
+    const r = game.interiorDetailR ?? DETAIL_R,
+      far = s.dist > (b.detailFar ? r - 4 : r);
+    if (far === !!b.detailFar) return;
+    b.detailFar = far;
+    for (const f of b.fine) {
+      f.mesh.geometry.setDrawRange(0, far ? f.coarse : Infinity);
+      if (f.coarse === 0) f.mesh.visible = !far;
+    }
+    for (const im of b.items.meshes) im.visible = !far;
+  }
   if (scene) {
     const prevBR = scene.onBeforeRender;
     scene.onBeforeRender = function (r, sc, cam, ...rest) {
@@ -815,6 +831,7 @@ export function createEngine(game, opts = {}) {
           /* */
         }
       }
+      applyDetail(s, b);
       const lv = levelsFor(s, hour);
       b.levels[0] += clamp(lv[0] - b.levels[0], -dt * 2.5, dt * 2.5);
       b.levels[1] = lv[1];

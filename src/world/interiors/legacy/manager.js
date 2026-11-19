@@ -475,8 +475,9 @@ export async function createInteriors(game) {
   }
 
   // ---------------------------------------------------------------- old-city exterior (walls, roof, awning, sign)
-  function storeGroup(s) {
+  function storeGroup(s, part = 'shop1') {
     const g = new THREE.Group();
+    g.name = part + ':' + (s.key || s.name);
     g.position.set(s.center.x, s.baseY, s.center.z);
     g.rotation.y = s.facing;
     g.updateMatrixWorld(true);
@@ -767,7 +768,7 @@ export async function createInteriors(game) {
       seed: s.seed,
     });
     const prof = { layout: performance.now() - t0 };
-    const grp = storeGroup(s);
+    const grp = storeGroup(s, 'shop1-in');
     const disposables = [];
     const trimC = new THREE.Color(def.trim);
     const ctx = {
@@ -1042,7 +1043,10 @@ export async function createInteriors(game) {
         }
       });
     // meshes
-    const meshes = [...B.build(grp), ...ctx.glassB.build(grp, { cast: false, receive: false })];
+    const meshes = [
+      ...B.build(grp, { keep: [panel] }),
+      ...ctx.glassB.build(grp, { cast: false, receive: false }),
+    ];
     const panelMesh = meshes.find((m) => m.material === panel) || null;
     // movable props: one InstancedMesh per shared prop geometry, matrices in store-local space
     const pgroups = new Map();
@@ -1075,6 +1079,7 @@ export async function createInteriors(game) {
     yield;
     ly = performance.now();
     const lowGroup = new THREE.Group();
+    lowGroup.name = 'shop1-products';
     grp.add(lowGroup);
     const chunks = new Map();
     const cv = ctx.batch.chunkVerts();

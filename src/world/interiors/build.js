@@ -16,10 +16,13 @@ import { buildNav } from './nav.js';
 import { autoWear } from './clutter.js';
 import { dressFront } from './frontDress.js';
 const NO_DRESS = /[?&]shops=0\b/.test(globalThis.location?.search || ''); // shops pass A/B
+// draw-call merging A/B (shops perf pass, Nov 19): ?shopmerge=0 = one mesh per material as before
+const NO_MERGE = /[?&]shopmerge=0\b/.test(globalThis.location?.search || '');
 
 const _v = new THREE.Vector3();
 export function makeContext(game, store) {
   const group = new THREE.Group();
+  group.name = 'shop:' + (store.key || store.name || store.seed);
   group.position.set(store.center.x, store.baseY, store.center.z);
   group.rotation.y = store.facing;
   group.updateMatrixWorld(true);
@@ -114,6 +117,7 @@ export function makeContext(game, store) {
   // separately animated part (door leaf, drawer, fan blade, clock hand): returns a Group at (x, y, z, ry) in STORE-LOCAL coordinates
   ctx.dyn = (x, y, z, ry, fn) => {
     const g = new THREE.Group();
+    g.name = 'shop-part';
     g.position.set(x, y, z);
     g.rotation.y = ry;
     g.matrixAutoUpdate = false;
@@ -179,6 +183,8 @@ export function* buildInterior(game, store, def) {
   const doors = buildDoors(ctx);
   lap('facade');
   yield;
+  // everything the store type's fixtures add is fine dressing: drawn only near the store (engine applyDetail)
+  G.fine = true;
   const it = def.fixtures(ctx);
   if (it && typeof it.next === 'function') {
     let n = 0,
@@ -198,7 +204,26 @@ export function* buildInterior(game, store, def) {
       t = performance.now();
       r = it.next();
     }
-  } // r7: longest fixture group (ms) and its index try { autoWear(ctx); } catch (e) { console.warn('[interiors] wear pass failed', e); } if (!NO_DRESS) try { dressFront(ctx, def); } catch (e) { console.warn('[interiors] front dressing failed', e); } prof.fx = null; lap('fixtures'); yield;
+  }
+  // r7: longest fixture group (ms) and its index. The wear pass and the storefront dressing were commented out by
+  // accident when the codebase went through Prettier (the comment swallowed the rest of the line); back on Nov 19.
+  try {
+    autoWear(ctx);
+  } catch (e) {
+    console.warn('[interiors] wear pass failed', e);
+  }
+  // the storefront dressing is seen from the street: coarse geometry, drawn at any distance
+  G.fine = false;
+  if (!NO_DRESS) {
+    try {
+      dressFront(ctx, def);
+    } catch (e) {
+      console.warn('[interiors] front dressing failed', e);
+    }
+  }
+  prof.fx = null;
+  lap('fixtures');
+  yield;
   if (def.lighting) def.lighting(ctx);
   for (const r of plan.rooms)
     if (!r.lit) {
@@ -209,7 +234,7 @@ export function* buildInterior(game, store, def) {
   lap('lights');
   yield;
   // ---- meshes
-  const built = yield* G.buildIter(group, { slice: 3 });
+  const built = yield* G.buildIter(group, { slice: 3, merge: NO_MERGE ? null : ctx.M });
   ctx.bakeParts.unshift(built.bake);
   lap('meshes');
   yield;
@@ -276,6 +301,7 @@ export function* buildInterior(game, store, def) {
     front: ctx.front,
     disposables: ctx.disposables,
     meshes: built.meshes,
+    fine: built.fine,
     body: null,
     ready: false,
     visible: false,

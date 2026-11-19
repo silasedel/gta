@@ -79,7 +79,7 @@ export class Geo {
   }
   _part(mat) {
     let p = this.parts.get(mat);
-    if (!p) this.parts.set(mat, (p = { pos: [], nor: [], uv: [], idx: [], n: 0 }));
+    if (!p) this.parts.set(mat, (p = { pos: [], nor: [], uv: [], idx: [], idxF: [], n: 0 }));
     return p;
   }
 
@@ -112,13 +112,14 @@ export class Geo {
         else p.uv.push(_p.x / uvw, _p.y / uvw);
       } else p.uv.push(U ? U.getX(i) : 0, U ? U.getY(i) : 0);
     }
-    const n = I ? I.count : P.count;
+    const n = I ? I.count : P.count,
+      tris = this.fine ? p.idxF : p.idx;
     for (let i = 0; i < n; i += 3) {
       const a = base + (I ? I.getX(i) : i),
         b = base + (I ? I.getX(i + 1) : i + 1),
         c = base + (I ? I.getX(i + 2) : i + 2);
-      if (flip) p.idx.push(a, c, b);
-      else p.idx.push(a, b, c);
+      if (flip) tris.push(a, c, b);
+      else tris.push(a, b, c);
     }
     p.n += P.count;
     return this;
@@ -214,44 +215,38 @@ export class Geo {
     while (!r.done) r = it.next();
     return r.value;
   }
-  // r7: same, as a generator that yields after each material's mesh (the build of a big store was one 300-600 ms step)
+  // r7: same, as a generator that yields after each material's mesh (the build of a big store was one 300-600 ms step).
+  // o.merge (a MatSet): materials that differ only in color / roughness / metalness (or glow color and circuit) share one
+  // mesh and one material, those values move into vertex attributes (shops perf pass, Nov 19: ~45 -> ~25 draws a store).
+  // Every mesh lists the triangles added while `this.fine` was off first: `fine` returns [{ mesh, coarse }] so the engine
+  // can draw only that prefix (shell, storefront, lights) from far away.
   *buildIter(group, o = {}) {
     const meshes = [],
-      ranges = [];
-    let total = 0,
-      t0 = performance.now();
-    for (const [mat, p] of this.parts) {
-      if (o.slice && performance.now() - t0 > o.slice) {
+      ranges = [],
+      fine = [];
+    let total = 0;
+    const sl = new Slicer(o.slice);
+    for (const set of this._mergeSets(o.merge)) {
+      if (sl.due()) {
         yield;
-        t0 = performance.now();
+        sl.reset();
       }
-      if (!p.n) continue;
+      const mat = set.mat;
+      const d = yield* this._fill(set, o.merge, sl);
       const g = new THREE.BufferGeometry();
-      // r7: big parts are copied into typed arrays a chunk at a time (one merged material of a grocery was a single long step)
-      const arrs = [
-        [p.pos, Float32Array],
-        [p.nor, Float32Array],
-        [p.uv, Float32Array],
-        [p.idx, p.n > 65535 ? Uint32Array : Uint16Array],
-      ].map(([src, T]) => [src, new T(src.length)]);
-      for (const [src, dst] of arrs)
-        for (let i = 0; i < src.length; i += 30000) {
-          const e = Math.min(src.length, i + 30000);
-          for (let k = i; k < e; k++) dst[k] = src[k];
-          if (o.slice && performance.now() - t0 > o.slice) {
-            yield;
-            t0 = performance.now();
-          }
-        }
-      g.setAttribute('position', new THREE.BufferAttribute(arrs[0][1], 3));
-      g.setAttribute('normal', new THREE.BufferAttribute(arrs[1][1], 3));
-      g.setAttribute('uv', new THREE.BufferAttribute(arrs[2][1], 2));
-      g.setIndex(new THREE.BufferAttribute(arrs[3][1], 1));
+      g.setAttribute('position', new THREE.BufferAttribute(d.pos, 3));
+      g.setAttribute('normal', new THREE.BufferAttribute(d.nor, 3));
+      g.setAttribute('uv', new THREE.BufferAttribute(d.uv, 2));
+      if (d.col) {
+        g.setAttribute('color', new THREE.BufferAttribute(d.col, 3));
+        g.setAttribute(mat.userData.mergeAttr, new THREE.BufferAttribute(d.ext, 2));
+      }
+      g.setIndex(new THREE.BufferAttribute(d.idx, 1));
       if (mat.userData.baked) {
         for (const k of ['bk0', 'bk1', 'bk2'])
-          g.setAttribute(k, new THREE.BufferAttribute(new Float32Array(p.n * 3), 3));
-        ranges.push({ g, start: total, n: p.n });
-        total += p.n;
+          g.setAttribute(k, new THREE.BufferAttribute(new Float32Array(d.n * 3), 3));
+        ranges.push({ g, start: total, n: d.n });
+        total += d.n;
       }
       const mesh = new THREE.Mesh(g, mat);
       mesh.castShadow = !!o.cast && !mat.transparent;
@@ -260,7 +255,9 @@ export class Geo {
       if (mat.userData.order) mesh.renderOrder = mat.userData.order;
       group.add(mesh);
       meshes.push(mesh);
+      if (d.coarse < d.idx.length) fine.push({ mesh, coarse: d.coarse });
     }
+    let t0 = performance.now();
     const pos = new Float32Array(total * 3),
       nor = new Float32Array(total * 3);
     for (const r of ranges) {
@@ -285,6 +282,109 @@ export class Geo {
       }
     };
     this.parts.clear();
-    return { meshes, bake: { pos, nor, count: total, apply } };
+    return { meshes, fine, bake: { pos, nor, count: total, apply } };
+  }
+
+  // Which parts become one mesh: [{ mat, parts: [[srcMat, part], ...], merged }] in first-use order. A merge key that only
+  // one material has keeps that material as it is.
+  _mergeSets(merge) {
+    const sets = [],
+      byKey = new Map();
+    for (const [mat, p] of this.parts) {
+      if (!p.n) continue;
+      const key = merge ? merge.mergeKey(mat) : null;
+      if (!key) {
+        sets.push({ mat, parts: [[mat, p]], merged: false });
+        continue;
+      }
+      let set = byKey.get(key);
+      if (!set) {
+        set = { key, mat: null, parts: [], merged: true };
+        byKey.set(key, set);
+        sets.push(set);
+      }
+      set.parts.push([mat, p]);
+    }
+    for (const set of byKey.values()) {
+      if (set.parts.length === 1) {
+        set.mat = set.parts[0][0];
+        set.merged = false;
+      } else set.mat = merge.merged(set.key, set.parts[0][0]);
+    }
+    return sets;
+  }
+
+  // Typed arrays of one set: vertices part after part, then every part's coarse triangles, then every part's fine ones.
+  *_fill(set, merge, sl) {
+    let n = 0,
+      ni = 0;
+    for (const [, p] of set.parts) {
+      n += p.n;
+      ni += p.idx.length + p.idxF.length;
+    }
+    const pos = new Float32Array(n * 3),
+      nor = new Float32Array(n * 3),
+      uv = new Float32Array(n * 2),
+      idx = n > 65535 ? new Uint32Array(ni) : new Uint16Array(ni),
+      col = set.merged ? new Float32Array(n * 3) : null,
+      ext = set.merged ? new Float32Array(n * 2) : null;
+    const bases = [];
+    let v = 0;
+    for (const [mat, p] of set.parts) {
+      bases.push(v);
+      yield* copyInto(p.pos, pos, v * 3, 0, sl);
+      yield* copyInto(p.nor, nor, v * 3, 0, sl);
+      yield* copyInto(p.uv, uv, v * 2, 0, sl);
+      if (col) {
+        const a = merge.vertexValues(mat);
+        for (let k = v; k < v + p.n; k++) {
+          col[k * 3] = a[0];
+          col[k * 3 + 1] = a[1];
+          col[k * 3 + 2] = a[2];
+          ext[k * 2] = a[3];
+          ext[k * 2 + 1] = a[4];
+        }
+      }
+      v += p.n;
+    }
+    let at = 0;
+    for (let i = 0; i < set.parts.length; i++) {
+      const src = set.parts[i][1].idx;
+      yield* copyInto(src, idx, at, bases[i], sl);
+      at += src.length;
+    }
+    const coarse = at;
+    for (let i = 0; i < set.parts.length; i++) {
+      const src = set.parts[i][1].idxF;
+      yield* copyInto(src, idx, at, bases[i], sl);
+      at += src.length;
+    }
+    return { pos, nor, uv, idx, col, ext, n, coarse };
+  }
+}
+
+// Time slicing for the build generators: due() once more than `ms` passed since the last reset (never when ms is unset).
+class Slicer {
+  constructor(ms) {
+    this.ms = ms;
+    this.t0 = performance.now();
+  }
+  due() {
+    return !!this.ms && performance.now() - this.t0 > this.ms;
+  }
+  reset() {
+    this.t0 = performance.now();
+  }
+}
+
+// Copy src into dst at `off` (adding `add` to every value: index rebasing), 30 k values at a time.
+function* copyInto(src, dst, off, add, sl) {
+  for (let i = 0; i < src.length; i += 30000) {
+    const e = Math.min(src.length, i + 30000);
+    for (let k = i; k < e; k++) dst[off + k] = src[k] + add;
+    if (sl.due()) {
+      yield;
+      sl.reset();
+    }
   }
 }

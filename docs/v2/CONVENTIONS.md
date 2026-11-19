@@ -167,6 +167,12 @@ Write code the way shipped game codebases read, not dense one-liners:
   (`src/world/miami/tileBatch.js`, ~24 tiles per batch, `?tilebatch=0` = old); the originals stay in the tile (raycasts) and
   read invisible only while the scene renders. Prop pools with nothing in view are hidden (`?poolhide=0`). A tile material
   that needs per-object state must set `userData.noTileBatch`. Measure: `node tools/v2/perf/drawcalls.mjs`.
+- Shop interiors (Nov 19): groups are named `shop:<key>` (V2), `shop1:` / `shop1-in:<key>` (v1). V2 `Geo.buildIter({ merge: M })`
+  merges materials that differ only in color / roughness / metalness (`surf`, `flat`, opaque `page`) and every `glow()` into one
+  material each, values in vertex attributes (`color` + `rm` / `glw`); v1 `Bucket.build` does the same for plain untextured
+  materials. Fixture geometry (`G.fine`) and products draw only within 48 m of the player (`engine.js applyDetail`, coarse
+  prefix via `drawRange`). A material that must keep its own mesh: leave `userData.mergeable` unset. A/B: `?shopmerge=0`,
+  `?shopdetail=0`.
 - Dynamic shadow map (cars, people): every frame whenever a car near the player moves, half rate only for scenes of
   walkers (`game.dynShadowHalfRate`: unset = auto, `true` = always half, `false` = always full). A stale map shows as a
   shadow that jumps every other frame.

@@ -93,6 +93,8 @@ export class MatSet {
     this.probeMats = [];
     this.uProbe = probeUniforms();
     this.uProbe.uPrOn = { value: 0 };
+    // levels of the merged glow material (see mergeKey): main circuit, accent circuit, flicker
+    this.uGlw = { value: new THREE.Vector3(1, 1, 1) };
   }
   // reflection probe captured (kit/probe.js): every material made with { probe: k } now reflects it
   setProbe(tex) {
@@ -135,6 +137,7 @@ export class MatSet {
       });
       m.normalScale.set(o.bump ?? 1, o.bump ?? 1);
       m.userData.uvw = o.uvw ?? t.m;
+      m.userData.mergeable = true;
       return bakeable(m, this, o);
     });
   }
@@ -156,6 +159,7 @@ export class MatSet {
       });
       m.normalScale.set(0.5, 0.5);
       m.userData.uvw = o.uvw ?? 0.5;
+      m.userData.mergeable = true;
       return bakeable(m, this, o);
     });
   }
@@ -168,7 +172,9 @@ export class MatSet {
         color: c.clone().multiplyScalar(k),
         toneMapped: false,
       });
-      this.glows.push({ m, base: c.clone().multiplyScalar(k), ch, flicker });
+      const base = c.clone().multiplyScalar(k);
+      this.glows.push({ m, base, ch, flicker });
+      m.userData.glow = { base, ch, flicker };
       return m;
     });
   }
@@ -223,6 +229,7 @@ export class MatSet {
         m.depthWrite = false;
         m.userData.order = 2;
       }
+      m.userData.mergeable = !o.decal && !o.alpha;
       return bakeable(m, this, o);
     });
   }
@@ -293,11 +300,77 @@ export class MatSet {
       return m;
     });
   }
+  // ---- draw-call merging (Geo.buildIter({ merge: this }), shops perf pass Nov 19)
+  // Materials with the same textures and shader that differ only in color, roughness and metalness share one merged
+  // material; glow() materials of every color and circuit share one unlit material. The per-material values become
+  // vertex attributes (color + rm or glw), so the look does not change. Transparent, decal and alpha-tested
+  // materials are never merged (their draw order and blending stay per material).
+  mergeKey(mat) {
+    if (mat.userData.glow) return 'glow';
+    if (!mat.userData.mergeable || !mat.userData.baked || mat.transparent) return null;
+    const id = (t) => (t ? t.id : '-');
+    return [
+      's',
+      id(mat.map),
+      id(mat.normalMap),
+      id(mat.roughnessMap),
+      mat.side,
+      mat.normalScale.x,
+      mat.userData.order || 0,
+      mat.userData.probeK ?? '-',
+      mat.customProgramCacheKey(),
+    ].join('|');
+  }
+  merged(key, src) {
+    return this._keep('mg:' + key, () =>
+      key === 'glow' ? this._mergedGlow() : this._mergedLit(src),
+    );
+  }
+  // [r, g, b, a, b] written to every vertex of a merged part: the color (linear) and roughness / metalness or circuit / flicker
+  vertexValues(mat) {
+    const gl = mat.userData.glow;
+    if (gl) return [gl.base.r, gl.base.g, gl.base.b, gl.ch, gl.flicker ? 1 : 0];
+    const c = mat.color;
+    return [c.r, c.g, c.b, mat.roughness, mat.metalness];
+  }
+  _mergedGlow() {
+    const m = new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false });
+    m.userData.mergeAttr = 'glw';
+    m.onBeforeCompile = (sh) => {
+      sh.uniforms.uGlw = this.uGlw;
+      sh.vertexShader =
+        'attribute vec2 glw;\nuniform vec3 uGlw;\n' +
+        sh.vertexShader.replace(
+          '#include <color_vertex>',
+          '#include <color_vertex>\n\tvColor.rgb *= ( glw.x < 0.5 ? uGlw.x : glw.x < 1.5 ? uGlw.y : 1.0 )' +
+            ' * ( glw.y > 0.5 ? uGlw.z : 1.0 );',
+        );
+    };
+    m.customProgramCacheKey = () => 'glw1';
+    return m;
+  }
+  _mergedLit(src) {
+    const m = src.clone();
+    m.color.setRGB(1, 1, 1);
+    m.vertexColors = true;
+    m.userData.mergeAttr = 'rm';
+    m.userData.mergeable = false;
+    const baseCompile = src.onBeforeCompile,
+      baseKey = src.customProgramCacheKey;
+    m.onBeforeCompile = (sh, r) => {
+      baseCompile.call(src, sh, r);
+      patchVertexRM(sh);
+    };
+    m.customProgramCacheKey = () => baseKey.call(src) + ':vrm';
+    if (this.probeMats.includes(src)) this.probeMats.push(m);
+    return m;
+  }
   // circuit levels 0..1: main lights, accent lights, daylight factor
   setLevels(main, accent, sky = 1) {
     this.uBk.value.set(main, accent, sky);
     const ft = performance.now() * 0.001,
       fl = Math.sin(ft * 41) + Math.sin(ft * 13.7) + Math.sin(ft * 5.3) > 0.9 ? 0.12 : 1;
+    this.uGlw.value.set(Math.max(0.02, main), Math.max(0.02, accent), fl);
     for (const g of this.glows)
       g.m.color
         .copy(g.base)
@@ -312,6 +385,28 @@ export class MatSet {
     this.cache.clear();
     this.glows.length = 0;
   }
+}
+
+// roughness and metalness from the per-vertex `rm` attribute instead of the material uniforms (merged materials)
+const ROUGH_VRM = THREE.ShaderChunk.roughnessmap_fragment.replace(
+  'float roughnessFactor = roughness;',
+  'float roughnessFactor = vRM.x;',
+);
+const METAL_VRM = THREE.ShaderChunk.metalnessmap_fragment.replace(
+  'float metalnessFactor = metalness;',
+  'float metalnessFactor = vRM.y;',
+);
+if (ROUGH_VRM === THREE.ShaderChunk.roughnessmap_fragment)
+  console.warn('[interiors] merged materials: roughness chunk changed (three.js update)');
+function patchVertexRM(sh) {
+  sh.vertexShader =
+    'attribute vec2 rm;\nvarying vec2 vRM;\n' +
+    sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n\tvRM = rm;');
+  sh.fragmentShader =
+    'varying vec2 vRM;\n' +
+    sh.fragmentShader
+      .replace('#include <roughnessmap_fragment>', ROUGH_VRM)
+      .replace('#include <metalnessmap_fragment>', METAL_VRM);
 }
 
 let GRIME = null;

@@ -309,16 +309,21 @@ export class Bucket {
   box(mat, x, y, z, sx, sy, sz, ry = 0) {
     this.add(mat, BOX, x, y, z, ry, 0, 0, sx, sy, sz);
   }
-  build(group, { cast = true, receive = true } = {}) {
+  // One mesh per material, except that plain untextured opaque materials of the same roughness / metalness / side share one
+  // mesh with their colors in a vertex color attribute (shops perf pass, Nov 19: the same look in fewer draws).
+  // keep: materials that must keep their own mesh (the caller looks the mesh up by material).
+  build(group, { cast = true, receive = true, keep = null } = {}) {
     const meshes = [];
-    for (const [mat, a] of this.map) {
-      if (!a.p.length) continue;
+    for (const set of plainSets(this.map, keep)) {
       const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.Float32BufferAttribute(a.p, 3));
-      g.setAttribute('normal', new THREE.Float32BufferAttribute(a.n, 3));
-      g.setAttribute('uv', new THREE.Float32BufferAttribute(a.u, 2));
+      if (set.list.length === 1) {
+        const a = set.list[0][1];
+        g.setAttribute('position', new THREE.Float32BufferAttribute(a.p, 3));
+        g.setAttribute('normal', new THREE.Float32BufferAttribute(a.n, 3));
+        g.setAttribute('uv', new THREE.Float32BufferAttribute(a.u, 2));
+      } else concatWithColors(g, set.list);
       g.computeBoundingSphere();
-      const mesh = new THREE.Mesh(g, mat);
+      const mesh = new THREE.Mesh(g, set.mat);
       mesh.castShadow = cast;
       mesh.receiveShadow = receive;
       mesh.matrixAutoUpdate = false;
@@ -329,6 +334,78 @@ export class Bucket {
     this.map.clear();
     return meshes;
   }
+}
+
+// [{ mat, list: [[srcMat, arrays], ...] }]: one set per material, plain materials grouped by plainKey
+function plainSets(map, keep) {
+  const sets = [],
+    byKey = new Map();
+  for (const [mat, a] of map) {
+    if (!a.p.length) continue;
+    const key = NO_MERGE || (keep && keep.includes(mat)) ? null : plainKey(mat);
+    if (!key) {
+      sets.push({ mat, list: [[mat, a]] });
+      continue;
+    }
+    let set = byKey.get(key);
+    if (!set) {
+      set = { mat, key, list: [] };
+      byKey.set(key, set);
+      sets.push(set);
+    }
+    set.list.push([mat, a]);
+  }
+  for (const set of byKey.values())
+    if (set.list.length > 1) set.mat = plainMerged(set.key, set.mat);
+  return sets;
+}
+// merge key of a material whose whole look is color + roughness + metalness (null: anything else)
+function plainKey(m) {
+  if (m.type !== 'MeshStandardMaterial' || m.vertexColors || m.transparent || m.opacity !== 1)
+    return null;
+  if (m.map || m.normalMap || m.roughnessMap || m.metalnessMap || m.emissiveMap || m.alphaMap)
+    return null;
+  if (m.aoMap || m.lightMap || m.envMap || m.bumpMap || m.alphaTest || m.polygonOffset) return null;
+  if (m.emissive.getHex() !== 0 || Object.prototype.hasOwnProperty.call(m, 'onBeforeCompile'))
+    return null;
+  return [m.roughness, m.metalness, m.side, m.flatShading ? 1 : 0, m.envMapIntensity].join('|');
+}
+const PLAIN = new Map();
+const NO_MERGE = /[?&]shopmerge=0\b/.test(globalThis.location?.search || '');
+function plainMerged(key, src) {
+  let m = PLAIN.get(key);
+  if (!m) {
+    m = src.clone();
+    m.color.setRGB(1, 1, 1);
+    m.vertexColors = true;
+    PLAIN.set(key, m);
+  }
+  return m;
+}
+function concatWithColors(g, list) {
+  let n = 0;
+  for (const [, a] of list) n += a.p.length / 3;
+  const pos = new Float32Array(n * 3),
+    nor = new Float32Array(n * 3),
+    uv = new Float32Array(n * 2),
+    col = new Float32Array(n * 3);
+  let v = 0;
+  for (const [mat, a] of list) {
+    const k = a.p.length / 3;
+    pos.set(a.p, v * 3);
+    nor.set(a.n, v * 3);
+    uv.set(a.u, v * 2);
+    for (let i = v; i < v + k; i++) {
+      col[i * 3] = mat.color.r;
+      col[i * 3 + 1] = mat.color.g;
+      col[i * 3 + 2] = mat.color.b;
+    }
+    v += k;
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
 }
 const BOX = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
 
