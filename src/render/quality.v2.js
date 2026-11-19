@@ -54,7 +54,7 @@ export const PRESETS = {
       scaleMax: 0.75,
       msaa: 2,
       // Nov 19: internal picture 1.6-3.1 MP whatever the display (a 4K backing ran ~5 fps); floor lowered so the scaler has room
-      minPx: 1600 * 1000,
+      minPx: 1920 * 1080, // user (Nov 19): never below 1080p
       maxPx: 2240 * 1400,
     }, // r6 (user: "make the res 2k"): the governor never goes under 0.8 of native and never under 2560x1440 internal (minPx, post.js scaleFloor); it only steps down at all on GPU-bound slow frames. Was 0.65 with a 1920x1080 floor. // // user (Nov 18): the app was 'super laggy' at Retina 2x + MSAA 4x with no headroom: the frame-time governor may now drop the internal scale to 0.65 when frames are slow (full res when light), MSAA 2x (TAA resolves the rest)
     label: 'High',
