@@ -2795,30 +2795,39 @@ export async function createVehicles(game) {
     stripe: { w: 1.1, color: 0xd8461a, satin: false, side: { y: [0.62, 0.74] } },
   };
   const NICO_CARS = [
-    // Nico's main car (ute1, mock-ups docs/v2/plan/nico_car): the yellow coupe-utility in the drive, where the gray truck9 stood.
-    // The orange-red hood band / hockey stick / flank band is cut into the model (tools/v2/cars/ute1), so no shader stripe boxes.
-    // Parked on the open sandy pad in front of the stairs / lattice (house frame, after the r10 10 deg turn), nose to the street
-    // (+Z), >= 2.5 m from trunks, plants and structures, open driver side (the r4 truck anchor now lands in the planting).
+    // User (Nov 19, afternoon): the gray off-road pickup stays in the drive, and the yellow coupe-utility takes the old blue
+    // classic's spot (the blue car is gone). The truck uses the open sandy pad in front of the stairs / lattice that was
+    // checked clear for the ute (house frame after the r10 10 degree turn), nose to the street (+Z).
     {
-      key: 'ute1',
+      key: 'truck9',
       local: [-1.3, 7.5],
       heading: 0,
+      color: 0x9a9ea3,
+      finish: 'metallic',
+      wear: { dirt: 0.16, rust: 0, fade: 0, dirtColor: 'sand' },
+      // hood / roof stripe boxes measured per model (manifest .stripe, seats.py)
+      stripe: {
+        w: 0.86,
+        roofW: 0.78,
+        color: 0x515458,
+        satin: true,
+        line: { color: 0x9da0a4, w: 0.022 },
+      },
+      ride: 0.07,
+      tint: 0, // factory glass: Nico shows through the windows
+    },
+    // Nico's yellow coupe-utility (ute1, mock-ups docs/v2/plan/nico_car), where the faded blue classic used to sit.
+    // The orange-red hood band / hockey stick / flank band is cut into the model (tools/v2/cars/ute1), so no shader stripe.
+    {
+      key: 'ute1',
+      local: [-18.8, 5.5],
+      heading: 1.03,
       ...NICO_UTE_SCHEME,
       color: 0xf4a40a,
       wear: { dirt: 0.03, rust: 0, fade: 0, dirtColor: 'sand' },
       stripe: null,
       tint: 0,
     },
-    // the old faded powder-blue muscle coupe: solid single-stage enamel, chalky sun fade on the top surfaces, rust at the sills and arches, salt crust, flat chrome, dusty glass, whitewalls
-    {
-      key: 'coupe4',
-      local: [-18.8, 5.5],
-      heading: 1.03,
-      color: 0x7a9198,
-      finish: 'solid',
-      old: true,
-      wear: { dirt: 0.3, rust: 0.32, fade: 0.6, age: 0.9, dirtColor: 'salt' },
-    }, // the 1970 two-door muscle coupe, sun-faded powder blue (user model)
   ];
   const nicoCars = [];
   (async () => {
