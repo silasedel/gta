@@ -12,6 +12,7 @@ import { R4, P4 } from '../r4/plan4.js';
 import { frame } from '../r4/frame.js';
 import { makeGeo } from '../r4/geo.js';
 import { loadKeysModels } from '../models.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 export const order = 70;
 
 export function build(ctx) {
@@ -217,16 +218,24 @@ export function build(ctx) {
     box(im.fabric('cotton_jersey', { rep: 0.2 }), 0.12, 0.38, 0.42, sx - 0.12, F + 0.68, szc + SL / 2 - 0.35, { color: 0xb8ad8e, bevel: 0.05 }, 0, 0.2, 0.25);
     Fr.col.box(sx, F + 0.42, szc, 0.85, 0.84, SL, { tag: 'furniture' });
     ctx.anchors.sofa = { pos: Fr.v(sx + 0.1, F, szc), heading: PI - 0.72 + FrO.th };
-    // weathered low coffee table with a lower slat shelf, an ashtray
-    const tx = sx + 1.35, tzc = szc + 0.1, TB = im.pbr('wood_table_worn', { rep: 0.8 });
-    box(TB, 0.6, 0.05, 1.05, tx, F + 0.42, tzc, { grain: 2, color: 0xcfc4ae, wear: 0.6, bevel: 0.01 });
-    for (const [dx, dz] of [[-0.27, -0.48], [0.27, -0.48], [-0.27, 0.48], [0.27, 0.48]]) box(TB, 0.05, 0.4, 0.05, tx + dx, F + 0.2, tzc + dz, { grain: 1, color: 0xbdb29a, wear: 0.6 });
-    for (let k = 0; k < 4; k++) box(TB, 0.11, 0.02, 0.98, tx - 0.2 + k * 0.135, F + 0.12, tzc, { grain: 2, color: 0xb4a88e, wear: 0.6 });
-    lathe(I, im.glass({ tint: 1 }), [[0.001, 0], [0.06, 0], [0.065, 0.025], [0.05, 0.03], [0.001, 0.02]], M(tx + 0.05, F + 0.445, tzc + 0.12), { seg: 20 });
-    lathe(I, GLOSS, [[0.001, 0], [0.07, 0], [0.072, 0.02], [0.06, 0.02], [0.001, 0.015]], M(tx + 0.05, F + 0.445, tzc + 0.12), { color: 0x2c8c7e, seg: 20 });
-    Fr.col.box(tx, F + 0.22, tzc, 0.6, 0.45, 1.05, { tag: 'furniture' });
+    // r7 (user, Nov 18 eve): THE coffee table is the user's downloaded model (Models/_Inbox/coffee-table.zip -> assets/models/keys/
+    // coffee_table.glb by tools/v2/keys/r7/convert_coffee_table.py): X / Z as shipped (1.2 x 0.5 m), height cut to 55 % (0.31 m), long
+    // side along the sofa as in 06; the ashtray on its top. The code-built table stays as the fallback if the model fails to load.
+    const tx = sx + 1.2, tzc = szc + 0.1, CT_TOP = 0.308;
+    const ash = (y) => { const LA = kit.batch('r4ash'); lathe(LA, im.glass({ tint: 1 }), [[0.001, 0], [0.06, 0], [0.065, 0.025], [0.05, 0.03], [0.001, 0.02]], M(tx + 0.05, y + 0.003, tzc + 0.12), { seg: 20 });
+      lathe(LA, GLOSS, [[0.001, 0], [0.07, 0], [0.072, 0.02], [0.06, 0.02], [0.001, 0.015]], M(tx + 0.05, y + 0.003, tzc + 0.12), { color: 0x2c8c7e, seg: 20 }); LA.build(LG, { cast: false }); };
+    const codeTable = () => { const TB = im.pbr('wood_table_worn', { rep: 0.8 }), CB = kit.batch('r4ctable');
+      CB.box(TB, 0.6, 0.05, 1.05, M(tx, F + 0.42, tzc), { grain: 2, color: 0xcfc4ae, wear: 0.6, bevel: 0.01, rand: r });
+      for (const [dx, dz] of [[-0.27, -0.48], [0.27, -0.48], [-0.27, 0.48], [0.27, 0.48]]) CB.box(TB, 0.05, 0.4, 0.05, M(tx + dx, F + 0.2, tzc + dz), { grain: 1, color: 0xbdb29a, wear: 0.6, bevel: 0.004, rand: r });
+      for (let k = 0; k < 4; k++) CB.box(TB, 0.11, 0.02, 0.98, M(tx - 0.2 + k * 0.135, F + 0.12, tzc), { grain: 2, color: 0xb4a88e, wear: 0.6, bevel: 0.004, rand: r });
+      CB.build(LG); ash(F + 0.445); };
+    ctx.async.push(new GLTFLoader().loadAsync((import.meta.env?.BASE_URL ?? '/') + 'assets/models/keys/coffee_table.glb').then((g) => {
+      const t = g.scene; t.name = 'r7_coffee_table'; t.position.set(tx, F, tzc); t.rotation.y = PI / 2;
+      t.traverse((n) => { if (!n.isMesh) return; n.castShadow = false; n.receiveShadow = true; n.raycast = () => {}; const m = kit.setIndirect ? kit.setIndirect(n.material.clone()) : n.material; m.envMapIntensity = 0.35; m.roughness = Math.max(0.55, m.roughness ?? 0.7); n.material = m; });
+      LG.add(t); ash(F + CT_TOP); }).catch((e) => { console.warn('[nicoHouse] coffee table model', e?.message || e); codeTable(); }));
+    Fr.col.box(tx, F + CT_TOP / 2, tzc, 0.5, CT_TOP, 1.2, { tag: 'furniture' });
     // flat TV on a black box stand, facing the sofa (06)
-    const vx = tx + 1.35, vz = tzc + 0.15;
+    const vx = sx + 2.7, vz = tzc + 0.15;   // (where it stood: the table moved, not the TV)
     box(im.matte(), 0.45, 0.42, 1.1, vx, F + 0.22, vz, { color: 0x1a1a1a, bevel: 0.012 });
     const tvM = im.emissive(0x0b0d10, 0, 'r4tv'); tvM.color.set(0x050506); tvM.roughness = 0.25;
     box(GLOSS, 0.05, 0.72, 1.24, vx + 0.02, F + 0.86, vz, { color: 0x111111, bevel: 0.01 }); I.box(tvM, 0.004, 0.68, 1.19, M(vx - 0.007, F + 0.86, vz), {});

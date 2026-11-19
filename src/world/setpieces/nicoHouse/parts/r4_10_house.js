@@ -234,7 +234,7 @@ export function build(ctx) {
   }
 
   // ================= pavers under the house (10: square concrete pavers) =================
-  { const PV = mat.concrete(), Pv = P.pavers, s = 0.6;
+  for (const Pv of [P.pavers, P.court]) { const PV = mat.concrete(), s = 0.6;
     for (let x = Pv.x0; x < Pv.x1 - 0.05; x += s) for (let z = Pv.z0; z < Pv.z1 - 0.05; z += s) {
       if (inR(P.groundRoom, x + s / 2, z + s / 2, -0.05)) continue;
       const crack = r() < 0.05, t = kit.vary(0xb3b1ab, r, 0.05);   // r7: gray poured-concrete court (10), not beige
@@ -308,7 +308,7 @@ export function build(ctx) {
       for (let k = 0; k < 5; k++) { const [x, z] = atU(0, BT + BAT.t + 0.02); box(WHITE, o.w, 0.02, 0.07, x, o.y0 + 0.05 + k * (h - 0.1) / 4, z, { color: CW, wear: 0.4 }, 0.6, ry); }
       return; }
     // jamb liners through the wall depth (the reveal)
-    const dep = T + BT, wc = BT - dep / 2;
+    const dep = T + BT + 0.005, wc = BT + 0.005 - dep / 2;   // r7: 5 mm proud of the siding face too (the liners' fronts shared the boards' face plane: teal sawtooth in the white reveal)
     // r7 (playtest item 7, flicker): the liners stand 4 mm proud into the opening so their reveal faces never share a plane with
     // the cut ends of the siding boards and the wall core (they did: the inner frame shimmered)
     { const [x, z] = atU(0, wc); box(WHITE, o.w, 0.034, dep, x, o.y1 + 0.013, z, { color: CW, wear: 0.3 }, 0, ry); if (o.kind !== 'door' && o.kind !== 'slider') box(WHITE, o.w, 0.034, dep, x, o.y0 - 0.013, z, { color: CW, wear: 0.3 }, 0, ry); }

@@ -45,7 +45,7 @@ export function build(ctx) {
     // the sheet's height at a plan point (also ctx.yardY: decals, puddles and props of part 55 follow the same surface)
     // r4: flat under the new house footprint (S frame), the lawn terrace rising to the bulkhead, the sheet sinking beyond the wall
     // line and past the lot's east / west ends (S frame) so it never runs over the neighbors' yards
-    const underAt = (x, z) => { if (!R4) return (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0; const [sx, sz] = toS(x, z); const Pv = P4.pavers; return houseBlock(sx, sz, 0.8) || (sx > Pv.x0 - 0.6 && sx < Pv.x1 + 0.6 && sz > Pv.z0 - 0.6 && sz < Pv.z1 + 0.6) ? 1 : 0; };   // r7: flat under the paved carport floor too
+    const underAt = (x, z) => { if (!R4) return (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0; const [sx, sz] = toS(x, z); const inP = (Pv) => sx > Pv.x0 - 0.6 && sx < Pv.x1 + 0.6 && sz > Pv.z0 - 0.6 && sz < Pv.z1 + 0.6; return houseBlock(sx, sz, 0.8) || inP(P4.pavers) || inP(P4.court) ? 1 : 0; };   // r7: flat under the paved carport floor too
     const edgeS = (x, z) => { if (!R4) return 99; const [sx, sz] = toS(x, z); return Math.min(sx < P4.wallX0 || sx > P4.wallX1 ? sz - P4.wallZ + 1.5 : 99, 19 - sx, sx + 26); };
     const yardY = (x, z) => { const dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2)), under = underAt(x, z), near = Math.max(0, Math.min(1, (Math.hypot(Math.max(0, Math.abs(x + 1.5) - 11.5), Math.max(0, Math.abs(z - 0.25) - 8.75))) / 5));   // flat around the house, its stairs, pads and pots
       const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, edgeS(x, z)) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
@@ -70,9 +70,10 @@ export function build(ctx) {
       // r7 (playtest item 6, mock-up 01): the drive reads as a clear compacted dirt-and-shell track: a crisper core, warmer and darker
       // than the pale shell around it, the ruts darker still
       const core = R4 ? Math.max(0, Math.min(1, (DRIVE.halfWidth + 0.25 - dd) / 0.9)) * (0.85 + 0.15 * nC) : 0;
-      if (core > 0) { const DIRT = [0.64, 0.61, 0.55]; for (let k = 0; k < 3; k++) c[k] *= 1 + (DIRT[k] - 1) * core; }
+      if (core > 0) { const DIRT = [0.9, 0.85, 0.76]; for (let k = 0; k < 3; k++) c[k] *= 1 + (DIRT[k] - 1) * core; }
       const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9) + drive * Math.max(0, nC - 0.45) * 1.4; c = c.map((v, k) => v * (1 - 0.24 * Math.min(1, damp) * [1, 1.02, 1.06][k]));      // damp hollows (soft: one continuous floor, not patches)
-      const grass = Math.min(1, edge * 0.85 + (1 - drive) * (R4 ? 0.95 * Math.max(0, n - 0.12) : 0.7 * Math.max(0, n - 0.3)) + 0.45 * Math.max(0, nC - 0.5)) * (1 - (R4 ? core : 0));   // r7: patchy grass right up to the drive edges (01)
+      const grass = R4 ? Math.min(1, edge * 0.85 + 0.3 + 0.9 * Math.max(0, n - 0.1) + 0.45 * Math.max(0, nC - 0.5)) * (1 - core) * (1 - 0.7 * under)   // r7: patchy grass right up to the drive edges (01), the drive itself bare
+        : Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));   // r7: patchy grass right up to the drive edges (01)
       c = [c[0] * (1 - 0.42 * grass), c[1] * (1 - 0.28 * grass), c[2] * (1 - 0.5 * grass)];   // matted gray-green grass
       { const dm = segD(x, z, DRIVE.main), rut = Math.exp(-((dm - 0.85) ** 2) / 0.05); c = c.map((v) => v * (1 - 0.1 * rut)); }   // faint tire ruts
       { // toward the open edges and the asphalt the shell yard takes on the terrain's sand tone, so where the sheet dips under it

@@ -27,8 +27,8 @@
    1
   ],
   "tod": 11,
-  "fov": 66,
-  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-14.5,1.5,5.5),l=W(-4,5.2,-6);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=66;cam.updateProjectionMatrix();return true;};",
+  "fov": 70,
+  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-11.5,1.5,3.0),l=W(-3,5.2,-6.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=70;cam.updateProjectionMatrix();return true;};",
   "ref": "r4/02_exterior_stilts_deck"
  },
  "s08_water": {
@@ -174,6 +174,22 @@
   "fov": 60,
   "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(0,90,-5),l=W(0,0,-5.01);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=60;cam.updateProjectionMatrix();return true;};",
   "ref": null
+ },
+ "s06_living": {
+  "eye": [
+   0,
+   0,
+   0
+  ],
+  "look": [
+   0,
+   0,
+   1
+  ],
+  "tod": 10,
+  "fov": 70,
+  "eval": "window.__r4oz=game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=window.__r4oz,W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-0.9,5.3,-8.8),l=W(-4.0,3.95,-4.8);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=70;cam.updateProjectionMatrix();return true;};",
+  "ref": "r4/06_living_room"
  },
  "xJunk": {
   "eye": [

@@ -46,7 +46,8 @@ export const P4 = {
   stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: 5.2, x1: 6.6, z0: -14.05, z1: -12.8 } },   // runs -X from the landing
   // ground-floor room under the east end (10: teal board-and-batten, white slider window, hose reel, vine)
   groundRoom: { x0: 2.2, x1: 6.5, z0: -10.4, z1: -3.6, h: 2.85 },
-  pavers: { x0: -9.8, x1: 8.6, z0: -12.6, z1: 3.4 },   // r7 (playtest item 3): the carport floor reaches out under the whole deck, both stairs and ~5 m past the front edge (the hoop court, 10)
+  pavers: { x0: -9.8, x1: 8.6, z0: -12.6, z1: -0.3 },   // r7 (playtest item 3): the carport floor reaches out under the whole deck and both stairs
+  court: { x0: -3.6, x1: 3.6, z0: -0.3, z1: 3.9 },     // r7: ... and flattens out past the front edge as the hoop court (10)
   // interior (clear spaces at floor level)
   hall: { x0: -0.7, x1: 0.7, z0: -5.6, z1: -3.6 },
   bath: { x0: 0.7, x1: 3.0, z0: -6.3, z1: -3.6 },
