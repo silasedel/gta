@@ -306,11 +306,30 @@ export function createBoats(game, opts = {}) {
     try { const ms = new Set(); game.env?.ocean?.mesh?.traverse((o) => { if (o.isMesh && o.material?.isShaderMaterial) ms.add(o.material); });
       let ok = ms.size > 0; for (const m of ms) ok = W.patchFreshMaterial(m) && ok; W.freshOn = ok; if (!ok) console.warn('[boats] fresh water: ocean anchors not found'); } catch (e) { console.warn('[boats] fresh water', e); } }
   // ?waves=2: draw the swell now by patching the ocean material(s) at runtime (until the ocean.js hook lands; r2-ground)
-  if (!opts.sim && W && /[?&]waves=2\b/.test(globalThis.location?.search || '') && !W.shaderOn) {
-    try { const oc = game.env?.ocean, meshes = []; oc?.mesh?.traverse((o) => { if (o.isMesh && o.material?.isShaderMaterial) meshes.push(o); }); // every ocean pass (r2-ground: surface + transmit)
-      let ok = meshes.length > 0; for (const m of new Set(meshes.map((x) => x.material))) ok = W.patchOceanMaterial(m) && ok;
-      if (ok) { const g = W.makeGrid(); for (const ms of meshes) { ms.geometry = g; ms.frustumCulled = false; } W.shaderOn = true; }
-      else console.warn('[boats] waves=2: ocean shader anchors not found'); } catch (e) { console.warn('[boats] waves=2', e); } }
+  // W2 (Nov 19 playtest: "more realistic waves"): the drawn swell also comes on by itself while the player drives a boat
+  // (the physics then runs the full Gerstner swell instead of the small chop, so hulls pitch and roll on it), ramping up over
+  // ~20 s from the chop height; 25 s after leaving the boat the plain ocean comes back (no cost while driving cars).
+  // ?boatswell=0 = old (only ?waves=2).
+  const swell = { meshes: null, orig: null, grid: null, patched: false, on: false, offT: 0, auto: !/[?&]boatswell=0\b/.test(globalThis.location?.search || '') };
+  function swellOn() {
+    if (!W || opts.sim || W.off || swell.on) return;
+    try {
+      const oc = game.env?.ocean, meshes = []; oc?.mesh?.traverse((o) => { if (o.isMesh && o.material?.isShaderMaterial) meshes.push(o); }); // every ocean pass (r2-ground: surface + transmit)
+      if (!meshes.length) return;
+      if (!swell.patched) { let ok = true; for (const m of new Set(meshes.map((x) => x.material))) ok = W.patchOceanMaterial(m) && ok; if (!ok) { console.warn('[boats] swell: ocean shader anchors not found'); swell.auto = false; return; } swell.patched = true; }
+      swell.meshes = meshes; swell.orig = meshes.map((ms) => [ms.geometry, ms.frustumCulled]); swell.grid ||= W.makeGrid();
+      for (const ms of meshes) { ms.geometry = swell.grid; ms.frustumCulled = false; }
+      if (W.uniforms?.uWaveOn) W.uniforms.uWaveOn.value = 1;
+      if (!W.shaderOn) W.sea = Math.min(W.sea, W.chop ?? 0.16);   // continuity: the full swell grows from the chop the hull rode
+      W.shaderOn = true; swell.on = true;
+    } catch (e) { console.warn('[boats] swell on', e); swell.auto = false; }
+  }
+  function swellOff() {
+    if (!swell.on) return;
+    try { swell.meshes.forEach((ms, i) => { ms.geometry = swell.orig[i][0]; ms.frustumCulled = swell.orig[i][1]; }); if (W.uniforms?.uWaveOn) W.uniforms.uWaveOn.value = 0; } catch (e) { /* keep */ }
+    W.shaderOn = false; swell.on = false;
+  }
+  if (!opts.sim && W && /[?&]waves=2\b/.test(globalThis.location?.search || '') && !W.shaderOn) { swellOn(); swell.auto = false; }
   // r2-water: floating / sinking cars (vehicles.js waterTick hands over); ?carwater=2 on
   if (!opts.sim && (CARWATER_Q ?? 2) >= 2 && !game.carWater) { try { game.carWater = createCarWater(game); } catch (e) { console.warn('[boats] car water', e); } }
   // Everglades sheet water (render + the surface the airboat glides on); ?glades=0 off
@@ -666,6 +685,7 @@ export function createBoats(game, opts = {}) {
 
   // ---- r2-water physics v2: per-point hydro (buoyancy on the shared waves + wakes, lateral resistance, ground contact) from
   // hydro.js; this adds forward drag, planing lift, thrust, steering, weight transfer (trim + squat / bow-drop), effects.
+  const NO_AGROUND = /[?&]aground=0\b/.test(globalThis.location?.search || '');
   const ss01 = (a, b2, x) => { const u = clamp((x - a) / (b2 - a), 0, 1); return u * u * (3 - 2 * u); };
   function boatTick2(b, dt, time) {
     const body = b.body, t = b.spec;
@@ -706,12 +726,29 @@ export function createBoats(game, opts = {}) {
       _imp.x = 0; _imp.y = lift * dt; _imp.z = 0; body.applyImpulseAtPoint(_imp, _pt, true);
     }
     body.setAngularDamping(0.25 + 0.5 * wf + 0.8 * H.ground); body.setLinearDamping(0.02);
+    // W2 (Nov 19 playtest: "boats drive far up onto land"): running aground plows.  The bottom digging into the beach and the
+    // keel / skeg / outboard leg catching drag the hull to a stop within a length or two, harder once its middle is over dry
+    // land; a light pitch kick sells the hit.  Airboats keep sliding (flat bottom, built for it).  ?aground=0 = old.
+    const onLand = !isWater(tr.x, tr.z);
+    // (the hull's own collider slides at 0.12 on the water side; on land it grips like a hull on concrete / sand)
+    if (!air && !NO_AGROUND && b.collider && onLand !== b.colLand) { b.colLand = onLand; try { b.collider.setFriction(onLand ? 0.55 : 0.12); } catch (e) { /* keep */ } }
+    if (!air && !NO_AGROUND && (H.ground > 0.05 || (onLand && wf < 0.3))) {
+      const hs = Math.hypot(lv.x, lv.z);
+      if (hs > 0.3) {
+        const a = 9.81 * (0.9 * Math.min(1, H.ground * 2.2) + (onLand ? 1.1 : 0)), dv = Math.min(hs, a * dt);
+        _imp.x = -lv.x / hs * dv * m; _imp.y = 0; _imp.z = -lv.z / hs * dv * m; body.applyImpulse(_imp, true);
+        if (!b.wasGround && hs > 4) { _w.copy(_r).multiplyScalar(-m * Math.min(2.2, hs * 0.12)); body.applyTorqueImpulse(_w, true); if (b.playerDriven) game.emit?.('boatAground', { vehicle: b, speed: hs }); }
+        lv = body.linvel();
+      }
+    }
+    b.wasGround = H.ground > 0.05;
     // controls
     const c = (b.playerDriven && !b.boarding) || b.ai || b.chaseTarget ? b.ctrl : { throttle: 0, steer: 0 };
     const on = b.engineOn && !b.disabled;
     let thr = on ? c.throttle : 0;
     const propWet = air || H.sternWet || (wf > 0 && isWater(tr.x, tr.z) && bedY(tr.x, tr.z) < SEA - 1.5);
     if (b.beached && thr > 0 && H.ground > 0.45) thr *= 0.15; // hard aground: the prop just digs (backing off still works)
+    if (!air && onLand && thr > 0 && !NO_AGROUND) thr = 0;   // the prop is out of the water once the hull is up the beach
     let thrust;
     if (air) thrust = thr >= 0 ? thr * t.thrust * Math.max(0, 1 - (Math.max(0, vF) / vmax) ** 2) : thr * t.thrust * 0.28 * (vF > -4 ? 1 : 0); // fan: works anywhere; small reverse (thrust reverser)
     else thrust = (thr >= 0 ? thr * t.thrust * Math.max(0, 1 - (Math.max(0, vF) / vmax) ** 2) : thr * t.thrust * 0.4 * (vF > -6 ? 1 : 0)) * (propWet ? 1 : 0);
@@ -1174,6 +1211,10 @@ export function createBoats(game, opts = {}) {
   game.fixedHooks.push(boatsFixed);
 
   function update(dt) {
+    if (swell.auto && W) {
+      const pv = game.player?.state?.vehicle, boating = !!(pv && pv.isBoat && game.player.state.inVehicle);
+      if (boating) { swell.offT = 0; if (!swell.on) swellOn(); } else if (swell.on && (swell.offT += dt) > 25) swellOff();
+    }
     try { W?.tick(dt); if (W?.freshOn) W.updateFresh(game.camera?.position); } catch (e) { /* ignore */ }
     try { game.gladesWater?.update(dt); } catch (e) { console.warn('[boats] glades water', e); }
     try { manager(dt); } catch (e) { console.error('[boats] manager', e); }
