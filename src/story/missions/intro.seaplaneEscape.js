@@ -58,18 +58,13 @@ export default defineMission({
   requires: ['intro.swampRescue'],
   rewards: { money: 5000 },
   flags: { 'vale.trust': 1 },
+  start: { teleport: true, at: PLACES.farDock },
   end: { at: (game) => house(game, 'spawn') },
   steps: [
     {
       id: 'board',
       text: 'Get in the seaplane.',
-      enter: (ctx) =>
-        ctx.spawnAircraft('plane', 'floatplane', {
-          x: PLACES.farDock.x - Math.sin(PLACES.farDock.heading) * 8,
-          z: PLACES.farDock.z - Math.cos(PLACES.farDock.heading) * 8,
-          heading: PLACES.farDock.heading,
-          y: SEA,
-        }),
+      enter: (ctx) => ctx.spawnAircraft('plane', 'floatplane', { ...PLACES.farDockWater, y: SEA }),
       trigger: { enterVehicle: true },
       waypoint: 'plane',
     },

@@ -40,6 +40,7 @@ export default defineMission({
   requires: ['intro.seaplaneEscape'],
   rewards: { unlocks: [FREE_ROAM_UNLOCK] },
   flags: { [INTRO_DONE_FLAG]: true },
+  start: { teleport: true, at: (game) => house(game, 'spawnYard') },
   end: { at: (game) => house(game, 'spawnYard') },
   steps: [
     { id: 'home', cutscene: homeCutscene },

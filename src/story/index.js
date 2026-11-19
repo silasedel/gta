@@ -152,6 +152,15 @@ export function createStory(game) {
     }
   }
 
+  // the intro plays straight through: a passed intro mission starts the next one once the Passed card has played
+  game.on?.('mission:pass', ({ id }) => {
+    if (!INTRO_MISSIONS.includes(id)) return;
+    setTimeout(() => {
+      const next = story.nextIntro();
+      if (next && runner.missions.has(next) && !runner.active) runner.start(next, { from: 'play' });
+    }, 7000);
+  });
+
   game.updaters.push(function storyTick(dt) {
     runner.update(dt);
     story.markers.update(dt);

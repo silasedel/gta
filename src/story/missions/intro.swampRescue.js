@@ -71,6 +71,8 @@ export default defineMission({
   intro: true,
   requires: ['intro.oceanSmuggling'],
   flags: { 'cisco.saved': true },
+  // a travel cut: the creek from the bay to the landing is not open water on the map
+  start: { teleport: true, at: PLACES.sawgrassLanding },
   end: { at: PLACES.farDock },
   fail: { leftArea: SWAMP_AREA },
   // a skip (Free Roam) leaves Nico with the pistol Dex hands him in the landing cutscene

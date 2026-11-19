@@ -79,6 +79,7 @@ export default defineMission({
   intro: true,
   rewards: { money: 500 },
   flags: { 'vale.met': true },
+  start: { teleport: true, at: (game) => house(game, 'spawnYard') },
   end: { at: PLACES.marinaDock },
   steps: [
     { id: 'call', cutscene: callCutscene },

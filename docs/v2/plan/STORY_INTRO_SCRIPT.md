@@ -1,6 +1,6 @@
 # Southline: the introduction (Phase B script)
 
-Five missions played in order from **Play** (`src/story/intro.js`). Each one is a file in `src/story/missions/` with the
+Five missions played in order from **Play** (each pass starts the next one after the Passed card; `src/story/intro.js`). Each one is a file in `src/story/missions/` with the
 id below; today they are playable skeletons (real steps, waypoints, triggers, checkpoints, cutscene stubs with these
 lines). This document is the source for fleshing them out: every cutscene's shots and lines, every step, and the fail
 rules. Framework: `src/story/README.md`. Code style: `docs/v2/CONVENTIONS.md` section 0.
@@ -24,11 +24,12 @@ no speeches. Nobody explains the plot twice.
 | Place | Where | Used in |
 |---|---|---|
 | Nico's house | Pelican Point Ln, Key Largo; set piece `nico_house` (-1008, 5174); anchors `game.nicoHouse.anchors.*` | B1 start, B4 end, B5 |
-| **Pelican Point Marina** (Vale's office) | Key Largo strip, near the `keys_bar` set piece (~ -1287, 5787); dock on the bay side | B1, B2 start, B4 landing |
-| **The drop zone** | open Atlantic south-east of Key Largo (see `missions/intro.oceanSmuggling.js`) | B2 |
-| **Sawgrass landing** | a creek mouth on the Everglades shore (boat in, on foot from here) | B2 end, B3 start |
-| **The Sawgrass shack** | the stilt camp in the Everglades (`camps.js` `stilt_south`, ~ -2600, -330) | B3 |
-| **The far dock** | across the slough west of the shack (`stilt_west`, ~ -2950, -820): Vale's floatplane waits there | B3 end, B4 start |
+| **Pelican Point Marina** (Vale's office) | Key Largo strip by the `keys_bar` set piece: lot (-1275, 5815), dock edge (-1254, 5844), water (-1244, 5861) | B1, B2 start, B4 landing |
+| **The drop zone** | open water off Key Largo (Florida Bay), plane line (-900, 6600) -> (-300, 6100) | B2 |
+| **The Glades mouth** | where the boat leaves the bay (-3000, 3700); the map has no open water further north, so B3 opens with a travel cut | B2 end |
+| **Sawgrass landing** | creek edge in Big Cypress (-2600, -205) | B3 start |
+| **The Sawgrass shack** | the stilt camp (`camps.js` `stilt_south`, -2600, -330) | B3 |
+| **The far dock** | west across the slough (-2950, -815); the floatplane floats at (-2944, -790) | B3 end, B4 start |
 
 Exact coordinates live at the top of each mission file (`const PLACES`), checked against `game.city.isWater`.
 
@@ -90,8 +91,8 @@ Exact coordinates live at the top of each mission file (`const PLACES`), checked
    - **Lou:** "Nico. Cisco's not answering. Our man in the Glades."
    - **Lou:** "His last call said airboats. The Sawgrass boys have him. And they want what's in your boat."
    - **Dex:** "Then we go get him."
-6. **Head to the swamp.** `reach` Sawgrass landing by boat. Fail: boat destroyed.
-- **Pass:** flag `intro.oceanSmuggling.done`, item none (the packages stay in the boat). End: Sawgrass landing.
+6. **Head for the Glades.** `reach` the Glades mouth by boat. Fail: boat destroyed.
+- **Pass:** flag `intro.oceanSmuggling.done`, item none (the packages stay in the boat). End: the Glades mouth (B3 opens at the Sawgrass landing).
 
 ---
 

@@ -86,7 +86,8 @@ export default defineMission({
   intro: true,
   requires: ['intro.firstJob'],
   flags: {},
-  end: { at: PLACES.sawgrassLanding },
+  start: { teleport: true, at: PLACES.marinaDock },
+  end: { at: PLACES.gladesMouth },
   steps: [
     { id: 'briefing', cutscene: briefing },
     {
@@ -159,8 +160,8 @@ export default defineMission({
     { id: 'radio', cutscene: radioCallFor },
     {
       id: 'swamp',
-      text: 'Head to the swamp.',
-      trigger: { reach: { at: PLACES.sawgrassLanding, r: 40, inVehicle: 'boat' } },
+      text: 'Head for the Glades.',
+      trigger: { reach: { at: PLACES.gladesMouth, r: 60, inVehicle: 'boat' } },
       fail: { vehicleDestroyed: 'boat' },
     },
   ],

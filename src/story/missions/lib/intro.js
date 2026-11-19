@@ -4,18 +4,21 @@ import { keepFighting, fireAtPlayer, pedOut } from '../../../jobs/kit.js';
 
 // World meters (CONVENTIONS section 1). Water spots were checked with game.city.isWater.
 export const PLACES = {
-  // Pelican Point Marina, Key Largo strip (Vale's office): the lot, the dock and the water off it
-  marinaLot: { x: -1262, z: 5760, heading: -2.23 },
-  marinaDock: { x: -1300, z: 5800, heading: -2.23 },
-  marinaWater: { x: -1330, z: 5830, heading: -2.23 },
-  // open Atlantic off the reef, south-east of Key Largo: the plane flies from A to B and drops on the way
+  // Pelican Point Marina, Key Largo strip near the keys_bar set piece: the lot, the dock edge and the water off it
+  marinaLot: { x: -1275, z: 5815, heading: 0.53 },
+  marinaDock: { x: -1254, z: 5844, heading: 0.53 },
+  marinaWater: { x: -1244, z: 5861, heading: 0.53 },
+  // open water off Key Largo (Florida Bay): the plane flies from A to B and drops on the way
   dropEntry: { x: -700, z: 6300 },
   dropLineA: { x: -900, z: 6600 },
   dropLineB: { x: -300, z: 6100 },
-  // the Everglades: creek landing (boat), the Sawgrass shack (stilt camp), the far dock with the floatplane
-  sawgrassLanding: { x: -2600, z: -200, heading: Math.PI },
+  // where the boat leaves the bay for the Glades (no open water path runs further north: B3 starts with a travel cut)
+  gladesMouth: { x: -3000, z: 3700 },
+  // the Everglades (Big Cypress): creek landing, the Sawgrass shack (stilt camp), the far dock and its water
+  sawgrassLanding: { x: -2600, z: -205, heading: Math.PI },
   shack: { x: -2600, z: -330, heading: 0 },
-  farDock: { x: -2950, z: -820, heading: -1.6 },
+  farDock: { x: -2950, z: -815, heading: 0.2 },
+  farDockWater: { x: -2944, z: -790, heading: 0.2 },
 };
 
 // the cast (index rows in public/assets/npc/people/index.json)
