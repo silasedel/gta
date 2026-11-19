@@ -23,7 +23,7 @@ export function gondola(ctx, x, z, ry, o = {}) {
     for (let u = -l / 2; u <= l / 2 + 0.01; u += l / Math.max(1, Math.round(l / 1.22))) G.boxB(F.upright, u, 0, 0, 0.035, h + 0.02, 0.07);
     for (const s of [1, -1]) { const plan = o.sides?.[s > 0 ? 0 : 1]; G.push(new THREE.Matrix4().makeRotationY(s > 0 ? 0 : Math.PI));
       for (let k = 0; k < levels; k++) { const y = 0.14 + k * (h - 0.3) / levels + (k ? 0.02 : 0), dd = k === 0 ? d + 0.02 : d - 0.03 * k * 0; G.box(F.shelf, 0, y - 0.012, 0.015 + dd / 2, l - 0.01, 0.024, dd); G.box(F.edge, 0, y - 0.018, 0.015 + dd + 0.004, l - 0.01, 0.036, 0.008); rail(ctx, 0, y - 0.018, 0.015 + dd + 0.0085, l - 0.02);
-        if (plan?.[k]) shelfRun(ctx, -l / 2 + 0.03, l / 2 - 0.03, y, 0.015 + dd, dd - 0.02, plan[k], { zone, start: k * 3, shade: 0.04 * (levels - 1 - k) }); }
+        if (plan?.[k]) shelfRun(ctx, -l / 2 + 0.03, l / 2 - 0.03, y, 0.015 + dd, dd - 0.02, plan[k], { zone, start: k * 3, shade: 0.04 * (levels - 1 - k), rows: typeof o.rows === 'function' ? o.rows(k) : o.rows, block: o.block }); }
       ctx.poi('browse', R(ctx).range(-l / 2 + 0.5, l / 2 - 0.5), d + 0.62, Math.PI, { zone }); ctx.poi('restock', R(ctx).range(-l / 2 + 0.5, l / 2 - 0.5), d + 0.55, Math.PI, { zone }); G.pop(); }
     ctx.solid(-l / 2, 0, -d - 0.03, l / 2, h, d + 0.03); ctx.shadow(0, 0, l + 0.3, 2 * d + 0.5);
     // end caps: short shelves or a peg panel facing down the aisle

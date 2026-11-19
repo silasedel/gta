@@ -17,7 +17,9 @@ export function createVenuePeople(game, opts = {}) {
     if (v.kind === 'nightclub') return [['bartender', 'bartend', 'talk', 2], ['dj', 'dj', 'dance', 1], ['bouncer', 'door', 'talk', 1], ['guest', 'sit', 'bench', R(5)], ['guest', 'barStand', 'talk', R(2)], ['guest', 'dance', 'dance', R(2)], ['guest', 'lean', 'lean', R(1)]];
     if (v.kind === 'bar') return [['bartender', 'bartend', 'talk', 1], ['guest', 'sit', 'bench', R(4)], ['guest', 'barStand', 'talk', R(3)], ['guest', 'lean', 'lean', R(1)]];
     if (v.kind === 'restaurant') return [['server', 'serve', 'talk', 1], ['guest', 'sit', 'bench', R(6)], ['host', 'host', 'talk', 1]];
-    if (v.kind === 'shop') return [['clerk', 'counter', 'talk', 1], ['guest', 'browse', 'talk', R(3)]];
+    if (v.kind === 'shop') return [['clerk', 'counter', 'talk', 1], ['guest', 'browse', 'talk', R(v.guests ?? 3)], ['guest', 'register', 'talk', R(v.payer ?? 0.6)]];
+    if (v.kind === 'grocery') return [['clerk', 'counter', 'talk', 2], ['guest', 'browse', 'talk', R(6)], ['guest', 'queue', 'talk', R(1)], ['guest', 'register', 'talk', R(1)]]; // r7
+    if (v.kind === 'barber') return [['clerk', 'barber', 'talk', v.barbers ?? 2], ['guest', 'chair', 'bench', R(1.4)], ['guest', 'sit', 'bench', R(2)]]; // r7: barbers behind the chairs, a client in a chair, people waiting
     if (v.kind === 'lobby') return [['host', 'host', 'talk', 1], ['guest', 'sit', 'bench', R(3)]];
     if (v.kind === 'cafe') return [['barista', 'counter', 'talk', 1], ['guest', 'sit', 'bench', R(3)], ['guest', 'queue', 'talk', R(1)]];
     return [];
