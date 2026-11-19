@@ -1631,5 +1631,5 @@ export async function createPeds(game) {
     }
   }
 
-  return { list, update, panic, damage, spawnAt, _umbrella: makeUmbrella, _removeProp: removeProp, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView, laneRoom, space }, groups, groupStats, clearWhy, _crowd: (c, zone, n) => crowd(c, zone, n, false), get count() { return list.filter((p) => p.active).length; } };
+  return { list, update, panic, damage, spawnAt, _umbrella: makeUmbrella, _removeProp: removeProp, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView, laneRoom, space }, groups, groupStats, clearWhy, _sunbathers: (c, n) => sunbathers(c, n), _crowd: (c, zone, n) => crowd(c, zone, n, false), get count() { return list.filter((p) => p.active).length; } };
 }
