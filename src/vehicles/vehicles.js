@@ -1459,7 +1459,13 @@ export async function createVehicles(game) {
       if (lotBlocked(s.x, s.z, o.heading || 0, CAR_TYPES[key].L, CAR_TYPES[key].W)) return null;
       o = { ...o, x: s.x, z: s.z, y: s.y ?? o.y };
     }
-    const y = o.y ?? groundY(o.x, o.z);
+    // Nov 19 (Nico's yard: cars tipped onto their nose, flew 100 m or dropped through): the city terrain height can sit under a
+    // set piece's own ground (yard, lot, pad) by up to ~1 m, so a car spawned at it started inside that collider. Spawn on the
+    // topmost static surface within 1.6 m above the terrain instead (never a roof: higher surfaces are ignored).
+    let y = o.y;
+    if (y == null) { y = groundY(o.x, o.z);
+      try { const h = world.castRay(new RAPIER.Ray({ x: o.x, y: y + 1.6, z: o.z }, { x: 0, y: -1, z: 0 }), 2.4, true, QF.EXCLUDE_SENSORS | QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC);
+        if (h) { const hy = y + 1.6 - h.timeOfImpact; if (hy > y + 0.05) y = hy; } } catch (e) { /* terrain height stands */ } }
     const v = createVehicle(CAR_TYPES[key] ? key : 'sedan', o.color ?? null, new THREE.Vector3(o.x, y, o.z), o.heading || 0,
       { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe, interior: o.interior, ride: o.ride, finish: o.finish, old: o.old, tint: o.tint });
     specials.add(v); v.pinned = true;
