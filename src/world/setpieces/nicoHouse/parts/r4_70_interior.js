@@ -205,9 +205,12 @@ export function build(ctx) {
     const I = LI, box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => LI.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
     const Fr = { col: { box: (x, y, z, sx, sy, sz, o = {}) => { const [a, b] = T2(x, z); return FrO.col.box(a, y, b, sz, sy, sx, o); } }, interact: (it) => { const [a, b] = T2(it.pos[0], it.pos[2]); return FrO.interact({ ...it, pos: [a, it.pos[1], b] }); }, v: (x, y, z) => { const [a, b] = T2(x, z); return FrO.v(a, y, b); } };
     const sx = x0 + 0.48, szc = -6.6, SL = 2.0, CANE = im.pbr('tatami_mat', { rep: 0.2 }), cane = 0x9a7046;
-    const CUSH = im.art('r4cush', 512, 512, (g, w, h) => { g.fillStyle = '#6f7660'; g.fillRect(0, 0, w, h); const q = kit.rng(21);
-      for (let i = 0; i < 160; i++) { const c = ['#4f5a44', '#8b8f78', '#3e4536', '#a3a48c', '#5d6b57'][i % 5]; g.fillStyle = c; g.beginPath(); g.ellipse(q() * w, q() * h, 10 + q() * 40, 6 + q() * 26, q() * 3, 0, 6.3); g.fill(); }
-      for (let i = 0; i < 60; i++) { g.strokeStyle = 'rgba(200,200,180,0.35)'; g.lineWidth = 2; const x = q() * w, y = q() * h; g.beginPath(); for (let k = 0; k < 5; k++) { const a = k * 1.256; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * 12, y + Math.sin(a) * 12); } g.stroke(); } }, { rough: 0.95 });
+    // r7b (mock-up 15): green palm-leaf print on cream
+    const CUSH = im.art('r7cush', 512, 512, (g, w, h) => { g.fillStyle = '#d9d2b6'; g.fillRect(0, 0, w, h); const q = kit.rng(21);
+      for (let i = 0; i < 46; i++) { const x = q() * w, y = q() * h, a = q() * 6.28, L = 60 + q() * 90, c = ['#2f5a32', '#3f7340', '#56874a', '#264a2a'][i % 4];
+        g.save(); g.translate(x, y); g.rotate(a); g.strokeStyle = c; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 0); g.lineTo(L, 0); g.stroke();
+        for (let k = 1; k < 14; k++) { const t = k / 14 * L, l = Math.sin(k / 14 * Math.PI) * (22 + q() * 10); g.strokeStyle = c; g.lineWidth = 4 + q() * 2;
+          for (const s of [-1, 1]) { g.beginPath(); g.moveTo(t, 0); g.quadraticCurveTo(t + 6, s * l * 0.5, t + 12, s * l); g.stroke(); } } g.restore(); } }, { rough: 0.95 });
     CUSH.userData.uvScale = 0.6;
     for (const dz of [-SL / 2, SL / 2]) { I.tube(CANE, [[sx + 0.4, F, szc + dz], [sx + 0.42, F + 0.55, szc + dz], [sx + 0.1, F + 0.62, szc + dz], [sx - 0.3, F + 0.6, szc + dz], [sx - 0.34, F + 0.9, szc + dz]], 0.028, { seg: 10, color: cane, steps: 30 });
       I.tube(CANE, [[sx - 0.35, F, szc + dz], [sx - 0.36, F + 0.85, szc + dz]], 0.025, { seg: 10, color: cane, steps: 8 }); }
@@ -236,12 +239,33 @@ export function build(ctx) {
     Fr.col.box(tx, F + CT_TOP / 2, tzc, 0.5, CT_TOP, 1.2, { tag: 'furniture' });
     // flat TV on a black box stand, facing the sofa (06)
     const vx = sx + 2.7, vz = tzc + 0.15;   // (where it stood: the table moved, not the TV)
-    box(im.matte(), 0.45, 0.42, 1.1, vx, F + 0.22, vz, { color: 0x1a1a1a, bevel: 0.012 });
+    // r7b (mock-up 15): the user's TV table (ps2-soviet-tv-table -> keys/tv_table.glb, 0.49 m high) and 46" flat screen (keys/tv_46.glb) on it
+    const GLB = (f) => new GLTFLoader().loadAsync((import.meta.env?.BASE_URL ?? '/') + 'assets/models/keys/' + f).then((g) => { g.scene.traverse((n) => { if (!n.isMesh) return; n.raycast = () => {}; n.receiveShadow = true; n.castShadow = false; const m = kit.setIndirect ? kit.setIndirect(n.material.clone()) : n.material; m.envMapIntensity = 0.35; n.material = m; }); return g.scene; });
+    ctx.async.push(GLB('tv_table.glb').then((t) => { t.position.set(vx, F, vz); LG.add(t); }).catch(() => {}));
+    ctx.async.push(GLB('tv_46.glb').then((t) => { t.position.set(vx + 0.02, F + 0.49, vz); t.rotation.y = -PI / 2; LG.add(t); }).catch(() => {}));
     const tvM = im.emissive(0x0b0d10, 0, 'r4tv'); tvM.color.set(0x050506); tvM.roughness = 0.25;
-    box(GLOSS, 0.05, 0.72, 1.24, vx + 0.02, F + 0.86, vz, { color: 0x111111, bevel: 0.01 }); I.box(tvM, 0.004, 0.68, 1.19, M(vx - 0.007, F + 0.86, vz), {});
-    box(GLOSS, 0.2, 0.02, 0.32, vx + 0.02, F + 0.45, vz, { color: 0x151515 }); box(GLOSS, 0.03, 0.08, 0.06, vx + 0.02, F + 0.49, vz, { color: 0x151515 });
+    I.box(tvM, 0.003, 0.58, 1.0, M(vx - 0.035, F + 0.49 + 0.345, vz), {});   // the picture when it is on (in front of the model's screen)
     Fr.col.box(vx, F + 0.5, vz, 0.45, 1.0, 1.24, { tag: 'furniture' });
     const tv = { on: false }; Fr.interact({ id: 'tv', kind: 'tv', label: () => (tv.on ? 'Turn off TV' : 'Watch TV'), pos: [vx - 0.3, F + 1.0, vz], radius: 1.8, use: (env) => { tv.on = !tv.on; tvM.emissive.set(0x5a7088); tvM.emissiveIntensity = tv.on ? 0.9 : 0; env?.emit?.('tv:toggle', { on: tv.on }); return tv.on; } });
+    // r7b (mock-up 15): a rattan armchair beside the sofa, a small folding wood side table between them with the user's lamp: the stand of
+    // their lamp-table download (keys/lamp_base.glb, given a worn brass finish) under the shade of their white modern lamp (keys/lamp_shade.glb)
+    { const ax = sx + 0.15, az = szc - SL / 2 - 1.15, AL = 0.78;
+      for (const dz of [-AL / 2, AL / 2]) { I.tube(CANE, [[ax + 0.4, F, az + dz], [ax + 0.42, F + 0.55, az + dz], [ax + 0.1, F + 0.62, az + dz], [ax - 0.3, F + 0.6, az + dz], [ax - 0.34, F + 0.9, az + dz]], 0.028, { seg: 10, color: cane, steps: 30 });
+        I.tube(CANE, [[ax - 0.35, F, az + dz], [ax - 0.36, F + 0.85, az + dz]], 0.025, { seg: 10, color: cane, steps: 8 }); }
+      I.tube(CANE, [[ax - 0.35, F + 0.86, az - AL / 2], [ax - 0.35, F + 0.86, az + AL / 2]], 0.022, { seg: 8, color: cane, steps: 6 });
+      box(CANE, 0.75, 0.04, AL - 0.06, ax + 0.03, F + 0.34, az, { color: cane, bevel: 0.01 });
+      box(CUSH, 0.7, 0.13, AL - 0.08, ax + 0.05, F + 0.43, az, { color: 0xffffff, bevel: 0.045 }); box(CUSH, 0.16, 0.5, AL - 0.1, ax - 0.24, F + 0.72, az, { color: 0xf0f0f0, bevel: 0.05 }, 0, 0, 0.12);
+      Fr.col.box(ax, F + 0.42, az, 0.85, 0.84, AL, { tag: 'furniture' });
+      const stx = sx + 0.05, stz = szc - SL / 2 - 0.42, TT = im.pbr('wood_table_worn', { rep: 0.6 }), top = F + 0.58;
+      box(TT, 0.42, 0.03, 0.42, stx, top - 0.015, stz, { grain: 0, color: 0xb08a5e, wear: 0.5, bevel: 0.006 });
+      for (const s2 of [-1, 1]) { I.strut(TT, [stx - 0.17, F, stz + s2 * 0.17], [stx + 0.17, top - 0.04, stz - s2 * 0.17], 0.03, 0.02, { color: 0x9a7650 }); }
+      for (const s2 of [-1, 1]) I.strut(TT, [stx + 0.17, F, stz + s2 * 0.17], [stx - 0.17, top - 0.04, stz + s2 * 0.17 * -1], 0.03, 0.02, { color: 0x9a7650 });
+      Fr.col.box(stx, top / 2 + F / 2, stz, 0.42, top - F, 0.42, { tag: 'furniture' });
+      ctx.async.push(GLB('lamp_base.glb').then((b) => { b.traverse((n) => { if (n.isMesh) { const m = n.material; m.color.setRGB(1.0, 0.78, 0.42); m.metalness = 0.75; m.roughness = 0.38; m.envMapIntensity = 0.7; } }); b.position.set(stx, top, stz); LG.add(b);
+        return GLB('lamp_shade.glb'); }).then((sh) => { if (!sh) return; sh.traverse((n) => { if (n.isMesh) { const m = n.material; m.color.set(0xf0e6cf); m.metalness = 0; m.roughness = 0.9; m.emissive = new THREE.Color(0xffc98a); m.emissiveIntensity = 0; m.side = THREE.DoubleSide; lampShades.push(m); } });
+        sh.position.set(stx, top + 0.27, stz); LG.add(sh); }).catch(() => {}));
+      const lampShades = [], [lx, lz] = T2(stx, stz), ll = FrO.light({ id: 'r7_side_lamp', pos: [lx, top + 0.42, lz], color: 0xffcf96, intensity: 22, range: 5, on: false });
+      ctx.updaters.push((dt, env) => { const t = env?.timeOfDay ?? 12, on = t < 7 || t > 17.5; ll.on = on; for (const m of lampShades) m.emissiveIntensity = on ? 0.9 : 0; }); }
     // clutter in the corner (06): fishing rod leaning, cardboard boxes, a framed picture leaning on the wall
     const CB = im.matte(); box(CB, 0.45, 0.32, 0.4, x0 + 0.3, F + 0.16, -4.5, { color: 0xa07f56, bevel: 0.01 }); box(CB, 0.4, 0.26, 0.35, x0 + 0.32, F + 0.45, -4.55, { color: 0xb18d61, bevel: 0.01 }, 0, 0.2);
     I.rod(im.plasticGloss(), [x0 + 0.12, F + 0.02, -4.0], [x0 + 0.05, F + 2.2, -4.15], 0.008, { color: 0x1f1f1f }); I.cyl(CHROME, 0.03, 0.03, 0.05, M(x0 + 0.11, F + 0.5, -4.02, 0, 0, PI / 2), { color: 0x9c9c98, seg: 12 });

@@ -462,8 +462,9 @@ def carve_nico(land, o, h):
     bay = Polygon([hl(o, h, x, z) for x, z in ((-26, -14.2), (13.4, -14.2), (13.4, -60), (-26, -60))])
     # r7 (playtest Nov 18 eve, item 12): the round cove beside the house is gone; a straight seawalled Keys canal, 6 m wide, runs from
     # the bay along the house's +X side to just past its front (the set piece builds the canal's timber walls: parts r4_06 / 05).
-    # Set piece frame: canal x 12..18, z from the bay to +6.5 (= lot frame S z +2 with the measured house offset oz ~ 4.5).
-    canal = Polygon([hl(o, h, x, z) for x, z in ((12.0, -20.0), (18.0, -20.0), (18.0, NICO_CANAL_Z1), (12.0, NICO_CANAL_Z1))])
+    # Set piece frame: canal x 14.4..20.4 (r7b: east of the annex, mock-up 11), z from the bay to +6.5 (= lot frame S z +2 with the
+    # measured house offset oz ~ 4.5).
+    canal = Polygon([hl(o, h, x, z) for x, z in ((14.4, -20.0), (20.4, -20.0), (20.4, NICO_CANAL_Z1), (14.4, NICO_CANAL_Z1))])
     return land.difference(unary_union([bay, canal]))
 
 

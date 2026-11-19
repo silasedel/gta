@@ -110,13 +110,15 @@ export function build(ctx) {
   // (08: top at the left seen from the water, foot on the lawn toward the middle); the back rail opens only at that pad
   const BKL = P.stairN.land;
   railRun(RE.x0, RE.z0, BKL.x0, RE.z0, {}); railRun(BKL.x1, RE.z0, RE.x1, RE.z0, {});         // back (bay) side, open at the stair head
-  railRun(RE.x1, RE.z0, RE.x1, RE.z1, { noStart: true, noEnd: true });                   // east side, closed (r7: no side stair here)
-  const FP = P.stairF.pad;
-  // front (hoop side): open only at the stair head, which sits at the FRONT CORNER (r6, user: "the top at the corner"); the corner
-  // post itself belongs to the head pad's rail below
-  railRun(RE.x1, RE.z1, FP.x1, RE.z1, { noStart: true });
-  box(WOOD, RL.post, RL.h + 0.04, RL.post, RE.x1, F + (RL.h + 0.04) / 2 - 0.005, RE.z1, { grain: 1, color: gray(0.95), wear: 0.7, bevel: 0.008 });   // the hoop-side / bay-side corner post
-  railRun(RE.x0, RE.z1, RE.x0, RE.z0, { noStart: true, noEnd: true });                      // west side
+  // r7b (user's MAIN mock-up 11, from the driveway): the main stair leaves a head pad at the deck's FRONT-EAST corner (the dish is on
+  // its post) and runs down to the east in two flights with a landing to a step platform in front of the ANNEX; the east rail
+  // opens for the few steps down to the annex's roof deck (the lower back-deck level)
+  const MS = P.mainStair, NP = MS.pad, pzo = NP.z1;
+  railRun(RE.x1, RE.z0, RE.x1, MS.annexStep.z0, { noStart: true });                         // east side, open at the annex steps
+  railRun(RE.x1, MS.annexStep.z1, RE.x1, RE.z1, {});                                       // (ends in the front-east corner post)
+  const FP = P.stairF.pad; void FP;
+  railRun(RE.x1, RE.z1, NP.x1, RE.z1, { noStart: true });                                  // front, from the east corner to the stair-head pad
+  railRun(RE.x0, RE.z0, RE.x0, pzo, { noStart: true });                                     // west side, on along the pad's west edge
 
   // ================= stairs: two short flights with a 1.2 m landing, running down ALONG the side of the house (02, 08, 10) =================
   const rise = F / 20, run = P.run;
@@ -206,33 +208,45 @@ export function build(ctx) {
       box(WOOD, 0.045, 0.14, w + 0.06, xs + 0.08, ys - 0.1, zc, { grain: 2, color: dark(), wear: 0.5 }); }
     { const fx = L.x0 - f.total - run - 0.45; box(CONC, 1.5, 0.1, w + 0.5, fx, 0.035, zc, { color: 0xbdb8ab, wear: 0.9, bevel: 0.02 }); Fr.col.box(fx, 0.035, zc, 1.5, 0.1, w + 0.5, { tag: 'ground', surface: 'concrete' }); }
   }
-  // front stair on the hoop side (r6, user: "make the top at the corner and going down and getting to the bottom next to the basketball
-  // hoop area"; 02): a head pad off the deck's FRONT CORNER (the corner seen from the drive, the dish hangs on it), then ONE straight
-  // flight down +X along the front face; the foot lands on a small concrete pad on the ground beside the hoop. Rails run on from the
-  // deck rail around the pad and down both sides; nothing under it (the old lattice panel is gone)
-  { const pd = FP, w = 1.1, zc = -0.8, zo = zc + w / 2 + 0.03, zi = zc - w / 2 - 0.03, px0 = RE.x0 - 0.07, xc = (px0 + pd.x1) / 2, pw = pd.x1 - px0;
-    for (let z = pd.z0 + pitch / 2; z < zo + 0.05; z += pitch) box(WOOD, pw, db.t, db.w, xc, F - db.t / 2, z, { grain: 0, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
-    for (const xx of [px0 + 0.03, xc, pd.x1 - 0.03]) box(WOOD, J.t, J.d, zo + 0.07 - pd.z0, xx, joistBot + J.d / 2, (pd.z0 + zo + 0.07) / 2, { grain: 2, color: dark(), wear: 0.4 });
-    box(WOOD, pw + 0.04, J.d + db.t, 0.04, xc, joistBot + (J.d + db.t) / 2, zo + 0.09, { grain: 0, color: gray(0.88), wear: 0.6 });                      // outer rim board
-    box(WOOD, 0.04, J.d + db.t, zo + 0.11 - pd.z0, px0 - 0.02, joistBot + (J.d + db.t) / 2, (pd.z0 + zo + 0.11) / 2, { grain: 2, color: gray(0.88), wear: 0.6 });   // end rim board
-    for (const xx of [RE.x0, pd.x1]) { box(WHITE, 0.14, beamTop - 0.05, 0.14, xx, 0.05 + (beamTop - 0.05) / 2, zo, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 });
-      box(CONC, 0.36, 0.12, 0.36, xx, 0.05, zo, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(xx, 1.6, zo, 0.16, 3.2, 0.16, { tag: 'pile' }); }
-    Fr.col.box(xc, F - 0.16, (pd.z0 + zo) / 2 + 0.05, pw + 0.06, 0.32, zo - pd.z0 + 0.2, { tag: 'deck', surface: 'wood' });
-    railRun(RE.x0, RE.z1, RE.x0, zo, {});                       // pad end: deck corner post -> pad corner post
-    railRun(RE.x0, zo, pd.x1, zo, { noStart: true });           // pad front, ends in the stair's outer newel
-    box(WOOD, RL.post, RL.h + 0.04, RL.post, pd.x1, F + (RL.h + 0.04) / 2 - 0.005, zi, { grain: 1, color: gray(0.95), wear: 0.7, bevel: 0.008 });   // inner newel at the stair head
-    box(WOOD, 0.04, 0.09, zi - RE.z1 - 0.1, pd.x1, railY - 0.1, (zi + RE.z1) / 2, { grain: 2, color: gray(0.92), wear: 0.6 });                    // short tie from the deck rail's end post to it
-    const f = flight({ x: pd.x1, z: zc, y0: F, dir: [1, 0], n: 19, w });
-    // mid-span support: two posts under the stringers with a ledger and a knee brace each
-    { const t = 2.8, xs = pd.x1 + t, ys = F - 0.06 - (F - 0.18) / (f.total + 0.17) * (t + 0.05) - 0.12;
-      for (const sd of [-1, 1]) { const zz = zc + sd * (w / 2 - 0.025); box(WHITE, 0.11, ys, 0.11, xs, ys / 2, zz, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 });
-        box(CONC, 0.3, 0.1, 0.3, xs, 0.04, zz, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(xs, ys / 2, zz, 0.13, ys, 0.13, { tag: 'pile' });
-        B.strut(WOOD, [xs + 0.05, ys - 0.75, zz], [xs + 0.8, ys - 0.52, zz], 0.07, 0.07, { color: gray(0.9), wear: 0.7, bevel: 0.006, rand: r }); }
-      box(WOOD, 0.045, 0.14, w + 0.06, xs - 0.08, ys - 0.1, zc, { grain: 2, color: dark(), wear: 0.5 }); }
-    // the foot: a poured pad flush in the shell, one step wide (the bottom tread sits on it)
-    { const fx = pd.x1 + f.total + run + 0.45; box(CONC, 1.5, 0.1, w + 0.5, fx, 0.035, zc, { color: 0xbdb8ab, wear: 0.9, bevel: 0.02 }); Fr.col.box(fx, 0.035, zc, 1.5, 0.1, w + 0.5, { tag: 'ground', surface: 'concrete' }); }   // r7: top 2.5 cm over the pavers (was coplanar)
-  }
+  // r7b: the main stair (mock-up 11): head pad off the front edge at the east corner, flight 1 (9 risers) down +X, a 1.2 m landing,
+  // flight 2 (9 risers) down -Z to a small wooden step platform in front of the annex door
+  { const pw = NP.x1 - NP.x0, xc = (NP.x0 + NP.x1) / 2, w = 1.1, zc = (RE.z1 + pzo) / 2, yL = F - 10 * rise;
+    for (let z = RE.z1 + pitch / 2; z < pzo + 0.02; z += pitch) box(WOOD, pw, db.t, db.w, xc, F - db.t / 2, z, { grain: 0, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
+    for (const xx of [NP.x0 + 0.03, xc, NP.x1 - 0.03]) box(WOOD, J.t, J.d, pzo - RE.z1 + 0.07, xx, joistBot + J.d / 2, (RE.z1 + pzo) / 2, { grain: 2, color: dark(), wear: 0.4 });
+    box(WOOD, pw + 0.04, J.d + db.t, 0.04, xc, joistBot + (J.d + db.t) / 2, pzo + 0.04, { grain: 0, color: gray(0.88), wear: 0.6 });
+    for (const xx of [NP.x0, NP.x1]) { box(WHITE, 0.14, beamTop - 0.05, 0.14, xx, 0.05 + (beamTop - 0.05) / 2, pzo, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 });
+      box(CONC, 0.36, 0.12, 0.36, xx, 0.05, pzo, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(xx, 1.6, pzo, 0.16, 3.2, 0.16, { tag: 'pile' }); }
+    Fr.col.box(xc, F - 0.16, (RE.z1 + pzo) / 2, pw + 0.06, 0.32, pzo - RE.z1 + 0.1, { tag: 'deck', surface: 'wood' });
+    railRun(RE.x0, pzo, NP.x1, pzo, { noStart: true });              // pad front, ends in the flight's outer newel
 
+    box(WOOD, RL.post, RL.h + 0.04, RL.post, NP.x1, F + (RL.h + 0.04) / 2 - 0.005, RE.z1 + 0.02, { grain: 1, color: gray(0.95), wear: 0.7, bevel: 0.008 });   // inner newel at the deck corner
+    const f1 = flight({ x: NP.x1, z: zc, y0: F, dir: [1, 0], n: 9, w });
+    // landing (posts, joists, boards, rails on its open sides)
+    const la = NP.x1 + f1.total + run, lb = la + 1.2, lz0 = RE.z1, lz1 = pzo; MS.landing = { x0: la, x1: lb, z0: lz0, z1: lz1 };
+    for (let x = la + pitch / 2; x < lb - 0.02; x += pitch) box(WOOD, db.w, db.t, lz1 - lz0, x, yL - db.t / 2, (lz0 + lz1) / 2, { grain: 2, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
+    for (const zz of [lz0 + 0.05, lz1 - 0.05]) box(WOOD, lb - la, 0.2, J.t, (la + lb) / 2, yL - db.t - 0.1, zz, { grain: 0, color: dark(), wear: 0.4 });
+    for (const x of [la + 0.06, lb - 0.06]) for (const z of [lz0 + 0.06, lz1 - 0.06]) { box(WHITE, 0.12, yL + RL.h, 0.12, x, (yL + RL.h) / 2, z, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); Fr.col.box(x, (yL + RL.h) / 2, z, 0.14, yL + RL.h, 0.14, { tag: 'pile' }); }
+    Fr.col.box((la + lb) / 2, yL - 0.1, (lz0 + lz1) / 2, lb - la, 0.2, lz1 - lz0, { tag: 'deck', surface: 'wood' });
+    const lrail = (ax, az, bx, bz) => { const len = Math.hypot(bx - ax, bz - az), ry = Math.atan2(-(bz - az), bx - ax), cx = (ax + bx) / 2, cz = (az + bz) / 2;
+      box(WOOD, len, 0.09, 0.045, cx, yL + RL.h - 0.1, cz, { grain: 0, color: gray(0.92), wear: 0.6 }, 0, ry); box(WOOD, len + 0.05, 0.04, 0.145, cx, yL + RL.h + 0.02, cz, { grain: 0, color: gray(0.96), wear: 0.65 }, 0, ry);
+      for (let t = 0.12; t < len - 0.08; t += RL.oc) box(WOOD, RL.bal, RL.h - 0.26, RL.bal, ax + (bx - ax) * t / len, yL + 0.12 + (RL.h - 0.26) / 2, az + (bz - az) * t / len, { grain: 1, color: gray(0.9), wear: 0.6 }, 0, ry);
+      Fr.col.box(cx, yL + 0.55, cz, len, 1.1, 0.1, { ry, tag: 'rail' }); };
+    lrail(la, lz1 - 0.03, lb, lz1 - 0.03); lrail(la, lz0 + 0.03, lb, lz0 + 0.03);
+    const f2 = flight({ x: lb, z: (lz0 + lz1) / 2, y0: yL, dir: [1, 0], n: 9, w });
+    // the step platform at its foot, in front of the annex door
+    const px0 = lb + f2.total + 0.02, px1 = px0 + 0.62, zcc = (lz0 + lz1) / 2; MS.foot = { x: (px0 + px1) / 2, z: zcc };
+    box(WOOD, px1 - px0, 0.06, w + 0.3, (px0 + px1) / 2, 0.13, zcc, { grain: 2, color: gray(0.86), wear: 0.6, bevel: 0.01 });
+    for (const sz of [-1, 1]) box(WOOD, px1 - px0, 0.12, 0.08, (px0 + px1) / 2, 0.05, zcc + sz * (w / 2 + 0.08), { grain: 0, color: dark(), wear: 0.5 });
+    Fr.col.box((px0 + px1) / 2, 0.08, zcc, px1 - px0, 0.16, w + 0.3, { tag: 'deck', surface: 'wood' });
+    // lattice panels between the posts behind the stair (11)
+    { const LB = kit.batch('r7lat'), lg = new THREE.Group(); lg.rotation.y = Math.PI / 2; lg.position.set(0, 0, pzo - 0.02); latticeTo(LB, 0, NP.x1 + 0.3, la - 0.15, F - 0.75, yL - 0.4); latticeTo(LB, 0, lb + 0.2, lb + f2.total - 0.45, yL - 0.45, 0.32); LB.build(lg); Fr.groups.ext.add(lg); }
+    // steps from the east deck down to the annex roof deck (the lower back-deck level)
+    { const S2 = MS.annexStep, n = 5, rr = (F - P.annex.deckY) / n, zc2 = (S2.z0 + S2.z1) / 2, ww = S2.z1 - S2.z0 - 0.1;
+      for (let i = 1; i <= n; i++) box(WOOD, 0.28, 0.035, ww, RE.x1 + 0.02 + (i - 0.5) * 0.226, F - rr * i - 0.018, zc2, { grain: 2, color: gray(0.86 + r() * 0.2), wear: 0.55, bevel: 0.005 });
+      for (const sd of [-1, 1]) B.strut(WOOD, [RE.x1, F - 0.05, zc2 + sd * (ww / 2 + 0.02)], [P.annex.deckX0 + 1.15, P.annex.deckY - 0.1, zc2 + sd * (ww / 2 + 0.02)], 0.045, 0.22, { color: gray(0.85), wear: 0.7, bevel: 0.006, rand: r });
+      const sl = Math.atan2(F - P.annex.deckY, 1.15), len = Math.hypot(F - P.annex.deckY, 1.15);
+      Fr.col.boxQ([RE.x1 + 0.575, (F + P.annex.deckY) / 2 - 0.1, zc2], [len / 2 + 0.05, 0.1, ww / 2], new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -sl, 'YXZ')), { tag: 'stair', surface: 'wood' }); }
+  }
   // ================= pavers under the house (10: square concrete pavers) =================
   for (const Pv of [P.pavers, P.court]) { const PV = mat.concrete(), s = 0.6;
     for (let x = Pv.x0; x < Pv.x1 - 0.05; x += s) for (let z = Pv.z0; z < Pv.z1 - 0.05; z += s) {
@@ -433,9 +447,9 @@ export function build(ctx) {
   // ================= satellite dish (02): on a galvanized J-mast clamped to the stair-head pad's corner post at the front corner,
   // an old offset dish looking over the drive: sun-chalked reflector with rust at the rim bolts, back bracket, feed arm with two stays,
   // LNB, and the coax run down the mast and under the deck (r6, user: "make the stairs and dish stuff better"; nothing floating) =================
-  { const zo = -0.8 + 1.1 / 2 + 0.03, px = RE.x0 - 0.1, pz = zo + 0.1, y0 = F - 0.22, y1 = F + 1.72, DS = mat.metalPaint(), V3 = THREE.Vector3, GALV = 0x9a9890;
+  { const zo = P.mainStair.pad.z1, px = P.mainStair.pad.x0 - 0.1, pz = zo + 0.1, y0 = F - 0.22, y1 = F + 1.72, DS = mat.metalPaint(), V3 = THREE.Vector3, GALV = 0x9a9890;
     D.cyl(STEEL, 0.027, 0.027, y1 - y0, M(px, (y0 + y1) / 2, pz), { color: GALV, seg: 12, wear: 0.5 });                                        // the mast
-    for (const yy of [F - 0.12, F + 0.42, F + 0.92]) { box(STEEL, 0.2, 0.035, 0.2, RE.x0 - 0.035, yy, zo + 0.035, { color: 0x86847c, bevel: 0.004 }, 0, 0, 0);   // U-bolt saddles around the post and the mast
+    for (const yy of [F - 0.12, F + 0.42, F + 0.92]) { box(STEEL, 0.2, 0.035, 0.2, P.mainStair.pad.x0 - 0.035, yy, zo + 0.035, { color: 0x86847c, bevel: 0.004 }, 0, 0, 0);   // U-bolt saddles around the post and the mast
       for (const [dx, dz] of [[-0.11, 0.02], [0.02, -0.11]]) D.cyl(STEEL, 0.008, 0.008, 0.05, M(px + dx + 0.06, yy + 0.03, pz + dz - 0.04), { color: 0x6f6d66, seg: 6 }); }
     D.cyl(STEEL, 0.031, 0.031, 0.02, M(px, y1 + 0.01, pz), { color: 0x7d7b74, seg: 12 });                                                       // mast cap
     // the dish, in its own little frame: +Y looks out along `aim`, -Z is the low side where the feed arm leaves the rim
@@ -463,7 +477,7 @@ export function build(ctx) {
       D.tube(mat.rubber(), pts, 0.011, { seg: 5, color: 0x161616, steps: 80 }); } }
 
   // ================= the ground-floor room under the east end (10): teal board-and-batten, white slider window, hose reel =================
-  { const G = P.groundRoom, hG = beamBot - 0.01;
+  if (!P.annex) { const G = P.groundRoom, hG = beamBot - 0.01;   // r7b: replaced by the annex (part r4_12)
     const gw = (ax, az, bx, bz, ops) => { const L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, nx = -uz, nz = ux, ry = Math.atan2(-uz, ux), pt = (u, w) => [ax + ux * u + nx * w, az + uz * u + nz * w];
       const nB = Math.ceil(L / BW);
       for (let i = 0; i < nB; i++) { const u0 = i * L / nB, u1 = (i + 1) * L / nB;
@@ -490,7 +504,7 @@ export function build(ctx) {
   }
   function ryG0(ry) { return ry + Math.PI / 2 - Math.PI / 2; }
 
-  // ================= basketball hoop hanging under the front beam (10) =================
+  // ================= basketball hoop hanging under the front beam (10, 13: backboard toward the street side, a shot goes under the house toward the water) =================
   { const bxh = 0.0, bz = -1.6 + 0.12, yTop = beamBot - 0.01, BBm = mat.paint({ peel: 'a', fade: 0.5, gloss: 0.6, scale: 0.5 });
     box(BBm, 1.2, 0.8, 0.035, bxh, yTop - 0.4, bz, { color: 0xe8e5dc, wear: 0.45 });
     for (const [dx, dy, sx, sy] of [[0, -0.1, 0.6, 0.05], [0, -0.33, 0.6, 0.05], [-0.28, -0.215, 0.05, 0.28], [0.28, -0.215, 0.05, 0.28]]) box(mat.plastic(), sx, sy, 0.006, bxh + dx, yTop - 0.4 + dy + 0.05, bz + 0.021, { color: 0xc4522e, bevel: 0.001 });

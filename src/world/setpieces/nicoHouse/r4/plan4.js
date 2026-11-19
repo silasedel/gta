@@ -44,8 +44,14 @@ export const P4 = {
   stairF: { pad: { x0: -8.62, x1: -7.4, z0: -1.5, z1: -0.2 } },   // front (hoop side), r6: head pad at the front corner, then ONE flight down +X along the front face to the hoop
                                        // east side: down -Z to the bay corner
   stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: 5.2, x1: 6.6, z0: -14.05, z1: -12.8 } },   // runs -X from the landing
+  // r7b (user's MAIN mock-up 11, from the driveway): the main stair from a head pad at the deck's front-east corner, two flights with a
+  // landing, down to a step platform in front of the ANNEX, a lower teal room east of the house with the lower back-deck level on its roof
+  mainStair: { pad: { x0: -8.67, x1: -7.3, z0: -1.55, z1: -0.35 }, annexStep: { z0: -8.5, z1: -7.3 } },   // r7b (mock-up 14): head pad at the front-WEST corner (the dish), two flights down +X along the front
+  // r7b (mock-up 13): the annex runs from under the back half of the house out past its east edge; its door faces the pad under the
+  // house; the part outside the main deck carries the lower deck level (11)
+  annex: { x0: 2.2, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.4, deckY: 2.75, deckX0: 8.62 },
   // ground-floor room under the east end (10: teal board-and-batten, white slider window, hose reel, vine)
-  groundRoom: { x0: 2.2, x1: 6.5, z0: -10.4, z1: -3.6, h: 2.85 },
+  groundRoom: { x0: 2.2, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.6 },   // r7b: = the annex footprint (pavers skip it)
   pavers: { x0: -9.8, x1: 8.6, z0: -12.6, z1: -0.3 },   // r7 (playtest item 3): the carport floor reaches out under the whole deck and both stairs
   court: { x0: -3.6, x1: 3.6, z0: -0.3, z1: 3.9 },     // r7: ... and flattens out past the front edge as the hoop court (10)
   // interior (clear spaces at floor level)
@@ -64,7 +70,7 @@ export const P4 = {
   // r7 (playtest item 12): the seawalled canal along the house's +X side (replaces the round cove): 6 m of water between timber
   // bulkheads from the bay to just past the front of the house. `on` only where the world's water really is there (the terrain is
   // carved by tools/v2/map3/keys_detail.py carve_nico); otherwise the lot keeps its old edge.
-  canal: { x0: 12.0, x1: 18.0, z1: 2.0, on: false },
+  canal: { x0: 14.4, x1: 20.4, z1: 2.0, on: false },   // r7b: east of the annex (mock-up 11)
   colors: {
     teal: 0x4f978c, tealDeep: 0x3c7a72, white: 0xe7e3d6, door: 0x2c2f2e, shutter: 0x4d5552,
     deck: 0xa48f74, deckDark: 0x6f6253, post: 0xe2ddd0,   // r7 (playtest item 5): warm weathered boards as in the mock-ups (0, 02, 08), not chalk white
@@ -103,6 +109,7 @@ export function plantClear(sx, sz, pad = 0) { if (houseBlock(sx, sz, pad) || inC
 export function houseBlock(sx, sz, pad = 0) {
   const P = P4, [x, z] = StoH(sx, sz);
   return inR({ x0: -8.6, x1: 8.6, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
-    || inR({ x0: -8.9, x1: -0.4, z0: -1.6, z1: -0.1 }, x, z, pad)          // front stair along the hoop side (corner pad -> foot pad by the hoop)
+    || inR({ x0: -8.8, x1: 0.2, z0: -1.7, z1: -0.1 }, x, z, pad)   // r7b: main stair along the front (two flights, landing, foot platform)
+    || inR({ x0: 2.0, x1: 12.2, z0: -10.6, z1: -3.4 }, x, z, pad)          // r7b: the annex
     || inR({ x0: -1.4, x1: 6.8, z0: -14.2, z1: -12.7 }, x, z, pad);          // r7: back stair along the back face (08)
 }
