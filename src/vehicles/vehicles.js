@@ -14,6 +14,7 @@ import { createSkids, createScreech, createSmoke, createShards, playImpact } fro
 import { addExternalModel, hasExternalModel, buildExternalCar, createKindRegistry, externalModelKeys } from './registry.js';
 import { initFleet } from './glb/index.js';
 import { createHotwire } from './ui/hotwire.js';
+import { createRadioUI } from './ui/radio.js';
 import { loadCarModel, buildStaticCar } from './glb/glbCar.js';
 import { RARE_PLACEMENTS } from './glb/placements.js';
 import { createShapeVehicle } from './physics/suspension.js'; // r2-physics (carphys 2)
@@ -619,6 +620,7 @@ export async function createVehicles(game) {
 
   // ------------------------------------------------------------ physics per tick
   const hotwire = createHotwire(game);   // stolen-car minigame (idle: no per-frame cost)
+  try { if (game.renderer?.domElement && !game.radioUI) game.radioUI = createRadioUI(game); } catch (e) { console.warn('[vehicles] radio ui', e); }   // station bar (key-driven, no per-frame cost)
   const QF = RAPIER.QueryFilterFlags;
   const wheelFilter = (QF.EXCLUDE_SENSORS | QF.EXCLUDE_KINEMATIC);
   const _up = new THREE.Vector3(), _fw = new THREE.Vector3();
