@@ -273,11 +273,14 @@ export async function createMiamiCity(game, opts = {}) {
       for (const a of anchors) { const q = anchorPos(a); if (q) { const f = anchorFocus.get(a); f.x = q.x; f.z = q.z; focus.push(f); } }
       streamer.update(focus);
       // a fast car must never outrun its colliders: spend extra budget while the path ahead is not ready yet
-      if (sp > 8) for (let extra = 0; extra < 3; extra++) { let ok = true; for (const tt of [0, 0.75, 1.5, 3]) if (!streamer.collidersReadyAt(focus[2].x + lvx * tt, focus[2].z + lvz * tt)) { ok = false; break; } if (ok) break; streamer.update(focus); }
+      // perf (Nov 19): extra passes only while colliders are missing within 0.75 s of the car (urgent); a gap 1.5-3 s out gets
+      // at most one extra pass (the normal budget and the look-ahead focus fill it): 4 full passes were up to 20 ms a frame
+      if (sp > 8) for (let extra = 0; extra < 3; extra++) { let miss = -1; for (let q = 0; q < EXTRA_T.length; q++) { const tt = EXTRA_T[q]; if (!streamer.collidersReadyAt(focus[2].x + lvx * tt, focus[2].z + lvz * tt)) { miss = tt; break; } } if (miss < 0 || (miss > 0.75 && extra > 0)) break; streamer.update(focus); }
       if (grassField) grassField.update(game.camera);
       const o = streamer.nearMask(nearU.uNearMask.value, NM, focus[0].x, focus[0].z); nearU.uNearOrigin.value.set(o[0], o[1]);
     },
   };
+  const EXTRA_T = [0, 0.75, 1.5, 3];
   // focus[0] = camera (render LOD only, small collider radius), [1] = player (300 m colliders), [2] = player car, then anchors
   const focus = [{ x: playerSpawn.x, z: playerSpawn.z, r: 60 }, { x: playerSpawn.x, z: playerSpawn.z, r: 200 }, { x: playerSpawn.x, z: playerSpawn.z, r: 200 }, { x: playerSpawn.x, z: playerSpawn.z, r: 150 }, { x: playerSpawn.x, z: playerSpawn.z, r: 150 }];
   const anchors = new Set(), anchorFocus = new Map();
