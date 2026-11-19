@@ -45,8 +45,9 @@ function triIndex(list) {
       const ax = P[i], az = P[i + 2], bx = P[i + 3], bz = P[i + 5], cx = P[i + 6], cz = P[i + 8];
       const d = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz); if (Math.abs(d) < 1e-10) continue;
       const w0 = ((bz - cz) * (x - cx) + (cx - bx) * (z - cz)) / d, w1 = ((cz - az) * (x - cx) + (ax - cx) * (z - cz)) / d, w2 = 1 - w0 - w1;
-      const e = 1e-4; if (w0 < e || w1 < e || w2 < e) continue;
-      out.push({ name: tr.name, tag: tr.tag, y: w0 * P[i + 1] + w1 * P[i + 4] + w2 * P[i + 7], k }); }
+      const e = -1e-6; if (w0 < e || w1 < e || w2 < e) continue; // inclusive: a point on a shared edge / vertex is covered
+      const y = w0 * P[i + 1] + w1 * P[i + 4] + w2 * P[i + 7]; let dup = false; for (const o of out) if (o.tag === tr.tag && o.name === tr.name && Math.abs(o.y - y) < 1e-4) { dup = true; break; } // the same surface counted once (both triangles of an edge)
+      if (!dup) out.push({ name: tr.name, tag: tr.tag, y, k }); }
     return out;
   };
   return { T, hits };
@@ -73,13 +74,15 @@ export async function auditTile(game, tx, tz, opts = {}) {
   for (const r of S.roads) {
     if (r.ys && Math.max(...r.ys) > 1.5) continue; // real decks: the elevated audit (map-audit deck*) owns them; low ramps / humps are checked here
     const P = r.pts, hw = r.width / 2; let prevY = null, prevS = -9;
+    // elevated-network pieces: elevated.js draws its own (smoothed) geometry; only the stretch near a ground junction must be paved
+    let ownEnds = null; if (r.owned) { ownEnds = []; for (const p of [P[0], P[P.length - 1]]) for (const j of JN) if (j.P && Math.abs(j.x - p[0]) < 0.5 && Math.abs(j.z - p[1]) < 0.5) ownEnds.push(p); if (!ownEnds.length) continue; }
     const offs = [0, -hw * 0.5, hw * 0.5, -(hw - 0.2), hw - 0.2];
     let acc = 0;
     for (let i = 1; i < P.length; i++) {
       const ax = P[i - 1][0], az = P[i - 1][1], bx = P[i][0], bz = P[i][1], L = Math.sqrt((bx - ax) ** 2 + (bz - az) ** 2); if (L < 1e-6) continue;
       const dx = (bx - ax) / L, dz = (bz - az) / L, nx = -dz, nz = dx;
       for (let s = 0; s < L; s += 0.5) {
-        const cx = ax + dx * s, cz = az + dz * s, sa = acc + s; if (!inTile(cx, cz)) continue;
+        const cx = ax + dx * s, cz = az + dz * s, sa = acc + s; if (!inTile(cx, cz)) continue; if (ownEnds && !ownEnds.some((p) => (p[0] - cx) ** 2 + (p[1] - cz) ** 2 < 30 * 30)) continue;
         if (isW(cx, cz) || claimed(cx, cz)) { prevY = null; continue; }
         for (let oi = 0; oi < offs.length; oi++) { const o = offs[oi], x = cx + nx * o, z = cz + nz * o;
           if (!inTile(x, z) || isW(x, z) || claimed(x, z)) continue;
@@ -116,13 +119,13 @@ export async function auditTile(game, tx, tz, opts = {}) {
       const ys = [P[i + 1], P[i + 4], P[i + 7]], yb = Math.min(...ys), yt = Math.max(...ys); if (yt - yb < 0.04) continue;
       const mx = (P[i] + P[i + 3] + P[i + 6]) / 3, mz = (P[i + 2] + P[i + 5] + P[i + 8]) / 3; if (!inTile(mx, mz) || isW(mx, mz)) continue;
       const fx = mx + nx * 0.12, fz = mz + nz * 0.12, pv = topPaved(fx, fz), ty = terrY(fx, fz), g = Math.max(pv ? pv.y : -9, ty ?? -9); if (g < -5) continue;
-      if (yb > g + 0.01) add('curbFloat', mx, mz, { on: name, gap: r2(yb - g), front: pv ? pv.name : 'terrain' });
-      if (SLAB.has(name) && !pv && yt - Math.max(g, yb) > 0.08) add('slabBox', mx, mz, { on: name, drop: r2(yt - g) }); } }
+      if (yb > g + 0.01) add('curbFloat', mx, mz, { on: name, src: b.t[t], gap: r2(yb - g), front: pv ? pv.name : 'terrain' });
+      if (SLAB.has(name) && !pv && yt - Math.max(g, yb) > 0.08) add('slabBox', mx, mz, { on: name, src: b.t[t], drop: r2(yt - g) }); } }
   // ---- cluster (6 m grid per class: linear, a tile can hold tens of thousands of raw samples)
   const C = [], cg = new Map(), R = 6;
   for (const f of out) { const key = f.cls + ':' + Math.floor(f.x / R) + ',' + Math.floor(f.z / R); const c = cg.get(key);
     if (c) { c.n++; if (c.ex.length < 3) { const e = f.a ? f.a + '|' + f.b : f.what || f.edge || f.on; if (!c.ex.includes(e)) c.ex.push(e); } continue; }
-    const nc = { ...f, n: 1, ex: [f.a ? f.a + '|' + f.b : f.what || f.edge || f.on] }; cg.set(key, nc); C.push(nc); }
+    const nc = { ...f, n: 1, ex: [f.a ? f.a + '|' + f.b : f.what || f.edge || f.src || f.on] }; cg.set(key, nc); C.push(nc); }
   const counts = {}; for (const f of C) counts[f.cls] = (counts[f.cls] || 0) + 1;
   return { tile: [tx, tz], counts, findings: C, tris: opaque.T.length };
 }

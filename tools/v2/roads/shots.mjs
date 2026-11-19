@@ -33,7 +33,7 @@ await withBrowser({ width: 1600, height: 900, maxSeconds: +(o.max || 1500) }, as
       return JSON.stringify({ eye: [x - ux * back - uz * sd, y + up, z - uz * back + ux * sd], look: [x + ux * 10, y, z + uz * 10] }); })()`));
     if (!cam) { console.log('no road at', s.name); continue; }
     for (let attempt = 0; attempt < 3; attempt++) { try {
-      await b.eval(`(() => { const c = ${JSON.stringify(cam)}; game.teleport(c.look[0], undefined, c.look[2] + 45, 0); game.cameraOverride = (dt, cm) => { if (game.player) game.player.visible = false; cm.position.fromArray(c.eye); cm.lookAt(c.look[0], c.look[1], c.look[2]); return true; }; if (game.player) game.player.visible = false; return 1; })()`);
+      await b.eval(`(() => { const c = ${JSON.stringify(cam)}; game.teleport(c.look[0] + 70, undefined, c.look[2] + 70, 0); game.cameraOverride = (dt, cm) => { if (game.player) game.player.visible = false; cm.position.fromArray(c.eye); cm.lookAt(c.look[0], c.look[1], c.look[2]); return true; }; if (game.player) game.player.visible = false; return 1; })()`);
       await b.sleep(1500);
       for (let i = 0; i < 60; i++) { const ok = await b.eval(`(() => { const s = game.city.streamer; return (!s.readyAround || s.readyAround(${cam.look[0]}, ${cam.look[2]}, 120)) && s.pending() < 2; })()`); if (ok) break; await b.sleep(1000); }
       await b.sleep(+(o.settle || 3500));

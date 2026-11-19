@@ -2296,7 +2296,7 @@ export function createTileBuilder(ctx) {
     if (plazaRaised(a)) { // job 4: downtown block plazas sit flush with the sidewalk (same slab height and paving), raised edge where they meet open ground
       const zn = zoneAt(a.rings[0][0][0], a.rings[0][0][1]), tg = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
       fillPoly(tg, a.rings, CURB, 0xffffff, tg === B.promenade ? 1 / 8 : tg === B.panels ? 1 / 6 : 1 / 2.5);
-      const cc = new THREE.Color(0xc8c4bc); wallStrip(B.sidewalk, orient(a.rings[0]), 0, CURB, 2.5, 2.5, cc); for (let i = 1; i < a.rings.length; i++) wallStrip(B.sidewalk, orient(a.rings[i]).slice().reverse(), 0, CURB, 2.5, 2.5, cc);
+      const cc = new THREE.Color(0xc8c4bc); if (CURB3D) { a.rings.forEach((ring, ri) => chamferRing(B.sidewalk, ring, CURB, cc, ri > 0)); } else { wallStrip(B.sidewalk, orient(a.rings[0]), 0, CURB, 2.5, 2.5, cc); for (let i = 1; i < a.rings.length; i++) wallStrip(B.sidewalk, orient(a.rings[i]).slice().reverse(), 0, CURB, 2.5, 2.5, cc); } // roads pass: a poured edge sloping into the ground, not a box
       return; }
     if (k === 'paved' && B.promenade && M.promenade && /beach|nightlife/.test(zoneAt(a.rings[0][0][0], a.rings[0][0][1]))) { fillPoly(B.promenade, a.rings, y, 0xffffff, 1 / 8); return; } // beachfront plazas / walks: terrazzo
     if (k === 'land' && B.grass && ISLAND_D.test(distAt(a.rings[0][0][0], a.rings[0][0][1]))) { fillPoly(B.grass, a.rings, y, 0xd8e0c0, 1 / 6); return; } // causeway islands: open fill is lawn, not bare ground
@@ -2379,6 +2379,12 @@ export function createTileBuilder(ctx) {
   }
   function slabInto(batch, clip, y, uvS, col) {
     for (const [a, b2, d] of clip.tris) quadUp(batch, [a[0], y, a[1]], [b2[0], y, b2[1]], [d[0], y, d[1]], [d[0], y, d[1]], col, uvS);
+  }
+  // roads pass: the edge of a raised paved area sloping 0.38 m out and down into the ground (outward from the ring, whatever its winding)
+  function chamferRing(batch, ring, h, col, hole = false) {
+    const n = ring.length; if (n < 3) return; let a2 = 0; for (let i = 0; i < n; i++) { const p = ring[i], q = ring[(i + 1) % n]; a2 += p[0] * q[1] - q[0] * p[1]; } const sg = (a2 > 0) !== hole ? 1 : -1, w = 0.38; // CCW: outward = (dz, -dx); a hole slopes into its own interior
+    for (let i = 0; i < n; i++) { const p = ring[i], q = ring[(i + 1) % n], dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz); if (L < 1e-3) continue; const nx = sg * dz / L, nz = -sg * dx / L;
+      quadUp(batch, [p[0], h, p[1]], [q[0], h, q[1]], [q[0] + nx * w, -0.03, q[1] + nz * w], [p[0] + nx * w, -0.03, p[1] + nz * w], col, 0.4); }
   }
   function curbsInto(batch, clip, h, col, render = false) { // low curb faces along the clipped outline (job 4: one outward face per oriented edge)
     if (clip.oriented && render && CURB3D) { // roads pass: road-side edges become one continuous poured curb + gutter (curbs.js), chained round the curves
