@@ -79,14 +79,31 @@ for (const s of spots) { s.deck = chainAbove(s.x, s.z, s.deckY);
   const up = s.deck ? chains[s.deck.chain] : null; let dn = null;
   if (up) for (const nd of up.nodeSet) if (lowNodes.has(nd)) { const d = Math.hypot(Nn[nd].x - s.x, Nn[nd].z - s.z); if (dn === null || d < dn) dn = d; }
   s.sharedNodeDist = dn === null ? null : r1(dn); s.dy = r1(s.deckY - s.roadY); }
+// barrier glitches (user: "not a single time ... a hitbox barrier glitch"): a deck barrier (visual + collider) standing on a ground
+// road's carriageway at about road level (a deck foot beside / over a street at grade), or on another deck's lanes at its level
+const gGrid = new Map(), GC = 20, gk = (i, j) => i * 100003 + j;
+for (const e of E) { if (net.own[e.id] || !e.pts) continue; for (let k = 1; k < e.pts.length; k++) { const [ax, az] = e.pts[k - 1], [bx, bz] = e.pts[k], p = e.width / 2;
+  for (let i = Math.floor((Math.min(ax, bx) - p) / GC); i <= Math.floor((Math.max(ax, bx) + p) / GC); i++) for (let j = Math.floor((Math.min(az, bz) - p) / GC); j <= Math.floor((Math.max(az, bz) + p) / GC); j++) { const kk = gk(i, j); let l = gGrid.get(kk); if (!l) gGrid.set(kk, (l = [])); l.push([e, k]); } } }
+const onGroundRoad = (x, z) => { const l = gGrid.get(gk(Math.floor(x / GC), Math.floor(z / GC))); if (!l) return null; for (const [e, k] of l) { const [ax, az] = e.pts[k - 1], [bx, bz] = e.pts[k], dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz || 1; let u = ((x - ax) * dx + (z - az) * dz) / L2; u = u < 0 ? 0 : u > 1 ? 1 : u; if (Math.hypot(ax + dx * u - x, az + dz * u - z) < e.width / 2 - 0.3) return e; } return null; };
+const bars = [];
+for (const c of chains) for (let i = 0; i < c.n; i++) for (const side of [-1, 1]) {
+  if (!(side < 0 ? c.barL[i] : c.barR[i])) continue;
+  const o = side < 0 ? c.vL[i] + 0.3 : c.vR[i] - 0.3, x = c.x[i] - c.tz[i] * o, z = c.z[i] + c.tx[i] * o, yb = c.y[i] + c.bank[i] * o;
+  const g = onGroundRoad(x, z); if (g && yb - terr(x, z) < 1.2) { bars.push({ cls: 'barRoad', x, z, y: yb, chain: c.id, name: c.name, on: g.name || g.kind }); continue; }
+  const h = net.heightAt(x, z, yb + 1.0, 0); // another deck's surface right where the barrier stands, at its level
+  if (h !== null && h !== undefined && Math.abs(h - yb) < 0.9 && net.footprintAt(x, z) && !(Math.abs(h - yb) < 0.02)) {
+    // only when the deck there is not this chain's own slab (heightAt returns the nearest deck: compare with our own surface)
+    const own = c.y[i] + c.bank[i] * o; if (Math.abs(h - own) > 0.15) bars.push({ cls: 'barDeck', x, z, y: yb, deckY: h, chain: c.id, name: c.name }); }
+}
+const barSpots = []; for (const f of bars) { if (barSpots.some((s) => s.cls === f.cls && s.chain === f.chain && Math.hypot(s.x - f.x, s.z - f.z) < 30)) continue; barSpots.push({ ...f, x: r1(f.x), z: r1(f.z), y: r1(f.y) }); }
 // the whole-map audit's deck checks on the same network (tools/v2/map-audit.page.js globalChecks: deckLow / deckStep / deckDangling /
 // twinGap / roadOnWater / bldWater), so a clearance fix can be compared against them without a browser
 const { globalChecks } = await import('../map-audit.page.js');
 const fakeGame = { miamiData: D, city: { isWater: D.isWater, roadGraph: D.roadGraph, seaLevel: D.seaLevel, elevated: { network: net, footprintAt: net.footprintAt, heightAt: (x, z, y) => net.heightAt(x, z, y === undefined ? null : y, 0) } } };
 const AU = globalChecks(fakeGame), audit = AU.counts;
-const rep = { tag: TAG, audit, auditDeck: AU.findings.filter((f) => /^deck|twin/.test(f.cls)), when: new Date().toISOString(), build: D.build, need: NEED, spots: spots.length, roadSpots: spots.filter((s) => s.under === 'road').length, deckSpots: spots.filter((s) => s.under === 'deck').length, samples: raw.length, netStats: net.stats, list: spots };
+const rep = { tag: TAG, audit, auditDeck: AU.findings.filter((f) => /^deck|twin/.test(f.cls)), when: new Date().toISOString(), build: D.build, need: NEED, spots: spots.length, roadSpots: spots.filter((s) => s.under === 'road').length, deckSpots: spots.filter((s) => s.under === 'deck').length, samples: raw.length, barRoad: barSpots.filter((s) => s.cls === 'barRoad').length, barDeck: barSpots.filter((s) => s.cls === 'barDeck').length, barSpots, netStats: net.stats, list: spots };
 fs.mkdirSync('docs/v2/reports', { recursive: true });
 fs.writeFileSync(`docs/v2/reports/bridge-clearance-${TAG}.json`, JSON.stringify(rep, null, 1));
-console.log(`bridge clearance ${TAG} (${D.build}): ${rep.spots} spots (${rep.roadSpots} over ground roads, ${rep.deckSpots} deck over deck), ${raw.length} samples < ${NEED} m; deck audit ${JSON.stringify(audit)}; net ${JSON.stringify(net.stats)}`);
+console.log(`bridge clearance ${TAG} (${D.build}): ${rep.spots} spots (${rep.roadSpots} over ground roads, ${rep.deckSpots} deck over deck), ${raw.length} samples < ${NEED} m; deck audit ${JSON.stringify(audit)}; barriers on a ground road ${rep.barRoad}, on another deck ${rep.barDeck}; net ${JSON.stringify(net.stats)}`);
 for (const s of spots.slice(0, +(o.top || 40))) console.log(`  ${s.under} ${s.kind} "${s.name}" at (${s.x}, ${s.z}) clear ${s.minClear} m (deck ${s.deckY}, road ${s.roadY}, type ${s.type}, n ${s.n}) under chain ${s.deck?.chain} "${s.deck?.name}" ${s.deck?.kind} s ${s.deck?.s}/${s.deck?.len} yT ${s.deck?.yT} ends ${s.deck?.endA}/${s.deck?.endB} water ${s.deck?.water} node ${s.sharedNodeDist}`);
 process.exit(0);
