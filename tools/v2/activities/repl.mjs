@@ -34,7 +34,7 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
         if (c.shot) { await b.screenshot(c.shot); out.shot = c.shot; }
       } catch (e) { out.ok = false; out.error = String(e.message || e).slice(0, 2000); }
       out.errors = b.errors.slice(seen); seen = b.errors.length;
-      fs.writeFileSync(path.join(DIR, `res-${n}.json`), JSON.stringify(out));
+      fs.writeFileSync(path.join(DIR, `res-${n}.json.tmp`), JSON.stringify(out)); fs.renameSync(path.join(DIR, `res-${n}.json.tmp`), path.join(DIR, `res-${n}.json`));
     }
   }
 });

@@ -31,13 +31,13 @@ export const YACHT_PARTY = {
 };
 
 // ---- dock shift at the Dodge Island port: x, z = where to look for a port road; pay per crate / seal, bonus under par s
-export const DOCK_JOB = { x: 1595, z: 792, perCrate: 22, perSeal: 18, bonus: 45, par: 240, cooldown: 90 };
+export const DOCK_JOB = { x: 1570, z: 770, exact: true, foremen: ['p61', 'p115', 'p18', 'p42'], perCrate: 22, perSeal: 18, bonus: 45, par: 240, cooldown: 90 };
 
 // ---- ambient life. Performers: x, z = a spot snapped to the nearest sidewalk; place = cast place of the person
 export const AMBIENT_PERFORMERS = [
   { id: 'sobe_statue', kind: 'statue', label: 'living statue', x: 2375, z: 600, heading: 1.6, place: 'street', pose: 'idle', seed: 11 },
   { id: 'downtown_dancer', kind: 'dancer', label: 'street dancer', x: 600, z: -40, heading: 0, place: 'nightlife', pose: 'dance_arms', seed: 23 },
-  { id: 'havana_drummer', kind: 'drummer', label: 'bucket drummer', x: -640, z: -35, heading: 0, place: 'street', pose: 'sit', seed: 37 },
+  { id: 'havana_drummer', kind: 'drummer', label: 'bucket drummer', x: -640, z: -35, heading: 0, place: 'street', pose: 'sit', seed: 37, person: 'p168' },
   { id: 'sobe_dancer', kind: 'dancer', label: 'street dancer', x: 2600, z: 200, heading: -1.6, place: 'beach', pose: 'dance', seed: 41 },
 ];
 // fishermen: x, z = a point near a seawall / shore; n men side by side

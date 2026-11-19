@@ -75,7 +75,7 @@ export async function initV2(game) {
         }
         root.rotation.y = heading;
         const pos = { x: S.at.x, y: py, z: S.at.z };
-        try { S.h = game.npc?.spawnPosed?.({ place: def.place || 'street', pose: def.pose, pos, rot: heading, seed: def.seed || 5 }) || null; } catch (e) { S.h = null; }
+        try { S.h = (def.person && game.npc?.spawnPosed?.({ person: def.person, pose: def.pose, pos, rot: heading })) || game.npc?.spawnPosed?.({ place: def.place || 'street', pose: def.pose, pos, rot: heading, seed: def.seed || 5 }) || null; } catch (e) { S.h = null; }
         if (S.h && def.kind === 'statue') { S.h.root.traverse((o) => { if (o.isMesh && o.material) { const ms = Array.isArray(o.material) ? o.material : [o.material]; o.material = ms.map((m) => { const n = m.clone(); if (n.color) n.color.setHex(0xd4b25c); n.metalness = 0.85; n.roughness = 0.35; n.map = null; return n; }); if (o.material.length === 1) o.material = o.material[0]; } }); S.frozen = true; }
         if (S.wantBeat) S.beat = makeBeat({ x: S.at.x, y, z: S.at.z });
       },
@@ -107,7 +107,8 @@ export async function initV2(game) {
         const face = Math.atan2(G.out.x, G.out.z), side = { x: G.out.z, z: -G.out.x };
         for (let i = 0; i < (def.n || 2); i++) {
           const x = G.x + side.x * (i - 0.5) * 3.2, z = G.z + side.z * (i - 0.5) * 3.2, y = groundY(game, x, z);
-          let h = null; try { h = game.npc?.spawnPosed?.({ place: 'fisherman', pose: i % 2 ? 'idle' : 'idle_old', pos: { x, y, z }, rot: face + (Math.random() - 0.5) * 0.3, seed: 300 + i + (def.seed || 0) }) || null; } catch (e) { h = null; }
+          let h = null; const rot = face + (Math.random() - 0.5) * 0.3, pid = ['p03', 'p159', 'p162'][(i + (def.seed || 0)) % 3];
+          try { h = game.npc?.spawnPosed?.({ person: pid, pose: 'idle', pos: { x, y, z }, rot }) || game.npc?.spawnPosed?.({ place: 'fisherman', pose: i % 2 ? 'idle' : 'idle_old', pos: { x, y, z }, rot, seed: 300 + i + (def.seed || 0) }) || null; } catch (e) { h = null; }
           if (h) {
             // rod in the right hand, tip out over the water, line hanging into it
             const hand = h.character?.getBone?.('RightHand');

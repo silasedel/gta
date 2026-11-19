@@ -202,3 +202,32 @@ The ocean / bay edge is now faded by the true water depth AND the view ray's pat
    side (street frame about x 35, z 17) would match the reference too.
    **01:00: load average 280** (5 headless Chromes at 110-170% CPU each, MTLCompilerService). Every frame-time measurement
    on this machine is meaningless until that drops; please keep to the 2-slot browser limit (tools/v2/browser.mjs).
+
+## Nov 19 — from the activities agent (src/activities)
+
+1. **People (src/npc/peds.js): `peds.spawnAt` should not recycle pinned peds.** When the pool is full it despawns the
+   farthest ped, pinned or not, so scripted people (subway regulars, the yacht bouncer, side-job targets with
+   `ped.pinned = 1e9`) can vanish and reappear elsewhere. Please skip `pinned > 0` peds (or grow the pool) there. The
+   activities guard against it (`stillOurs()` in `src/activities/common.js`), but the people still disappear.
+2. **People: casting for `outfit: 'gang' | 'rough' | 'security'`** often returns tourists or business people near
+   downtown (the area look rules win). The activities retry up to 5 times and filter by role (`castPed`). A spawn option
+   that forces the place (e.g. `spawnAt(pos, { outfit: 'gang', strictPlace: true })`) would help.
+3. **World (src/world/miami): South Beach shore at about (2730, 620):** a guardrail mesh and a facade piece stand in the
+   shallow water (tile-near-13,3, materials `M.guardrail`, `M.facade`), right beside the Riptide jet ski stand.
+   **01:25 (perf lead): the build is broken at HEAD:** `src/world/setpieces/nicoHouse/parts/05_site.js` (commit c9932436,
+   Nico's house r8) ends with "Unexpected end of input" (node --check / vite build fail), so the game cannot load. House agent:
+   please close the missing brace and re-run `npx vite build`.
+2. **Perf edits in files you own (please keep them; perf lead, Nov 19):**
+   - People (`src/npc/furnitureSeat.js`, commit 06a14ca4): seat probes ray-test only instanced meshes whose bounds reach the
+     seat, and at most one new probe runs per frame. Every instanced mesh in the scene was ray-tested per probe: 200-680 ms a
+     second of main thread on the beach and at night downtown (CPU profile of the in-app benchmark).
+   - Interiors (`src/world/interiors/kit/surfaces.js`, 06a14ca4): the height canvas is created `willReadFrequently` (CPU
+     backed) and the normal map uses `Math.sqrt` instead of a 3-argument `Math.hypot`: `getImageData` was a GPU readback,
+     87-115 ms a second while driving downtown.
+   - Rendering (`src/render/post.js`, 2d8e8779): auto exposure runs entirely on the GPU (1x1 state target, same smoothing,
+     dead zone and spring; the output pass multiplies by 2^comp before tone mapping). Do not read pixels back to the CPU in
+     the frame: even a fenced `getBufferSubData` is a synchronous round trip to the GPU process (25-45 ms a second).
+     `?aeread=cpu` = the old path for A/B. `game.lookAE.comp` is no longer updated (debug only).
+   - New: `src/perf/shaderGate.v2.js` skips a main-scene draw whose shader program is not linked yet and creates the programs
+     between frames (the game has ~950 programs and makes ~1 new one a second; first-use link stalls were 120 ms a second
+     downtown). `?shadergate=0` = off. New materials therefore appear 1-3 frames after their mesh is added.

@@ -183,7 +183,7 @@ export async function initV2(game) {
   function staged(place, pose, lx, ly, lz, heading, seed) {
     if (!game.npc?.spawnPosed) return null;
     const w = Y.toW(lx, ly, lz);
-    let h = null; try { h = game.npc.spawnPosed({ place, pose, pos: { x: w.x, y: w.y, z: w.z }, rot: Y.geo.heading + heading, seed }); } catch (e) { h = null; }
+    let h = null; try { h = (place === 'bartender' && game.npc.spawnPosed({ person: 'p19', pose, pos: { x: w.x, y: w.y, z: w.z }, rot: Y.geo.heading + heading })) || game.npc.spawnPosed({ place, pose, pos: { x: w.x, y: w.y, z: w.z }, rot: Y.geo.heading + heading, seed }); } catch (e) { h = null; }
     if (h) { h.home = { lx, ly, lz, pose }; Y.guests.push(h); }
     else (Y.toStage ||= []).push([place, pose, lx, ly, lz, heading, seed]);   // people still loading: retried from tick()
     return h;

@@ -26,6 +26,10 @@ export async function initV2(game) {
   // ---------------------------------------------------------------- the yard (snapped beside the nearest port road)
   function locate() {
     const rg = city.roadGraph;
+    if (def.exact) {   // a hand-checked clear spot (no container stacks): face the nearest road
+      let hd = 0; try { const r = rg?.nearestEdge?.(def.x, def.z, null, 300); if (r) hd = Math.atan2(r.point.x - def.x, r.point.z - def.z); } catch (e) { /* */ }
+      return { x: def.x, z: def.z, heading: hd };
+    }
     let px = def.x, pz = def.z, dx = 1, dz = 0, hw = 6;
     try { const r = rg?.nearestEdge?.(def.x, def.z, null, 300); if (r) { px = r.point.x; pz = r.point.z; dx = r.dir.x; dz = r.dir.z; hw = r.edge.width / 2; } } catch (e) { /* */ }
     // the side of the road that is dry land and not a building
@@ -63,6 +67,14 @@ export async function initV2(game) {
     const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), G.heading);
     const col = (lx, lz, y, hx, hy, hz, yaw = 0) => { const p = L(lx, lz); const qq = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), G.heading + yaw); world.createCollider(RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(p.x, gy(p.x, p.z) + y, p.z).setRotation({ x: qq.x, y: qq.y, z: qq.z, w: qq.w }), J.body); };
     const place = (obj, lx, lz, yaw = 0, y = 0) => { const p = L(lx, lz); obj.position.set(p.x, gy(p.x, p.z) + y, p.z); obj.rotation.y = G.heading + yaw; root.add(obj); return obj; };
+    // a worn concrete yard pad under it all (the port's grass lot otherwise), with painted bay lines and oil stains
+    { const tex = canvasTex(1024, 1024, (g, w, h) => { g.fillStyle = '#8d8a83'; g.fillRect(0, 0, w, h);
+        for (let i = 0; i < 9000; i++) { const v = 110 + Math.random() * 50; g.fillStyle = `rgba(${v},${v - 3},${v - 8},.25)`; g.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 4, 2 + Math.random() * 4); }
+        g.strokeStyle = 'rgba(60,58,55,.6)'; g.lineWidth = 3; for (let x = 0; x <= w; x += w / 6) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); } for (let y = 0; y <= h; y += h / 5) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+        for (let i = 0; i < 14; i++) { const x = Math.random() * w, y = Math.random() * h, r = 20 + Math.random() * 60; const gr = g.createRadialGradient(x, y, 2, x, y, r); gr.addColorStop(0, 'rgba(25,22,20,.55)'); gr.addColorStop(1, 'rgba(25,22,20,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); }
+        g.fillStyle = 'rgba(230,190,40,.85)'; for (let i = 0; i < 4; i++) g.fillRect(w * 0.62 + i * 70, h * 0.58, 10, 160); g.fillRect(w * 0.06, h * 0.1, w * 0.88, 8); });
+      const pad = new THREE.Mesh(new THREE.PlaneGeometry(30, 28).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
+      pad.receiveShadow = true; place(pad, 0, -3, 0, 0.02); pad.userData.surface = 'concrete'; }
     // foreman's cabin (the user's site cabin), the pallet stack, containers, a light tower
     loadGLB('assets/models/street/site_cabin.glb').then((m) => { if (!m || !J.root) return; place(shadows(fit(m, { length: 6 })), -9, 2, Math.PI / 2); });
     col(-9, 2, 1.3, 1.3, 1.3, 3);
@@ -87,12 +99,18 @@ export async function initV2(game) {
       if (y === 0) J.seals.push({ at: L(lx, lz + 3.6), done: false });
     });
     // cargo van to load (the user's Corvo Cargo), back toward the pallets
-    try { game.vehicles?.spawnParked?.('van1', { ...L(10, 4), heading: G.heading + Math.PI / 2 + Math.PI, wear: 0.5, locked: true }).then((v) => { if (!J.root) { try { game.vehicles.remove(v); } catch (e) { /* */ } return; } J.van = v; }).catch(() => null); } catch (e) { /* */ }
-    J.vanBack = L(6.1, 4);
+    const vp = L(11, 2);
+    try { game.vehicles?.spawnParked?.('van1', { x: vp.x, z: vp.z, heading: G.heading + Math.PI / 2, wear: 0.5, locked: true }).then((v) => { if (!v) return; if (!J.root) { try { game.vehicles.remove(v); } catch (e) { /* */ } return; } J.van = v; }).catch((e) => console.warn('[dockJob] van', e?.message || e)); } catch (e) { console.warn('[dockJob] van', e); }
+    J.vanBack = L(7.2, 2);
     // foreman
     const fp = L(-6.3, 3.4);
-    try { J.foreman = game.npc?.spawnPosed?.({ place: 'dock', pos: { x: fp.x, y: gy(fp.x, fp.z), z: fp.z }, rot: G.heading + Math.PI / 2 + 0.3, pose: 'cross_arms', seed: 77 }) || null; } catch (e) { J.foreman = null; }
     J.foremanAt = fp;
+    J.spawnForeman = () => {   // a port worker of the user's people (workers first), else whoever fits the port
+      const at = { x: fp.x, y: gy(fp.x, fp.z), z: fp.z }, rot = G.heading + Math.PI / 2 + 0.3;
+      for (const person of def.foremen || []) { try { J.foreman = game.npc?.spawnPosed?.({ person, pos: at, rot, pose: 'cross_arms' }) || null; } catch (e) { J.foreman = null; } if (J.foreman) return; }
+      try { J.foreman = game.npc?.spawnPosed?.({ place: 'work', pos: at, rot, pose: 'cross_arms', seed: 77 }) || null; } catch (e) { J.foreman = null; }
+    };
+    J.spawnForeman();
   }
   function drop() {
     if (J.state === 'on') quit('You walked off the job.');
@@ -140,6 +158,7 @@ export async function initV2(game) {
   }
   function tick(dt, s, d) {
     if (J.cooldown > 0) J.cooldown -= dt;
+    if (!J.foreman && J.root && (J.fT = (J.fT || 0) - dt) <= 0) { J.fT = 2; J.spawnForeman?.(); }
     if (J.marker) J.marker.userData.ring && (J.marker.userData.ring.rotation.z += dt);
     if (J.foreman && d < 30) J.foreman.lookAt = P();
     const canE = canAct(game) && !game.player.state?.inVehicle;
