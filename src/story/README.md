@@ -133,11 +133,20 @@ functions of `ctx` or handle names. Nico's house anchors: `game.nicoHouse.anchor
 - `ctx.spawnPed(name, { at, kit, gang, health, list: true })`: a crowd ped in a clothing kit (`src/jobs/kit.js`); with
   `list` the handle is an array (use with `killAll`). Make them fight with `keepFighting` / `fireAtPlayer` from kit.js.
 - `await ctx.spawnProp(name, propId, at, { scale, lift })`: a mission prop.
+- `ctx.spawnBoat(name, key, at)`: a boat (`game.boatSystem`: `console` motorboat, `skiff`, `racer`, `cruiser`,
+  `jetski`, `police`).
+- `ctx.spawnAircraft(name, type, at)`: an aircraft (`game.air`: `floatplane`, `prop`, `bizjet`); `y` defaults to the sea.
 - `ctx.track(obj, dispose, { keepOnPass })`: anything else that must be cleaned up on fail / retry / quit.
 - `await ctx.cutscene(def)`: play a cutscene from inside a step; its vehicles and `end.keep` actors become handles.
 - `ctx.objective(text)`, `ctx.say(who, text, ms)`, `ctx.notify(text)`, `ctx.help(text)`, `await ctx.wait(seconds)`.
 - `ctx.next()` (finish this step now), `ctx.pass()`, `ctx.fail(reason)`.
 - `ctx.pos(x)`, `ctx.dist(x)` for any point / handle / function.
+
+Cutscenes played from a step (`cutscene:` or `ctx.cutscene`) can look at the mission's handles too:
+`look: 'actor:dex'` finds `ctx.h.dex` when the scene has no actor of that name.
+
+The intro missions (`missions/intro.*.js`, shared data in `missions/lib/intro.js`) are full examples: vehicles,
+boats, a floatplane, props, a gang fight, protect / escaped / leftArea rules, checkpoints with `restore`.
 
 ### What pass, fail and skip do
 

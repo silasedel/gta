@@ -3668,7 +3668,8 @@ export async function createVehicles(game) {
       // wheels
       const vc = v.vc;
       v.car.wheelCapExtra = vc?.isShapeVehicle ? 0.045 : undefined; // r2-physics: carphys 2 bump travel = arch gap + 4.5 cm tuck (glbCar visual cap)
-      if (vc)
+      // far LOD (glb/farLod.js): the wheels are baked into the one far mesh, nothing reads the wheel nodes
+      if (vc && !v.car.isFar)
         for (let i = 0; i < 4; i++) {
           const w = v.car.wheels[i];
           const sl = vc.wheelSuspensionLength(i) ?? v.restLen;
@@ -3824,7 +3825,8 @@ export async function createVehicles(game) {
           const ep = v.ejectDriver();
           game.peds?.spawnAt?.(ep, { state: 'flee' });
         } else {
-          const near = pp ? distXZ(t, pp) < 70 : true;
+          // behind the far LOD's opaque glass nobody is seen: no skinned draws, no animation update
+          const near = (pp ? distXZ(t, pp) < 70 : true) && !v.car.isFar;
           v.driver.visible = near;
           if (near) v.driverChar.update?.(dt, { driving: true, speed: 0, grounded: true });
           for (const pc of v.passengerChars || []) {

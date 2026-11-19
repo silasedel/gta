@@ -15,6 +15,7 @@ import { carPaint, R3PAINT } from '../model/materials.js';
 import { trimMaterial, glassMaterial, lampMaterial, SHEET, R3CAR } from '../model/body/mats.js';
 import { wheelMat } from '../model/body/wheel.js';
 import { plateMaterial } from '../model/extras.js';
+import { FAR_LOD_M, buildFarGeometry, farMaterial } from './farLod.js';
 
 const BASE = (import.meta.env?.BASE_URL || '/') + 'assets/vehicles/cars/';
 let _loader = null;
@@ -256,6 +257,10 @@ function interiorGeo(g, color, own) {
 // x and z, under the roof or glass) move to the trim slot as charcoal leather / plastic before the slots are prepared.
 // ?cabsplit=0 = old.
 const NO_CABSPLIT = typeof location !== 'undefined' && /[?&]cabsplit=0\b/.test(location.search);
+// A/B: ?farlod=0 (or globalThis.__noFarLod = true at runtime) keeps the per-slot LOD1 out to the culling distance
+if (typeof location !== 'undefined' && /[?&]farlod=0\b/.test(location.search)) {
+  globalThis.__noFarLod = true;
+}
 const CABIN_RGB = [0.034, 0.031, 0.029],
   CABIN_ROUGH = 0.62;
 function cabinPaintToTrim(P, inCab) {
@@ -1422,7 +1427,7 @@ export function buildGlbCar(key, look, t, info) {
       y: man.wheels[0].pos[1],
     };
   }
-  const paint = carPaint({
+  const paintOpts = {
     color: look.color,
     finish,
     wear,
@@ -1431,7 +1436,8 @@ export function buildGlbCar(key, look, t, info) {
     patch,
     roofTone,
     flare,
-  });
+  };
+  const paint = carPaint(paintOpts);
   paint.name = 'car-paint';
   // an old, sun-baked parked car (look.old, e.g. Nico's classic): flat milky chrome, chalky rubber, dusty hazy glass
   const glass = look.old ? glassMaterial(0, { dusty: true }) : glassMaterial(look.tint ?? 1);
@@ -1581,8 +1587,13 @@ export function buildGlbCar(key, look, t, info) {
     levels[0].add(pm0);
     levels[1].add(pm0.clone());
   }
+  // children of LOD1 so far: the slot meshes, wheel sets and plate (the far mesh stands in for them); anything added later
+  // (taxi sign, service lettering, livery decals from service/livery.js) is mirrored onto the far level
+  const lod1Base = new Set(levels[1].children);
   if (t.taxi) addTaxi(levels, t, M, lightMats);
   if (t.livery === 'ambulance' || t.livery === 'fire') addServiceLivery(levels, t, M);
+  const far = buildFarLevel(M, paintOpts, paint, lamps, glass, levels[1], lod1Base);
+  if (far) lod.addLevel(far.level, FAR_LOD_M * big, 0.1);
   const contact = new THREE.Mesh(CONTACT_GEO, contactMat());
   contact.scale.set(t.W + 0.25, t.L + 0.35, 1);
   contact.rotation.x = -Math.PI / 2;
@@ -1597,8 +1608,18 @@ export function buildGlbCar(key, look, t, info) {
   const lodUpdate = lod.update.bind(lod);
   lod.update = (camera) => {
     lodUpdate(camera);
+    if (far?.level.visible && globalThis.__noFarLod) {
+      far.level.visible = false;
+      levels[1].visible = true;
+    }
     const maxY = capBase + (car.wheelCapExtra ?? 0.015);
-    for (const [im, list] of sets) if (im.parent.visible) syncWheels(im, list, maxY, mud);
+    const isFar = !!far && far.level.visible;
+    if (isFar !== car.isFar) {
+      car.isFar = isFar;
+      if (isFar) far.enter(vis[0]?.node, maxY);
+    }
+    if (isFar) far.mat.sync();
+    else for (const [im, list] of sets) if (im.parent.visible) syncWheels(im, list, maxY, mud);
     lamps.sync();
   };
   lamps.sync();
@@ -1621,6 +1642,7 @@ export function buildGlbCar(key, look, t, info) {
     wipers: [],
     info,
     lod,
+    isFar: false, // drawn by the far LOD (one merged mesh): vehicles.js skips per-frame wheel / driver work
     kit: 'base',
     look,
     glb: true,
@@ -1652,9 +1674,66 @@ export function buildGlbCar(key, look, t, info) {
       for (const [im] of sets) im.dispose();
       if (paint0?.userData.ownGeo) paint0.geometry.dispose();
       for (const g of ownGeos) g.dispose();
+      far?.mat.material.dispose();
     },
   };
   return car;
+}
+
+/**
+ * The far LOD level of one car (farLod.js): one merged mesh with the car's far material, plus copies of LOD1's own-material
+ * extras (textured slots, taxi sign, liveries).  -> { level, mat, enter(wheelNode, maxY) } or null (model without paint).
+ */
+function buildFarLevel(M, paintOpts, paint, lamps, glass, lod1, lod1Base) {
+  let built;
+  try {
+    built = M.far === undefined ? (M.far = buildFarGeometry(M)) : M.far;
+  } catch (e) {
+    console.warn('[cars] far LOD', M.key, e);
+    built = M.far = null;
+  }
+  if (!built) return null;
+  const level = new THREE.Group();
+  level.name = 'car-far';
+  const mat = farMaterial(paintOpts, paint, lamps, glass);
+  const mesh = new THREE.Mesh(built.geo, mat.material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  level.add(mesh);
+  // textured slots (T_*) keep their own material: rare, one extra draw each
+  for (const T of M.lv[1].tex || []) {
+    const m = new THREE.Mesh(T.geo, T.mat);
+    m.castShadow = true;
+    level.add(m);
+  }
+  const extras = [];
+  let mirrored = -1;
+  const mirrorExtras = () => {
+    if (lod1.children.length === mirrored) return;
+    mirrored = lod1.children.length;
+    for (const o of extras) level.remove(o);
+    extras.length = 0;
+    for (const o of lod1.children) {
+      if (lod1Base.has(o)) continue;
+      const c = o.clone();
+      extras.push(c);
+      level.add(c);
+    }
+  };
+  const _inv = new THREE.Matrix4();
+  const _w = new THREE.Vector3();
+  // on every switch to far: mirror new LOD1 extras and lift the baked wheels to this car's wheel height (ride, fender cap)
+  const enter = (wheelNode, maxY) => {
+    mirrorExtras();
+    if (!wheelNode) return;
+    wheelNode.updateWorldMatrix(true, false);
+    level.updateWorldMatrix(true, false);
+    _inv.copy(level.matrixWorld).invert();
+    _w.setFromMatrixPosition(wheelNode.matrixWorld).applyMatrix4(_inv);
+    const y = maxY != null && _w.y > maxY ? Math.max(maxY, _w.y - 0.03) : _w.y;
+    mat.uniforms.uWheelY.value = y - built.wheelY;
+  };
+  return { level, mat, enter };
 }
 
 let _canvas = null;
