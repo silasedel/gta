@@ -804,7 +804,8 @@ export function createAudio(game) {
     if (!e || game.player?.swimming) return;
     const pp = e.position || game.player.position;
     let surface = e.surface || null;
-    if ((game.player?.waterDepth || 0) > 0.06 && pp && pp.distanceTo?.(game.player.position) < 2) surface = 'water';
+    // footSurface.v2.js already decided from the real floor (a dock over water is wood, not water); only unresolved events guess
+    if (!e.resolved && (game.player?.waterDepth || 0) > 0.06 && pp && pp.distanceTo?.(game.player.position) < 2) surface = 'water';
     play('step', { surface, position: { x: pp.x, y: (pp.y || 0) + 0.05, z: pp.z }, volume: e.sprint ? 0.65 : e.run ? 0.55 : 0.4, run: !!(e.run || e.sprint), sprint: !!e.sprint, shoe: e.shoe });
   });
   game.on?.('punch', (e) => { if (e?.position) play('punch_swing', { position: { x: e.position.x, y: e.position.y + 1.3, z: e.position.z }, volume: 0.5 }); });

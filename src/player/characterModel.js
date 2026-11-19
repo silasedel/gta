@@ -825,8 +825,8 @@ export function createCharacter(game, opts = {}) {
         if (crossed(prevPh, st.phase, 0.5) || crossed(prevPh, st.phase, 0.999)) {
           const pp = root.position;
           let surface = 'concrete';
-          try { surface = game.surfaceAt?.(pp.x, pp.z) || 'concrete'; } catch (e) { /* ignore */ }
-          try { game.emit('footstep', { surface, position: pp.clone(), run: s > 3 }); } catch (e) { /* ignore */ }
+          try { surface = (game.footSurfaceAt ? game.footSurfaceAt(pp.x, pp.y, pp.z) : game.surfaceAt?.(pp.x, pp.z)) || 'concrete'; } catch (e) { /* ignore */ }
+          try { game.emit('footstep', { surface, position: pp.clone(), run: s > 3, resolved: !!game.footSurfaceAt }); } catch (e) { /* ignore */ }
         }
       }
     }

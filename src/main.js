@@ -1149,8 +1149,8 @@ async function boot() {
           L.strideAcc -= stride;
           if (swim) audio.play?.('swim', { position: { x: pos.x, y: SEA, z: pos.z }, volume: 0.5 + Math.min(0.5, L.speedF / 6) });
           else if (game.clock.elapsed - L.lastCharStep > 0.8) {
-            const surface = P.waterDepth > 0.06 ? 'water' : (game.surfaceAt?.(pos.x, pos.z) || 'concrete');
-            game.emit('footstep', { surface, position: pos.clone(), run: L.speedF > 3, src: 'main' });
+            const surface = game.footSurfaceAt ? game.footSurfaceAt(pos.x, pos.y, pos.z) : P.waterDepth > 0.06 ? 'water' : (game.surfaceAt?.(pos.x, pos.z) || 'concrete');
+            game.emit('footstep', { surface, position: pos.clone(), run: L.speedF > 3, src: 'main', resolved: !!game.footSurfaceAt });
           }
         }
       } catch (e) { console.error('[player visual]', e); }
