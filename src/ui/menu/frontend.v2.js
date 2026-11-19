@@ -338,6 +338,9 @@ function startTitle(game, ctx, cin, fe, params) {
   let hasSave = false;
   const isDesktop = !!window.portSolanaDesktop?.isDesktop;
   // Story menu (Phase A, Nov 19): one big Play; a first-time player sees Play and a short row of small options.
+  // User (Nov 19): the intro story is being rewritten to include Mari. Until it is ready, Play drops you into free roam
+  // at the house like Free Roam does. ?intro=1 plays the current intro missions.
+  const INTRO_ON = typeof location !== 'undefined' && /[?&]intro=1\b/.test(location.search);
   // Play starts the intro or continues the story at the saved stage (src/story, game.story.beginPlay).
   const ITEMS = () =>
     [
@@ -740,6 +743,7 @@ function startTitle(game, ctx, cin, fe, params) {
       if (story) story.toHouse();
       else toHouseFallback();
     }
+    if (kind === 'play' && !INTRO_ON) kind = 'freeroam'; // the intro is parked until the rewrite (see INTRO_ON)
     if (kind === 'freeroam' && story) await story.skipIntro({ save: false });
     else if (kind === 'play' && story) story.preparePlay();
   }
@@ -758,6 +762,7 @@ function startTitle(game, ctx, cin, fe, params) {
   async function afterReveal(kind) {
     const story = game.story;
     if (!story) return;
+    if (kind === 'play' && !INTRO_ON) kind = 'freeroam';
     if (kind !== 'play' || !hasSave) await story.runner.autosave('menu:' + kind);
     if (kind === 'freeroam')
       game.hud?.notify?.(
