@@ -300,17 +300,18 @@ export const P8 = {
   },
 };
 P8.rot.theta = _rq ? (+_rq[1] * Math.PI) / 180 : Math.PI / 4 - STREET_H;
-// r10 (playtest Nov 19, W1): the HOUSE (body, decks, stairs, annex, pad, hoop) is turned 10 deg counterclockwise (seen from above) inside
+// r10 (playtest Nov 19, W1): the HOUSE (body, decks, stairs, annex, pad, hoop) is turned 20 deg counterclockwise (seen from above) inside
 // the site; the canal, the bay wall, the dock line and the beach stay where they are. Frame B = the house's own frame (every house part
 // builds in it through frame(ctx, 'house')); H = the site frame above (canal, bulkhead, dock: frame(ctx, 'site')).
 //   H = R(a) (B - c) + c + t, R as three.js (rotation.y = a). t moves the house 1 m off the canal so the turned gym deck clears its wall.
 // ?nhr=<deg> overrides the turn (0 = r9).
 const _hr = typeof location !== 'undefined' ? /[?&]nhr=(-?[\d.]+)/.exec(location.search) : null;
 P8.hr = {
-  a: ((_hr ? +_hr[1] : 10) * Math.PI) / 180,
+  // user (Nov 19 afternoon): 20 deg counterclockwise in total (was 10)
+  a: ((_hr ? +_hr[1] : 20) * Math.PI) / 180,
   cx: 0,
   cz: -7,
-  tx: _hr && +_hr[1] === 0 ? 0 : -1.0,
+  tx: _hr && +_hr[1] === 0 ? 0 : -2.0, // 2 m off the canal at 20 deg (1 m cleared the gym deck at 10 deg)
   tz: 0,
 };
 if (R8) {
