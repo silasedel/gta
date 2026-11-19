@@ -147,7 +147,7 @@ export function personMaterial(base, variant = 0) {
   const t = base.tex;
   m = new THREE.MeshStandardMaterial({ name: 'personBody', map: t.a, normalMap: t.n || null, roughnessMap: t.o || null, metalnessMap: t.o || null,
     roughness: t.o ? 1 : 0.78, metalness: t.o ? 1 : 0, envMapIntensity: 0.85 });
-  if (t.n) m.normalScale.set(0.8, 0.8);
+  if (t.n) m.normalScale.set(0.8, -0.8); // y < 0: glTF UVs (flipY false), no tangents in the GLBs (GLTFLoader's own flip)
   // matte skin, hair and cloth (user, Nov 17: never shiny): the scanned roughness is clamped, metal kept for buckles only
   m.onBeforeCompile = (sh) => {
     sh.fragmentShader = sh.fragmentShader

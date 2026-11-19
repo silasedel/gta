@@ -80,16 +80,24 @@ float psStaticShadow( sampler2D farMap, DirectionalLightShadow farS, vec4 farC )
     if (at > 0 && dynEnd > at) {
       // psSunVis is a global (lights_pars_begin, which every lit material includes before main): a material that swaps
       // in its own lights_fragment_begin still compiles (it just keeps psSunVis = 1)
-      if (!C.lights_pars_begin.includes('PS_SUNVIS')) C.lights_pars_begin = '#define PS_SUNVIS\nfloat psSunVis = 1.0;\n' + C.lights_pars_begin;
+      // psSunFace (Nov 19, user: "his back is so dark when he's in the sun"): how much a face is turned toward the sun.
+      // The bounce term below used to reach only cast-shadow pixels (1 - psSunVis), and psSunVis is 1 on faces turned away
+      // from the sun, so a person's back (or any wall facing away from the sun) in open daylight got NO ground / wall
+      // bounce, while the same back standing in a building's shadow did: the form-shadow side read near-black against
+      // the bright sunlit ground. Form shadow and cast shadow now get the same bounce. ?formbounce=0 = old.
+      const FORM_BOUNCE = !(typeof location !== 'undefined' && /[?&]formbounce=0\b/.test(location.search));
+      if (!C.lights_pars_begin.includes('PS_SUNVIS')) C.lights_pars_begin = '#define PS_SUNVIS\nfloat psSunVis = 1.0;\nfloat psSunFace = 1.0;\n' + C.lights_pars_begin;
       C.lights_fragment_begin = s0.slice(0, at) + '#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 )\n\t\tvec3 psC0 = directLight.color;\n\t\t#endif\n\t\t'
-        + s0.slice(at, dynEnd + 6) + '\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 0 ) && defined( PS_SUNVIS )\n\t\tpsSunVis = mix( 1.0, dot( directLight.color, vec3( 1.0 ) ) / max( dot( psC0, vec3( 1.0 ) ), 1e-6 ), smoothstep( 0.02, 0.2, dot( geometryNormal, directLight.direction ) ) ); // faces turned away from the sun: no cast-shadow term\n\t\t#endif' + s0.slice(dynEnd + 6);
+        + s0.slice(at, dynEnd + 6) + '\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 0 ) && defined( PS_SUNVIS )\n\t\tpsSunVis = mix( 1.0, dot( directLight.color, vec3( 1.0 ) ) / max( dot( psC0, vec3( 1.0 ) ), 1e-6 ), smoothstep( 0.02, 0.2, dot( geometryNormal, directLight.direction ) ) ); // faces turned away from the sun: no cast-shadow term\n\t\t'
+        + (FORM_BOUNCE ? 'psSunFace = smoothstep( 0.0, 0.25, dot( geometryNormal, directLight.direction ) );' : '') + '\n\t\t#endif' + s0.slice(dynEnd + 6);
       C.lights_fragment_end = `#if defined( PS_LOOKU ) && defined( PS_SUNVIS )
 {
 	float psAmb = mix( 1.0 - uLookW.x, 1.0, psSunVis );
 	#if defined( RE_IndirectDiffuse )
 	// ...and gains the light bounced off the sunlit ground and walls around it (uLookW.yzw, set per frame from the sun):
 	// shade stays deep but readable and neutral instead of navy-black (r2-art review)
-	irradiance = irradiance * psAmb + uLookW.yzw * ( 1.0 - psSunVis );
+	// (form shadow included: a face turned away from the sun gets it too, psSunFace)
+	irradiance = irradiance * psAmb + uLookW.yzw * ( 1.0 - psSunVis * psSunFace );
 	#endif
 	#if defined( RE_IndirectSpecular )
 	iblIrradiance *= psAmb;

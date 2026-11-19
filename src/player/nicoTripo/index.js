@@ -45,7 +45,9 @@ export function preloadNicoTripo() {
 // glosses it; the wardrobe region mask (R = shirt, G = pants, B = shoes) lets outfits recolor the baked clothes.
 function makeMaterial(tex) {
   const m = new THREE.MeshStandardMaterial({
-    name: 'nicoTripo', map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(1, 1),
+    // normalScale.y = -1: glTF UVs (flipY false) on a mesh without tangents (three's derivative tangent frame), the same
+    // flip GLTFLoader applies; +1 lit every fold and seam upside down
+    name: 'nicoTripo', map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(1, -1),
     roughnessMap: tex.orm, roughness: 1, metalness: 0, envMapIntensity: 0.85,
   });
   const u = {
