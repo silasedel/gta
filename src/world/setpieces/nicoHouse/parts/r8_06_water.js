@@ -268,11 +268,10 @@ export function build(ctx) {
 
   // ---------- the bay bulkhead and its fence (A): Nico's stretch to the canal mouth, the neighbor's beyond it ----------
   const dk = P.dock,
-    gap = [dk.wallX - 0.95, dk.wallX + 0.95];
+    gap = [dk.startX - 1.2, Cn.x0]; // r12: the walk leaves the wall cap at its canal-mouth end
   wallRun(P.wallX0, Wz, Cn.x0, Wz, 0, -1);
   wallRun(Cn.x1, Wz, Cn.x1 + 18, Wz, 0, -1, { far: true });
   fence(P.wallX0 + 0.3, Wz, gap[0], Wz, 0, -1);
-  fence(gap[1], Wz, Cn.x0 - 0.45, Wz, 0, -1);
   // ---------- the canal (straight, 6 m): Nico's wall (the lower deck flush with it), the dead end, the neighbor's wall ----------
   if (Cn.on) {
     wallRun(Cn.x0, Wz, Cn.x0, Cn.z1, 1, 0, { inCanal: true });
@@ -496,7 +495,7 @@ export function build(ctx) {
   }
   // a metal ladder down the bay wall, right of the platform (A)
   {
-    const lx = -9.0,
+    const lx = P.plat.x0 - 2.2, // r12: beyond the platform's right (-X) end (A)
       top = yard(lx, Wz + 0.4) + 0.1;
     for (const s of [-1, 1])
       D.tube(
@@ -521,8 +520,6 @@ export function build(ctx) {
   // ---------- the dock (A): angled gangway off the wall, the straight walk along the wall, the platform ----------
   const y = Math.min(-0.15, sea + 0.4),
     pl = P.plat,
-    zA = dk.z - dk.w / 2,
-    zB = dk.z + dk.w / 2,
     pilesAt = [];
   const pile = (x, z, top) => {
     const rr = 0.12 + r() * 0.03,
@@ -594,33 +591,31 @@ export function build(ctx) {
     );
     return { L, ux, uz };
   };
-  const yW = yard(dk.wallX, Wz + 0.3) + 0.06; // the wall cap
-  // r9 (user): ONE long angled gangway from the wall cap straight onto the platform's wall-side corner (no knee, no second run); its last
-  // boards lie 12 mm over the platform's where they overlap (no z-fighting)
-  // r10 (playtest Nov 19: "one purposeful, connected structure, smooth joints to the seawall"): a straight pier square to the wall from the
-  // fence gap to the middle of the platform's wall side. It starts ON the wall cap (a level landing across the cap with a header beam on the
-  // wall's face), then one even ramp down to the platform; the ramp's last boards lie 12 mm over the platform's (no z-fighting)
-  const capW = 0.5,
-    zL0 = Wz + capW,
-    zL1 = Wz - 0.25;
-  stretch(dk.wallX, zL0, yW, dk.wallX, zL1, yW, dk.w);
-  box(W, dk.w + 0.3, 0.24, 0.1, dk.wallX, yW - 0.17, Wz - 0.07, {
-    grain: 0,
-    color: gray(0.62),
-    wear: 0.9,
-  }); // header on the wall face
-  const gE = [dk.wallX, pl.z1 - 0.3];
-  const g1 = stretch(dk.wallX, zL1, yW - 0.005, gE[0], gE[1], y + 0.012, dk.w),
+  // r12 (user, Nov 19 eve: "copy the reference exactly", r12/dock_reference.webp): ONE long walkway that starts on the bay wall's
+  // cap at its canal-mouth end and runs out along the wall, angled slightly away from it, onto the +X end of a big platform that
+  // lies parallel to the wall a few meters out (about as long as the house). Posts both sides with cross bracing under the walk;
+  // pilings along the platform's outer edge with diagonal knee braces; the skiff moored along that edge.
+  const A = [dk.startX, Wz + 0.5],
+    Bj = [pl.x1 - 0.3, pl.z1 - dk.w / 2 - 0.15],
+    yW = yard(A[0], Wz + 0.3) + 0.06; // the wall cap
+  const g1 = stretch(A[0], A[1], yW, Bj[0], Bj[1], y + 0.012, dk.w),
     g2 = null;
-  // stringer ends sit in steel hangers on the header (the joint reads as built, not stacked)
-  for (const sx of [-1, 1])
-    box(ST, 0.07, 0.2, 0.12, dk.wallX + sx * (dk.w / 2 - 0.1), yW - 0.17, zL1 + 0.02, {
-      color: 0x6f706c,
-      bevel: 0.004,
-    });
-  // a fascia board round the platform and along the pier's sides: one finished edge for the whole dock
+  // where the walk crosses the wall line: a header on the wall's face carries the stringers (steel hangers)
   {
-    const fas = (ax, az, bx, bz, ya, yb) => {
+    const t = (Wz - A[1]) / g1.uz,
+      hx = A[0] + g1.ux * t,
+      hy = yW + ((y + 0.012 - yW) * t) / g1.L,
+      span = dk.w / Math.max(0.3, Math.abs(g1.ux)) + 0.3;
+    box(W, span, 0.24, 0.1, hx, hy - 0.17, Wz - 0.07, { grain: 0, color: gray(0.62), wear: 0.9 });
+    for (const sx of [-1, 1])
+      box(ST, 0.07, 0.2, 0.12, hx + sx * (span / 2 - 0.25), hy - 0.17, Wz - 0.15, {
+        color: 0x6f706c,
+        bevel: 0.004,
+      });
+  }
+  // a fascia board round the platform (open where the walk comes on at its +X end)
+  {
+    const fas = (ax, az, bx, bz) => {
       const L = Math.hypot(bx - ax, bz - az),
         ry = Math.atan2(-(bz - az), bx - ax);
       box(
@@ -629,21 +624,19 @@ export function build(ctx) {
         0.16,
         0.035,
         (ax + bx) / 2,
-        (ya + yb) / 2 - 0.1,
+        y - 0.1,
         (az + bz) / 2,
         { grain: 0, color: gray(0.7), wear: 0.8 },
         0,
         ry,
-        Math.atan2(yb - ya, L) * (Math.abs(bx - ax) > Math.abs(bz - az) ? 1 : 0),
       );
     };
-    fas(pl.x0 - 0.02, pl.z0 - 0.02, pl.x1 + 0.02, pl.z0 - 0.02, y, y);
-    fas(pl.x0 - 0.02, pl.z1 + 0.02, dk.wallX - dk.w / 2, pl.z1 + 0.02, y, y);
-    fas(dk.wallX + dk.w / 2, pl.z1 + 0.02, pl.x1 + 0.02, pl.z1 + 0.02, y, y);
-    fas(pl.x0 - 0.02, pl.z0, pl.x0 - 0.02, pl.z1, y, y);
-    fas(pl.x1 + 0.02, pl.z0, pl.x1 + 0.02, pl.z1, y, y);
+    fas(pl.x0 - 0.02, pl.z0 - 0.02, pl.x1 + 0.02, pl.z0 - 0.02);
+    fas(pl.x0 - 0.02, pl.z1 + 0.02, pl.x1 + 0.02, pl.z1 + 0.02);
+    fas(pl.x0 - 0.02, pl.z0, pl.x0 - 0.02, pl.z1);
+    fas(pl.x1 + 0.02, pl.z0, pl.x1 + 0.02, Bj[1] - dk.w / 2 - 0.05);
   }
-  // the platform: boards run toward the house (A)
+  // the platform: boards run across it, toward the house (A)
   {
     const pitch = 0.152;
     for (let x = pl.x0 + pitch / 2; x < pl.x1 - 0.03; x += pitch) {
@@ -677,41 +670,73 @@ export function build(ctx) {
       { tag: 'dock', surface: 'wood' },
     );
   }
-  // piles: along the walk on both sides, the platform's corners and mid edges (taller at the front), the knee, the gangway's foot
-  {
-    const L = g1.L,
-      px = -g1.uz,
-      pz = g1.ux;
-    for (let t = L / 2; t < L - 0.6; t += 2.4) {
-      const cx = dk.wallX + g1.ux * t,
-        cz = zL1 + g1.uz * t,
-        yy = yW - 0.04 + ((y - yW + 0.04) * t) / L;
-      for (const sd of [-1, 1])
-        pile(
-          cx + px * sd * (dk.w / 2 + 0.14),
-          cz + pz * sd * (dk.w / 2 + 0.14),
-          yy + (sd < 0 && r() < 0.4 ? 0.45 : 0.06),
-        );
-    }
-  }
-  for (const [x, z, h] of [
-    [pl.x0 - 0.1, pl.z0 - 0.1, 0.95],
-    [pl.x1 + 0.1, pl.z0 - 0.1, 0.95],
-    [pl.x0 - 0.1, pl.z1 + 0.1, 0.4],
-    [(pl.x0 + pl.x1) / 2, pl.z0 - 0.1, 0.95],
-    [pl.x0 - 0.1, (pl.z0 + pl.z1) / 2, 0.2],
-    [pl.x1 + 0.1, (pl.z0 + pl.z1) / 2 - 0.6, 0.2],
-  ])
-    pile(x, z, y + h);
-  // cross-braces under the platform's front and the walk (A: diagonal 2x8s between the piles)
+  // cross bracing: a diagonal 2x8 from the top of one pile down to the foot of the next
   const brace = (a, b) =>
     B.strut(W, [a[0], y - 0.25, a[1]], [b[0], bed + 1.2, b[1]], 0.05, 0.18, {
       color: gray(0.55),
       wear: 1,
       rand: r,
     });
-  brace([pl.x0 - 0.1, pl.z0 - 0.18], [(pl.x0 + pl.x1) / 2, pl.z0 - 0.18]);
-  brace([pl.x1 + 0.1, pl.z0 - 0.18], [(pl.x0 + pl.x1) / 2, pl.z0 - 0.18]);
+  // the walk's posts: a pair every 2.4 m, the outer (bay) side a little taller here and there, X-braced across the walk and
+  // along each side
+  {
+    const L = g1.L,
+      px = -g1.uz,
+      pz = g1.ux,
+      off = dk.w / 2 + 0.14;
+    let prev = null;
+    for (let t = 1.6; t < L - 0.8; t += 2.4) {
+      const cx = A[0] + g1.ux * t,
+        cz = A[1] + g1.uz * t,
+        yy = yW - 0.04 + ((y - yW + 0.04) * t) / L;
+      if (cz > Wz - 0.4) continue; // still over the wall cap / the yard
+      const sides = [-1, 1].map((sd) => [cx + px * sd * off, cz + pz * sd * off]);
+      sides.forEach(([x, z], k) => pile(x, z, yy + (k === 0 && r() < 0.5 ? 0.45 : 0.06)));
+      brace(sides[0], sides[1]);
+      if (prev) {
+        brace(prev[0], sides[0]);
+        brace(sides[1], prev[1]);
+      }
+      prev = sides;
+    }
+  }
+  // the platform's pilings: along the outer edge every ~2.2 m (standing ~1 m proud, mooring posts), the wall-side corners and
+  // middle; diagonal knee braces from the outer piles up under the deck
+  {
+    const n = Math.max(3, Math.round((pl.x1 - pl.x0) / 2.2)),
+      outer = [];
+    for (let k = 0; k <= n; k++) {
+      const x = pl.x0 - 0.1 + ((pl.x1 - pl.x0 + 0.2) * k) / n;
+      pile(x, pl.z0 - 0.1, y + 0.95 + (r() - 0.5) * 0.12);
+      outer.push([x, pl.z0 - 0.18]);
+    }
+    for (const x of [pl.x0 - 0.1, (pl.x0 + pl.x1) / 2, pl.x1 + 0.1])
+      pile(x, pl.z1 + 0.1, y + (x === pl.x0 - 0.1 ? 0.4 : 0.06));
+    pile(pl.x0 - 0.1, (pl.z0 + pl.z1) / 2, y + 0.2);
+    for (let k = 0; k < outer.length - 1; k++) {
+      const [a, b] = k % 2 ? [outer[k + 1], outer[k]] : [outer[k], outer[k + 1]];
+      // knee brace: from the deck's underside at one pile down and along to the next (A)
+      B.strut(W, [a[0], y - 0.22, a[1]], [(a[0] + b[0]) / 2, y - 1.15, b[1]], 0.05, 0.16, {
+        color: gray(0.55),
+        wear: 1,
+        rand: r,
+      });
+    }
+  }
+  // where things stand on the platform (reference A, seen from the bay: the walk comes on at the left = +X end)
+  const S = {
+    camp: [pl.x0 + 5.6, pl.z1 - 1.0], // green folding camp chair, near the wall side, facing the bay
+    resin: [pl.x0 + 4.4, pl.z1 - 0.95], // white plastic chair beside it
+    rodHolders: [pl.x0 + 3.0, pl.x0 + 7.5, pl.x1 - 1.2], // vertical rod holders on the outer fascia
+    rod: [pl.x0 + 7.0, pl.z0 + 0.9],
+    tackle: [pl.x0 + 7.9, pl.z0 + 1.1],
+    hose: [pl.x0 + 1.3, pl.z1 - 0.8], // the coiled garden hose by the sign post (right end)
+    bumper: [pl.x0 + 2.4, pl.z1 - 0.7], // a yellow boat bumper
+    cooler: [pl.x0 + 3.1, pl.z1 - 1.3],
+    bucket: [pl.x0 + 8.6, pl.z0 + 1.4],
+    cleats: [pl.x0 + 1.8, pl.x0 + 5.5, pl.x1 - 1.8],
+    ladderX: pl.x0 + 1.0, // the platform's swim ladder (front, right end)
+  };
   // cleats, the swim ladder at the platform's front, coiled rope
   const cleat = (x, z, ry) => {
     box(ST, 0.26, 0.025, 0.045, x, y + 0.07, z, { color: 0xa9a69c, bevel: 0.01 }, 0, ry);
@@ -725,10 +750,9 @@ export function build(ctx) {
         { color: 0xa9a69c, seg: 10 },
       );
   };
-  cleat(pl.x0 + 0.9, pl.z0 + 0.12, 0);
-  cleat(pl.x0 + 4.1, pl.z0 + 0.12, 0);
+  for (const x of S.cleats) cleat(x, pl.z0 + 0.12, 0);
   {
-    const lx = pl.x0 + 4.5,
+    const lx = S.ladderX,
       lz = pl.z0 - 0.02;
     for (const s of [-1, 1])
       D.tube(
@@ -756,11 +780,34 @@ export function build(ctx) {
     }
     D.tube(ROPE, pts, 0.013, { seg: 6, color: col, steps: 200 });
   };
-  coil(pl.x0 + 0.8, pl.z1 - 0.8, 0xd9d2b8);
-  coil(pl.x1 - 0.9, pl.z1 - 0.7, 0x4f86a6);
+  coil(S.hose[0], S.hose[1], 0x3f7a3a); // the green garden hose
+  coil(pl.x1 - 1.0, pl.z0 + 0.7, 0xd9d2b8); // a mooring line
+  // a yellow boat bumper (fender) lying on the boards
+  B.cyl(
+    mat.plastic(),
+    0.11,
+    0.11,
+    0.5,
+    M(S.bumper[0], y + 0.11, S.bumper[1], 0, 0.3, Math.PI / 2),
+    {
+      color: 0xe0b52a,
+      seg: 16,
+    },
+  );
+  // rod holders: short steel tubes clamped to the outer fascia, a rod standing in two of them
+  S.rodHolders.forEach((x, k) => {
+    D.cyl(ST, 0.025, 0.025, 0.28, M(x, y + 0.02, pl.z0 + 0.03, -0.25, 0, 0), {
+      color: 0xb5b6b2,
+      seg: 10,
+    });
+    if (k < 2)
+      D.rod(ST, [x, y - 0.1, pl.z0 + 0.0], [x + 0.1, y + 2.1, pl.z0 - 0.55], 0.008, {
+        color: 0x262626,
+      });
+  });
   // the KEEP OFF / NO ENTRY sign on its post at the platform's back corner by the wall (A)
   {
-    const sx = pl.x1 - 0.35,
+    const sx = pl.x0 + 0.35,
       sz = pl.z1 - 0.25,
       top = y + 2.7;
     B.cyl(W, 0.07, 0.08, top - bed, M(sx, (top + bed) / 2, sz), {
@@ -818,20 +865,19 @@ export function build(ctx) {
   Fr.anchor('dockHead', (pl.x0 + pl.x1) / 2, y, pl.z0 + 0.6, Math.PI);
   // ---------- library pieces: chairs, fishing gear, cooler, the skiff ----------
   const lib = loadKeysModels(THREE, ['fishing_gear', 'coolers', 'skiff_cc']);
-  const boat = { x: (pl.x0 + pl.x1) / 2 + 0.2, z: pl.z0 - 1.5, h: Math.PI / 2 };
+  const boat = { x: (S.cleats[0] + S.cleats[1]) / 2, z: pl.z0 - 1.5, h: Math.PI / 2 };
   Fr.anchor('skiff', boat.x, sea, boat.z, boat.h);
   ctx.async.push(
     lib.ready.then(() => {
       const I = lib.instancer('r8dock');
       // a white resin chair and a green folding camp chair on the platform, facing the water (A)
       {
-        const x = pl.x0 + 3.2,
-          z = pl.z0 + 1.7;
+        const [x, z] = S.resin;
         ctx.async.push(
           kit.model('plastic_monobloc_chair_01').then((m) => {
             if (!m) return;
             m.position.set(x, y, z);
-            m.rotation.y = Math.PI + 0.25;
+            m.rotation.y = Math.PI + 0.15;
             m.traverse((o) => {
               if (o.isMesh) {
                 o.raycast = () => {};
@@ -847,8 +893,7 @@ export function build(ctx) {
         Fr.col.box(x, y + 0.42, z, 0.56, 0.84, 0.56, { tag: 'prop' });
       }
       {
-        const x = pl.x0 + 1.9,
-          z = pl.z0 + 1.6,
+        const [x, z] = S.camp,
           CAMP = mat.fabric('denim_fabric', { rep: 0.3 }),
           FR2 = mat.steel(),
           a = Math.PI + 0.2,
@@ -885,17 +930,17 @@ export function build(ctx) {
         Fr.col.box(x, y + 0.4, z, 0.6, 0.8, 0.6, { tag: 'prop' });
       }
       ctx.anchors.dockChair = {
-        pos: Fr.v(pl.x0 + 3.2, y, pl.z0 + 1.7),
+        pos: Fr.v(S.resin[0], y, S.resin[1]),
         heading: Math.PI + 0.25 + Fr.th - 0.72,
       };
       for (const [n, dx, dz, a] of [
-        ['tackle_box', 2.5, 0.9, 0.3],
-        ['plastic_bucket_full', 3.6, 1.1, 1.0],
+        ['tackle_box', S.tackle[0], S.tackle[1], 0.3],
+        ['plastic_bucket_full', S.bucket[0], S.bucket[1], 1.0],
       ])
-        I.add('fishing_gear', n, M(pl.x0 + dx, y, pl.z0 + dz, 0, a, 0));
+        I.add('fishing_gear', n, M(dx, y, dz, 0, a, 0));
       const cn = lib.names('coolers');
       if (cn.length)
-        I.add('coolers', cn[0], M(pl.x0 + 3.9, y, pl.z0 + 2.4, 0, 0.4, 0), {
+        I.add('coolers', cn[0], M(S.cooler[0], y, S.cooler[1], 0, 0.4, 0), {
           tint: [1.2, 1.05, 0.5],
         }); // a yellow cooler (A)
       const meshes = I.build(WG);
@@ -905,8 +950,7 @@ export function build(ctx) {
       }
       // the rod lies on the boards beside the tackle box, reel down, tip toward the water
       {
-        const tx = pl.x0 + 2.4,
-          tz = pl.z0 + 0.6;
+        const [tx, tz] = S.rod;
         const p = lib.piece('fishing_gear', 'fishing_pole');
         if (p) {
           const g = new THREE.Group();
@@ -978,8 +1022,8 @@ export function build(ctx) {
         });
         const tb = kit.batch('r8lines');
         for (const [cx, cz, dx] of [
-          [pl.x0 + 0.9, pl.z0 + 0.12, -2.4],
-          [pl.x0 + 4.1, pl.z0 + 0.12, 2.2],
+          [S.cleats[0], pl.z0 + 0.12, -2.4],
+          [S.cleats[1], pl.z0 + 0.12, 2.2],
         ]) {
           const a2 = [cx, y + 0.08, cz],
             b2 = [boat.x + dx, sea + 0.55, boat.z + 0.35],

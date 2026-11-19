@@ -286,8 +286,10 @@ export const P8 = {
   // the dock (A): leaves the bay wall at an angle by the canal mouth, turns, runs straight to the big platform, parallel to the wall
   // r9 (user, Nov 19): ONE angled gangway straight from the wall to the platform (no knee), and a narrower platform (5.0 x 3.8 m, was 7.4 x 5.9)
   // r10 (playtest Nov 19): a straight pier square to the wall into the middle of the platform's wall side (wallX = its center line)
-  dock: { y: 0.42, w: 1.5, wallX: -1.7, kneeX: 7.0, z: -21.9, x1: 0.8 },
-  plat: { x0: -4.2, x1: 0.8, z0: -24.2, z1: -20.4 },
+  // r12 (user, Nov 19 eve, r12/dock_reference.webp): one long walkway from the wall cap at the canal-mouth end of the bay wall,
+  // out along the wall angled slightly away from it, onto the +X end of a big platform parallel to the wall, 2.5 m out
+  dock: { y: 0.42, w: 1.5, startX: 11.3 },
+  plat: { x0: -9.5, x1: 1.5, z0: -22.6, z1: -19.0 },
   colors: {
     // r9 (B / D / C): faded sea-green siding, brown board shutters, cream trim, weathered gray-tan timber posts (not whitewash)
     teal: 0x6c9686,
