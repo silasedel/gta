@@ -1,3 +1,5 @@
+> **REPLACED (Nov 18 evening):** the friend's account now does `docs/v2/briefs/NEXT_FRIEND_gameplay.md` (missions, heist, mechanics). The lead does the items below tonight.
+
 # Friend's brief: graphics, map and bug polish (long run, use the whole usage)
 
 Read `READ_ME_FIRST.md` first (mission, permissions, "leave about 5% unused", tell the user which model and effort to use as the work changes), then `docs/v2/plan/PLAN_NOV18.md`, then this file. You own `src/world/**`, `src/render/**`, `src/vehicles/**`, `tools/v2/map3/**`, `public/assets/**`, Nico's house and `desktop/**`. Do not edit `src/gameplay/**`, `src/npc/**`, `src/player/**` or `src/story/**` (the lead and another helper work there). Run the game, take screenshots, look at them yourself, fix, repeat. The bar: GTA 6 footage, smooth, crisp, 60 fps locked on an ordinary computer.
