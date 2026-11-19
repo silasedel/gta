@@ -180,13 +180,16 @@ export const P8 = {
   lawnTop: 0.12,           // the lawn's rise to the bulkhead cap (flat lot)
   terrace: { z0: -13.0, z1: -16.2, x0: -26, x1: 12.4, fall: 4 },
   // r8: the canal, 6 m of water between timber bulkheads, from the bay (NW end) in toward the SE, straight
-  canal: { x0: 12.6, x1: 18.6, z1: 20.0, on: true, fake: true },
+  // r9 (user, Nov 19): twice as wide: 12 m of water (was 6 m); Nico's wall stays where the lower deck is flush with it
+  canal: { x0: 12.6, x1: 24.6, z1: 20.0, on: true, fake: true },
   // the dock (A): leaves the bay wall at an angle by the canal mouth, turns, runs straight to the big platform, parallel to the wall
-  dock: { y: 0.42, w: 1.5, wallX: 10.6, kneeX: 7.0, z: -20.9, x1: 0.6 },
-  plat: { x0: -6.8, x1: 0.6, z0: -26.0, z1: -20.15 },
+  // r9 (user, Nov 19): ONE angled gangway straight from the wall to the platform (no knee), and a narrower platform (5.0 x 3.8 m, was 7.4 x 5.9)
+  dock: { y: 0.42, w: 1.5, wallX: 10.6, kneeX: 7.0, z: -21.9, x1: 0.8 },
+  plat: { x0: -4.2, x1: 0.8, z0: -24.2, z1: -20.4 },
   colors: {
-    teal: 0x4f978c, tealDeep: 0x3c7a72, white: 0xe7e3d6, door: 0x2c2f2e, shutter: 0x4d5552,
-    deck: 0xa48f74, deckDark: 0x6f6253, post: 0xe2ddd0,
+    // r9 (B / D / C): faded sea-green siding, brown board shutters, cream trim, weathered gray-tan timber posts (not whitewash)
+    teal: 0x6c9686, tealDeep: 0x557c6f, white: 0xddd6c4, door: 0x2c2f2e, shutter: 0x5a4838,
+    deck: 0xa48f74, deckDark: 0x6f6253, post: 0xa99c88,
   },
 };
 P8.rot.theta = _rq ? +_rq[1] * Math.PI / 180 : Math.PI / 4 - STREET_H;

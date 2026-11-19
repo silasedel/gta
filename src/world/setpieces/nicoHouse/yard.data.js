@@ -88,8 +88,8 @@ export const ROCKS = [
 // ---- clutter and debris (own models, part 55): kind, x, z, heading, extra ----
 export const DEBRIS = [
   { k: 'pallet', x: -19.3, z: 11.1, h: 0.5, tilt: 0.05 }, { k: 'pallet', x: -19.15, z: 10.95, h: 0.62, y: 0.13 }, { k: 'drywall', x: -24.6, z: 8.6, h: 1.0 },
-  { k: 'lumber', x: -21.0, z: 1.5, h: 1.3 }, { k: 'bucket', x: -19.6, z: 12.4, h: 0 }, { k: 'tire', x: -27.0, z: 24.4, h: 0, flat: true }, { k: 'cinder', x: -11.55, z: 2.57, h: 0.4 },
-  { k: 'cinder', x: -11.25, z: 2.97, h: 1.1 }, { k: 'cooler', x: 2.9, z: 10.6, h: 2.3 }, { k: 'chair', x: 2.1, z: 11.5, h: 3.6 },
+  { k: 'lumber', x: -21.0, z: 1.5, h: 1.3 }, { k: 'bucket', x: -19.6, z: 12.4, h: 0 }, { k: 'tire', x: -27.0, z: 24.4, h: 0, flat: true },   // r9 (user): the loose cinder blocks by the house removed
+  { k: 'cooler', x: 2.9, z: 10.6, h: 2.3 }, { k: 'chair', x: 2.1, z: 11.5, h: 3.6 },
   { k: 'chair', x: 3.7, z: 11.2, h: 2.4, tipped: true }, { k: 'husks', x: -5.6, z: 14.2, h: 0 }, { k: 'husks', x: -2.0, z: 19.8, h: 1 },
   { k: 'tarp', x: -21.5, z: -6.0, h: 0.4 }, { k: 'bucket', x: 2.4, z: 9.8, h: 0, color: 0xe25a1c },
 ];

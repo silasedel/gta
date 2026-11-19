@@ -471,7 +471,7 @@ def carve_nico(land, o, h):
     poly = lambda pts: Polygon([H(x, z) for x, z in pts])
     block = poly(((-27, -60), (62, -60), (62, 34), (-27, 34)))
     bay = poly(((-27, -60), (62, -60), (62, -16.5), (-27, -16.5)))
-    canal = poly(((12.6, -17.5), (18.6, -17.5), (18.6, 20.0), (12.6, 20.0)))
+    canal = poly(((12.6, -17.5), (24.6, -17.5), (24.6, 20.0), (12.6, 20.0)))   # r9: 12 m wide (user, Nov 19)
     shore = poly(((-27, -16.5), (62, -16.5), (62, 34), (-27, 34))).difference(canal)
     NICO_WATER[:] = [dict(ring=[[round(x, 2), round(z, 2)] for x, z in list(canal.exterior.coords)[:-1]], kind='canal', name=None, depth=2.0)]   # r8: build_v3 may add it as inland water (kind canal: no sliver fill)
     return land.difference(block).union(shore).difference(bay).buffer(0)
@@ -565,9 +565,16 @@ def grid_roads(ctrl, hwS0, land, lot, avoid=None):
         if dN is not None: STUB_N = max(STUB, dN + DECK_ABUT + DECK_SPLIT)
         if dS is not None: STUB_S = max(STUB, dS + DECK_ABUT + DECK_SPLIT)
         print(f'deck: over-water ends N {dN} m, SW {dS} m -> undivided stubs N {STUB_N:.0f} m, SW {STUB_S:.0f} m')
-    O = [G_MOFF * sst(min(1, max(0, (S[i] - STUB_N) / TAPER))) * sst(min(1, max(0, (L - STUB_S - S[i]) / TAPER))) for i in range(N)]
+    # r6-ramp (user: "fix the road onto the overpass"): the 5 % ramp off the deck ended right AT the split node (0.34 m up 40 m before
+    # it), so the game took the split for a ramp junction and drew the old round asphalt disc there, with no markings into it. The split
+    # now sits SPLIT_MORE m further inland (the ramp is flat for 75 m before it -> a real junction outline with a gore) and the taper
+    # is that much shorter, so the divided part, the cross-street stations and every lot stay exactly where they were.
+    SPLIT_MORE = 35.0 if DECK else 0.0; TAPER_O = TAPER - 15.0 if DECK else TAPER
+    gA0 = next(i for i in range(N) if S[i] >= STUB_N); gA1 = max(i for i in range(N) if S[i] <= L - STUB_S)   # grid bounds (unchanged)
+    SPL_N = STUB_N + (SPLIT_MORE if STUB_N > STUB else 0.0); SPL_S = STUB_S + (SPLIT_MORE if STUB_S > STUB else 0.0)
+    O = [G_MOFF * sst(min(1, max(0, (S[i] - SPL_N) / TAPER_O))) * sst(min(1, max(0, (L - SPL_S - S[i]) / TAPER_O))) for i in range(N)]
     pt = lambda i, o: (C[i][0] + R[i][0] * o, C[i][1] + R[i][1] * o)
-    iA0 = next(i for i in range(N) if S[i] >= STUB_N); iA1 = max(i for i in range(N) if S[i] <= L - STUB_S)
+    iA0 = next(i for i in range(N) if S[i] >= SPL_N); iA1 = max(i for i in range(N) if S[i] <= L - SPL_S)
     j0 = min(range(N), key=lambda i: math.dist(C[i], hwS0[0]))
     HW = 'Overseas Highway'
     rec = lambda pts, **kw: dict(pts=[[round(x, 2), round(z, 2)] for x, z in pts], **kw)
@@ -604,8 +611,8 @@ def grid_roads(ctrl, hwS0, land, lot, avoid=None):
         return best
     neL = LineString(out[4]['pts'])      # Card Sound Road (the NE branch): grid streets stop at it
     if LAYOUT:   # the grid runs the whole island: the N branch's stretch north of the split too (not within 70 m of the split)
-        g0 = next((i for i in range(iA0 + 5, j0) if coast(i, 1) > 35 and coast(i, -1) > 35), j0 + 20); g1 = iA1 - 25
-    else: g0, g1 = j0 + 40, iA1 - 25
+        g0 = next((i for i in range(gA0 + 5, j0) if coast(i, 1) > 35 and coast(i, -1) > 35), j0 + 20); g1 = gA1 - 25
+    else: g0, g1 = j0 + 40, gA1 - 25
     if DECK:   # r5-bridge: no cross street (an at-grade junction pinned at 0) on the undivided stubs next to a deck
         g0 = max(g0, next(i for i in range(N) if S[i] >= STUB_N + TAPER)); g1 = min(g1, max(i for i in range(N) if S[i] <= L - STUB_S - TAPER))
     cross_names = {}

@@ -94,7 +94,7 @@ export function build(ctx) {
   for (let z = LD.z0 + pitch / 2; z < LD.z1 - 0.02; z += pitch) { const patchB = r() < 0.06; box(WOOD, LD.x1 - LD.x0 - 0.06, db.t, db.w, (LD.x0 + LD.x1) / 2 + 0.03, dY - db.t / 2, z, { grain: 0, color: patchB ? kit.vary(0xb59a72, r, 0.06) : gray(0.62 + r() * 0.2), wear: 0.6 + r() * 0.4, bevel: 0.005 }); }
   for (let x = LD.x0 + 0.3; x < LD.x1; x += 0.61) box(WOOD, 0.045, 0.2, LD.z1 - LD.z0 - 0.1, x, jb - 0.12, (LD.z0 + LD.z1) / 2, { grain: 2, color: gray(0.6), wear: 0.5 }, 0, 0, 0, D);
   Fr.col.box((LD.x0 + LD.x1) / 2, dY - 0.15, (LD.z0 + LD.z1) / 2, LD.x1 - LD.x0, 0.3, LD.z1 - LD.z0, { tag: 'deck', surface: 'wood' });
-  const postL = (x, z, top = jb - 0.24) => { box(WHITE, 0.2, top, 0.2, x, top / 2 + 0.03, z, { grain: 1, color: postC(), wear: [0.95, 0.6], bevel: 0.01 }); box(CONC, 0.32, 0.1, 0.32, x, 0.05, z, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(x, top / 2, z, 0.22, top, 0.22, { tag: 'pile' }); };
+  const postL = (x, z, top = jb - 0.24) => { box(mat.wood(), 0.2, top, 0.2, x, top / 2 + 0.03, z, { grain: 1, color: postC(), wear: [0.7, 0.5], bevel: 0.01 }); box(CONC, 0.32, 0.1, 0.32, x, 0.05, z, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(x, top / 2, z, 0.22, top, 0.22, { tag: 'pile' }); };
   for (const z of [LD.z0 + 0.12, LD.z1 - 0.12]) for (const x of [LD.x0 + 0.12, (LD.x0 + LD.x1) / 2, LD.x1 - 0.14]) postL(x, z);
   // rails: canal (NE) side, the NW end, the SE side up to the stair-head pad, the short ends past the upper strip
   const e = 0.05, LS = P.lowerStair, UP = P.upper;

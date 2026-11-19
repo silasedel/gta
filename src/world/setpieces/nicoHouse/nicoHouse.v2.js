@@ -50,6 +50,12 @@ export async function initV2(game) {
     houseLots.reserve({ x: spot.x + cx * c + cz * s, z: spot.z - cx * s + cz * c, hw: (L.x1 - L.x0) / 2, hd: (L.z1 - L.z0) / 2, ry: spot.heading || 0, id: 'nico_house' }); } catch (e) { /* lots module off */ }
   // r8 (SPEC r8): the house frame is at world heading pi/4 exactly (corners N / E / S / W, front SW, back NE), whatever the street heading
   if (R8 && !temporary && !/[?&]nhrot=/.test(typeof location !== 'undefined' ? location.search : '')) P4.rot.theta = Math.PI / 4 - (spot.streetHeading || 0);
+  // r9 (user, Nov 19: plants and a neighbor's fence stood in the canal): reserve the canal's water (H frame box, + the bay mouth) so the
+  // countryside scatter, the tile props and the house generator keep out of it
+  if (R8 && !temporary) try { const Cn = P4.canal, hc = Math.cos(spot.heading || 0), hs = Math.sin(spot.heading || 0);
+    const W = (hx, hz) => { const [gx, gz] = HtoG(hx, hz); return [spot.x + gx * hc + gz * hs, spot.z - gx * hs + gz * hc]; };
+    const cx = (Cn.x0 + Cn.x1) / 2, z0 = P4.wallZ - 1.5, cz = (z0 + Cn.z1) / 2, [x0, w0] = W(cx, cz), [x1, w1] = W(cx + 1, cz);
+    houseLots.reserve({ x: x0, z: w0, hw: (Cn.x1 - Cn.x0) / 2 + 0.6, hd: (Cn.z1 - z0) / 2 + 0.6, ry: Math.atan2(-(w1 - w0), x1 - x0), id: 'nico_canal' }); } catch (e) { /* lots module off */ }
   const sea = game.city?.seaLevel ?? -0.12;
   // ground-continuity: the yard sits flush on the ground around it (it used to float 1 m above the water on a 0.88 m ledge
   // with no sides); +4 cm keeps the yard sheet above the terrain's own surface without a step you notice

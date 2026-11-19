@@ -149,29 +149,25 @@ export function build(ctx) {
     Fr.col.boxQ([(ax + bx) / 2, (ay + by) / 2 - 0.15, (az + bz) / 2], [L / 2 + 0.05, 0.15, w / 2], new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, sl, 'YXZ')), { tag: 'dock', surface: 'wood' });
     return { L, ux, uz }; };
   const yW = yard(dk.wallX, Wz + 0.3) + 0.06;   // the wall cap
-  const g1 = stretch(dk.wallX, Wz - 0.2, yW - 0.04, dk.kneeX, dk.z, y, dk.w);   // the angled gangway, sloping down from the cap
-  const g2 = stretch(dk.kneeX + 0.3, dk.z, y, pl.x1, dk.z, y, dk.w);              // the straight walk along the wall
-  // the knee (where it turns): a small square of boards joining the two
-  { const kx = dk.kneeX, s = dk.w; for (let t = -s / 2 + 0.076; t < s / 2; t += 0.152) box(WD, 0.142, 0.045, s, kx + t, y - 0.022, dk.z, { grain: 2, color: gray(0.85 + r() * 0.3), wear: 0.6, bevel: 0.007 });
-    Fr.col.box(kx, y - 0.15, dk.z, s + 0.1, 0.3, s, { tag: 'dock', surface: 'wood' }); }
+  // r9 (user): ONE long angled gangway from the wall cap straight onto the platform's wall-side corner (no knee, no second run); its last
+  // boards lie 12 mm over the platform's where they overlap (no z-fighting)
+  const gE = [pl.x1 - 0.1, pl.z1 - 0.9];
+  const g1 = stretch(dk.wallX, Wz - 0.2, yW - 0.04, gE[0], gE[1], y + 0.012, dk.w), g2 = null;
   // the platform: boards run toward the house (A)
   { const pitch = 0.152; for (let x = pl.x0 + pitch / 2; x < pl.x1 - 0.03; x += pitch) { const tone = r() < 0.05 ? kit.vary(0xbfa77e, r, 0.06) : gray(0.85 + r() * 0.3); box(WD, 0.142, 0.045, pl.z1 - pl.z0 - (r() - 0.5) * 0.03, x, y - 0.022 + (r() - 0.5) * 0.005, (pl.z0 + pl.z1) / 2, { grain: 2, color: tone, wear: 0.5 + r() * 0.5, bevel: 0.007 }, 0, (r() - 0.5) * 0.008); }
     for (const z of [pl.z0 + 0.06, (pl.z0 + pl.z1) / 2, pl.z1 - 0.06]) box(W, pl.x1 - pl.x0, 0.22, 0.07, (pl.x0 + pl.x1) / 2, y - 0.155, z, { grain: 0, color: gray(0.6), wear: 0.9 });
     Fr.col.box((pl.x0 + pl.x1) / 2, y - 0.15, (pl.z0 + pl.z1) / 2, pl.x1 - pl.x0, 0.3, pl.z1 - pl.z0, { tag: 'dock', surface: 'wood' }); }
   // piles: along the walk on both sides, the platform's corners and mid edges (taller at the front), the knee, the gangway's foot
-  for (let x = pl.x1 + 1.8; x < dk.kneeX - 0.5; x += 2.2) { pile(x, zA - 0.12, y + (r() < 0.4 ? 0.5 : 0.08)); pile(x, zB + 0.12, y + 0.08); }
+  { const L = g1.L, px = -g1.uz, pz = g1.ux; for (let t = 2.0; t < L - 1.2; t += 2.4) { const cx = dk.wallX + g1.ux * t, cz = Wz - 0.2 + g1.uz * t, yy = yW - 0.04 + (y - yW + 0.04) * t / L;
+    for (const sd of [-1, 1]) pile(cx + px * sd * (dk.w / 2 + 0.14), cz + pz * sd * (dk.w / 2 + 0.14), yy + (sd < 0 && r() < 0.4 ? 0.45 : 0.06)); } }
   for (const [x, z, h] of [[pl.x0 - 0.1, pl.z0 - 0.1, 0.95], [pl.x1 + 0.1, pl.z0 - 0.1, 0.95], [pl.x0 - 0.1, pl.z1 + 0.1, 0.4], [(pl.x0 + pl.x1) / 2, pl.z0 - 0.1, 0.95], [pl.x0 - 0.1, (pl.z0 + pl.z1) / 2, 0.2], [pl.x1 + 0.1, (pl.z0 + pl.z1) / 2 - 0.6, 0.2]]) pile(x, z, y + h);
-  for (const [x, z] of [[dk.kneeX - 0.85, zA - 0.12], [dk.kneeX + 0.85, zA - 0.12], [dk.kneeX + 0.85, zB + 0.12]]) pile(x, z, y + 0.1);
-  { const mx = (dk.wallX + dk.kneeX) / 2, mz = (Wz + dk.z) / 2, nx = (dk.kneeX - dk.wallX), nz = (dk.z - Wz), L = Math.hypot(nx, nz), px = -nz / L, pz = nx / L;
-    for (const s of [-1, 1]) pile(mx + px * s * (dk.w / 2 + 0.14), mz + pz * s * (dk.w / 2 + 0.14), y + 0.35); }
   // cross-braces under the platform's front and the walk (A: diagonal 2x8s between the piles)
   const brace = (a, b) => B.strut(W, [a[0], y - 0.25, a[1]], [b[0], bed + 1.2, b[1]], 0.05, 0.18, { color: gray(0.55), wear: 1, rand: r });
   brace([pl.x0 - 0.1, pl.z0 - 0.18], [(pl.x0 + pl.x1) / 2, pl.z0 - 0.18]); brace([pl.x1 + 0.1, pl.z0 - 0.18], [(pl.x0 + pl.x1) / 2, pl.z0 - 0.18]);
-  for (let x = pl.x1 + 1.8; x < dk.kneeX - 2.6; x += 2.2) brace([x, zA - 0.2], [x + 2.2, zA - 0.2]);
   // cleats, the swim ladder at the platform's front, coiled rope
   const cleat = (x, z, ry) => { box(ST, 0.26, 0.025, 0.045, x, y + 0.07, z, { color: 0xa9a69c, bevel: 0.01 }, 0, ry); for (const s of [-1, 1]) D.cyl(ST, 0.015, 0.02, 0.05, M(x + Math.cos(ry) * s * 0.06, y + 0.03, z - Math.sin(ry) * s * 0.06), { color: 0xa9a69c, seg: 10 }); };
-  cleat(pl.x0 + 1.2, pl.z0 + 0.12, 0); cleat(pl.x0 + 5.2, pl.z0 + 0.12, 0); cleat(pl.x1 + 2.6, zA + 0.12, 0);
-  { const lx = pl.x0 + 5.9, lz = pl.z0 - 0.02;
+  cleat(pl.x0 + 0.9, pl.z0 + 0.12, 0); cleat(pl.x0 + 4.1, pl.z0 + 0.12, 0);
+  { const lx = pl.x0 + 4.5, lz = pl.z0 - 0.02;
     for (const s of [-1, 1]) D.tube(ST, [[lx + s * 0.2, sea - 1.1, lz - 0.05], [lx + s * 0.2, y + 0.02, lz - 0.05], [lx + s * 0.2, y + 0.55, lz + 0.1], [lx + s * 0.2, y + 0.02, lz + 0.35]], 0.02, { seg: 10, color: 0xc2c3bf, steps: 36, tension: 0.15 });
     for (let yy = sea - 0.9; yy < y - 0.1; yy += 0.3) box(ST, 0.4, 0.03, 0.06, lx, yy, lz - 0.05, { color: 0xb8b9b5 }); }
   const ROPE = mat.fabric('wool_boucle', { rep: 0.05 });
@@ -202,8 +198,8 @@ export function build(ctx) {
       const [cx, cz] = L2(0, 0.0), [bx2, bz2] = L2(0, 0.26); box(CAMP, 0.5, 0.03, 0.45, cx, y + 0.45, cz, { color: 0x2f5e3c, bevel: 0.01 }, 0, a, 0, D); box(CAMP, 0.5, 0.45, 0.03, bx2, y + 0.7, bz2, { color: 0x2f5e3c, bevel: 0.01 }, -0.18, a, 0, D);
       Fr.col.box(x, y + 0.4, z, 0.6, 0.8, 0.6, { tag: 'prop' }); }
     ctx.anchors.dockChair = { pos: Fr.v(pl.x0 + 3.2, y, pl.z0 + 1.7), heading: Math.PI + 0.25 + Fr.th - 0.72 };
-    for (const [n, dx, dz, a] of [['tackle_box', 2.5, 0.9, 0.3], ['plastic_bucket_full', 4.3, 1.4, 1.0]]) I.add('fishing_gear', n, M(pl.x0 + dx, y, pl.z0 + dz, 0, a, 0));
-    const cn = lib.names('coolers'); if (cn.length) I.add('coolers', cn[0], M(pl.x0 + 5.2, y, pl.z0 + 2.4, 0, 0.4, 0), { tint: [1.2, 1.05, 0.5] });   // a yellow cooler (A)
+    for (const [n, dx, dz, a] of [['tackle_box', 2.5, 0.9, 0.3], ['plastic_bucket_full', 3.6, 1.1, 1.0]]) I.add('fishing_gear', n, M(pl.x0 + dx, y, pl.z0 + dz, 0, a, 0));
+    const cn = lib.names('coolers'); if (cn.length) I.add('coolers', cn[0], M(pl.x0 + 3.9, y, pl.z0 + 2.4, 0, 0.4, 0), { tint: [1.2, 1.05, 0.5] });   // a yellow cooler (A)
     const meshes = I.build(WG); for (const m of meshes) { m.raycast = () => {}; m.renderOrder = 61; }
     // the rod lies on the boards beside the tackle box, reel down, tip toward the water
     { const tx = pl.x0 + 2.4, tz = pl.z0 + 0.6; const p = lib.piece('fishing_gear', 'fishing_pole'); if (p) { const g = new THREE.Group(); g.name = 'r8rod'; const bb = new THREE.Box3(); for (const q of p.parts) { q.geometry.computeBoundingBox(); bb.union(q.geometry.boundingBox); }
@@ -219,7 +215,7 @@ export function build(ctx) {
         if (/red/i.test(mm.name || '')) { mm = mm.clone(); mm.color.setRGB(0.12, 0.12, 0.12); } const m = new THREE.Mesh(q.geometry, mm); m.castShadow = false; m.receiveShadow = true; m.raycast = () => {}; inner.add(m); }
       g.position.set(boat.x, sea - 0.42, boat.z); g.rotation.y = boat.h - Math.PI / 2; Fr.groups.dyn.add(late(g));
       const ph = r() * 6.28; ctx.updaters.push(() => { const t = performance.now() / 1000; g.position.y = sea - 0.42 + Math.sin(t * 0.9 + ph) * 0.03; g.rotation.z = Math.sin(t * 0.7 + ph) * 0.02; });
-      const tb = kit.batch('r8lines'); for (const [cx, cz, dx] of [[pl.x0 + 1.2, pl.z0 + 0.12, -2.4], [pl.x0 + 5.2, pl.z0 + 0.12, 2.2]]) { const a2 = [cx, y + 0.08, cz], b2 = [boat.x + dx, sea + 0.55, boat.z + 0.35], pts = []; for (let i = 0; i <= 10; i++) { const t = i / 10; pts.push([a2[0] + (b2[0] - a2[0]) * t, a2[1] + (b2[1] - a2[1]) * t - 0.25 * 4 * t * (1 - t), a2[2] + (b2[2] - a2[2]) * t]); } tb.tube(ROPE, pts, 0.011, { seg: 5, color: 0xd6cfb4 }); }
+      const tb = kit.batch('r8lines'); for (const [cx, cz, dx] of [[pl.x0 + 0.9, pl.z0 + 0.12, -2.4], [pl.x0 + 4.1, pl.z0 + 0.12, 2.2]]) { const a2 = [cx, y + 0.08, cz], b2 = [boat.x + dx, sea + 0.55, boat.z + 0.35], pts = []; for (let i = 0; i <= 10; i++) { const t = i / 10; pts.push([a2[0] + (b2[0] - a2[0]) * t, a2[1] + (b2[1] - a2[1]) * t - 0.25 * 4 * t * (1 - t), a2[2] + (b2[2] - a2[2]) * t]); } tb.tube(ROPE, pts, 0.011, { seg: 5, color: 0xd6cfb4 }); }
       late(tb.build(WG, { cast: false }).reduce((g, m) => (g.add(m), g), new THREE.Group())); }
   }));
   void g1; void g2; void pilesAt;

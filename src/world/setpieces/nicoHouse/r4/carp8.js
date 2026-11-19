@@ -54,7 +54,7 @@ export function carpentry(ctx, Fr, Bt, r) {
     return { total, drop, yFoot, tFoot };
   };
   const LATW = mat.paint({ peel: 'a', fade: 0.6, gloss: 0.9 });
-  const lattice = (x, z, dir, len, yA, yB, o = {}) => { const [dx, dz] = dir, ry = Math.atan2(-dz, dx), col = kit.vary(0xcdc6b4, r, 0.05), pL = 0.115, nx = -dz, nz = dx;
+  const lattice = (x, z, dir, len, yA, yB, o = {}) => { const [dx, dz] = dir, ry = Math.atan2(-dz, dx), col = kit.vary(0xbdb6a5, r, 0.05), pL = 0.115, nx = -dz, nz = dx;
     for (const [layer, sgn] of [[0, 1], [1, -1]]) for (let k = -60; k < 90; k++) { const c0 = k * pL, pts = [];
       for (let t = 0; t <= 1.0001; t += 0.02) { const u = t * len, yTop = yA + (yB - yA) * t, y = sgn > 0 ? u - c0 : c0 - u; if (y >= 0.08 && y <= yTop - 0.05) pts.push([u, y]); }
       if (pts.length < 2) continue; const [u0, y0] = pts[0], [u1, y1] = pts[pts.length - 1], L = Math.hypot(u1 - u0, y1 - y0); if (L < 0.08) continue;
