@@ -189,15 +189,6 @@ How the world and the systems connect. If something here is wrong, fix the code 
 - `weather` `{ kind, prev }`, `lightning` `{ x, z, distance }` (`game.weather`, stage 1).
 - Other common ones: `enterVehicle`, `crash`, `shot`, `hit`, `punch`, `arrest`, `witness`, `footstep`.
 
-## 4b. People (the user's Tripo people, Nov 17)
-- Assets: `public/assets/npc/people/<id>.glb` (p01..p95 = `Models/NPCs/NPC n`), textures `<id>_a.webp` (1K albedo),
-  `_n.webp` (512 normal), `_o.webp` (ORM), close-up `_a2.webp` (2K), `_a4.webp` (4K) + `_n2.webp` (2K normal);
-  `index.json` rows: `{ id, name, g, age, years, role, places, height, hipH, tris, cols }`. Cast list (heights, roles,
-  places, hat height, logo boxes): `tools/v2/npcs/people.json`; rebuild `tools/v2/npcs/build.sh [ids]`.
-- Skeleton: the 52 Mixamo-named joints of the archetypes (`mixamorig:Hips` ... fingers), canonical T-pose rest; the clip
-  library `src/npc/arch/anim.js` drives everybody (`src/npc/people/lib.js` shares one bound clip set).
-- Places (roles -> where they spawn, `src/npc/people/cast.js placesFor`): street, residential, keys, rural, farm, dock,
-  fishing, port, work, industrial, business, nightlife, bar, tourist, beach, beach_walk, swim, sport, park, rough,
 ## 4a. Police and wanted API (police track, Nov 19) — for missions, the heist and anything that needs the law
 Code: `src/gameplay/police.js` (units, cars, tactics), `src/gameplay/police/` (law glue, arrest, response, comms, radio,
 stations, models), `src/gameplay/wantedCore.js` (six-star state machine, pure), `wantedSense.js` (witnesses, cameras),
@@ -225,6 +216,15 @@ stations, models), `src/gameplay/wantedCore.js` (six-star state machine, pure), 
   three SWAT vans, statewide $50,000 bounty. Escape = break line of sight, leave the flashing search circle, hide, or stop
   matching the description (other car, mask).
 
+## 4b. People (the user's Tripo people, Nov 17)
+- Assets: `public/assets/npc/people/<id>.glb` (p01..p95 = `Models/NPCs/NPC n`), textures `<id>_a.webp` (1K albedo),
+  `_n.webp` (512 normal), `_o.webp` (ORM), close-up `_a2.webp` (2K), `_a4.webp` (4K) + `_n2.webp` (2K normal);
+  `index.json` rows: `{ id, name, g, age, years, role, places, height, hipH, tris, cols }`. Cast list (heights, roles,
+  places, hat height, logo boxes): `tools/v2/npcs/people.json`; rebuild `tools/v2/npcs/build.sh [ids]`.
+- Skeleton: the 52 Mixamo-named joints of the archetypes (`mixamorig:Hips` ... fingers), canonical T-pose rest; the clip
+  library `src/npc/arch/anim.js` drives everybody (`src/npc/people/lib.js` shares one bound clip set).
+- Places (roles -> where they spawn, `src/npc/people/cast.js placesFor`): street, residential, keys, rural, farm, dock,
+  fishing, port, work, industrial, business, nightlife, bar, tourist, beach, beach_walk, swim, sport, park, rough,
   shop_staff, shop_guest, kitchen, hotel_staff, security, medic, lifeguard, police, police_swat, police_detective.
 - API: `game.npc.createPed({ zone, act, pos, gender })` (crowd; people first, archetypes as fallback, `?people=0` off),
   `game.npc.createCop({ pos })` (police model hook, SWAT armor at 4+ stars), `game.npc.spawnPosed({ place: 'cashier' |
@@ -232,6 +232,72 @@ stations, models), `src/gameplay/wantedCore.js` (six-star state machine, pure), 
   `game.npc.cast` (people list, `stats()`, role posts: lifeguards on the sand by day, fishermen at moorings).
   A character with `c.human.person === true` is one of the user's people; `c.personMeta` is its index row.
 - Rules: the same person never twice within 320 m (the crowd radius); per spawn height +-3 % and a slight tint; no added glasses/bags.
+- Groups (r7, Nov 18-19): `src/npc/people/groups.js` (themes friends / seniors / teens / workers / business / family /
+  night; `groupMate(theme, first, person, slot)`). `game.npc.createPed({ ..., cand })` and `cast.farPerson(..., cand)` take a
+  filter on index rows. `game.peds.groups` / `groupStats` / `clearWhy` (why a member spot was refused), `game.peds._crowd(c,
+  zone, n)` (test hook). Standing people skip the character controller and hold their ground height.
+- Player memory: `game.peds.remember(ped, 'hurt' | 'threat' | 'helped')`, `game.peds.deeds` (by identity id). Hurt /
+  threatened -> they back off or run when he comes near again; helped -> a greeting. Reactions get `byPlayer`: 911 calls
+  only for what the player did.
+- Walking: `src/npc/walk.js obstacleSteer` (trunks, poles: static ray ahead), `carYield` (on roads without a sidewalk they
+  step to the verge for an approaching car; `updateCarList` once a frame in peds.update).
+- Beach towels: `src/npc/beachTowel.js makeTowel / drapeTowel / makeBeachThings` (terry scan textures in
+  `public/assets/npc/towel/`); the towel is re-laid under the settled body (head to heels). `?lowerlegs=0` = old leg pose.
+- Footsteps: `game.footSurfaceAt(x, y, z)` (`src/player/footSurface.v2.js`): `userData.surface` tags,
+  `game.footSurface.tag(obj, s)` / `tagCollider(collider, s)`, else the floor under the feet; 'water' only when wading.
+
+## 4c. Activities (src/activities, Nov 19) — standalone things to do; missions / the heist may call these APIs
+- Folder `src/activities/` (auto-loaded `*.v2.js`, orders 182-192). Placement data: `src/activities/sites.data.js` (edit there
+  to move or add a site; every spot is snapped to the map at run time). Shared helpers `src/activities/common.js`:
+  `getHub(game)` = `game.activityHub` (site streamer: `H.site({ id, x, z, on, off, build, drop, tick, anchor?, busy?, force? })`
+  builds a site inside `on` m and drops it past `off` m, so far activities cost nothing; `H.apis` lists every activity API),
+  `blip(game, { x, z, kind: 'jetski'|'yacht'|'job'|'danger', color, label })` / `unblip` (minimap + pause map through
+  `game.mapBlips`), `say(game, who, text, ms, color)` (bottom-center subtitle line), `pill(owner, html, warn)` (top-center
+  timer / status), `payCash` / `earnCash` (wallet + register sound), `findShore(game, x, z, opts)`, `loadGLB(path)` + `fit()`.
+  Prompts use `help(game, owner, html)` from `src/jobs/kit.js` (never clobbers another owner's text).
+- `src/activities/crew.js` `createCrew(game, { peds, name, knife, noticeR, mug, onEnd(outcome) })`: a hostile group that
+  notices you, taunts, tries to mug you (E hands over up to 35 % of your cash, max $400), and fights as a group (a knife
+  carrier cuts for 7). Outcomes: paid | beaten (they drop $40-150) | fled | calm | lost. Used by the subway and the gangs.
+- **Jet ski rentals** `game.jetskiRentals` (`jetski/jetski.v2.js`): stands at `JETSKI_SITES` (South Beach, Miami Beach,
+  Key Largo). E at the counter -> plan (3 min $45 / 8 min $95) + $50 deposit -> F at the ski. Return = get off within the
+  return marker (deposit back minus $5 per 15 s late); abandon = 15 s off it and 140 m away (deposit kept); a stand ski
+  taken without paying = `crime vehicle_theft` (witness). API: `rent(siteId, plan)`, `endRental(returned)`, `rental`,
+  `skin(boat)`, `locate(siteId)`. Every `jetski` in `game.boatSystem` is re-skinned with the code-built PWC
+  (`jetski/model.js`, exposes `b.visual.parts.wheel` so the player seat solver poses the rider; `rider.js` then puts his feet
+  in the footwells) and gets a rooster tail + turn spray through `boatSystem.wake.spray`. `?jetski=0` off.
+- **Subway life** `game.subwayLife` (`subway/subwayLife.v2.js`), on top of `game.metro` (read-only use of its `mode`, `here`,
+  `root`, `stations`): every arrival on a platform spawns the station's regulars (`SUBWAY_CAST`): hobos at a camp end
+  (cardboard, bags, burning drum), one who asks for change (E $5) and may get pushy, and a chance of a crew at the other end
+  (crew.js). Peds are pinned to the platform with `ped.v21 = { y }`. `?subwaylife=0` off.
+- **Yacht party** `game.yachtParty` (`yacht/yachtParty.v2.js`, yacht = `yacht/partyYacht.def.js` built with the yacht kit):
+  private pier + "Midnight Tide" moored stern-to at `YACHT_PARTY` (Miami Beach bay side). Status `outside | guest | staff |
+  sneak | banned`; ways in: look the part (wardrobe score: dress shoes, gold watch, long pants, smart shirt), "on the list"
+  gamble, bribe ($250 cash), staff uniform (valet / security / delivery disguise), or E at the stern ladder from the water.
+  Suspicion (sneaking near the deck guard, pickpocketing) -> spotted -> the guard throws you overboard (banned 4 min); hit
+  security -> fight + `crime trespass`. API: `admit(how)`, `spot(why)`, `throwOut()`, `talkToBouncer()`, `looks()`, `state`.
+  Events: `activity:start { id: 'yachtParty', how }`, `activity:yachtSpotted`, `activity:end { outcome: 'thrownOut' }`.
+- **Dock shift** `game.dockJob` (`dock/dockJob.v2.js`): Gulfstream Stevedores yard beside the nearest port road to
+  `DOCK_JOB` (Dodge Island). E at the foreman: carry 5 crates to the van (carry pose `dock/carry.js`), hold E on 3
+  container seals, clock out -> `wallet.wage({ job: 'dock_worker' })`, "Shift complete" card (`game.passed`), `jobEnd`.
+- **Ambient life** `game.ambientLife` (`ambient/ambient.v2.js`): street performers (`AMBIENT_PERFORMERS`: gold living
+  statue, street dancers, bucket drummer with a synthesized beat; E tips $5), fishermen on seawalls (`AMBIENT_FISHING`),
+  hobos on cardboard along walls in `HOBO_DISTRICTS` (E $5; they fight back), corner crews in `GANG_DISTRICTS` (Overtown,
+  Liberty City; crew.js, one at a time, 60 s cool-down). `?ambient=0` off, `?ambient=perf,fish,hobo,gang` subset.
+- Events from activities: `activity:start { id, ... }`, `activity:end { id, ok|outcome }`, `activity:crewFight`; the dock
+  shift also emits `jobEnd` (the "passed" stinger listens). Activities never start missions; a mission can call the APIs.
+- Test driver: `node tools/v2/activities/repl.mjs` (one booted browser, commands through `tools/v2/activities/do.mjs`).
+
+## 4d. Music: Mission Passed sting and menu music (Nov 18)
+- **Mission Passed sting** `game.audio.missionPassed()` (`src/audio/passed.v2.js`): plays
+  `public/assets/audio/stingers/mission_passed.ogg`, a 7.2 s cut of the user's theme (`music/theme/port_solana_theme.aac`,
+  9.60 s .. 16.80 s, starts on the drop, 2.2 s fade out). Radio and music buses duck under it. Returns a promise (true when
+  it played; one at a time). `game.audio.missionPassed({ title: 'Mission Passed', sub })` also shows the big title card;
+  `game.passed.play({ title, sub })` is the same. Missions call it on success; `jobEnd` (ok), `activityEnd` (success),
+  `turfFightEnd` (won) and `businessBought` already trigger it.
+- **Menu music** (`src/audio/loadingMusic.js`): the Sleepwalking loop (`music/theme/loading_loop.flac`, sample-accurate
+  loop) plays from the boot loading screen through the title, the menus and the second loading screen as one continuous
+  loop, and fades at the reveal. `start()` while it plays only takes it over (no restart). The theme no longer plays on the
+  title. Setting `menuMusic` (Audio) turns it off.
 
 ## 5. Notes for later stages
 - Stage 1 status, open items and measured fps: `docs/v2/briefs/STATUS_stage1.md`.
