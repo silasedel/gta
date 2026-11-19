@@ -222,3 +222,37 @@ export function obstacleSteer(game, a, x, y, z, fx, fz, dt) {
   }
   return a._obsHold > 0 ? a._obsSide : 0;
 }
+
+// r7-walk (user: Keys streets have no sidewalks): people walking on the shoulder of a road without a sidewalk watch for
+// cars. A car coming along the road within ~28 m (closing, within 4 m of their line) makes them step out toward the
+// verge and slow down until it has passed. CARS is filled once a frame (updateCarList), no allocations.
+export const CARS = { n: 0, x: new Float32Array(128), z: new Float32Array(128), vx: new Float32Array(128), vz: new Float32Array(128) };
+const _carPrev = new WeakMap();
+export function updateCarList(game, cx, cz, dt) {
+  CARS.n = 0; const L = game.vehicles?.list; if (!L || !(dt > 0)) return;
+  for (let i = 0; i < L.length && CARS.n < 128; i++) {
+    const v = L[i], p = v.mesh?.position; if (!p || v.parked || v.air || v.isBoat) continue;
+    let pr = _carPrev.get(v); if (!pr) { pr = { x: p.x, z: p.z }; _carPrev.set(v, pr); }
+    const vx = (p.x - pr.x) / dt, vz = (p.z - pr.z) / dt; pr.x = p.x; pr.z = p.z;
+    if (Math.abs(p.x - cx) > 140 || Math.abs(p.z - cz) > 140 || vx * vx + vz * vz < 4 || vx * vx + vz * vz > 2500) continue;
+    const k = CARS.n++; CARS.x[k] = p.x; CARS.z[k] = p.z; CARS.vx[k] = vx; CARS.vz[k] = vz;
+  }
+}
+/** returns the nav.steer side to step toward the verge (0 = nothing coming); a._cySlow = speed factor meanwhile */
+export function carYield(a, n, x, z, dt) {
+  a._cyHold = (a._cyHold || 0) - dt;
+  const e = n?.edge;
+  if (!e || (e.sidewalk || 0) > 0.5 || SOFT_PATH.test(e.kind || '') || n.path || n.cross) { a._cySlow = 1; return 0; }
+  if ((a._cyT = (a._cyT ?? Math.random() * 0.25) - dt) <= 0) {
+    a._cyT = 0.25;
+    for (let k = 0; k < CARS.n; k++) {
+      const dx = x - CARS.x[k], dz = z - CARS.z[k], d2 = dx * dx + dz * dz; if (d2 > 28 * 28) continue;
+      const vx = CARS.vx[k], vz = CARS.vz[k], sp = Math.sqrt(vx * vx + vz * vz), along = (dx * vx + dz * vz) / sp;
+      if (along < -2) continue;                                   // already past
+      const lat = Math.abs(dx * vz - dz * vx) / sp; if (lat > 4) continue;
+      a._cyHold = 1.2; break;
+    }
+  }
+  if (a._cyHold > 0) { a._cySlow = 0.45; return -(n.hand || 1); }
+  a._cySlow = 1; return 0;
+}

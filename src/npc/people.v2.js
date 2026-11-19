@@ -17,7 +17,9 @@ import { hasLOS } from '../gameplay/util.js';
 import { createTalk } from './talk.js';
 import * as PR from './props.js';
 import { createSignals, createSpots, createGovernor } from './streetlife.js';
-import { walkGround, obstacleSteer } from './walk.js';
+import { walkGround, obstacleSteer, carYield } from './walk.js';
+import { makeTowel } from './beachTowel.js';
+const TOWEL_PAL = [0xe07f68, 0x2f8a86, 0xf0ede6, 0xe8d78a, 0x9cc1de, 0xb8a8d2, 0xe6b3b5, 0x3b6fb6, 0xf2a541, 0x5fb49c];
 import { GROUP_THEMES, groupMate, pickTheme } from './people/groups.js';
 
 export const order = 120;
@@ -108,7 +110,9 @@ export async function initV2(game) {
     const id = ped.identity; if (!id) return null;
     if (ped.act === 'swim') return 'swimAway';
     const src = ev.src === 'crash' ? 'crash' : 'shot';
-    const r = chooseReaction(id, { src, d: ev.d, phone: id.ageGroup !== 'kid' });
+    let r = chooseReaction(id, { src, d: ev.d, phone: id.ageGroup !== 'kid' });
+    // r7-react (police agent, REQUESTS #5): only call 911 about something the player did; police fire / NPC crashes -> flee or watch
+    if (r === 'call911' && ev.byPlayer === false) r = ev.d < 15 ? 'flee' : 'crowd';
     const band = id.traits.courage < 0.33 ? 'low' : id.traits.courage < 0.66 ? 'mid' : 'high';
     ((reactStats[ev.src] ||= {})[band] ||= {})[r] = (reactStats[ev.src][band][r] || 0) + 1;
     ped.lastSrc = ev.src;
@@ -230,6 +234,7 @@ export async function initV2(game) {
         const facing = (Math.sin(p.heading) * dx + Math.cos(p.heading) * dz) / d;
         if (facing < -0.2 && d > 4) continue; // behind them
         p.sawWeapon = true;
+        if (P.aiming && facing > 0.3) try { peds.remember?.(p, 'threat'); } catch (e) { /* */ }   // r7-react: aimed at -> remembered
         const r = chooseReaction(p.identity, { src: 'weapon', d, phone: true });
         ((reactStats.weapon ||= {})[p.identity.traits.courage < 0.33 ? 'low' : p.identity.traits.courage < 0.66 ? 'mid' : 'high'] ||= {})[r] = 1 + (reactStats.weapon[p.identity.traits.courage < 0.33 ? 'low' : p.identity.traits.courage < 0.66 ? 'mid' : 'high'][r] || 0);
         p.lastSrc = 'weapon';
@@ -277,7 +282,7 @@ export async function initV2(game) {
   try { if (NAV) crowd = FAR_PEOPLE ? createPeopleCrowd(game, { max: 380 }) : createCrowd(game, { max: 380, castShadow: false }); } catch (e) { console.warn('[people] crowd', e); crowd = null; }
   if (!crowd && NAV) { try { crowd = createCrowd(game, { max: 380, castShadow: false }); } catch (e) { crowd = null; } }
   const walkers = [];
-  let towelN = 0;
+  let towelN = 0, lastTowelT = -1e9;
   // playtest: "too few people" -> 240 at full street density (was 170); people fade (dithered) instead of popping
   const crowdCfg = { target: 240, near: 30, far: 185, enabled: true, fadeRate: 2.0 };
   if (crowd) {
@@ -410,10 +415,12 @@ export async function initV2(game) {
       crowd.setTransform(i, w.pos.x, w.gy, w.pos.z, w.heading, L.height, pose === POSE.lie || pose === POSE.lieFront ? 1.5 : 1);
       if ((pose === POSE.lie || pose === POSE.lieFront || pose === POSE.sitGround || pose === POSE.lounge) && towelN < 60) {
         // a towel under people lying or sitting on the sand
-        const towel = PR.beachTowel((i * 7919 + walkers.length) >>> 0);
-        towel.position.set(w.pos.x, w.gy + 0.012, w.pos.z);
-        towel.rotation.y = w.heading;
-        towel.receiveShadow = true;
+        // r7-towels: the same draped terry towel as the near people (src/npc/beachTowel.js), on the real sand
+        // (one draped towel per ~frame: a beach crowd spawning at once falls back to the simple prop for the rest)
+        const sd = (i * 7919 + walkers.length) >>> 0, gy0 = w.gy, tnow = performance.now();
+        let towel;
+        if (tnow - lastTowelT > 14) { lastTowelT = tnow; towel = makeTowel(w.pos.x, w.pos.z, w.heading, TOWEL_PAL[sd % TOWEL_PAL.length], (x, z) => NAV.groundAt(x, z, gy0 + 1), sd); }
+        else { towel = PR.beachTowel(sd); towel.position.set(w.pos.x, w.gy + 0.012, w.pos.z); towel.rotation.y = w.heading; towel.receiveShadow = true; }
         game.scene.add(towel);
         w.towel = towel;
         towelN++;
@@ -817,7 +824,7 @@ export async function initV2(game) {
         spots.free(w.spotKey);
         spots.free(w.groupKey);
         crowd.release(w.i); w.gone = true;
-        if (w.towel) { game.scene.remove(w.towel); w.towel.geometry?.dispose?.(); towelN--; }
+        if (w.towel) { game.scene.remove(w.towel); w.towel.traverse((o) => { if (o.isMesh) o.geometry?.dispose?.(); }); towelN--; }
         walkers.splice(n, 1);
         continue;
       }
@@ -863,7 +870,8 @@ export async function initV2(game) {
         else if (calm && !w.group && !w.nav?.path && Math.random() < sdt / 55) { w.pauseT = 3 + Math.random() * 6; w.pausePose = Math.random() < 0.6 ? POSE.phone : POSE.stand; }
         if (SPACE && w.ag) {
           const st = SPACE.steer(w.ag, w.pos.x, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), w.v || 0);
-          if (w.nav) w.nav.steer = st.side || ((w.v || 0) > 0.2 && Math.abs(w.pos.x - cam.x) < 70 && Math.abs(w.pos.z - cam.z) < 70 ? obstacleSteer(game, w, w.pos.x, w.gy, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), sdt) : 0);   // r7-walk: around trunks / poles
+          const cyS = w.nav && !w.buddy ? carYield(w, w.nav, w.pos.x, w.pos.z, sdt) : 0; if (cyS) tgt *= w._cySlow;
+          if (w.nav) w.nav.steer = cyS || st.side || ((w.v || 0) > 0.2 && Math.abs(w.pos.x - cam.x) < 70 && Math.abs(w.pos.z - cam.z) < 70 ? obstacleSteer(game, w, w.pos.x, w.gy, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), sdt) : 0);   // r7-walk: around trunks / poles
           tgt *= st.slow;
           if (st.block) { w.v = 0; w.blockT = (w.blockT || 0) + sdt; if (w.blockT > 4 && w.nav && !w.nav.path && !w.buddy) { w.nav.dir *= -1; w.nav.sbE = null; w.blockT = 0; } } else w.blockT = 0;
         }
@@ -976,7 +984,7 @@ export async function initV2(game) {
       // user (Nov 18): cars drove straight through crowd-tier people. hitAt removes the crowd walker inside the disk at once and
       // returns where it stood, so the car code can put a full person there and knock it down (vehicles.js hitPeds)
       hitAt(x, z, r = 1.2) { for (let n = walkers.length - 1; n >= 0; n--) { const w = walkers[n]; if (Math.hypot(w.pos.x - x, w.pos.z - z) > r) continue;
-        try { spots.free(w.spotKey); spots.free(w.groupKey); crowd.release(w.i); if (w.towel) { game.scene.remove(w.towel); w.towel.geometry?.dispose?.(); towelN--; } } catch (e) { /* */ }
+        try { spots.free(w.spotKey); spots.free(w.groupKey); crowd.release(w.i); if (w.towel) { game.scene.remove(w.towel); w.towel.traverse((o) => { if (o.isMesh) o.geometry?.dispose?.(); }); towelN--; } } catch (e) { /* */ }
         w.gone = true; walkers.splice(n, 1); return { x: w.pos.x, y: w.gy ?? 0, z: w.pos.z, heading: w.heading || 0 }; } return null; }, get count() { return walkers.length; }, get list() { return walkers; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]), persons: () => walkers.map((w) => [w.look?.personId || null, w.pos.x, w.pos.z, !!w.lounger, !!w.leaving]) },
     sigList: () => [...audit.sigs.keys()],
     inView() { // people inside the camera frustum (near tier + crowd tier)

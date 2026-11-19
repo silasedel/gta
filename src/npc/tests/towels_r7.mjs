@@ -8,7 +8,9 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 330 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute'); await b.waitFor(GAME_READY, 150);
   await b.eval(`dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', key: 'Enter' })); 1`); await b.waitFor(GAME_READY, 150); await wait(2);
   await E(`game.timeExternal = true; game.timeOfDay = 13; game.weather?.set?.('clear', { instant: true }); game.teleport(2332, undefined, -660, 0); return 1;`); await wait(15);
-  console.log('sand', JSON.stringify(await E(`const pp = game.player.position; const q = game.peds._nav.sandPoint(pp, 300); if (!q) return null; game.teleport(q.x, undefined, q.z, 0); return [q.x, q.z];`)));
+  console.log('beach', JSON.stringify(await E(`game.teleport(3600, undefined, -1700, 0); await new Promise((r) => setTimeout(r, 9000)); const pp = game.player.position; return [game.city.zoneAt?.(pp.x, pp.z), game.city.districtAt?.(pp.x, pp.z)];`)));
+  await wait(12);
+  console.log('sand', JSON.stringify(await E(`const pp = game.player.position; const q = game.peds._nav.sandPoint(pp, 400, true) || game.peds._nav.sandPoint(pp, 400); if (!q) return null; game.teleport(q.x, undefined, q.z, 0); return [q.x, q.z];`)));
   await wait(10);
   const res = [];
   for (let i = 0; i < 3; i++) {

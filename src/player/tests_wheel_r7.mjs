@@ -15,8 +15,10 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 300 }, async (b) => {
       const hands = {}; sh.traverse((o) => { if (o.isBone && /(Left|Right)Hand$/.test(o.name) && !hands[o.name.match(/(Left|Right)Hand$/)[1]]) hands[o.name.match(/(Left|Right)Hand$/)[1]] = o; });
       if (A?.wheel) { const c = sh.localToWorld(A.wheel.c.clone()); for (const s of ['Left', 'Right']) { const h = hands[s]; if (h) { const w = h.getWorldPosition(c.clone()); out[s] = +(w.distanceTo(c)).toFixed(3); } } }
       return out;`)));
-    await E(`game.cameraYaw = (game.player.heading || 0) + 2.4; return 1;`); await wait(1.5);
+    await E(`const v = window.__lastV, A = v.seatAnchor?.(0) || game.vehicles?.seatAnchor?.(v, 0), sh = v.car.shell; const c = A.wheel.c;
+      game.cameraOverride = (dt, cam) => { sh.updateWorldMatrix(true, false); cam.position.copy(sh.localToWorld(c.clone().add({ x: -0.95, y: 0.28, z: -0.2 }))); cam.lookAt(sh.localToWorld(c.clone().add({ x: 0.05, y: -0.05, z: 0 }))); cam.fov = 50; cam.updateProjectionMatrix(); return true; }; return 1;`); await wait(1.5);
     await b.screenshot(`${OUT}/wheel_${i}.png`);
+    await E(`game.cameraOverride = null; game.camera.fov = 60; game.camera.updateProjectionMatrix(); return 1;`);
     await E(`dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyF', key: 'f' })); await new Promise((r) => setTimeout(r, 100)); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyF', key: 'f' })); return 1;`); await wait(3);
   }
   if (b.errors.length) console.log('ERR', b.errors.slice(0, 5));

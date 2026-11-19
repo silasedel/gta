@@ -27,7 +27,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 420 }, async (b) => {
     await wait(6);
     const g = await E(groupsJs); log(name + '_groups', g);
     log(name + '_solid', await E(`const N = game.peds._nav, pp = game.player.position, R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, out = [];
-      for (let i = 0; i < 6; i++) { const q = N.sidewalkNear(pp, 10 + i * 4); if (!q) continue; const y = N.groundAt(q.x, q.z, q.y || 0);
+      for (let i = 0; i < 6; i++) { const q = N.sidewalkNear(pp, 60 + i * 8); if (!q) continue; const y = N.groundAt(q.x, q.z, q.y || 0);
         W.intersectionsWithShape({ x: q.x, y: y + 1.05, z: q.z }, { x: 0, y: 0, z: 0, w: 1 }, new R.Ball(0.32), (c) => { const t = c.translation(), sh = c.shape; out.push({ at: [+q.x.toFixed(1), +y.toFixed(2), +q.z.toFixed(1)], type: sh.type, he: sh.halfExtents ? [sh.halfExtents.x, sh.halfExtents.y, sh.halfExtents.z].map((n) => +n.toFixed(2)) : sh.radius, hh: sh.halfHeight, t: [+t.x.toFixed(1), +t.y.toFixed(2), +t.z.toFixed(1)], ud: c.parent()?.userData ? JSON.stringify(c.parent().userData).slice(0, 60) : null }); return out.length < 12; }, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS); }
       return out;`));
     // look at the nearest group: stand 5 m from it, facing it

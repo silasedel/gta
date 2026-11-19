@@ -328,7 +328,9 @@ function solve(ch, S, dt) {
       // ten-to-two, turning with the wheel (hands follow it about 70 degrees, then hold)
       const steer = THREE.MathUtils.clamp((S.vehicle?.steerCur || 0) * 3.2, -1.2, 1.2);
       S.steer = THREE.MathUtils.lerp(S.steer || 0, steer, 1 - Math.exp(-(dt || 0.016) * 10));
-      const ang = (sg * 62) * D2R - S.steer;
+      // r7 (user: Nico's hands not on the wheel): a driver who still cannot reach ten-to-two (head-room fit won, or the
+      // reach fit ran out) holds the rim lower down, nearer the lap (the wheel's top leans away): up to quarter-to-four
+      const ang = (sg * (62 + 50 * (S.gripDrop?.[s] || 0))) * D2R - S.steer;
       const R = V().copy(left).multiplyScalar(Math.sin(ang)).addScaledVector(U, Math.cos(ang)).normalize();
       const Tup = V().crossVectors(N, R).normalize(); if (Tup.dot(U) < 0 && Math.abs(ang) < 1.4) Tup.negate();
       const g = V().copy(c).addScaledVector(R, r);
@@ -343,6 +345,7 @@ function solve(ch, S, dt) {
       twoBone(Ar, Fa, Hn, wrist, pole, w);
       // out of reach: sit up / lean toward the wheel a little (next frames), never through the roof
       { const armLen = wp(Ar, _a).distanceTo(wp(Fa, _b)) + wp(Fa, _a).distanceTo(wp(Hn, _b)); const short = sh.distanceTo(wrist) - armLen * 0.94;   // elbows keep a bend
+        if (short > 0.004 && (S.reachFit >= 24 || S.headFirst)) { (S.gripDrop ||= {})[s] = Math.min(1, (S.gripDrop[s] || 0) + 0.06); }
         if (short > 0.004 && S.reachFit < 24 && !S.headFirst) {   // the head under the roof wins over arm reach
  S.reachFit = (S.reachFit || 0) + 1; if ((S.slide || 0) < 0.08) S.slide = Math.min(0.08, (S.slide || 0) + Math.max(0.01, short * 0.8)); else S.reachLean = Math.min(12, (S.reachLean || 0) + Math.max(0.8, short * 50)); } }
       orientHand(ch, s, fDes, aDes, w);

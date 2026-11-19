@@ -10,7 +10,7 @@ import { createCharacter, humansLoaded, humansTotal } from '../player/characterM
 import { sitOnFurniture, standUp } from './furnitureSeat.js';
 import { makeTowel, makeBeachThings, restOnTowel, clearTowelContact } from './beachTowel.js';
 import { createRagdollSystem } from './ragdoll.js';
-import { cornerRoute, cornerSetback, laneBase, createSpace, walkGround, SOFT_PATH, obstacleSteer } from './walk.js';
+import { cornerRoute, cornerSetback, laneBase, createSpace, walkGround, SOFT_PATH, obstacleSteer, carYield, updateCarList } from './walk.js';
 import { PERSONAS, pickPersona } from './personality.js';
 import { AGE, GROUP_THEMES, groupMate, pickTheme } from './people/groups.js';
 import { createSignals } from './streetlife.js';
@@ -665,7 +665,9 @@ export async function createPeds(game) {
     if (!canSpawn(n)) return fail('budget');
     // the formation: a loose ring facing in (radius by size, staggered), turned until every spot is clear
     const rr0 = n <= 2 ? 0.62 : n === 3 ? 0.85 : n === 4 ? 1.0 : 1.15;
-    const cy = c.y ?? groundAt(c.x, c.z, 0);
+    // the real ground here (sidewalk points can come back with y = 0; downtown the sidewalk is 1-3 m up, which put the
+    // clearance ball inside the ground and refused every downtown group: clearWhy.solid)
+    const cy = groundAt(c.x, c.z, (Number.isFinite(c.y) ? c.y : 0) + 4);
     let spots = null, ccx = c.x, ccz = c.z;
     for (let tr = 0; tr < 10 && !spots; tr++) {
       const a0 = Math.random() * Math.PI * 2, rr = rr0 * (tr % 2 ? 0.9 : 1);
@@ -775,7 +777,7 @@ export async function createPeds(game) {
       const gA = (x, z) => groundAt(x, z, p.pos.y + 1);
       const towel = makeTowel(tx0, tz0, th, pick(TOWEL_COLS), gA, (p.id || 1) * 7 + k);
       scene.add(towel); p.towel = towel; props.add(towel);
-      if (Math.random() < 0.7) { const th2 = makeBeachThings(tx0, tz0, th, gA, (p.id || 1) * 13 + k); scene.add(th2); props.add(th2); (p.ownProps ||= []).push(th2); }
+      if (Math.random() < 0.8) { const th2 = makeBeachThings(tx0, tz0, th, gA, (p.id || 1) * 13 + k); scene.add(th2); props.add(th2); (p.ownProps ||= []).push(th2); towel.userData.things = th2; }
     });
     // the umbrella stands on the sun side of the first towel so the canopy shade falls on that person (the shade lands
     // at canopy - sun_xz * h / sun_y), its pole kept off the towel
@@ -858,7 +860,7 @@ export async function createPeds(game) {
         damage, kind, zone: info.zone, limb: info.limb, strength: info.strength, byPlayer: info.byPlayer, weapon: info.weapon });
     } catch (e) { /* ignore */ }
   }
-  function panic(x, z, radius = 20, src = 'incident') {
+  function panic(x, z, radius = 20, src = 'incident', byPlayer = true) {
     for (const o of list) {
       if (!o.active || o.dead || o.state === 'fight' || o.state === 'cop' || o.rag) continue;
       const dx = o.pos.x - x, dz = o.pos.z - z; const d2 = dx * dx + dz * dz;
@@ -866,7 +868,7 @@ export async function createPeds(game) {
       if (d2 > radius * radius * pr * pr) continue;
       const d = Math.sqrt(d2), r = Math.random();
       let react = null;
-      if (o.identity && game.people?.react) { try { react = game.people.react(o, { src, d, x, z }); } catch (e) { react = null; } if (react === 'ignore') continue; }
+      if (o.identity && game.people?.react) { try { react = game.people.react(o, { src, d, x, z, byPlayer }); } catch (e) { react = null; } if (react === 'ignore') continue; }
       if (react) { /* chosen from the person's traits (people.v2.js) */ }
       else if (o.act === 'swim') react = 'swimAway';
       else if (d < 7 && r < (o.P ? o.P.cower : 0.22)) react = 'cower';
@@ -895,8 +897,17 @@ export async function createPeds(game) {
     panic(ped.pos.x, ped.pos.z, 20, 'knockdown');
   }
   // public: damage(ped, amount, dir, kind, info{zone, limb, point, strength, byPlayer, weapon, heavy})
+  // r7-react: people remember roughly what the player did to them (by identity, so the same person met again later
+  // knows): hurt / robbed / threatened -> afraid (they back off and hurry away, tough ones mouth off); helped -> friendly
+  const deeds = new Map();   // identity id -> { hurt, threat, helped, t }
+  function remember(ped, what) {
+    const id = ped?.identity?.id; if (!id) return;
+    const d = deeds.get(id) || { hurt: 0, threat: 0, helped: 0, t: 0 }; d[what] = (d[what] || 0) + 1; d.t = game.clock?.elapsed || 0; deeds.set(id, d);
+    if (deeds.size > 400) deeds.delete(deeds.keys().next().value);
+  }
   function damage(ped, amount = 25, dir = null, kind = 'melee', info = {}) {
     if (!ped || !ped.active || (ped.dead && ped.state === 'dead')) return;
+    if (!info.npc && kind !== 'car') remember(ped, 'hurt');
     const d = dir ? new THREE.Vector3(dir.x, 0, dir.z) : new THREE.Vector3(0, 0, 1);
     if (d.lengthSq() < 1e-6) d.set(0, 0, 1);
     d.normalize();
@@ -947,8 +958,8 @@ export async function createPeds(game) {
     return p;
   }
   try {
-    game.on?.('shot', (e) => { const o = e?.origin; if (o) panic(o.x, o.z, 40, 'shot'); });
-    game.on?.('crash', (e) => { const pt = e?.point || e?.vehicle?.body?.translation?.(); if (pt && (e.impulse === undefined || e.impulse > 2000)) panic(pt.x, pt.z, 25, 'crash'); });
+    game.on?.('shot', (e) => { const o = e?.origin; if (o) panic(o.x, o.z, 40, 'shot', e.byPlayer !== false); });
+    game.on?.('crash', (e) => { const pt = e?.point || e?.vehicle?.body?.translation?.(); if (pt && (e.impulse === undefined || e.impulse > 2000)) { const pv = game.player?.state?.vehicle || game.player?.vehicle; panic(pt.x, pt.z, 25, 'crash', e.byPlayer ?? (!!pv && (e.vehicle === pv || e.other === pv))); } });
     game.on?.('punch', (e) => { const o = e?.position; if (o) for (const p of list) if (p.active && !p.dead && p.pos.distanceTo(o) < 8 && Math.random() < 0.5) p.lookUntil = (game.clock?.elapsed ?? 0) + 3; });
   } catch (e) { /* ignore */ }
   // tiles whose colliders are being removed: freeze ragdolls + despawn peds there (they would fall through)
@@ -1123,6 +1134,7 @@ export async function createPeds(game) {
     dt = Math.min(dt, 0.1);
     createdThisFrame = 0; frameN++;
     try { updateGroups(dt); } catch (e) { /* never break the crowd */ }
+    try { const cp = game.camera?.position; if (cp) updateCarList(game, cp.x, cp.z, dt); } catch (e) { /* */ }
     const P = game.player || {};
     const pp = playerPos();
     const ph = P.heading || 0;
@@ -1489,7 +1501,8 @@ export async function createPeds(game) {
           // never step into anybody (steering only: nobody is pushed into a wall or the road)
           if (targetSpeed > 0) {
             const st = space.steer(ped._ag, ped.pos.x, ped.pos.z, Math.sin(ped.heading), Math.cos(ped.heading), ped.speed);
-            if (ped.nav) ped.nav.steer = st.side || (ped.speed > 0.2 ? obstacleSteer(game, ped, ped.pos.x, ped.pos.y, ped.pos.z, Math.sin(ped.heading), Math.cos(ped.heading), dt) : 0);   // r7-walk: around trunks / poles
+            const cyS = ped.nav && ped.act === 'walk' ? carYield(ped, ped.nav, ped.pos.x, ped.pos.z, dt) : 0; if (cyS) targetSpeed *= ped._cySlow;
+            if (ped.nav) ped.nav.steer = cyS || st.side || (ped.speed > 0.2 ? obstacleSteer(game, ped, ped.pos.x, ped.pos.y, ped.pos.z, Math.sin(ped.heading), Math.cos(ped.heading), dt) : 0);   // r7-walk: around trunks / poles
             targetSpeed *= st.slow;
             if (st.block) { ped.speed = 0; ped.blockT = (ped.blockT || 0) + dt; if (ped.blockT > 4 && ped.nav && !ped.nav.path && !ped.follow) { ped.nav.dir *= -1; ped.nav.sbE = null; ped.blockT = 0; } }   // a blocked narrow sidewalk: turn back
             else ped.blockT = 0;
@@ -1514,6 +1527,12 @@ export async function createPeds(game) {
           }
           // personality look-at + greeting
           if (dPlayer < ped.P.look && !inCar) { ped.lookT += dt; if (ped.lookT < ped.P.lookHold + 2) lookAt = pp; } else ped.lookT = 0;
+          const dd = !ped.greeted && dPlayer < 9 && !inCar && ped.identity ? deeds.get(ped.identity.id) : null;
+          if (dd && (dd.hurt || dd.threat)) {   // r7-react: they remember him: back off and hurry away (tough ones mouth off first)
+            ped.greeted = true;
+            if (ped.P.shove === 'shove' && Math.random() < 0.5) { voice(ped, 'insult'); ped.asideT = 0.6; ped.asideDir = { x: dpx / Math.max(dPlayer, 0.1), z: dpz / Math.max(dPlayer, 0.1) }; }
+            else { ped.state = 'flee'; ped.fleeT = rand(3, 5); ped.threat = { x: pp.x, z: pp.z }; ped.scream = false; voice(ped, 'scream'); }
+          } else if (dd && dd.helped) { ped.greeted = true; ped.waveT = 1.4; voice(ped, 'greet'); }
           if (!ped.greeted && dPlayer < 3.5 && !inCar && Math.random() < ped.P.greet * dt * 2) { ped.greeted = true; ped.waveT = 1.4; voice(ped, ped.personality === 'drunk' ? 'drunk' : 'greet'); }
         }
       }
@@ -1631,5 +1650,5 @@ export async function createPeds(game) {
     }
   }
 
-  return { list, update, panic, damage, spawnAt, _umbrella: makeUmbrella, _removeProp: removeProp, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView, laneRoom, space }, groups, groupStats, clearWhy, _sunbathers: (c, n) => sunbathers(c, n), _crowd: (c, zone, n) => crowd(c, zone, n, false), get count() { return list.filter((p) => p.active).length; } };
+  return { list, update, panic, damage, spawnAt, _umbrella: makeUmbrella, _removeProp: removeProp, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView, laneRoom, space }, groups, groupStats, clearWhy, deeds, remember, _sunbathers: (c, n) => sunbathers(c, n), _crowd: (c, zone, n) => crowd(c, zone, n, false), get count() { return list.filter((p) => p.active).length; } };
 }
