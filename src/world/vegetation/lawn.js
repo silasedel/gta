@@ -48,8 +48,9 @@ export function createLawn({ M, root, data, lawnTester = null, game = globalThis
   // ---- mowing state: 1 m cells -> { t: game day mowed, hd: lane heading (rad), off: lane origin offset } ----
   const mowCells = new Map(); let days = 3.5, lastTod = null;
   const n2 = (x, z, s) => { const h = (a, b) => { let q = Math.imul(a | 0, 374761393) ^ Math.imul(b | 0, 668265263); q = Math.imul(q ^ (q >>> 13), 1274126177); return ((q ^ (q >>> 16)) >>> 0) / 4294967296; }; const X = x / s, Z = z / s, i = Math.floor(X), j = Math.floor(Z), fx = X - i, fz = Z - j, u = fx * fx * (3 - 2 * fx), v = fz * fz * (3 - 2 * fz); const a = h(i, j), b = h(i + 1, j), c = h(i, j + 1), d = h(i + 1, j + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
+  const _mow = { t: 0, hd: 0, off: 0, def: true }, _sm = new Float64Array(5); // perf (Nov 18): scratch results (stepJob ran per texel: ~160 MB a probe)
   function mowAt(x, z) { const k = Math.floor(x) * 100003 + Math.floor(z); const c = mowCells.get(k); if (c) return c;
-    const ago = 0.4 + n2(x + 911, z - 37, 60) * 8.5, q = n2(x - 300, z + 800, 90) > 0.5 ? 0 : Math.PI / 2; return { t: days - ago, hd: q, off: 0, def: true }; }
+    const ago = 0.4 + n2(x + 911, z - 37, 60) * 8.5, q = n2(x - 300, z + 800, 90) > 0.5 ? 0 : Math.PI / 2; _mow.t = days - ago; _mow.hd = q; _mow.off = 0; return _mow; }
   const lastMowed = (x, z) => mowAt(x, z).t;
   // ---- field sample: [height m, dry 0..1, weed 0..1, bare 0..1, stripe -1/0/1] ----
   function sample(x, z, test) {
@@ -65,8 +66,8 @@ export function createLawn({ M, root, data, lawnTester = null, game = globalThis
     if (long) h = 0.22 + 0.3 * n2(x + 3, z + 3, 6);
     else { const m = mowAt(x, z), age = Math.max(0, days - m.t); h = Math.min(0.13, 0.03 + 0.011 * age) * (0.85 + 0.3 * n2(x, z, 2));
       if (age < 4.5) { const px = -Math.cos(m.hd), pz = Math.sin(m.hd); stripe = (Math.floor((x * px + z * pz - m.off) / LANE) & 1) ? 1 : -1; } }
-    h *= 1 - Math.min(1, bare); if (lawn !== null && test) { for (const [ox, oz] of [[1.0, 0], [-1.0, 0], [0, 1.0], [0, -1.0]]) if (!test(x + ox, z + oz)) { h *= 0.6; break; } }
-    return [h, Math.min(1, dry), Math.min(1, weed), Math.min(1, bare), stripe];
+    h *= 1 - Math.min(1, bare); if (lawn !== null && test) { if (!test(x + 1, z) || !test(x - 1, z) || !test(x, z + 1) || !test(x, z - 1)) h *= 0.6; }
+    _sm[0] = h; _sm[1] = Math.min(1, dry); _sm[2] = Math.min(1, weed); _sm[3] = Math.min(1, bare); _sm[4] = stripe; return _sm;
   }
   function writeTexel(arr, i, sm) {
     const o = i * 4; if (!sm) { arr[o] = arr[o + 1] = arr[o + 2] = 0; arr[o + 3] = 128; return; }

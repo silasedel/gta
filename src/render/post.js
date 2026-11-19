@@ -1059,22 +1059,51 @@ export function createPost(game) {
       // user: "lighting snaps darker / brighter instantly"): at 10-20 fps that was one reading every 1.2-2.4 s, and the
       // exposure then lunged toward each new reading. Now time based: at most every 0.3 s, at least every 24th frame.
       const nowS = performance.now() / 1000;
+      aePoll();
       if (!game.look3 || game.look3Parts?.ae === false || !ae.ok || ae.pending) return;
       ae.frame++;
       if (ae.frame < 24 && nowS - ae.t < 0.3) return;
       ae.frame = 0; ae.t = nowS;
       lumMat.uniforms.tDiffuse.value = rb.texture;
       const prev = r.getRenderTarget();
-      r.setRenderTarget(lumRT); r.render(lumScene, lumCam); r.setRenderTarget(prev);
+      r.setRenderTarget(lumRT); r.render(lumScene, lumCam);
       ae.pending = true;
-      r.readRenderTargetPixelsAsync(lumRT, 0, 0, 32, 18, lumBuf).then(() => {
-        let s = 0;
-        for (let i = 0; i < lumW.length; i++) s += lumW[i] * (((lumBuf[i * 4] * 256 + lumBuf[i * 4 + 1]) / 65535) * 16 - 12);
-        ae.avgLog = s;
-        ae.pending = false;
-      }).catch((e) => { ae.ok = false; ae.pending = false; console.warn('[post] auto exposure off', e); });
+      if (!AE_THREE) aeIssue(r);
+      r.setRenderTarget(prev);
+      // perf (Nov 18): three's readRenderTargetPixelsAsync polls with clientWaitSync(SYNC_FLUSH_COMMANDS_BIT) every 4 ms; under
+      // Chrome each poll is a round trip to a busy GPU process (long animation frames of 100-220 ms named "probe" in the
+      // freeze probe). Own fence instead: readPixels into a pack buffer now, check the fence once per frame with the
+      // non-blocking getSyncParameter, copy out only when the GPU is done. ?aeread=three = old path.
+      if (AE_THREE) r.readRenderTargetPixelsAsync(lumRT, 0, 0, 32, 18, lumBuf).then(aeDone).catch((e) => { ae.ok = false; ae.pending = false; console.warn('[post] auto exposure off', e); });
     },
   };
+  function aeIssue(r) { // lumRT is bound: pack its pixels into a buffer, fence, no wait
+    try {
+      const gl = r.getContext();
+      if (!ae.pbo) ae.pbo = gl.createBuffer();
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, ae.pbo); gl.bufferData(gl.PIXEL_PACK_BUFFER, lumBuf.byteLength, gl.STREAM_READ);
+      gl.readPixels(0, 0, 32, 18, gl.RGBA, gl.UNSIGNED_BYTE, 0); gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+      ae.sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); ae.gl = gl;
+    } catch (e) { ae.ok = false; ae.pending = false; console.warn('[post] auto exposure off', e); }
+  }
+  const AE_THREE = typeof location !== 'undefined' && /[?&]aeread=three\b/.test(location.search);
+  function aeDone() {
+    let s = 0;
+    for (let i = 0; i < lumW.length; i++) s += lumW[i] * (((lumBuf[i * 4] * 256 + lumBuf[i * 4 + 1]) / 65535) * 16 - 12);
+    ae.avgLog = s;
+    ae.pending = false;
+  }
+  // called at the start of each composer frame: finish a pending readback whose fence has signaled (never waits)
+  function aePoll() {
+    if (!ae.sync) return; const gl = ae.gl;
+    try {
+      if (gl.getSyncParameter(ae.sync, gl.SYNC_STATUS) !== gl.SIGNALED) { if (++ae.waitN > 120) { gl.deleteSync(ae.sync); ae.sync = null; ae.pending = false; ae.waitN = 0; } return; }
+      gl.deleteSync(ae.sync); ae.sync = null; ae.waitN = 0;
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, ae.pbo); gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, lumBuf); gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+      aeDone();
+    } catch (e) { ae.ok = false; ae.pending = false; ae.sync = null; console.warn('[post] auto exposure off', e); }
+  }
+  ae.waitN = 0;
   composer.addPass(aePass);
 
   const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.32, 0.55, 0.92);

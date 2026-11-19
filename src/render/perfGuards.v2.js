@@ -439,6 +439,10 @@ function warmStreamedShaders(game) {
     maxWaitMs: 0,
   };
   game.shaderWarm = stats;
+  // perf (Nov 18): the same warm-up for any other streamed group (generated houses, vegetation fields): game.shaderWarmWrap(group)
+  game.shaderWarmWrap = (g) => { if (g && !g._psWarm) { g._psWarm = true; wrap(g); } return g; };
+  wrap(root);
+  function wrap(root) {
   const origAdd = root.add;
   root.add = function add(...objs) {
     const r = origAdd.apply(this, objs);
@@ -517,6 +521,7 @@ function warmStreamedShaders(game) {
     }
     return r;
   };
+  }
   return true;
 }
 

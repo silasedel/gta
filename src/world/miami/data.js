@@ -137,7 +137,7 @@ export async function loadMiamiData(game, opts = {}) {
     const wk = wkCode ? WKINDS[wkCode(x, z)] : 'sea';
     if (!wk || wk === 'sea' || wk === 'lake') {
       const res = SM.res || 2, cx = (Math.floor((x - SM.x0) / res) + 0.5) * res + SM.x0, cz = (Math.floor((z - SM.z0) / res) + 0.5) * res + SM.z0;
-      for (const [dx, dz] of SLIVER_DIRS) {
+      for (let q = 0; q < 4; q++) { const dx = SLIVER_DIRS[q][0], dz = SLIVER_DIRS[q][1]; // perf: no destructuring iterator (hot: every terrain vertex)
         let a = 0, ca = -1, b = 0, cb = -1;
         for (let s = res; s <= SLIVER_SAND; s += res) { const c = surfRaw(cx + dx * s, cz + dz * s); if (c !== S_WATER) { a = s; ca = c; break; } }
         if (!a || ca === S_PIER || ca === S_BUILDING) continue; // water beside a pier or a building edge stays water
@@ -152,14 +152,15 @@ export async function loadMiamiData(game, opts = {}) {
   }
   // ground-continuity: tiny bare specks of sand out in open water outside real Miami (< ~260 m across, no vegetation cover)
   // rendered as flat slabs floating on the sea; they are open water (the map's real keys and mangrove islets stay land)
+  const _isd = new Float64Array(8);
   const ISLET_COVER = new Set(['none', 'sand', 'island', 'dune']), isletCache = new Map(), ISLET_DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7071, 0.7071], [-0.7071, -0.7071], [0.7071, -0.7071], [-0.7071, 0.7071]];
   function isIslet(x, z) {
     const k = Math.floor(x / 16) * 100003 + Math.floor(z / 16); let v = isletCache.get(k);
     if (v !== undefined) return v;
     v = false;
     if (!inReal(x, z) && ISLET_COVER.has(COVER[coverCode(x, z)] || 'none')) {
-      const d = []; let ok = true;
-      for (const [dx, dz] of ISLET_DIRS) { let h = 0; for (let s = 8; s <= 200; s += 8) if (surfRaw(x + dx * s, z + dz * s) === S_WATER) { h = s; break; } if (!h) { ok = false; break; } d.push(h); }
+      const d = _isd; let ok = true;
+      for (let q = 0; q < 8; q++) { const dx = ISLET_DIRS[q][0], dz = ISLET_DIRS[q][1]; let h = 0; for (let s = 8; s <= 200; s += 8) if (surfRaw(x + dx * s, z + dz * s) === S_WATER) { h = s; break; } if (!h) { ok = false; break; } d[q] = h; }
       v = ok && d[0] + d[1] <= 260 && d[2] + d[3] <= 260 && d[4] + d[5] <= 260 && d[6] + d[7] <= 260;
     }
     if (isletCache.size > 200000) isletCache.clear();
@@ -171,8 +172,8 @@ export async function loadMiamiData(game, opts = {}) {
   function isPocket(x, z) {
     const k = Math.floor(x / 8) * 100003 + Math.floor(z / 8); let v = pocketCache.get(k);
     if (v !== undefined) return v;
-    v = true; const d = [];
-    for (const [dx, dz] of ISLET_DIRS) { let h = 0; for (let s2 = 6; s2 <= 72; s2 += 6) if (surfRaw(x + dx * s2, z + dz * s2) !== S_WATER) { h = s2; break; } if (!h) { v = false; break; } d.push(h); }
+    v = true; const d = _isd;
+    for (let q = 0; q < 8; q++) { const dx = ISLET_DIRS[q][0], dz = ISLET_DIRS[q][1]; let h = 0; for (let s2 = 6; s2 <= 72; s2 += 6) if (surfRaw(x + dx * s2, z + dz * s2) !== S_WATER) { h = s2; break; } if (!h) { v = false; break; } d[q] = h; }
     if (v) v = d[0] + d[1] <= 90 && d[2] + d[3] <= 90 && d[4] + d[5] <= 90 && d[6] + d[7] <= 90;
     if (pocketCache.size > 200000) pocketCache.clear();
     pocketCache.set(k, v); return v;
@@ -782,6 +783,13 @@ export async function loadMiamiData(game, opts = {}) {
   const rawTile = (key) => { const [i, j] = key.split('_').map(Number); const R = regions.get(regionKeyOf(i, j)); if (R && R.state === 'ready') { R.used = performance.now(); return R.tiles[key] || null; } return undefined; };
   const f32 = (a) => { const o = new Float32Array(a.length); for (let i = 0; i < a.length; i++) o[i] = a[i] * Q; return o; };
   const polyT = (p) => ({ outer: f32(p.p), holes: (p.ho || []).map(f32) });
+  // r6: fuel / carport canopies (style 'canopy') are drawn as a bare roof slab: no posts, no pumps, so the slab floats over
+  // the lot (user: "remove this floating random concrete slab", Keys Conch Stop). A canopy may only exist together with
+  // its posts and pumps; until a builder makes all three (it then sets game.canopyKit = true before the map loads) the
+  // lot is left out of the tile: no slab, no collider, no footprint. ?canopyslab=1 = old.
+  const CANOPY_OLD = typeof location !== 'undefined' && /[?&]canopyslab=1/.test(location.search);
+  const canopySkips = []; if (typeof window !== 'undefined') window.__canopySkips = canopySkips;
+  const canopyOk = (r) => { if (r.st !== 'canopy') return true; if (canopySkips.length < 4000 && !canopySkips.some((c) => c.id === r.id)) { const p = r.p || []; canopySkips.push({ id: r.id, x: (p[0] || 0) * Q, z: (p[1] || 0) * Q, h: r.h }); } return CANOPY_OLD || !!game?.canopyKit; };
   const DEG = Math.PI / 180;
   function decodeProps(pp, ph) {
     const out = [];
@@ -798,7 +806,7 @@ export async function loadMiamiData(game, opts = {}) {
   function decodeTile(T) {
     return {
       key: T.k, tx: T.i, tz: T.j, bounds: tileBounds(T.k),
-      buildings: (T.b || []).map((r) => ({ id: r.id, ...polyT(r), h: r.h, minH: r.mh || 0, levels: r.lv || 0, type: r.t, style: r.st,
+      buildings: (T.b || []).filter(canopyOk).map((r) => ({ id: r.id, ...polyT(r), h: r.h, minH: r.mh || 0, levels: r.lv || 0, type: r.t, style: r.st,
         zone: ZONES[r.zn], part: !!r.part, colour: r.col || null, roofColour: r.rcol || null, roofShape: r.rs || null, ...bExtra(r) })),
       land: (T.ld || []).map(polyT),
       sidewalks: (T.sw || []).map(polyT),
@@ -912,7 +920,7 @@ export async function loadMiamiData(game, opts = {}) {
       if (!signal) for (const s of signals) if ((s[0] - n.x) ** 2 + (s[1] - n.z) ** 2 < 400) { signal = true; break; }
       nodesT.push({ id: n.id, x: n.x, z: n.z, y: n.terrain ? 0 : n.y, degree: dirs.length, signal, width: w, dirs, exit: n.exit });
     }
-    const buildingsT = (T.b || []).map((r) => {
+    const buildingsT = (T.b || []).filter(canopyOk).map((r) => {
       const rings = ringsA(r), o = rings[0];
       let cx = 0, cz = 0, ar = 0;
       for (let i = 0; i < o.length; i++) { const a = o[i], b = o[(i + 1) % o.length]; ar += a[0] * b[1] - b[0] * a[1]; cx += a[0]; cz += a[1]; }

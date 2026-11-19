@@ -58,6 +58,15 @@ export async function loadStreetKit({ M } = {}) {
     // r2-art: library street furniture calibrated to the shared material ranges (src/world/art/calibrate.js); the glass
     // panels above keep their see-through tuning
     if (!/glass/i.test(m.name)) calibrate(m, { hint: 'street/' + file, fallback: 'generic' });
+    // playtest Nov 18 #19 ("the light post has an unrealistic bright edge"): the painted steel shafts of the lamp models were
+    // glossy metal, so the lamp's own light and the sky ran down the silhouette as a hard white line. Weathered paint:
+    // mostly dielectric, satin-rough (the lens / bowl materials are left alone)
+    if (/^(lamp_|lantern_post|upole)/.test(file) && !/glass|E05|LIGHT/i.test(m.name)) {
+      if ('metalness' in m) m.metalness = Math.min(m.metalness ?? 0, 0.3);
+      if ('roughness' in m) m.roughness = Math.max(m.roughness ?? 1, 0.62);
+      if ('envMapIntensity' in m) m.envMapIntensity = Math.min(m.envMapIntensity ?? 1, 0.7);
+      m.needsUpdate = true;
+    }
     return m;
   }
   const scenes = {}; await Promise.all(FILES.concat(['signal_kit', 'sign_set1', 'sign_set5']).map(async (f) => { scenes[f] = await load(f); }));

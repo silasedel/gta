@@ -162,6 +162,15 @@ How the world and the systems connect. If something here is wrong, fix the code 
 - **Lights (Nov 18).** Over the 16 point / 4 spot budget, lights fade (~0.3 s) instead of popping (`perfGuards.v2.js`,
   `?lightfade=0`); street lamps use the clustered lamp system (`game.env.lamps`, 16 per 22 m tile, strongest first).
   Auto exposure eases with a dead zone and a 0.7 stop/s cap (`post.js`; `game.lookAESnap = true` = old).
+- **Frame smoothness (Nov 18 night).** No per-frame garbage in hot paths: no `Math.hypot` (use `Math.sqrt(x*x+z*z)`), no
+  array literals / destructuring `for (const [a, b] of ...)` per sample, no `Map`/`Set` `for...of` per frame (keep an array
+  or use `forEach` with a function made once), return scratch objects instead of new arrays. Streamed groups that may need
+  new shader programs go through `game.shaderWarmWrap(group)` (children stay hidden until their programs link, no frame
+  stall). Generated houses are built once per lot and LOD (`houses.v2.js` build cache, typed arrays, LRU 160 MB); a map
+  footprint under a hand-placed spawn-street lot is not built a second time. Auto exposure reads back with its own fence
+  (`getSyncParameter`, never `clientWaitSync`; `?aeread=three` = old). Measure: `node tools/v2/freeze-probe.mjs --secs 60
+  --still 30 [--heapalloc 1]`; live session for experiments: `node tools/v2/render/sess.mjs --dir <d>` (write `c<N>.js`,
+  read `r<N>.json`; `//heap start` / `//heap stop` for an allocation ranking).
 - **Water edge (Nov 18).** The ocean reads the opaque scene depth (copied before its first pass) for the true water depth
   near the shore: ground meeting the water needs no special mesh work; `?softshore=0` = old edge.
 

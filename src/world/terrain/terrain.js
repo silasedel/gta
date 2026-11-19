@@ -146,10 +146,13 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     return true;
   }
   const _vergeQ = {};
+  // perf (Nov 18): flat probe offsets (the array literals + destructuring here allocated ~110 MB per probe run)
+  const W8 = new Float64Array([40, 0, -40, 0, 0, 40, 0, -40, 28, 28, -28, 28, 28, -28, -28, -28]), SH4 = new Float64Array([5, 0, -5, 0, 0, 5, 0, -5]);
+  const nearWater8 = (x, z) => { for (let q = 0; q < 16; q += 2) if (data.isWater(x + W8[q], z + W8[q + 1])) return true; return false; };
   function layerAt(x, z) {
     const cls = data.coverAt ? data.coverAt(x, z) : 'none';
     let k = CLS[cls];
-    if (k === 'sand' && !(data.isWater && [[40, 0], [-40, 0], [0, 40], [0, -40], [28, 28], [-28, 28], [28, -28], [-28, -28]].some(([dx, dz]) => data.isWater(x + dx, z + dz)))) { // inland sand fields (Keys lots): bare sand broken by shell, scrub, rough meadow and mown patches; beaches within 40 m of water stay sand
+    if (k === 'sand' && !(data.isWater && nearWater8(x, z))) { // inland sand fields (Keys lots): bare sand broken by shell, scrub, rough meadow and mown patches; beaches within 40 m of water stay sand
       const nk = vnoise(x * 0.018 + 2.3, z * 0.018 - 7.1) * 0.65 + vnoise(x * 0.06, z * 0.06) * 0.35;
       k = nk < 0.22 ? 'sand' : nk < 0.45 ? 'scrub' : nk < 0.62 ? 'meadow' : isKeys(x, z) && nk < 0.8 ? 'sand' : 'lawn'; // (greenery) Keys lots: sandy, matted yards, little lush lawn
     }
@@ -177,7 +180,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
       const r = data.roadGraph.nearestEdge(x, z, _vergeQ, 16); if (r && r.dist - r.edge.width / 2 < 9 + 4 * vnoise(x * 0.07, z * 0.07)) k = 'scrub';
     }
     // shoreline: a few meters of beach sand on open coast, mud on marsh / mangrove banks
-    if (data.isWater && k !== 'marsh') for (const [dx, dz] of [[5, 0], [-5, 0], [0, 5], [0, -5]]) if (data.isWater(x + dx, z + dz)) {
+    if (data.isWater && k !== 'marsh') for (let q = 0; q < 8; q += 2) { const dx = SH4[q], dz = SH4[q + 1]; if (!data.isWater(x + dx, z + dz)) continue;
       let wk = data.waterKindAt ? data.waterKindAt(x + dx, z + dz) : 'sea';
       if (R4WATER && wk === 'sea' && data.waterKindAt) for (const s of [2.5, 4.5]) { const w2 = data.waterKindAt(x + dx * s, z + dz * s); if (w2 && w2 !== 'sea') { wk = w2; break; } } // r4-water: a pond's 'sea' raster fringe (Brickell Ave swamp) made a beach-sand strip round the pond
       k = wk === 'sea' ? (k === 'sawgrass' || k === 'forest' ? 'marsh' : isKeys(x, z) && vnoise(x * 0.05, z * 0.05) < 0.4 ? 'damp' : 'sand') : wk === 'lake' ? 'damp' : k === 'lawn' || k === 'forest' || k === 'pine' ? k : 'marsh'; break; // canal / pond / river banks: mud and grass, not beach
@@ -210,9 +213,9 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
   const SR = [2, 4, 7, 11, 16, 23, 32, 48], SD8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.707, 0.707], [-0.707, 0.707], [0.707, -0.707], [-0.707, -0.707]];
   const shoreDist = (x, z) => {
     if (!data.isWater) return 48; if (data.isWater(x, z)) return 0;
-    let any = false; for (const [dx, dz] of SD8) if (data.isWater(x + dx * 48, z + dz * 48) || data.isWater(x + dx * 23, z + dz * 23)) { any = true; break; }
+    let any = false; for (let q = 0; q < 8; q++) { const dx = SD8[q][0], dz = SD8[q][1]; if (data.isWater(x + dx * 48, z + dz * 48) || data.isWater(x + dx * 23, z + dz * 23)) { any = true; break; } }
     if (!any) return 48;
-    let prev = 0; for (const r of SR) { for (const [dx, dz] of SD8) if (data.isWater(x + dx * r, z + dz * r)) return (prev + r) / 2; prev = r; }
+    let prev = 0; for (let ri = 0; ri < SR.length; ri++) { const r = SR[ri]; for (let q = 0; q < 8; q++) if (data.isWater(x + SD8[q][0] * r, z + SD8[q][1] * r)) return (prev + r) / 2; prev = r; }
     return 48;
   };
   // ---- grid builder (generator: yields every few rows so the streamer stays inside its frame budget) ----

@@ -425,7 +425,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   const normalAt = (G, x, z, c, out) => { const e = 1.5, hx = bil(G, G.H, Math.min(c.x0 + CELLS, x + e), z, c) - bil(G, G.H, Math.max(c.x0, x - e), z, c), hz = bil(G, G.H, x, Math.min(c.z0 + CELLS, z + e), c) - bil(G, G.H, x, Math.max(c.z0, z - e), c); return out.set(-hx / (2 * e), 1, -hz / (2 * e)).normalize(); };
   const WET8 = [[3, 0], [-3, 0], [0, 3], [0, -3], [6, 0], [-6, 0], [0, 6], [0, -6], [4.2, 4.2], [-4.2, 4.2], [4.2, -4.2], [-4.2, -4.2]]; /* (r2-veg) reed band: open water within ~6 m */
   function genShrubs(c) {
-    const G = gridOf(c), ST = 3;
+    const G = gridOf(c), ST = 3; c.hedgeIds = new Set(); // a full shrub pass re-plants every lot hedge (the ids kept from a dropped pass left them bare)
     const lotsHere = houseLots.near ? houseLots.near(c.cx, c.cz, CELLS * 0.75 + 24, []).slice() : []; // (vegetation, overnight)
     const nearLot = (x, z) => lotsHere.some((l) => (l._bb ? x > l._bb[0] - 18 && x < l._bb[1] + 18 && z > l._bb[2] - 18 && z < l._bb[3] + 18 : Math.hypot(l.x - x, l.z - z) < 30));
     const trunks = []; for (const [pi, L] of c.lists) if (TREE_KINDS[protos[pi].key.split('#')[0]]) for (let k = 0; k < L.n; k++) trunks.push([L.m[k * 16 + 12], L.m[k * 16 + 14]]);
@@ -492,10 +492,15 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   function reject(x, z) { const c = cells.get(cellKey(Math.floor(x / CELLS), Math.floor(z / CELLS))); if (c && c.lv.t) { for (const [pi] of c.lists) if (protos[pi].cls === 'tree' || TREE_KINDS[protos[pi].key.split('#')[0]]) c.lists.delete(pi); c.lv.t = 0; dirty = true; } }
   // ---- streaming work: nearest missing level first, within a frame budget ----
   const st = { gen: 0, genMs: 0, maxMs: 0, rebucket: 0, rebucketMs: 0, lastRebucketMs: 0 };
+  // perf (Nov 18): the scan below (task arrays for every cell in range, a hypot per cell, every frame) was 177 MB of garbage in a
+  // 90 s probe. With nothing pending, it now runs only when the camera enters another cell or every 0.4 s.
+  let wcx = 1e9, wcz = 1e9, wT = 0, wLast = 1;
   function work(cam, budgetMs, syncR = Infinity) { // syncR: after a jump only the cells within syncR m are filled at once, the rest streams in
-    const t1 = performance.now(), ccx = Math.floor(cam.position.x / CELLS), ccz = Math.floor(cam.position.z / CELLS), N = Math.ceil(R_TREE / CELLS) + 1, tasks = [];
+    const t1 = performance.now(), ccx = Math.floor(cam.position.x / CELLS), ccz = Math.floor(cam.position.z / CELLS), N = Math.ceil(R_TREE / CELLS) + 1;
+    if (!wLast && ccx === wcx && ccz === wcz && t1 - wT < 400 && syncR === Infinity) return 0;
+    wcx = ccx; wcz = ccz; wT = t1; const tasks = [];
     for (let dj = -N; dj <= N; dj++) for (let di = -N; di <= N; di++) {
-      const cx = (ccx + di + 0.5) * CELLS, cz = (ccz + dj + 0.5) * CELLS, d = Math.hypot(cx - cam.position.x, cz - cam.position.z) - HALF; if (d > R_TREE) continue;
+      const cx = (ccx + di + 0.5) * CELLS, cz = (ccz + dj + 0.5) * CELLS, ex = cx - cam.position.x, ez = cz - cam.position.z, d = Math.sqrt(ex * ex + ez * ez) - HALF; if (d > R_TREE) continue;
       const c = cells.get(cellKey(ccx + di, ccz + dj));
       if (d < R_GC + MARGIN && !(c && c.lv.g)) tasks.push([d - 399, 'g', ccx + di, ccz + dj, d]);
       if (d < R_SHRUB + MARGIN && !(c && c.lv.s)) tasks.push([d - 149, 's', ccx + di, ccz + dj, d]);
@@ -510,7 +515,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
       seal(c); const ms = performance.now() - ts; st.gen++; st.genMs += ms; st.maxMs = Math.max(st.maxMs, ms);
     }
     // forget far data (hysteresis)
-    for (const c of cells.values()) { const d = Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) - HALF;
+    wLast = tasks.length;
+    for (const c of cells.values()) { const fx = c.cx - cam.position.x, fz = c.cz - cam.position.z, d = Math.sqrt(fx * fx + fz * fz) - HALF;
       if (d > R_TREE + 140) { cells.delete(c.k); dirty = true; continue; }
       if (c.lv.g && d > R_GC + 60) { dropLevel(c, ['gc', 'peb', 'gcn', 'gch']); c.lv.g = 0; }
       if (c.lv.s && d > R_SHRUB + 80) { for (const [pi] of c.lists) if (protos[pi].cls === 'shrub' && !TREE_KINDS[protos[pi].key.split('#')[0]]) c.lists.delete(pi); c.lv.s = 0; c.grid = c.lv.g ? c.grid : null; dirty = true; }
@@ -524,7 +530,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     cam.updateMatrixWorld(); pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse); frus.setFromProjectionMatrix(pm);
     for (const P of protos) for (const L of P.lods) for (const s of L.slots) s.n = 0;
     for (const c of cells.values()) {
-      const dc = Math.hypot(c.cx - px, c.cy - py, c.cz - pz); if (dc - HALF > R_TREE + MARGIN) continue;
+      const ax = c.cx - px, ay = c.cy - py, az = c.cz - pz, dc = Math.sqrt(ax * ax + ay * ay + az * az); if (dc - HALF > R_TREE + MARGIN) continue;
       if (dc > 100) { sph.center.set(c.cx, c.cy + 8, c.cz); sph.radius = HALF + 22; if (!frus.intersectsSphere(sph)) continue; }
       for (const [pi, L] of c.lists) { if (!L.n) continue; const P = protos[pi];
         for (const lod of P.lods) { const lo = lod.band[1] > 0 ? lod.band[0] - MARGIN : -1, hi = lod.band[3] + MARGIN;

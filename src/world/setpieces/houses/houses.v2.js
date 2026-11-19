@@ -26,6 +26,7 @@ export async function initV2(game) {
   if (!lots.enabled) return;
   const hk = createHouseKit(THREE, { shareTex: game.nicoHouse?.house?.kit?.tex });
   const root = new THREE.Group(); root.name = 'houses'; scene.add(root);
+  game.shaderWarmWrap?.(root);   // perf: new LOD groups wait (hidden) for a not-yet-linked shader instead of stalling a frame
   const hm = hk.mat, noCast = new Set([hm.concrete(), hm.metalPaint(), hm.plastic(), hm.houseWindow(), hm.digits(), hm.chainlink(), hm.screen(), hm.poolWater()]);
   const D = game.miamiData, city = game.city;
   const TH = (x, z) => (D?.terrainHeightAt ? D.terrainHeightAt(x, z) : 0);
@@ -70,11 +71,31 @@ export async function initV2(game) {
     g.userData.tris = tris; return g;
   }
   const okLot = (L) => Number.isFinite(L.x) && Number.isFinite(L.z) && Number.isFinite(L.y) && Number.isFinite(L.ry) && Number.isFinite(L.sp.w) && Number.isFinite(L.sp.d);
+  // ---------- build cache (perf, Nov 18): every house is generated at most once per LOD ----------
+  // The generator collects geometry in plain JS arrays (about 1.7 GB of garbage per test run when lots were rebuilt each time
+  // a tile or a near lot came back). Results are packed into typed arrays once and kept in an LRU (by bytes), keyed by lot.
+  const CACHE_MAX = 160e6, cache = new Map(); let cacheBytes = 0;
+  function pack(res) {
+    const b = new Map(); let bytes = 0;
+    for (const [m, k] of res.batch.b) { if (!k.n) continue;
+      const q = { n: k.n, pos: new Float32Array(k.pos), nor: new Float32Array(k.nor), uv: new Float32Array(k.uv), col: new Float32Array(k.col), wear: new Float32Array(k.wear), idx: k.n > 65535 ? new Uint32Array(k.idx) : new Uint16Array(k.idx) };
+      bytes += k.n * 48 + q.idx.byteLength; b.set(m, q); }
+    return { batch: { b }, colliders: res.colliders, lamps: res.lamps, plants: res.plants || [], cars: res.cars || [], curb: res.curb || [], bytes };
+  }
+  function cacheGet(key) { const e = cache.get(key); if (e) { cache.delete(key); cache.set(key, e); stats.cacheHits = (stats.cacheHits || 0) + 1; } return e; }
+  function cachePut(key, e) {
+    const old = cache.get(key); if (old) { cacheBytes -= old.bytes; cache.delete(key); }
+    cache.set(key, e); cacheBytes += e.bytes;
+    for (const [k, v] of cache) { if (cacheBytes <= CACHE_MAX) break; if (v.pinned) continue; cache.delete(k); cacheBytes -= v.bytes; }
+    stats.cacheMB = Math.round(cacheBytes / 1e6);
+  }
+  const ckey = (L, lod) => L.lotKey + '|' + lod;
+  function buildCached(L, lod) { const k = ckey(L, lod); let e = cacheGet(k); if (!e) { e = pack(buildHouse(hk, L.sp, lod)); cachePut(k, e); stats.builds = (stats.builds || 0) + 1; } return e; }
   function* mergeClusterGen(cl, lod) {
     const entries = [];
     for (const L of cl.lots) {
       if (!okLot(L)) { L.bad = true; continue; }
-      const res = buildHouse(hk, L.sp, lod);
+      const res = buildCached(L, lod);
       if (lod === 1) { const c = Math.cos(L.ry), s = Math.sin(L.ry); L.colliders = res.colliders; for (const p of res.plants) (cl.plants[p.kind] ||= []).push({ x: L.x + c * p.x + s * p.z, y: L.y, z: L.z - s * p.x + c * p.z, ry: (p.x * 7 + p.z * 3) % 6.28, s: p.s });
         if (res.curb && res.curb.length) { const W = (q) => ({ x: L.x + c * q.x + s * q.z, y: L.y, z: L.z - s * q.x + c * q.z, ry: L.ry }); // props pass: library mailbox + carts (src/world/props/lotProps.v2.js)
           lotProps.add('house:' + L.lotKey, res.curb.map((q) => ({ kind: q.kind, ...W(q), seed: (L.sp.seed || 1) + q.x * 13, side: q.side ? W(q.side) : undefined }))); } }
@@ -89,14 +110,14 @@ export async function initV2(game) {
   let nearJob = null;
 
   // ---------- clusters ----------
-  const clusters = new Map();
+  const clusters = new Map(), clList = [];
   function addCluster(key, list, opts = {}) {
     if (!list.length) return null;
     let ox = 0, oz = 0; for (const L of list) { ox += L.x; oz += L.z; } ox /= list.length; oz /= list.length;
     let r = 0; for (const L of list) r = Math.max(r, Math.hypot(L.x - ox, L.z - oz) + 14);
     const cl = { key, lots: list, ox, oz, r, mid: null, far: null, tile: opts.tile ?? null, always: !!opts.always, plants: {}, fields: [], ready: false };
     for (const L of list) { L.id = takeId(); L.cl = cl; L.nearData = null; L.col = null; L.lampIds = null; }
-    clusters.set(key, cl); stats.lots += list.length; stats.clusters++;
+    clusters.set(key, cl); clList.push(cl); stats.lots += list.length; stats.clusters++;
     const job = (function* () {
       const t0 = performance.now();
       cl.mid = yield* mergeClusterGen(cl, 1); cl.far = yield* mergeClusterGen(cl, 2);
@@ -119,7 +140,7 @@ export async function initV2(game) {
     for (const L of cl.lots) { dropNear(L); dropCols(L); lots.remove(L.lotKey); dropId(L.id); lotProps.remove('house:' + L.lotKey); }
     for (const g of [cl.mid, cl.far]) { if (!g) continue; g.traverse((o) => o.geometry?.dispose()); g.removeFromParent(); }
     for (const f of cl.fields) { try { f.remove(); } catch (e) { /* */ } }
-    clusters.delete(cl.key); stats.lots -= cl.lots.length; stats.clusters--; nearDirty = true;
+    clusters.delete(cl.key); { const i = clList.indexOf(cl); if (i >= 0) clList.splice(i, 1); } stats.lots -= cl.lots.length; stats.clusters--; nearDirty = true;
   }
 
   // ---------- full detail: built over frames, all near lots merged per material into one group ----------
@@ -127,9 +148,14 @@ export async function initV2(game) {
   function startNear(L) {
     nearBusy = L;
     jobs.unshift(nearJob = (function* () {
-      const t0 = performance.now(), g = buildHouseGen(hk, L.sp, 0); let r = g.next(), work = 0, t1 = performance.now();
-      while (!r.done) { work += performance.now() - t1; yield; t1 = performance.now(); r = g.next(); }
-      work += performance.now() - t1; stats.maxNearMs = Math.max(stats.maxNearMs, work); stats.nearBuilt++;
+      const k = ckey(L, 0); let val = cacheGet(k);
+      if (!val) {
+        const g = buildHouseGen(hk, L.sp, 0); let r = g.next(), work = 0, t1 = performance.now();
+        while (!r.done) { work += performance.now() - t1; yield; t1 = performance.now(); r = g.next(); }
+        val = pack(r.value); work += performance.now() - t1; cachePut(k, val);
+        stats.maxNearMs = Math.max(stats.maxNearMs, work); stats.nearBuilt++;
+      }
+      const r = { value: val };
       nearBusy = null; if (!L.wantNear || L.cl.dead) return;
       L.nearData = r.value.batch.b; L.nearLamps = r.value.lamps; nearDirty = true;
       // QA-035 (r2-physics): the generator seeds its RNG with the LOD, so the LOD 1 colliders sat up to ~1 m off the full-detail
@@ -246,13 +272,13 @@ export async function initV2(game) {
     lots.add({ id: lotKey, x, z, y, heading: ry, w: w + Math.min(sideL, sideR), d: d + back * 0.5 + Math.max(0, gapF - 0.9), roadGap: 0.9, style: sp.style, source: 'map', buildingId: b.id, seed: sp.seed });
     return { lotKey, x, y, z, ry, sp };
   }
-  const tilePending = [];
+  const tilePending = [], _nearOut = [];
   function scanTiles(px, pz) {
     const S = city?.streamer; if (!S?.tiles || !D?.getTile) return;
     const TS = S.tileSize || 200;
     for (const t of S.tiles.values()) {
-      const k = 'tile:' + t.tx + '_' + t.tz, has = clusters.has(k) || t._houseEmpty;
-      const d = Math.hypot(t.cx - px, t.cz - pz);
+      const k = t._houseKey || (t._houseKey = 'tile:' + t.tx + '_' + t.tz), has = t._houseEmpty || clusters.has(k);
+      const tdx = t.cx - px, tdz = t.cz - pz, d = Math.sqrt(tdx * tdx + tdz * tdz);
       if (!has && t.near && d < MAP_R && !tilePending.includes(t) && !lots.townPending(t.cx, t.cz)) tilePending.push(t);
       if (clusters.has(k) && (!t.near || d > MAP_R + 120)) removeCluster(clusters.get(k));
     }
@@ -260,7 +286,11 @@ export async function initV2(game) {
       tilePending.sort((a, b) => Math.hypot(a.cx - px, a.cz - pz) - Math.hypot(b.cx - px, b.cz - pz));
       const t = tilePending.shift(), tile = D.getTile(t.tx, t.tz);
       if (!tile) { t._houseEmpty = true; return; }
-      const list = []; for (const b of tile.buildings || []) if (lots.claims(b) && !(lots.reserved.length && b.rings[0].concat([[b.cx, b.cz]]).some(([x, z]) => Number.isFinite(x) && lots.reservedAt(x, z, 1.5)))) { const L0 = lotFromBuilding(b, tile.buildings); if (L0) list.push(L0); }
+      // a map footprint under a hand-placed spawn-street lot is that lot's house: building both drew two houses in one spot
+      // (REQUESTS Nov 18 eve: houses:spawn mid copy fighting a houses:near copy at about -1117, 5336)
+      const onStreetLot = (b) => { let cx = 0, cz = 0; const r = b.rings[0]; for (const [x, z] of r) { cx += x; cz += z; } cx /= r.length; cz /= r.length;
+        for (const l of lots.near(cx, cz, 1.5, _nearOut)) if (l.source === 'street') return true; return false; };
+      const list = []; for (const b of tile.buildings || []) if (lots.claims(b) && !onStreetLot(b) && !(lots.reserved.length && b.rings[0].concat([[b.cx, b.cz]]).some(([x, z]) => Number.isFinite(x) && lots.reservedAt(x, z, 1.5)))) { const L0 = lotFromBuilding(b, tile.buildings); if (L0) list.push(L0); }
       if (!list.length) { t._houseEmpty = true; return; }
       addCluster('tile:' + t.tx + '_' + t.tz, list, { tile: t });
     }
@@ -275,14 +305,14 @@ export async function initV2(game) {
       if ((scanT -= dt) <= 0) { scanT = 0.5; scanTiles(cam.x, cam.z); }
       const night = hk.uNight.value > 0.5;
       let bestNear = null, bestD = Infinity; stats.near = stats.mid = stats.far = 0; stats.tris.mid = stats.tris.far = 0;
-      for (const cl of clusters.values()) {
+      for (let ci = 0; ci < clList.length; ci++) { const cl = clList[ci];
         if (!cl.ready) continue;
-        const dc = Math.max(0, Math.hypot(cl.ox - cam.x, cl.oz - cam.z) - cl.r), vis = cl.always ? dc < 1400 : !!(cl.tile && cl.tile.near);
+        const cdx = cl.ox - cam.x, cdz = cl.oz - cam.z, dc = Math.max(0, Math.sqrt(cdx * cdx + cdz * cdz) - cl.r), vis = cl.always ? dc < 1400 : !!(cl.tile && cl.tile.near);
         const mid = vis && dc < MID_R; cl.mid.visible = mid; cl.far.visible = vis && !mid;
         if (mid) { stats.mid++; stats.tris.mid += cl.mid.userData.tris; } else if (vis) { stats.far++; stats.tris.far += cl.far.userData.tris; }
         if (dc > NEAR_OUT + 20 && dc > COL_OUT) { for (const L of cl.lots) { if (L.nearData || L.wantNear) dropNear(L); if (L.col) dropCols(L); } continue; }
-        for (const L of cl.lots) {
-          const d = Math.hypot(L.x - cam.x, L.z - cam.z), dp = Math.hypot(L.x - P.x, L.z - P.z);
+        for (let li = 0; li < cl.lots.length; li++) { const L = cl.lots[li];
+          const ax = L.x - cam.x, az = L.z - cam.z, bx = L.x - P.x, bz = L.z - P.z, d = Math.sqrt(ax * ax + az * az), dp = Math.sqrt(bx * bx + bz * bz);
           if ((L.nearData || L.wantNear) && (d > NEAR_OUT || !vis)) dropNear(L);
           else if (!L.nearData && !L.bad && L.id && d < NEAR_IN && vis) { /* clipping sweep: a lot without a mask id cannot hide its merged copy, so it stays merged */ L.wantNear = true; if (nearBusy !== L && d < bestD) { bestD = d; bestNear = L; } }
           if (L.nearData) { stats.near++; setLamps(L, night); }
