@@ -5,7 +5,7 @@
 // end, the handrails die into the newels, balusters between stringer and rail, one ramp collider per flight); the upper back strip
 // along the NE gable (slider) with the steps down to the lower gym deck (part r8_12); weathered teal board-and-batten walls with real
 // boards and battens, white casings, board shutters, a hatch in the front gable; the gable roof (patched shingles on the SE slope,
-// standing seam on the NW slope); the user's satellite dish on the stair-head post; the hoop on the middle beam over the under-house
+// standing seam on the NW slope); the user's satellite dish on the stair-head post; the hoop on the SE edge beam over the under-house
 // passage (backboard facing SE); the cracked concrete pad under the house. Every piece is a closed, beveled solid; faces that would
 // touch are cut or offset (no coplanar faces). Built in H through r4/frame.js.
 import { R8, P4, inR, toS, StoH, HtoB, BtoH } from '../r4/plan4.js';
@@ -1505,66 +1505,82 @@ export function build(ctx) {
     ctx.r8service = { x: mx, y: my1 - 0.05, z: mz };
   }
 
-  // ================= the hoop (r12, user Nov 19 eve: "add it back to the right part, kinda at the bottom of the stairs") =================
-  // a freestanding driveway hoop on a steel pole beside the foot of the back stair, the backboard facing -X down the open lawn
-  // between the house and the bay wall (the shooting area, kept clear of plants and props in plan4 houseBlock8). The wall-mounted
-  // one of r10 sat under the upper deck's joists, half hidden behind a post, with its shooting spot past the bay wall once the
-  // house was turned.
-  {
+  // ================= the hoop (r13, user Nov 19 night: "pinned, mounted on the edge of the house", refs r4/10, r4/13) =================
+  // bolted to the outer face of the SE edge beam over the under-house passage, between the main stair's foot and the post by the
+  // annex, the backboard facing SE (+Z) over the driveway. The beam's underside is at ~3.04 m, so the board hangs from it with its
+  // top tucked under the floor line and the rim lands at ~3.03 m (near regulation). The freestanding pole hoop of r12 by the back
+  // stair is gone.
+  buildEdgeHoop();
+
+  // the backboard, rim and net on the SE edge beam (P.hoop: x = board center, z = the beam's center line)
+  function buildEdgeHoop() {
     const H = P.hoop,
-      yB = 3.05, // backboard center (rim at 3.05 m, regulation)
-      bx = H.x - 0.62, // backboard face (-X side of the pole's arm)
+      boardH = 0.72,
+      boardW = 1.12,
+      boardTop = F - 0.03, // just under the floor boards' edge
+      boardY = boardTop - boardH / 2,
+      beamFace = H.z + 0.08, // outer (+Z) face of the 0.16 m beam
+      spacer = 0.06,
+      boardZ = beamFace + spacer + 0.0175, // board center (0.035 thick)
+      boardFront = boardZ + 0.0175,
+      rimY = boardTop - boardH + 0.15,
+      rimR = 0.23,
+      rimZ = boardFront + 0.05 + rimR,
       BBm = mat.paint({ peel: 'a', fade: 0.4, gloss: 0.6, scale: 0.5 });
-    // pole (galvanized, slight lean), its base plate and the gooseneck arm out to the board
-    D.cyl(STEEL, 0.055, 0.06, yB + 0.35, M(H.x, (yB + 0.35) / 2, H.z), {
-      color: 0x9a9c98,
-      seg: 14,
-    });
-    box(STEEL, 0.36, 0.03, 0.36, H.x, 0.015, H.z, { color: 0x6f716c });
-    for (const dy of [0.25, -0.12])
-      box(STEEL, H.x - bx - 0.05, 0.05, 0.05, (H.x + bx) / 2, yB + dy, H.z, { color: 0x8c8e8a });
-    box(
-      STEEL,
-      0.05,
-      0.42,
-      0.05,
-      (H.x + bx) / 2 - 0.1,
-      yB + 0.06,
-      H.z,
-      { color: 0x8c8e8a },
-      0,
-      0,
-      0.6,
-    );
-    // backboard (weathered white), the black shooter's square and border
-    box(BBm, 0.035, 0.76, 1.12, bx, yB + 0.17, H.z, { color: 0xe8e5dc, wear: 0.45 });
-    for (const [dy, dz, sy, sz] of [
-      [0.2, 0, 0.05, 0.58],
-      [-0.04, 0, 0.05, 0.58],
-      [0.08, -0.265, 0.29, 0.05],
-      [0.08, 0.265, 0.29, 0.05],
-    ])
-      box(mat.plastic(), 0.006, sy, sz, bx - 0.021, yB + dy, H.z + dz, {
+    // two 2x4 spacer blocks lag-bolted to the beam (the board stands off the beam face), with their bolt heads
+    for (const dx of [-0.38, 0.38]) {
+      box(WOOD, 0.09, boardH - 0.1, spacer, H.x + dx, boardY, beamFace + spacer / 2, {
+        grain: 1,
+        color: dark(),
+        wear: 0.5,
+      });
+      for (const dy of [0.2, -0.2])
+        D.cyl(
+          STEEL,
+          0.012,
+          0.012,
+          0.03,
+          M(H.x + dx, boardY + dy, boardFront + 0.01, Math.PI / 2, 0, 0),
+          {
+            color: 0x7d7f7a,
+            seg: 6,
+          },
+        );
+    }
+    // backboard (weathered white), the black border and shooter's square
+    box(BBm, boardW, boardH, 0.035, H.x, boardY, boardZ, { color: 0xe8e5dc, wear: 0.45 });
+    const lineZ = boardFront + 0.003;
+    const lines = [
+      // [dx, dy, sx, sy]: the outer border, then the shooter's square above the rim
+      [0, boardH / 2 - 0.03, boardW - 0.04, 0.04],
+      [0, -boardH / 2 + 0.03, boardW - 0.04, 0.04],
+      [-boardW / 2 + 0.03, 0, 0.04, boardH - 0.04],
+      [boardW / 2 - 0.03, 0, 0.04, boardH - 0.04],
+      [0, rimY - boardY + 0.42, 0.58, 0.04],
+      [0, rimY - boardY + 0.04, 0.58, 0.04],
+      [-0.27, rimY - boardY + 0.23, 0.04, 0.42],
+      [0.27, rimY - boardY + 0.23, 0.04, 0.42],
+    ];
+    for (const [dx, dy, sx, sy] of lines)
+      box(mat.plastic(), sx, sy, 0.006, H.x + dx, boardY + dy, lineZ, {
         color: 0x262626,
         bevel: 0.001,
       });
-    // rim (orange), its bracket, and the net
-    const rimY = yB,
-      rimX = bx - 0.26;
+    // rim (orange), its bracket plate on the board, and the net
     D.geo(
       mat.metalPaint(),
-      new THREE.TorusGeometry(0.23, 0.009, 8, 32),
-      M(rimX, rimY, H.z, Math.PI / 2, 0, 0),
+      new THREE.TorusGeometry(rimR, 0.009, 8, 32),
+      M(H.x, rimY, rimZ, Math.PI / 2, 0, 0),
       { color: 0xd2531f },
     );
-    box(MP, 0.06, 0.1, 0.14, bx - 0.04, rimY - 0.03, H.z, { color: 0xd2531f });
+    box(MP, 0.16, 0.12, 0.06, H.x, rimY - 0.03, boardFront + 0.03, { color: 0xd2531f });
     for (let k = 0; k < 12; k++) {
       const a1 = (k / 12) * 6.283,
         a2 = a1 + 0.5,
         pts = [
-          [rimX + Math.cos(a1) * 0.22, rimY, H.z + Math.sin(a1) * 0.22],
-          [rimX + Math.cos(a2) * 0.17, rimY - 0.2, H.z + Math.sin(a2) * 0.17],
-          [rimX + Math.cos(a1 + 1.0) * 0.13, rimY - 0.4, H.z + Math.sin(a1 + 1.0) * 0.13],
+          [H.x + Math.cos(a1) * 0.22, rimY, rimZ + Math.sin(a1) * 0.22],
+          [H.x + Math.cos(a2) * 0.17, rimY - 0.2, rimZ + Math.sin(a2) * 0.17],
+          [H.x + Math.cos(a1 + 1.0) * 0.13, rimY - 0.4, rimZ + Math.sin(a1 + 1.0) * 0.13],
         ];
       D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.004, {
         seg: 4,
@@ -1572,11 +1588,10 @@ export function build(ctx) {
         steps: 10,
       });
     }
-    Fr.col.cyl(H.x, (yB + 0.35) / 2, H.z, 0.07, yB + 0.35, { tag: 'pole' });
-    Fr.col.box(bx, yB + 0.17, H.z, 0.06, 0.76, 1.12, { tag: 'prop' });
-    // shooting spot 4 m out on the lawn, facing the rim (+X)
-    Fr.anchor('hoop', rimX - 4.0, 0, H.z, Math.PI / 2);
-    Fr.anchor('hoopRim', rimX, rimY, H.z, Math.PI / 2);
+    Fr.col.box(H.x, boardY, boardZ, boardW, boardH, 0.06, { tag: 'prop' });
+    // shooting spot 4 m out on the driveway, facing the rim (-Z)
+    Fr.anchor('hoop', H.x, 0, rimZ + 4.0, Math.PI);
+    Fr.anchor('hoopRim', H.x, rimY, rimZ, Math.PI);
   }
 
   // ================= anchors, interior visibility, camera occluder =================

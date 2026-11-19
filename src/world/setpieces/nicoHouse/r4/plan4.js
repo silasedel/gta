@@ -238,7 +238,7 @@ export const P8 = {
   // running back toward the house (head pad beside the deck's SE edge, one flight going -X)
   stepsUL: { z0: -10.3, z1: -9.15 },
   // r10 (playtest Nov 19): the stair goes down on the OTHER (NW) side of the deck, steeper (11 risers of 0.23 on 0.25 treads), so it
-  // reaches the ground sooner; its foot is by the annex's NW wall with the hoop
+  // reaches the ground sooner; its foot is by the annex's NW wall
   lowerStair: {
     pad: { x0: 11.25, x1: 12.45, z0: -12.6, z1: -11.2 },
     zc: -11.95,
@@ -262,10 +262,11 @@ export const P8 = {
   // the annex (D, C): a lower teal room under the NE half of the house and on under the lower deck; door + window on its SW face
   // (toward the under-house passage), the lower deck on its roof
   annex: { x0: 2.45, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.4, deckY: 2.75, door: -6.2, win: -4.5 },
-  // under-house slab (C: cracked concrete pad) and the hoop on the middle beam, backboard facing SE (+Z), shot toward the bay (-Z)
+  // under-house slab (C: cracked concrete pad)
   pad: { x0: -6.9, x1: 2.2, z0: -10.8, z1: -1.4 },
-  // r12: a freestanding pole hoop beside the foot of the back stair, backboard facing -X down the lawn strip on the bay side
-  hoop: { x: 8.0, z: -13.2 },
+  // r13 (user, Nov 19 night): the hoop is mounted on the SE edge beam (z = its center line) over the under-house passage, between
+  // the main stair's foot and the post by the annex, backboard facing SE (+Z) over the driveway (refs r4/10, r4/13)
+  hoop: { x: 1.35, z: -3.6 },
   // interior (clear spaces at floor level): front door in the middle of the SW gable -> short hall, bath LEFT (NW), bedroom RIGHT (SE),
   // then the open kitchen (SE wall) / living room (sofa on the NW wall, TV facing it, slider in the NE gable)
   hall: { x0: -6.5, x1: -2.6, z0: -7.75, z1: -6.25 },
@@ -402,7 +403,7 @@ function houseBlock8(sx, sz, pad = 0) {
     ) ||
     inR({ x0: P.walk.x0 - 0.2, x1: 1.3, z0: -3.6, z1: -1.9 }, x, z, pad) || // the main stair along the SE face
     inR({ x0: 7.8, x1: 12.6, z0: -12.7, z1: -11.1 }, x, z, pad) || // the lower deck's stair (r10: NW side)
-    inR({ x0: 1.8, x1: 8.4, z0: -14.6, z1: -11.0 }, x, z, pad) || // r12: the hoop and its shooting area
+    inR({ x0: 0.5, x1: 2.4, z0: -3.6, z1: 1.5 }, x, z, pad) || // r13: the shooting lane in front of the hoop
     inR(P.pad, x, z, pad)
   );
 }
