@@ -224,6 +224,14 @@ LM = {
              'R': dict(sh=(-0.168, 0.03, 1.33), el=(-0.214, 0.026, 1.05), wr=(-0.258, -0.03, 0.865), kn=(-0.258, -0.058, 0.77),
                        tip=None, palm=(1.0, 0.3, 0.0), pca=False, zone=0.09),
              'rmax': 1.25, 'skin_tol': 9},
+    # NPC 193 flight-line crewman (1.80 m, Nov 19): arms hang free, a gloved fist round a marshalling wand on each side;
+    # read from arm slices of p193_verts.npy (elbow gap opens ~1.12 m, glove cuff ~0.97 m, fist ~0.85 m)
+    'p193': {'spine_y': 0.02, 'legx': 0.09,
+             'L': dict(sh=(0.195, 0.075, 1.43), el=(0.29, 0.075, 1.12), wr=(0.335, 0.03, 0.965), kn=(0.338, 0.01, 0.85),
+                       tip=None, palm=(-1.0, 0.3, 0.0), pca=False, zone=0.095),
+             'R': dict(sh=(-0.195, 0.075, 1.43), el=(-0.29, 0.075, 1.12), wr=(-0.333, 0.025, 0.965), kn=(-0.336, 0.01, 0.85),
+                       tip=None, palm=(1.0, 0.3, 0.0), pca=False, zone=0.095),
+             'rmax': 1.25, 'skin_tol': 9},
 }[PID]
 for k in ('L', 'R'):
     for j in ('sh', 'el', 'wr', 'kn', 'tip', 'palm'):

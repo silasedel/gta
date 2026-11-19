@@ -6565,6 +6565,263 @@
     "leg": 1.0,
     "hat": true
    }
+  },
+  {
+   "id": "p186",
+   "file": "p186.glb",
+   "name": "Young Soldier In Woodland Fatigues Helmet And Rifle Sling",
+   "g": "m",
+   "age": "adult",
+   "years": 23,
+   "role": "soldier",
+   "look": "uniform",
+   "places": [
+    "military"
+   ],
+   "height": 1.875,
+   "hipH": 0.9587,
+   "tris": {
+    "LOD0_body": 47321,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 7035196,
+    "top": 3553571,
+    "bottom": 4079658,
+    "hair": 5526597,
+    "shoes": 2697503,
+    "sleeve": 0.1,
+    "leg": 0.92,
+    "hat": true
+   }
+  },
+  {
+   "id": "p187",
+   "file": "p187.glb",
+   "name": "Scruffy Bush Pilot In Faded Khaki Shirt And Headset",
+   "g": "m",
+   "age": "adult",
+   "years": 50,
+   "role": "pilot",
+   "look": "rugged",
+   "places": [
+    "aviation"
+   ],
+   "height": 1.786,
+   "hipH": 0.8992,
+   "tris": {
+    "LOD0_body": 47876,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10444098,
+    "top": 9074008,
+    "bottom": 5721660,
+    "hair": 5654327,
+    "shoes": 2696221,
+    "sleeve": 0.3,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p188",
+   "file": "p188.glb",
+   "name": "Bearded Swamp Poacher In Camo Hunting Jacket And Cap",
+   "g": "m",
+   "age": "adult",
+   "years": 45,
+   "role": "poacher",
+   "look": "rugged",
+   "places": [
+    "poacher"
+   ],
+   "height": 1.846,
+   "hipH": 0.9452,
+   "tris": {
+    "LOD0_body": 47636,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11034694,
+    "top": 6312254,
+    "bottom": 4540487,
+    "hair": 5524549,
+    "shoes": 2958877,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": true
+   }
+  },
+  {
+   "id": "p189",
+   "file": "p189.glb",
+   "name": "Stocky Base Guard In Desert Tan With Helmet And Knee Pads",
+   "g": "m",
+   "age": "adult",
+   "years": 32,
+   "role": "soldier",
+   "look": "uniform",
+   "places": [
+    "military"
+   ],
+   "height": 1.852,
+   "hipH": 0.8779,
+   "tris": {
+    "LOD0_body": 48682,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 7691326,
+    "top": 4798497,
+    "bottom": 8545350,
+    "hair": 10060651,
+    "shoes": 4075552,
+    "sleeve": 0.0,
+    "leg": 0.17,
+    "hat": true
+   }
+  },
+  {
+   "id": "p190",
+   "file": "p190.glb",
+   "name": "Gate Guard In Navy Security Uniform And Black Beret",
+   "g": "m",
+   "age": "adult",
+   "years": 33,
+   "role": "soldier",
+   "look": "uniform",
+   "places": [
+    "military"
+   ],
+   "height": 1.925,
+   "hipH": 0.9409,
+   "tris": {
+    "LOD0_body": 48306,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 9589565,
+    "top": 2894907,
+    "bottom": 2302764,
+    "hair": 2828845,
+    "shoes": 1381650,
+    "sleeve": 0.5,
+    "leg": 1.0,
+    "hat": true
+   }
+  },
+  {
+   "id": "p191",
+   "file": "p191.glb",
+   "name": "Off-Duty Soldier In Tan Tee Camo Pants And Dog Tags",
+   "g": "m",
+   "age": "adult",
+   "years": 24,
+   "role": "soldier",
+   "look": "uniform",
+   "places": [
+    "military"
+   ],
+   "height": 1.807,
+   "hipH": 0.8957,
+   "tris": {
+    "LOD0_body": 49414,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10114102,
+    "top": 8086848,
+    "bottom": 5654572,
+    "hair": 5389865,
+    "shoes": 3221271,
+    "sleeve": 0.2,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p192",
+   "file": "p192.glb",
+   "name": "Military Mechanic In Olive Coveralls Tied At The Waist",
+   "g": "m",
+   "age": "adult",
+   "years": 36,
+   "role": "mechanic",
+   "look": "worker",
+   "places": [
+    "military"
+   ],
+   "height": 1.796,
+   "hipH": 0.897,
+   "tris": {
+    "LOD0_body": 48608,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 3551269,
+    "top": 6643802,
+    "bottom": 4538668,
+    "hair": 4602157,
+    "shoes": 2301719,
+    "sleeve": 0.9,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p193",
+   "file": "p193.glb",
+   "name": "Flight-Line Crewman In Yellow Vest With Marshalling Wands",
+   "g": "m",
+   "age": "adult",
+   "years": 30,
+   "role": "ground_crew",
+   "look": "worker",
+   "places": [
+    "military",
+    "aviation"
+   ],
+   "height": 1.805,
+   "hipH": 0.8908,
+   "tris": {
+    "LOD0_body": 54303,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 15418888,
+    "top": 8225839,
+    "bottom": 5327429,
+    "hair": 6838613,
+    "shoes": 3419428,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
   }
  ]
 }
