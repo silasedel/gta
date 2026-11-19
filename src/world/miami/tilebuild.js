@@ -4,6 +4,7 @@ import { Batch, orient, wallStrip, parapet, palmGeometry, capPoly } from '../cit
 import { rng } from '../city/tex.js';
 import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { makeVegMaterial } from '../vegetation/materials.js';
+import { createTileBatcher } from './tileBatch.js';
 const TREEPITS3 = typeof location !== 'undefined' && /[?&]treepits=3\b/.test(location.search);
 import { grassCardMap, weedCard, clumpCard } from '../vegetation/grasscards.js';
 import { bakeImpostor } from '../vegetation/field.js';
@@ -1476,6 +1477,15 @@ export function createTileBuilder(ctx) {
   ]); // pole + parking-regulation plate
   const acMat = new THREE.MeshStandardMaterial({ color: 0xc9cdd0, roughness: 0.5, metalness: 0.4 });
   const pierMat = new THREE.MeshStandardMaterial({ color: 0xc8c6c0, roughness: 0.8 });
+
+  // ---- cross-tile batches: the plain per-material meshes of every streamed tile / chunk drawn as one multi-draw ----
+  const tileBatch = createTileBatcher(root);
+  // the streamer's build jobs: the finished group's meshes move into the batches as the job's last steps
+  function* batched(gen) {
+    const group = yield* gen;
+    if (group) yield* tileBatch.adoptG(group);
+    return group;
+  }
 
   // ---- global instance pools: ONE InstancedMesh per (geometry, material) shared by all near tiles ----
   // tiles add instances on build and remove them on dispose (swap-remove keeps the pool dense).
@@ -14623,6 +14633,7 @@ export function createTileBuilder(ctx) {
   }
   function dispose(group) {
     if (!group) return;
+    tileBatch.release(group);
     lawnIndex.delete(group);
     for (const e of moorings.values())
       if (e.h && (group.userData.handles || []).includes(e.h)) e.h = null;
@@ -14855,9 +14866,10 @@ export function createTileBuilder(ctx) {
     lawnAt,
     lawnTester,
     buildLandBase,
-    buildNear,
-    buildMid,
-    buildFar,
+    buildNear: (...a) => batched(buildNear(...a)),
+    buildMid: (...a) => batched(buildMid(...a)),
+    buildFar: (...a) => batched(buildFar(...a)),
+    tileBatch,
     buildColliders,
     removeColliders,
     dispose,

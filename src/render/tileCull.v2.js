@@ -56,6 +56,7 @@ export async function initV2(game) {
     I.dynamic = false;
     c.traverse((o) => {
       if (o.isInstancedMesh && o.instanceMatrix?.usage === 35048) I.dynamic = true;
+      if (o.userData.tileCullSkip) I.dynamic = true; // bounds that change at run time (city tile batches)
     }); // DynamicDrawUsage
     C.stats.boxMs += performance.now() - t0;
   }

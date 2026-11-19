@@ -13,10 +13,28 @@ export async function initV2(game) {
   const r = game.renderer;
   const props = r.properties;
   const cfg = (game.drawOrder = { on: true, stats: { switches: 0 } });
-  // program id per material (the program it was last drawn with); new materials sort by id among themselves
+  // program id per material: the lowest id among its programs. A material can own several programs (the city tile
+  // batches draw a shared material through its USE_BATCHING variant, src/world/miami/tileBatch.js); keying on the
+  // program it was last drawn with would move the material in the order whenever a newer variant draws, and coplanar
+  // ground layers of different materials resolve their ties by draw order.
+  let minId = 0;
+  function takeMin(p) {
+    if (minId === 0 || p.id < minId) minId = p.id;
+  }
   function progOf(m) {
-    const p = props.get(m).currentProgram;
-    return p ? p.id : 0;
+    const mp = props.get(m);
+    const progs = mp.programs;
+    if (!progs || progs.size === 0) {
+      const p = mp.currentProgram;
+      return p ? p.id : 0;
+    }
+    if (m.__pidN !== progs.size) {
+      minId = 0;
+      progs.forEach(takeMin);
+      m.__pidN = progs.size;
+      m.__pidMin = minId;
+    }
+    return m.__pidMin;
   }
   function byProgram(a, b) {
     if (a.groupOrder !== b.groupOrder) return a.groupOrder - b.groupOrder;

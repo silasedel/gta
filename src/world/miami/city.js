@@ -862,10 +862,22 @@ export async function createMiamiCity(game, opts = {}) {
   // per-frame view culling of the global prop pools, run right before the main render (and its shadow pass) with the final camera
   if (builder.cullPools && scene) {
     const prevBR = scene.onBeforeRender;
+    const tileBatch = builder.tileBatch;
     scene.onBeforeRender = function (r, sc, cam, ...rest) {
-      if (cam === game.camera) builder.cullPools(cam);
+      if (cam === game.camera) {
+        builder.cullPools(cam);
+        if (tileBatch) tileBatch.sync(r, cam, sc);
+      }
+      if (tileBatch) tileBatch.setRendering(true);
       if (prevBR) prevBR.call(this, r, sc, cam, ...rest);
     };
+    // the batched originals read invisible only while the scene renders (src/world/miami/tileBatch.js)
+    const prevAR = scene.onAfterRender;
+    scene.onAfterRender = function (...args) {
+      if (tileBatch) tileBatch.setRendering(false);
+      if (prevAR) prevAR.apply(this, args);
+    };
+    city.tileBatch = tileBatch;
     city.cullStats = builder.cullStats;
     city.cullPools = builder.cullPools;
     city.poolKeepEmpty = POOL_KEEP_EMPTY; // perf A/B: .on = true keeps empty pools visible
