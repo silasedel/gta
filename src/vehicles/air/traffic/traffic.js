@@ -9,11 +9,13 @@
 import * as THREE from 'three';
 import { loadModel, loadCollision } from '../../../world/airport/models.js';
 import { frame, polyLen, along } from '../../../world/airport/geom.js';
-import { applyLivery } from './livery.js';
+import { applyLivery, applyTailLivery } from './livery.js';
 
+const NARROW_OPS = ['Transcoastal', 'Zest Air', 'Southline Air'];
 const TYPES = {
   jet: {
     model: 'buildings/airliner',
+    cls: 'jet',
     far: 'buildings/airliner_lod1',
     len: 37.6,
     span: 34.4,
@@ -28,6 +30,7 @@ const TYPES = {
   // Plane 5 widebody (tools/v2/airport/convert_w6.py: tail logo / type number painted out, Southline Air colors baked in)
   wide: {
     model: 'airport/airliner_wide',
+    cls: 'wide',
     far: 'airport/airliner_wide_lod1',
     len: 56.4,
     span: 59.7,
@@ -42,6 +45,7 @@ const TYPES = {
   },
   turboprop: {
     model: 'airport/turboprop',
+    cls: 'turboprop',
     far: 'airport/turboprop_lod1',
     len: 27.2,
     span: 27.2,
@@ -53,7 +57,110 @@ const TYPES = {
     climb: 0.11,
     ops: ['Conch Coast Air', 'Keys Island Link'],
   },
+  // The user's downloaded airliners (tools/v2/airport/convert_w6.py, Nov 19): real liveries painted out to plain
+  // white, the fin tinted in the operator color at run time (livery.js applyTailLivery). Sizes are the converted
+  // models (w6_models.json); every model sits with y = 0 at the wheels, so no ground offset is needed.
+  // cls = which stands it fits: 'jet' narrowbody gates, 'wide' widebody gates, 'turboprop' remote / Key West stands.
+  b737: {
+    model: 'airport/airliner_737',
+    far: 'airport/airliner_737_lod1',
+    cls: 'jet',
+    len: 39.5,
+    span: 34.2,
+    tail: 11.7,
+    yaw: 0,
+    vr: 74,
+    acc: 2.8,
+    vApp: 71,
+    climb: 0.13,
+    ops: NARROW_OPS,
+    livery: 'tail',
+  },
+  a320: {
+    model: 'airport/airliner_a320',
+    far: 'airport/airliner_a320_lod1',
+    cls: 'jet',
+    len: 37.6,
+    span: 34.2,
+    tail: 11.2,
+    yaw: 0,
+    vr: 72,
+    acc: 2.9,
+    vApp: 70,
+    climb: 0.13,
+    ops: NARROW_OPS,
+    livery: 'tail',
+  },
+  b737max: {
+    model: 'airport/airliner_737max',
+    far: 'airport/airliner_737max_lod1',
+    cls: 'jet',
+    len: 39.5,
+    span: 36.0,
+    tail: 12.3,
+    yaw: 0,
+    vr: 74,
+    acc: 2.9,
+    vApp: 71,
+    climb: 0.14,
+    ops: NARROW_OPS,
+    livery: 'tail',
+  },
+  a321: {
+    model: 'airport/airliner_a321',
+    far: 'airport/airliner_a321_lod1',
+    cls: 'jet',
+    len: 44.5,
+    span: 37.0,
+    tail: 11.7,
+    yaw: 0,
+    vr: 77,
+    acc: 2.7,
+    vApp: 72,
+    climb: 0.12,
+    ops: NARROW_OPS,
+    livery: 'tail',
+  },
+  // 70.6 m long, 59.3 m span: only the widebody gate (60 m slot)
+  b747: {
+    model: 'airport/airliner_747',
+    far: 'airport/airliner_747_lod1',
+    cls: 'wide',
+    len: 70.6,
+    span: 59.3,
+    tail: 17.8,
+    yaw: 0,
+    vr: 82,
+    acc: 2.2,
+    vApp: 76,
+    climb: 0.1,
+    ops: ['Southline Air', 'Transcoastal'],
+    livery: 'tail',
+    fuse: [3.2, 3.3, 5.6],
+    wingY: 4.6,
+  },
+  // single-engine utility turboprop: remote stands as island-hopper traffic, and parked on the GA apron
+  c208: {
+    model: 'airport/ga_c208',
+    far: 'airport/ga_c208_lod1',
+    cls: 'turboprop',
+    len: 11.5,
+    span: 15.0,
+    tail: 4.0,
+    yaw: 0,
+    vr: 36,
+    acc: 2.6,
+    vApp: 40,
+    climb: 0.1,
+    ops: ['Keys Island Link', 'Conch Coast Air'],
+    livery: 'tail',
+    fuse: [0.85, 0.9, 1.6],
+    wingY: 3.1,
+  },
 };
+// GA apron spots (airports.json gaStands index) that hold a parked Cessna 208. The flyable GA planes take
+// gaStands 0, 1, 2 and the last one at MIA (src/vehicles/air/air.v2.js spawn list), so 3 and 4 are free.
+const GA_PARKED = { mia: [3, 4] };
 const DEST = {
   mia: [
     'Key West',
@@ -69,6 +176,11 @@ const DEST = {
   ],
   eyw: ['Miami', 'Tampa', 'Fort Myers', 'Orlando', 'Nassau'],
 };
+// a random aircraft type for a stand class (every type of that class equally likely)
+function pickType(cls) {
+  const list = Object.keys(TYPES).filter((k) => TYPES[k].cls === cls);
+  return list[Math.floor(Math.random() * list.length)] || 'jet';
+}
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
 
@@ -191,13 +303,19 @@ export function createTraffic(game, airports) {
       .map((s) => ({
         ...s,
         busy: null,
-        type: ap.id === 'eyw' || s.kind === 'remote' ? 'turboprop' : 'jet',
+        cls: ap.id === 'eyw' || s.kind === 'remote' ? 'turboprop' : 'jet',
       }));
-    // every fourth contact gate takes the widebody (span 60 m fits the ~54 m gate pitch next to the 34 m narrowbodies)
-    const gates = stands.filter((s) => s.type === 'jet' && s.kind === 'gate');
+    // every fourth contact gate takes the widebodies (span 60 m fits the ~54 m gate pitch next to the 34 m narrowbodies)
+    const gates = stands.filter((s) => s.cls === 'jet' && s.kind === 'gate');
     gates.forEach((s, i) => {
-      if (i % 4 === 2) s.type = 'wide';
+      if (i % 4 === 2) s.cls = 'wide';
     });
+    // st.type = the aircraft type of the stand's current (or last) occupant, picked per flight (pickType)
+    for (const s of stands) s.type = pickType(s.cls);
+    const ga = (GA_PARKED[ap.id] || [])
+      .map((i) => ap.gaStands?.[i])
+      .filter(Boolean)
+      .map((g, i) => gaStand(g, i));
     const A = {
       ap,
       rw,
@@ -206,6 +324,7 @@ export function createTraffic(game, airports) {
       parS,
       conns,
       stands,
+      ga,
       busyUntil: 0,
       nextArr: 8 + Math.random() * 20,
       nextDep: 25 + Math.random() * 30,
@@ -216,6 +335,20 @@ export function createTraffic(game, airports) {
       board: [],
     };
     return A;
+  }
+  // A GA apron spot as a parked-only stand. gaStands give the aircraft center; stands are the nose point.
+  function gaStand(g, i) {
+    const half = TYPES.c208.len / 2;
+    return {
+      id: 'GA' + (i + 1),
+      kind: 'ga',
+      x: g.x + Math.sin(g.heading) * half,
+      z: g.z + Math.cos(g.heading) * half,
+      heading: g.heading,
+      busy: null,
+      cls: 'ga',
+      type: 'c208',
+    };
   }
   // active runway direction: take off / land into the wind (headwind component along u)
   function runwayDir(A) {
@@ -236,7 +369,7 @@ export function createTraffic(game, airports) {
     near.rotation.y = T.yaw;
     g.add(near);
     try {
-      if (!T.baked) applyLivery(near, type, op); /* wide: livery baked in */
+      if (!T.baked && !T.livery) applyLivery(near, type, op); /* wide: livery baked in */
     } catch (e) {
       /* plain livery */
     }
@@ -251,30 +384,35 @@ export function createTraffic(game, airports) {
         if (o.isMesh) o.castShadow = false;
       });
     }
+    // neutral-livery types: the fin (near and far model) in the operator color
+    if (T.livery === 'tail') applyTailLivery(g, op);
     // nav / beacon / strobe / landing lights (model frame: +z nose, +x left wing)
     const hs = T.span / 2 - 0.3,
-      L2 = T.len / 2;
+      L2 = T.len / 2,
+      wy = T.wingY ?? 3.2,
+      fuse = T.fuse || [1.9, 2.0, 3.2],
+      beaconY = T.fuse ? fuse[2] + fuse[1] + 0.2 : 4.4;
     const pts = [
       hs,
-      3.2,
+      wy,
       -1,
       -hs,
-      3.2,
+      wy,
       -1,
       0,
       T.tail - 0.5,
       -L2 + 0.3,
       0,
-      4.4,
+      beaconY,
       0,
       0,
       0.5,
       2,
       hs,
-      3.2,
+      wy,
       -1.3,
       -hs,
-      3.2,
+      wy,
       -1.3,
       0.8,
       1.6,
@@ -302,15 +440,23 @@ export function createTraffic(game, airports) {
     try {
       body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased());
       world.createCollider(
-        RAPIER.ColliderDesc.cuboid(1.9, 2.0, L2 - 1).setTranslation(0, 3.2, 0),
+        RAPIER.ColliderDesc.cuboid(fuse[0], fuse[1], L2 - 1).setTranslation(0, fuse[2], 0),
         body,
       );
       world.createCollider(
-        RAPIER.ColliderDesc.cuboid(hs, 0.35, 2.8).setTranslation(0, 3.0, -1),
+        RAPIER.ColliderDesc.cuboid(hs, 0.35, Math.min(2.8, L2 * 0.25)).setTranslation(
+          0,
+          wy - 0.2,
+          -1,
+        ),
         body,
       );
       world.createCollider(
-        RAPIER.ColliderDesc.cuboid(0.3, 2.6, 2.5).setTranslation(0, T.tail - 2.6, -L2 + 3),
+        RAPIER.ColliderDesc.cuboid(
+          0.3,
+          Math.min(2.6, T.tail / 4),
+          Math.min(2.5, L2 / 4),
+        ).setTranslation(0, T.tail - Math.min(2.6, T.tail / 4), -L2 + Math.min(3, L2 / 3)),
         body,
       );
     } catch (e) {
@@ -330,6 +476,7 @@ export function createTraffic(game, airports) {
     return { cx: st.x - (hx * T.len) / 2, cz: st.z - (hz * T.len) / 2, hx, hz };
   }
   async function spawnParked(A, st, depIn) {
+    if (st.cls !== 'ga') st.type = pickType(st.cls);
     const id = flightNo(A, st.type),
       ac = await makeAircraft(st.type, id.op);
     if (!ac) return null;
@@ -466,8 +613,9 @@ export function createTraffic(game, airports) {
   async function spawnArrival(A) {
     const free = A.stands.filter((s) => !s.busy && !s.held);
     if (!free.length) return null;
-    const st = pick(free),
-      dir = runwayDir(A),
+    const st = pick(free);
+    st.type = pickType(st.cls);
+    const dir = runwayDir(A),
       id = flightNo(A, st.type),
       ac = await makeAircraft(st.type, id.op);
     if (!ac) return null;
@@ -796,6 +944,8 @@ export function createTraffic(game, airports) {
       if (Math.random() < (st.kind === 'gate' ? 0.8 : 0.5))
         await spawnParked(A, st, 30 + k++ * 70 + Math.random() * 60);
     }
+    // GA apron: parked for good (no departure time)
+    for (const st of A.ga) await spawnParked(A, st, undefined);
   }
   let busy = false;
   async function schedule(A, dt) {

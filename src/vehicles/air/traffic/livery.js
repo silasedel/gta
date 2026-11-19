@@ -118,6 +118,30 @@ function paint(img, kind, op, recolorOnly = false) {
   t.needsUpdate = true;
   return t;
 }
+// Neutral-livery airliners (tools/v2/airport/convert_w6.py: plain white bodies, the tail fin on its own plain
+// 'LiveryTail' material): the fin takes the operator's primary color. No canvas work, one cloned material per
+// operator and source material, shared by every aircraft (near and far LOD).
+export function applyTailLivery(root, opName) {
+  const op = OPERATORS[opName];
+  if (!op) return;
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    const mats = [].concat(o.material).map((m) => tailMaterial(m, opName, op));
+    o.material = Array.isArray(o.material) ? mats : mats[0];
+  });
+}
+function tailMaterial(m, opName, op) {
+  if (!/^LiveryTail/.test(m.name || '')) return m;
+  const key = m.uuid + '|tail|' + opName;
+  let mm = cache.get(key);
+  if (!mm) {
+    mm = m.clone();
+    mm.color.set(op.a);
+    cache.set(key, mm);
+  }
+  return mm;
+}
+
 // recolor every textured material of a cloned aircraft for an operator (materials are cloned once per operator)
 export function applyLivery(root, kind, opName) {
   const op = OPERATORS[opName];

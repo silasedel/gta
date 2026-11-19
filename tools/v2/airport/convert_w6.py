@@ -48,6 +48,29 @@ CFG = {
   'heli_blackhawk': {'src': 'dl:us-army-uh-60m-black-hawk-low-poly-model/source/x/UH60M_upload/UH60M.blend', 'out': AIR, 'tris': 0, 'lod1': 1800, 'nose': (1, -1),
     'drop': [r'^Door open'], 'props': [[r'^main rotor'], [r'^TAIL ROTOR']], 'tex': 2048,
     'scrub': {r'UH60M_d': [[.4, .815, .66, .925], [.83, .795, .935, .86], [.83, .255, .935, .32]]}},
+  # MIA airline traffic (Nov 19, the user's downloads, free to use). Real airline / maker liveries are neutralized:
+  # 'neutral' textures lose every painted (saturated) pixel to the plain body white, 'scrub' rectangles take the dark
+  # titles / registrations, and the tail fin gets its own plain 'LiveryTail' material that livery.js tints in the
+  # (fictional) operator color. 'len' scales to the real length; 'fin' = (min height m, rear fraction, max |x| m).
+  'airliner_737': {'src': 'dl:boeing-737-800/source/Boeing 737-800.glb', 'out': APT, 'tris': 22000, 'lod1': 2500,
+    'col': True, 'len': 39.5, 'nose': (1, -1), 'drop': [r'^custom_vis_LIGHT_BEACON'], 'tex': 2048, 'neutral': r'.',
+    'fin': (6.4, 0.3, 0.8), 'scrub': {r'^faib_737': [[.17, .785, .215, .806], [.17, .892, .215, .913]]}},
+  'airliner_a320': {'src': 'dl:airbus-a320/source/Airbus A320.glb', 'out': APT, 'tris': 22000, 'lod1': 2500,
+    'col': True, 'len': 37.6, 'nose': (1, -1), 'drop': [r'^custom_vis_LIGHT'], 'tex': 2048, 'neutral': r'.',
+    'fin': (6.6, 0.3, 0.8)},
+  'airliner_737max': {'src': 'dl:737-max-lion-air/source/LOW 737 MAX.fbx', 'out': APT, 'tris': 22000, 'lod1': 2500,
+    'col': True, 'len': 39.5, 'nose': (1, -1), 'tex': 1024, 'neutral': r'Base Color', 'fin': (6.4, 0.3, 0.8),
+    'texfile': {r'^Wings 737': 'textures/Wings_737._Base_Color_Lion.png'},
+    'scrub': {r'^Body 737 Base': [[.069, .657, .085, .722], [.101, .638, .124, .756], [.198, .636, .218, .75],
+                                  [.235, .662, .251, .723]]}},
+  'airliner_a321': {'src': 'dl:vietnam-airlines-airbus-a321-200/source/Airbus_A-321_Vietnam_Airlines.glb', 'out': APT,
+    'tris': 22000, 'lod1': 2500, 'col': True, 'len': 44.5, 'tex': 1024, 'neutral': r'_va', 'dark': r'^glass',
+    'fin': (6.6, 0.3, 0.8), 'align': (r'^(19|20|21|22)___Default|^m1r$', r'^23___Default$')},
+  'airliner_747': {'src': 'dl:boeing-747-131-trans-world-airlines/source/boeing_747-131_trans_world_airlines.fbx',
+    'out': APT, 'tris': 22000, 'lod1': 2500, 'col': True, 'len': 70.6, 'nose': (1, -1), 'tex': 2048,
+    'texfile': {r'^Image_0': 'textures/twa_800.png'}, 'neutral': r'.', 'fin': (10.6, 0.25, 1.0)},
+  'ga_c208': {'src': 'dl:cessna-208/source/ Cessna 208.glb', 'out': APT, 'tris': 18000, 'lod1': 1500, 'col': True,
+    'len': 11.5, 'tex': 512, 'fin': (2.45, 0.27, 0.45), 'renormal': True, 'dropfaces': r'^Union2Mtl$', 'lod1_minpart': 0.6, 'whiten': r'^Union10_diff'},
 }
 args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else ['all']
 keys = list(CFG) if args[0] == 'all' else args
@@ -103,7 +126,166 @@ def wide_livery(img):   # Plane 5: tail (navy + white type number) -> solid Sout
         a[..., 0][m] = a[..., 1][m] = a[..., 2][m] = 0.92
         img_set(img, a)
 
-def decimate(objs, target):
+
+def _blur3(v):
+    """3x3 box blur (edges clamped)."""
+    p = np.pad(v, ((1, 1), (1, 1), (0, 0)), mode='edge')
+    v = (p[:-2] + p[1:-1] + p[2:]) / 3
+    return (v[:, :-2] + v[:, 1:-1] + v[:, 2:]) / 3
+
+
+def smooth_fill(rgb, valid, keep):
+    """Push-pull fill: every pixel gets the average of the nearest valid pixels (block averages up to 2^keep px,
+    coarser levels only where a hole is bigger), upsampled smoothly. Returns an (h, w, 3) color field."""
+    s = rgb * valid[..., None]
+    w = valid.astype(np.float32)
+    pyr = []
+    while True:
+        pyr.append((s, w))
+        if min(s.shape[:2]) <= 1:
+            break
+        h2, w2 = s.shape[0] // 2 * 2, s.shape[1] // 2 * 2
+        s = s[:h2:2, :w2:2] + s[1:h2:2, :w2:2] + s[:h2:2, 1:w2:2] + s[1:h2:2, 1:w2:2]
+        w = w[:h2:2, :w2:2] + w[1:h2:2, :w2:2] + w[:h2:2, 1:w2:2] + w[1:h2:2, 1:w2:2]
+    s, w = pyr[-1]
+    val = np.where(w[..., None] > 0, s / np.maximum(w, 1e-6)[..., None], 0.9)
+    for lv in range(len(pyr) - 2, -1, -1):
+        s, w = pyr[lv]
+        up = np.repeat(np.repeat(val, 2, axis=0), 2, axis=1)
+        up = np.pad(up, ((0, max(0, s.shape[0] - up.shape[0])), (0, max(0, s.shape[1] - up.shape[1])), (0, 0)), mode='edge')
+        up = _blur3(up[:s.shape[0], :s.shape[1]])
+        if lv >= keep:
+            val = np.where(w[..., None] > 0, s / np.maximum(w, 1e-6)[..., None], up)
+        else:
+            val = up
+    return val
+
+
+def neutral(img):
+    """Paint out every painted (saturated) pixel: airline cheatlines, titles, logos, colored registrations.
+
+    The fill is the texture's own plain body white (median of its light, unsaturated pixels), so the result is a
+    plain white / grey airframe; the mask grows by 2 px so anti-aliased letter edges go too.
+    """
+    a = img_np(img)
+    rgb = a[..., :3]
+    sat = rgb.max(axis=2) - rgb.min(axis=2)
+    lum = rgb.mean(axis=2)
+    mask = sat > 0.1
+    for _ in range(2):
+        grown = mask.copy()
+        grown[1:] |= mask[:-1]
+        grown[:-1] |= mask[1:]
+        grown[:, 1:] |= mask[:, :-1]
+        grown[:, :-1] |= mask[:, 1:]
+        mask = grown
+    light = (~mask) & (lum > 0.55)
+    # white titles painted on the colored areas would stay as ghosts: near the paint, light pixels are repainted too
+    near = mask.copy()
+    for _ in range(24):
+        grown = near.copy()
+        grown[1:] |= near[:-1]
+        grown[:-1] |= near[1:]
+        grown[:, 1:] |= near[:, :-1]
+        grown[:, :-1] |= near[:, 1:]
+        near = grown
+    mask |= near & light
+    # the fill is the local plain paint around each hole (from the light pixels only, so windows / black
+    # backgrounds never bleed in): no blotches where the body white shades darker or lighter
+    field = smooth_fill(rgb, light & ~mask, 3)
+    noise = (np.random.rand(int(mask.sum()), 1) - 0.5) * 0.008
+    rgb[mask] = np.clip(field[mask] + noise, 0, 1)
+    a[..., :3] = rgb
+    fill = np.median(field[mask], axis=0) if mask.any() else np.zeros(3)
+    img_set(img, a)
+    print('NEUTRAL', img.name, round(float(mask.mean()), 3), [round(float(v), 3) for v in fill])
+
+
+def darken(img):
+    """Colorful (oil-slick) glass texture -> dark tinted glass."""
+    a = img_np(img)
+    lum = a[..., :3].mean(axis=2, keepdims=True)
+    a[..., :3] = np.clip(0.06 + lum * 0.12, 0, 1) * np.array([0.9, 0.95, 1.0])
+    img_set(img, a)
+
+
+def paint_fin(body, fin):
+    """Tail fin faces -> their own plain 'LiveryTail' material (livery.js tints it in the operator color).
+
+    fin = (min height m, rear fraction of the length, max |x| m); the frame here has the nose toward -Y.
+    """
+    zmin, rear, xmax = fin
+    me = body.data
+    ys = [v.co.y for v in me.vertices]
+    y0 = max(ys) - rear * (max(ys) - min(ys))
+    mat = bpy.data.materials.new('LiveryTail')
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes['Principled BSDF']
+    bsdf.inputs['Base Color'].default_value = (0.86, 0.86, 0.85, 1)
+    bsdf.inputs['Roughness'].default_value = 0.45
+    me.materials.append(mat)
+    idx = len(me.materials) - 1
+    n = 0
+    for p in me.polygons:
+        c = p.center
+        if c.z > zmin and c.y > y0 and abs(c.x) < xmax:
+            p.material_index = idx
+            n += 1
+    print('FIN', body.name, n, 'faces')
+
+
+def align(meshes, body_mats, wing_mats):
+    """Sources that sit banked / yawed in their file: level them from their own geometry.
+
+    The fuselage axis is the principal axis of the fuselage-material vertices (-> Y), the span the principal
+    axis of the wing vertices across it (-> X); up (-> Z) points to the fin (the side reaching further out).
+    """
+    def pts(pat):
+        out = []
+        for o in meshes:
+            for p in o.data.polygons:
+                m = o.data.materials[p.material_index] if o.data.materials else None
+                if m and re.search(pat, m.name):
+                    out.extend(o.data.vertices[i].co[:] for i in p.vertices)
+        return np.array(out)
+    def axis(p):
+        p = p - p.mean(axis=0)
+        return np.linalg.eigh(p.T @ p)[1][:, -1]
+    body = pts(body_mats)
+    ax_y = axis(body)
+    wing = pts(wing_mats)
+    wing = wing - np.outer(wing @ ax_y, ax_y)
+    ax_x = axis(wing)
+    ax_x -= ax_y * (ax_x @ ax_y)
+    ax_x /= np.linalg.norm(ax_x)
+    ax_z = np.cross(ax_x, ax_y)
+    allp = np.array([v.co[:] for o in meshes for v in o.data.vertices])
+    h = (allp - body.mean(axis=0)) @ ax_z
+    if -h.min() > h.max():
+        ax_z, ax_x = -ax_z, -ax_x
+    R = mathutils.Matrix([list(ax_x) + [0], list(ax_y) + [0], list(ax_z) + [0], [0, 0, 0, 1]])
+    for o in meshes:
+        o.data.transform(R)
+    print('ALIGN', [round(float(v), 3) for v in (*ax_x, *ax_y, *ax_z)])
+
+
+def find_texture(img, src, c):
+    """Path of an image the source file references but does not resolve (other folder, '_' for ' ', remapped)."""
+    d0 = os.path.dirname(src)
+    for pat, rel in c.get('texfile', {}).items():
+        if re.search(pat, img.name):
+            return os.path.join(os.path.dirname(d0), rel)
+    nm = os.path.basename(bpy.path.abspath(img.filepath))
+    up3 = os.path.dirname(os.path.dirname(os.path.dirname(d0)))
+    dirs = [d0, os.path.join(d0, 'textures'), os.path.join(os.path.dirname(d0), 'textures'), os.path.join(up3, 'textures')]
+    for d in dirs:
+        for n in (nm, nm.replace(' ', '_')):
+            if n and os.path.isfile(os.path.join(d, n)):
+                return os.path.join(d, n)
+    return None
+
+
+def decimate(objs, target, renormal=False):
     tot = sum(tris(o) for o in objs)
     if not target or tot <= target * 1.1: return
     for o in objs:
@@ -114,7 +296,12 @@ def decimate(objs, target):
         want = max(120, n * target / tot)
         if n > want * 1.2:
             bpy.ops.object.select_all(action='DESELECT'); o.select_set(True); bpy.context.view_layer.objects.active = o
+            if renormal and o.data.has_custom_normals:
+                # imported custom normals do not survive a collapse (black streaks): drop them, re-derive by angle
+                bpy.ops.mesh.customdata_custom_splitnormals_clear()
             md = o.modifiers.new('d', 'DECIMATE'); md.ratio = max(0.01, want / n); bpy.ops.object.modifier_apply(modifier='d')
+            if renormal:
+                bpy.ops.object.shade_smooth_by_angle(angle=math.radians(35))
 
 def export(path, objs_sel=None):
     bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', export_image_format='WEBP', export_image_quality=82, export_yup=True, export_apply=True,
@@ -136,9 +323,10 @@ for key in keys:
     else: bpy.ops.import_scene.fbx(filepath=src)
     for img in bpy.data.images:   # textures next to the source (obj / fbx / blend paths that do not resolve)
         if img.size[0] == 0 and img.filepath:
-            nm = os.path.basename(bpy.path.abspath(img.filepath)); d0 = os.path.dirname(src)
-            for cand in [os.path.join(d0, nm), os.path.join(d0, 'textures', nm), os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(d0))), 'textures', nm)]:
-                if os.path.exists(cand): img.filepath = cand; img.reload(); break
+            cand = find_texture(img, src, c)
+            if cand:
+                img.filepath = cand
+                img.reload()
     for img in bpy.data.images:
         try:
             if img.size[0] > 0 and not img.packed_file: img.pack()
@@ -154,9 +342,20 @@ for key in keys:
         mn, mx = bbox([o]); sz = max(mx - mn)
         bad = match(o, c.get('drop', [])) or (dm and any(dm.search(n) for n in mats_of(o)) and not (ko and ko.search(o.name))) or tris(o) == 0 or (c.get('maxz') and mx[2] - mn[2] > c['maxz']) or (tris(o) > 3000 and sz < 0.3 * (1 / c.get('scale', 1)))
         if bad: meshes.remove(o); bpy.data.objects.remove(o)
+    if c.get('dropfaces'):   # faces of these materials go (single-object sources: e.g. a duplicate inner shell)
+        for o in meshes:
+            bm = bmesh.new()
+            bm.from_mesh(o.data)
+            names = [m.name if m else '' for m in o.data.materials]
+            gone = [f for f in bm.faces if re.search(c['dropfaces'], names[f.material_index] if names else '')]
+            bmesh.ops.delete(bm, geom=gone, context='FACES')
+            bm.to_mesh(o.data)
+            bm.free()
     if c.get('scale'):
         S = mathutils.Matrix.Scale(c['scale'], 4)
         for o in meshes: o.data.transform(S)
+    if c.get('align'):
+        align(meshes, *c['align'])
     mn, mx = bbox(meshes)
     if c.get('nose'):
         long = c['nose'][0]; noseSign = c['nose'][1]
@@ -172,6 +371,11 @@ for key in keys:
     ang = math.atan2(nose[0], -nose[1]); R = mathutils.Matrix.Rotation(-ang, 4, 'Z')
     if (R @ nose - mathutils.Vector((0, -1, 0))).length > 1e-3: R = mathutils.Matrix.Rotation(ang, 4, 'Z')
     for o in meshes: o.data.transform(R)
+    if c.get('len'):   # scale to the real length (nose -> tail along Y now)
+        mn, mx = bbox(meshes)
+        S = mathutils.Matrix.Scale(c['len'] / (mx[1] - mn[1]), 4)
+        for o in meshes:
+            o.data.transform(S)
     # simple gear (source frame after rotation: nose -Y): struts + paired wheels
     if c.get('gear'):
         G = c['gear']; s = c.get('scale', 1); gz = G['z'] * s; top = G['top'] * s
@@ -191,7 +395,18 @@ for key in keys:
     mn, mx = bbox(meshes)
     T = mathutils.Matrix.Translation((-(mn[0] + mx[0]) / 2, -(mn[1] + mx[1]) / 2, -mn[2]))
     for o in meshes: o.data.transform(T)
-    decimate(meshes, c.get('tris', 0))
+    if c.get('planar'):   # dense CAD-style meshes: merge flat faces first (keeps the outline, unlike a collapse)
+        for o in meshes:
+            bpy.ops.object.select_all(action='DESELECT')
+            o.select_set(True)
+            bpy.context.view_layer.objects.active = o
+            md = o.modifiers.new('p', 'DECIMATE')
+            md.decimate_type = 'DISSOLVE'
+            md.angle_limit = math.radians(c['planar'])
+            md.delimit = {'MATERIAL', 'UV', 'SEAM'}
+            bpy.ops.object.modifier_apply(modifier='p')
+        print('PLANAR', key, sum(tris(o) for o in meshes))
+    decimate(meshes, c.get('tris', 0), c.get('renormal', False))
     nodes = {}
     def group(name, pats, pivot, hub=None):
         objs = [o for o in meshes if match(o, pats)]
@@ -217,6 +432,8 @@ for key in keys:
     bpy.ops.object.select_all(action='DESELECT')
     for o in meshes: o.select_set(True)
     bpy.context.view_layer.objects.active = meshes[0]; bpy.ops.object.join(); body = bpy.context.view_layer.objects.active; body.name = 'BODY'
+    if c.get('fin'):
+        paint_fin(body, c['fin'])
     # textures: scrub insignia, repaint, cap sizes
     for img in list(bpy.data.images):
         if img.size[0] == 0: continue
@@ -225,6 +442,21 @@ for key in keys:
             if re.search(pat, nm): scrub(img, rects); print('SCRUB', key, nm, len(rects))
         if c.get('teal') and re.search(c['teal'] if isinstance(c['teal'], str) else r'Color', nm): teal(img)
         if c.get('wide_livery') and re.search(r'^Material Color (4|5)$', nm): wide_livery(img); print('LIVERY', nm)
+        if c.get('neutral') and re.search(c['neutral'], nm) and not re.search(r'nrm|NRM|nmap|Normal|Bump', nm):
+            neutral(img)
+        if c.get('dark') and re.search(c['dark'], nm):
+            darken(img)
+        if c.get('whiten') and re.search(c['whiten'], nm):   # olive drab paint -> plain white
+            px = img_np(img)
+            lum = px[..., :3].mean(axis=2, keepdims=True)
+            px[..., :3] = np.clip(0.86 + (lum - lum.mean()) * 0.6, 0, 1)
+            img_set(img, px)
+        if os.environ.get('W6_TEXDUMP'):   # review copies of the processed textures
+            dump = img.copy()
+            dump.filepath_raw = os.path.join(os.environ['W6_TEXDUMP'], key + '__' + re.sub(r'\W', '_', nm) + '.png')
+            dump.file_format = 'PNG'
+            dump.save()
+            bpy.data.images.remove(dump)
         cap = c.get('tex', 1024)
         for pat, v in c.get('texcap', {}).items():
             if re.search(pat, nm): cap = min(cap, v)
@@ -254,6 +486,32 @@ for key in keys:
         bpy.ops.object.select_all(action='DESELECT')
         for o in allm: o.select_set(True)
         bpy.context.view_layer.objects.active = allm[0]; bpy.ops.object.join(); lo = bpy.context.view_layer.objects.active; lo.name = 'LOD1'
+        if c.get('lod1_minpart'):   # many-part CAD sources: small loose parts (bolts, antennas) are not seen that far
+            bm = bmesh.new()
+            bm.from_mesh(lo.data)
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.02)   # weld the CAD seams so the collapse can work
+            bm.faces.index_update()
+            seen = set()
+            gone = []
+            for f0 in bm.faces:
+                if f0.index in seen:
+                    continue
+                part, stack = [], [f0]
+                seen.add(f0.index)
+                while stack:
+                    f = stack.pop()
+                    part.append(f)
+                    for e in f.edges:
+                        for f2 in e.link_faces:
+                            if f2.index not in seen:
+                                seen.add(f2.index)
+                                stack.append(f2)
+                co = np.array([v.co[:] for f in part for v in f.verts])
+                if np.linalg.norm(co.max(axis=0) - co.min(axis=0)) < c['lod1_minpart']:
+                    gone.extend(part)
+            bmesh.ops.delete(bm, geom=gone, context='FACES')
+            bm.to_mesh(lo.data)
+            bm.free()
         n = tris(lo)
         if n > c['lod1']:
             md = lo.modifiers.new('d', 'DECIMATE'); md.ratio = max(0.004, c['lod1'] / n); bpy.ops.object.modifier_apply(modifier='d')

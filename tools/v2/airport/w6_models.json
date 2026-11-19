@@ -253,5 +253,245 @@
    "tris": 3631,
    "bytes": 218248
   }
+ },
+ "airliner_737": {
+  "tris": 4606,
+  "size_xyz_gltf": [
+   34.22,
+   11.72,
+   39.5
+  ],
+  "nodes": {},
+  "bytes": 357860,
+  "src": "dl:boeing-737-800/source/Boeing 737-800.glb",
+  "contacts": [
+   [
+    4.86,
+    4.28,
+    14
+   ],
+   [
+    -4.86,
+    4.28,
+    14
+   ],
+   [
+    4.96,
+    3.29,
+    12
+   ],
+   [
+    -4.96,
+    3.29,
+    12
+   ]
+  ],
+  "zrange": [
+   -19.75,
+   19.75
+  ],
+  "lod1": {
+   "tris": 2500,
+   "bytes": 158816
+  },
+  "col": {
+   "tris": 600,
+   "bytes": 37632
+  }
+ },
+ "airliner_a320": {
+  "tris": 4946,
+  "size_xyz_gltf": [
+   34.15,
+   11.16,
+   37.6
+  ],
+  "nodes": {},
+  "bytes": 357408,
+  "src": "dl:airbus-a320/source/Airbus A320.glb",
+  "contacts": [
+   [
+    5.77,
+    6.47,
+    4
+   ],
+   [
+    -5.77,
+    6.47,
+    4
+   ]
+  ],
+  "zrange": [
+   -18.8,
+   18.8
+  ],
+  "lod1": {
+   "tris": 2500,
+   "bytes": 150148
+  },
+  "col": {
+   "tris": 600,
+   "bytes": 36364
+  }
+ },
+ "airliner_747": {
+  "tris": 9328,
+  "size_xyz_gltf": [
+   59.33,
+   17.78,
+   70.6
+  ],
+  "nodes": {},
+  "bytes": 645552,
+  "src": "dl:boeing-747-131-trans-world-airlines/source/boeing_747-131_trans_world_airlines.fbx",
+  "contacts": [
+   [
+    11.9,
+    10.41,
+    4
+   ],
+   [
+    11.92,
+    9.16,
+    7
+   ],
+   [
+    -11.9,
+    10.41,
+    4
+   ],
+   [
+    -11.92,
+    9.16,
+    7
+   ]
+  ],
+  "zrange": [
+   -35.3,
+   35.3
+  ],
+  "lod1": {
+   "tris": 2500,
+   "bytes": 171540
+  },
+  "col": {
+   "tris": 600,
+   "bytes": 36424
+  }
+ },
+ "airliner_737max": {
+  "tris": 13332,
+  "size_xyz_gltf": [
+   36.02,
+   12.65,
+   39.5
+  ],
+  "nodes": {},
+  "bytes": 571400,
+  "src": "dl:737-max-lion-air/source/LOW 737 MAX.fbx",
+  "contacts": [
+   [
+    0.0,
+    15.75,
+    4
+   ]
+  ],
+  "zrange": [
+   -19.75,
+   19.75
+  ],
+  "lod1": {
+   "tris": 2482,
+   "bytes": 114876
+  },
+  "col": {
+   "tris": 518,
+   "bytes": 28824
+  }
+ },
+ "airliner_a321": {
+  "tris": 23626,
+  "size_xyz_gltf": [
+   37.04,
+   11.68,
+   44.5
+  ],
+  "nodes": {},
+  "bytes": 1201288,
+  "src": "dl:vietnam-airlines-airbus-a321-200/source/Airbus_A-321_Vietnam_Airlines.glb",
+  "contacts": [
+   [
+    -4.97,
+    -0.55,
+    4
+   ],
+   [
+    -4.22,
+    -0.44,
+    3
+   ],
+   [
+    4.97,
+    -0.55,
+    4
+   ],
+   [
+    4.15,
+    -0.46,
+    5
+   ]
+  ],
+  "zrange": [
+   -22.25,
+   22.25
+  ],
+  "lod1": {
+   "tris": 2318,
+   "bytes": 190288
+  },
+  "col": {
+   "tris": 998,
+   "bytes": 72776
+  }
+ },
+ "ga_c208": {
+  "tris": 11318,
+  "size_xyz_gltf": [
+   15.03,
+   4.04,
+   11.51
+  ],
+  "nodes": {},
+  "bytes": 1585068,
+  "src": "dl:cessna-208/source/ Cessna 208.glb",
+  "contacts": [
+   [
+    -0.02,
+    4.43,
+    13
+   ],
+   [
+    1.76,
+    0.95,
+    11
+   ],
+   [
+    -1.74,
+    0.85,
+    7
+   ]
+  ],
+  "zrange": [
+   -5.75,
+   5.75
+  ],
+  "lod1": {
+   "tris": 5633,
+   "bytes": 514080
+  },
+  "col": {
+   "tris": 5581,
+   "bytes": 372784
+  }
  }
 }
