@@ -145,13 +145,13 @@ export function build(ctx) {
   // ================= under the house: the cracked concrete pad (C) =================
   { const PD = P.pad, PADM = mat.pbr('scuffed_cement', { rep: 2.2, gain: 3.4, tint: 0xbcd2ff, grunge: true }), q = kit.rng(818), s = 1.5;
     for (let x = PD.x0; x < PD.x1 - 0.05; x += s) for (let z = PD.z0; z < PD.z1 - 0.05; z += s) { const sx = Math.min(s, PD.x1 - x), sz = Math.min(s, PD.z1 - z);
-      const t = kit.vary(0xb4b1aa, q, 0.06), tilt = (q() - 0.5) * 0.008; box(PADM, sx - 0.012, 0.1, sz - 0.012, x + sx / 2, -0.03 + (q() - 0.5) * 0.004, z + sz / 2, { color: t, wear: 0.7 + q() * 0.3, bevel: 0.006 }, tilt, 0, -tilt);
-      if (q() < 0.35) { const a = q() * 3, l = 0.4 + q() * 0.8; box(mat.matte(), l, 0.004, 0.012, x + sx / 2 + (q() - 0.5) * 0.5, 0.0215, z + sz / 2 + (q() - 0.5) * 0.5, { color: 0x3e3b36, bevel: 0 }, 0, a); } }
-    Fr.col.box((PD.x0 + PD.x1) / 2, 0.01, (PD.z0 + PD.z1) / 2, PD.x1 - PD.x0, 0.02, PD.z1 - PD.z0, { tag: 'ground', surface: 'concrete' });
+      const t = kit.vary(0xb4b1aa, q, 0.06), tilt = (q() - 0.5) * 0.008; box(PADM, sx - 0.012, 0.1, sz - 0.012, x + sx / 2, -0.015 + (q() - 0.5) * 0.004, z + sz / 2, { color: t, wear: 0.7 + q() * 0.3, bevel: 0.006 }, tilt, 0, -tilt);
+      if (q() < 0.35) { const a = q() * 3, l = 0.4 + q() * 0.8; box(mat.matte(), l, 0.004, 0.012, x + sx / 2 + (q() - 0.5) * 0.5, 0.0365, z + sz / 2 + (q() - 0.5) * 0.5, { color: 0x3e3b36, bevel: 0 }, 0, a); } }
+    Fr.col.box((PD.x0 + PD.x1) / 2, 0.0175, (PD.z0 + PD.z1) / 2, PD.x1 - PD.x0, 0.035, PD.z1 - PD.z0, { tag: 'ground', surface: 'concrete' });
     // pebbles and grit along the slab edges and in the cracks
     const pg = new THREE.DodecahedronGeometry(0.03, 0), pm = [], pc = [];
     for (let i = 0; i < 160; i++) { const side = q() < 0.5, x = side ? PD.x0 + (PD.x1 - PD.x0) * q() : (q() < 0.5 ? PD.x0 : PD.x1) + (q() - 0.5) * 0.5, z = side ? (q() < 0.5 ? PD.z0 : PD.z1) + (q() - 0.5) * 0.5 : PD.z0 + (PD.z1 - PD.z0) * q();
-      pm.push(M(x, 0.02, z, q() * 3, q() * 3, 0, 0.25 + q() * 0.4)); const v = 0.42 + q() * 0.22; pc.push([v, v * 0.92, v * 0.82]); }
+      pm.push(M(x, 0.035, z, q() * 3, q() * 3, 0, 0.25 + q() * 0.4)); const v = 0.42 + q() * 0.22; pc.push([v, v * 0.92, v * 0.82]); }
     const pi = kit.instances(pg, mat.concrete(), pm, pc); pi.name = 'r8pebbles'; Fr.groups.detail.add(pi); }
 
   // ================= walls: board-and-batten =================

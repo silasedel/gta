@@ -1,0 +1,193 @@
+{
+ "top": {
+  "ref": null,
+  "eye": [
+   0,
+   70,
+   0
+  ],
+  "top": true,
+  "fov": 50,
+  "tod": 12
+ },
+ "topW": {
+  "ref": "r8/BUG_minimap_canal_should_be_straight_further_south.png",
+  "eye": [
+   0,
+   260,
+   0
+  ],
+  "top": true,
+  "fov": 50,
+  "tod": 12
+ },
+ "B": {
+  "ref": "r8/B_front_low_facing_N.webp",
+  "eye": [
+   -1.5,
+   0.9,
+   18.5
+  ],
+  "hdg": 0,
+  "pitch": 9,
+  "fov": 66,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "D": {
+  "ref": "r8/D_driveway_head_height_facing_N.webp",
+  "eye": [
+   1.5,
+   1.7,
+   19.0
+  ],
+  "hdg": 0,
+  "pitch": 4,
+  "fov": 62,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "A": {
+  "ref": "r8/A_dock_from_water_facing_S.webp",
+  "eye": [
+   -16.3,
+   2.2,
+   -22.0
+  ],
+  "hdg": 165,
+  "pitch": -3,
+  "fov": 62,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "G": {
+  "ref": "r8/G_front_walkway_view_facing_S_driveway_street.webp",
+  "eye": [
+   -2.26,
+   5.2,
+   7.9
+  ],
+  "hdg": 165,
+  "pitch": -22,
+  "fov": 72,
+  "tod": 12,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "C": {
+  "ref": "r8/C_under_house_hoop.webp",
+  "eye": [
+   4.74,
+   1.5,
+   2.9
+  ],
+  "hdg": 315,
+  "pitch": 8,
+  "fov": 74,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "E": {
+  "ref": "r8/E_back_deck_sunset_canal_size.webp",
+  "eye": [
+   3.54,
+   5.2,
+   -7.21
+  ],
+  "hdg": 135,
+  "pitch": -12,
+  "fov": 74,
+  "tod": 18.6,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "F": {
+  "ref": "r8/F_gym_deck_view_canal_neighbor.webp",
+  "eye": [
+   10.32,
+   4.6,
+   -6.79
+  ],
+  "hdg": 75,
+  "pitch": -30,
+  "fov": 70,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ]
+ },
+ "L15": {
+  "ref": "r4/15_MAIN_living_room_looking_north.webp",
+  "eye": [
+   3.11,
+   5.15,
+   0.28
+  ],
+  "hdg": 0,
+  "pitch": -8,
+  "fov": 75,
+  "tod": 10
+ },
+ "K16": {
+  "ref": "r4/16_MAIN_kitchen_wide_looking_south.webp",
+  "eye": [
+   3.54,
+   5.6,
+   -2.83
+  ],
+  "hdg": 225,
+  "pitch": -15,
+  "fov": 80,
+  "tod": 10
+ },
+ "SPAWN": {
+  "ref": null,
+  "eye": [
+   0,
+   1.7,
+   0
+  ],
+  "hdg": 0,
+  "fov": 60,
+  "tod": 11,
+  "showPlayer": true,
+  "eval": "const S = game.city.playerSpawn; game.teleport(S.x, S.y, S.z, game.city.playerSpawnHeading); game.cameraOverride = null;"
+ },
+ "SPAWNb": {
+  "ref": null,
+  "eye": [
+   0,
+   1.7,
+   0
+  ],
+  "hdg": 0,
+  "fov": 60,
+  "tod": 11,
+  "showPlayer": true,
+  "eval": "const S = game.city.playerSpawn; game.teleport(S.x, S.y, S.z, (game.city.playerSpawnHeading || 0) + Math.PI); game.cameraOverride = null;"
+ }
+}
