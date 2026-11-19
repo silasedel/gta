@@ -60,8 +60,32 @@ export function createPlayerSeat(game) {
     if (chair !== null && chair - deck > 0.35 && chair - deck < 0.68) {    // helm chair: seated (a leaning post is taller: stand)
       return { id: 'driver', i: 0, yaw: 0, open: true, recline: 10, doorX: 1.5, roofY: NaN, wheel: null, hip: V3(w.x, chair + 0.1, w.z - 0.6), heel: V3(w.x, deck, w.z - 0.08), grips };
     }
-    return { id: 'driver', i: 0, yaw: 0, open: true, standing: true, recline: 3, doorX: 1.5, roofY: NaN, wheel: null, hip: V3(w.x, deck + 0.95, w.z - 0.42), heel: V3(w.x, deck, w.z - 0.36), grips };
+    // W5 (Nov 19, user: "Nico in the boat looks weird"): he stood with his hips inside the leaning post's cushion. The
+    // post's bolster on these boats is taller than his hips (no sitting on it), so he stands with his seat against
+    // its front edge, feet under him on the deck, hands on the wheel.
+    const postZ = leaningPostFront(down, w, deck);
+    const hipZ = postZ === null ? w.z - 0.42 : Math.min(w.z - 0.24, postZ + 0.13);
+    return {
+      id: 'driver', i: 0, yaw: 0, open: true, standing: true, recline: 3, doorX: 1.5, roofY: NaN, wheel: null,
+      hip: V3(w.x, deck + 0.95, hipZ),
+      heel: V3(w.x, deck, hipZ + 0.06),
+      grips,
+    };
   }
+
+  // z (boat frame) of the leaning post's front face behind the wheel, or null: the first surface well above the deck
+  // when walking aft from the wheel
+  function leaningPostFront(down, w, deck) {
+    for (let dz = 0.2; dz <= 0.9; dz += 0.05) {
+      const y = down(w.x, w.y + 0.6, w.z - dz);
+      if (y !== null && y > deck + 0.5) return w.z - dz;
+    }
+    return null;
+  }
+
+  // the seat solver keeps the neck-to-head line upright; on this rig that tips the face up (he looked at the sky at the
+  // helm): a chin tuck for boats, where nothing else bends the head
+  const BOAT_CHIN = 12;
   return {
     get seated() { return !!cur; },
     enter(ch, v) {
@@ -85,6 +109,7 @@ export function createPlayerSeat(game) {
         shell.add(ch.root);
         ch.setVisible?.(true); ch.root.visible = true;
         if (!seatCharacter(ch, a, { role: 'driver', vehicle: v, probe: !boat })) { shell.remove(ch.root); return false; }
+        if (boat && ch._seat) ch._seat.chin = Math.max(ch._seat.chin || 0, BOAT_CHIN);
         cur = { v, ch, t: from ? 0 : ENTER_S, from, to: ch.root.position.clone(), yaw: a.yaw || 0 };
         if (from) this.update(0);
         return true;
