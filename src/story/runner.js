@@ -13,6 +13,7 @@ import { help, makeMarker, removeMarker, spawnKitPed, pedOut, release, fmt } fro
 import { pill } from '../activities/common.js';
 import { createObjectiveMarker } from './markers.js';
 import { showBanner, showFailScreen, subtitle } from './ui.js';
+import { loadMissionProp } from './props.js';
 
 const DEFAULT_FAIL = { died: true, arrested: true };
 const REASONS = {
@@ -46,6 +47,22 @@ export function defineMission(def) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// E taps are latched for 0.4 s: a tap shorter than one frame (low frame rates, a loading hitch) still counts.
+// The bindings layer re-sends re-bound keys and the pad's X as KeyE, so this sees those too.
+let interactAt = -1e9;
+if (typeof addEventListener === 'function') {
+  addEventListener('keydown', (e) => {
+    if (e.code === 'KeyE' && !e.repeat) interactAt = performance.now();
+  });
+}
+function interactPressed(game) {
+  if (game.input?.pressed?.('KeyE') || performance.now() - interactAt < 400) {
+    interactAt = -1e9;
+    return true;
+  }
+  return false;
+}
+
 export function createRunner(game, story) {
   const P = game.player;
   const missions = new Map();
@@ -59,6 +76,7 @@ export function createRunner(game, story) {
     if (typeof x === 'function') return posOf(ctx, x(ctx));
     if (typeof x === 'string') return posOf(ctx, ctx.h[x]);
     if (x.isVector3) return x;
+    if (x.isObject3D && !x.root) return x.position; // a prop
     if (x.root?.position) return x.root.position; // staged actor
     if (x.body?.translation) {
       try {
@@ -163,6 +181,25 @@ export function createRunner(game, story) {
         } else ctx.h[name] = ped;
         ctx.track(ped, () => release(ped));
         return ped;
+      },
+      // a mission prop (src/story/props.js, public/assets/models/mission/manifest.json) on the ground at `at`
+      async spawnProp(name, id, at, opts = {}) {
+        const p = resolveAt(at);
+        let obj = null;
+        try {
+          obj = await loadMissionProp(id, { lod: !!opts.lod });
+        } catch (e) {
+          console.warn('[story] prop', id, e);
+          return null;
+        }
+        const y = p.y ?? game.city?.groundHeightAt?.(p.x, p.z) ?? 0;
+        obj.position.set(p.x, y + (opts.lift || 0), p.z);
+        obj.rotation.y = p.heading || 0;
+        if (opts.scale) obj.scale.setScalar(opts.scale);
+        game.scene.add(obj);
+        ctx.h[name] = obj;
+        ctx.track(obj, () => game.scene.remove(obj), { keepOnPass: opts.keepOnPass });
+        return obj;
       },
       async cutscene(csDef, opts = {}) {
         const cs = typeof csDef === 'function' ? csDef(ctx) : csDef;
@@ -272,7 +309,7 @@ export function createRunner(game, story) {
           shown = near;
           ctx.help(near ? `Press [E] to ${label}` : null);
         }
-        return near && game.input?.pressed?.('KeyE');
+        return near && interactPressed(game);
       },
       cleanup: () => ctx.help(null),
     };
@@ -355,8 +392,9 @@ export function createRunner(game, story) {
       if (ctx.dist(e.target) > (e.dist ?? 200)) return text(e.text, REASONS.escaped);
     }
     if (rules.leftArea) {
+      // { at, r }: at is a point, a handle name or a function (ctx) => point; { x, z, r } also works
       const a = rules.leftArea;
-      const d = ctx.dist(a);
+      const d = ctx.dist(a.at ?? a);
       pill('story-area', d > a.r * 0.8 ? 'Go back to the area' : null, true);
       if (d > a.r) return text(a.text, REASONS.leftArea);
     }
@@ -390,6 +428,7 @@ export function createRunner(game, story) {
       index: cp,
       checkpoint: cp,
       from: opts.from || 'code',
+      starting: true, // no fail checks until the player stands where this attempt begins
       ending: false,
       startPos: opts.startPos || { x: P.position.x, z: P.position.z, heading: P.heading },
     };
@@ -417,6 +456,7 @@ export function createRunner(game, story) {
     await sleep(250);
     cin.black(false, 600);
     showBanner(def.title, def.giver || 'Mission');
+    run.starting = false;
     runSteps(cp, myToken);
     return true;
   }
@@ -485,7 +525,7 @@ export function createRunner(game, story) {
 
   // every frame (index.js): fail rules, the current trigger, moving waypoints
   function update(dt) {
-    if (!run || run.ending || run.inCutscene || story.cutscenes.active) return;
+    if (!run || run.starting || run.ending || run.inCutscene || story.cutscenes.active) return;
     if (game.ui?.paused) return;
     const { def, ctx } = run;
     const step = def.steps[run.index] || {};

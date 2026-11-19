@@ -10,10 +10,10 @@ function anchor(game, name) {
   return { x: -836, z: 5272, heading: 0.91 };
 }
 
-// the package waits on the dock, 2 m along it from the dock anchor
+// the package waits on the dock boards, 3 m back toward the shore from the dock anchor (past it is the skiff)
 function packageSpot(game) {
   const d = anchor(game, 'dock');
-  return { x: d.x + Math.sin(d.heading) * 2, z: d.z + Math.cos(d.heading) * 2, heading: d.heading };
+  return { x: d.x - Math.sin(d.heading) * 3, z: d.z - Math.cos(d.heading) * 3, heading: d.heading };
 }
 
 export default defineMission({
@@ -23,13 +23,13 @@ export default defineMission({
   start: { marker: true, at: (game) => anchor(game, 'carport') },
   rewards: {
     money: 500,
-    items: [{ id: 'water', qty: 1 }],
+    items: [{ id: 'clara-water', qty: 1 }],
     unlocks: ['test.bonus'],
   },
   flags: { 'test.favor': 1 },
   end: { at: (game) => anchor(game, 'dock') },
   fail: {
-    leftArea: { x: -836, z: 5272, r: 260 },
+    leftArea: { at: (ctx) => anchor(ctx.game, 'spawnYard'), r: 260 },
   },
   steps: [
     {
@@ -78,6 +78,7 @@ export default defineMission({
       id: 'package',
       text: 'Pick up the package.',
       checkpoint: { at: (game) => anchor(game, 'dock') },
+      enter: (ctx) => ctx.spawnProp('package', 'package_waterproof', packageSpot(ctx.game)),
       trigger: {
         interact: { at: (ctx) => packageSpot(ctx.game), r: 2.5, label: 'pick up the package' },
       },

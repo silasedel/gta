@@ -22,6 +22,7 @@
 // may also be 'actor:<name>', 'vehicle:<name>' or 'player' (that object's head / roof height).
 import { getCinema, EASE, mmToFov } from '../ui/menu/cinema.js';
 import { subtitle, skipPrompt, phoneCall } from './ui.js';
+import { loadMissionProp } from './props.js';
 
 const SKIP_HOLD_S = 1;
 const BASE = (import.meta.env && import.meta.env.BASE_URL) || '/';
@@ -182,7 +183,8 @@ export function createCutscenes(game) {
     const at = resolveAt(cs, p.at);
     let obj = null;
     try {
-      if (typeof p.object === 'function') obj = await p.object(game, cs);
+      if (p.prop) obj = await loadMissionProp(p.prop);
+      else if (typeof p.object === 'function') obj = await p.object(game, cs);
       else if (p.url) obj = await loadGLB(p.url);
     } catch (e) {
       console.warn('[story] prop', name, e);
