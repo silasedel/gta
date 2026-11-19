@@ -130,6 +130,9 @@ c('truck13', 'Atlas', 'Packer FL', 'garbage', 'box', 9.5, 2, 'dslH', 2016, { ser
 c('truck6', 'Atlas', 'Engine 9', 'firetruck', 'fire', 8.2, 3, 'dslH', 2012, { police: 'fire', livery: 'fire', service: true, palette: [0xc4161c] });
 c('van3', 'Corvo', 'Medic One', 'ambulance', 'box', 6.6, 2.5, 'dsl', 2014, { police: 'ambulance', livery: 'ambulance', service: true, palette: [0xf4f4f2] });
 c('van4', 'Corvo', 'Medic Two', 'ambulance', 'box', 6.0, 2.5, 'dsl', 2018, { police: 'ambulance', livery: 'ambulance', service: true, palette: [0xf4f4f2] });
+// military (W2, Nov 19): the base's utility truck (Sketchfab "Humvee" by 8sianDude, CC BY 4.0: CREDITS.md); never in random
+// traffic or parking: the military base spawns it (game.vehicles.spawn('humvee1', pos, heading)).  Desert tan only.
+c('humvee1', 'Atlas', 'Sentinel M4', 'military', 'offroad', 4.93, 3, 'dsl', 2012, { rare: true, palette: [0xb19a72] });
 export const FLEET = F;
 export const FLEET_BY_KEY = Object.fromEntries(F.map((e) => [e.key, e]));
 export const fileKey = (key) => FLEET_BY_KEY[key]?.model || key;

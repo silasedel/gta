@@ -810,3 +810,6 @@ Library models from the user's collection (Models/Planes), converted by tools/v2
 prop plane (prop.glb) is Plane 9, a high-wing single-prop model by BARANGER Emmanuel (helijah), made for FlightGear, GPL licensed:
 credit required when shipped. The floatplane (Plane 3) and business jet (Plane 13) are user-licensed library models. Brand and
 model names are invented. The airport fence, gates, signs and all aircraft effects are generated in code.
+
+## Vehicles: military (W2 vehicles agent) — public/assets/vehicles/cars/humvee1.glb
+- `humvee1` (in game: Atlas Sentinel M4, the military base utility truck) — "Humvee" by 8sianDude (Sketchfab user haoliu95), **CC BY 4.0** — https://sketchfab.com/3d-models/humvee-ec74fee2b99546b0a7065d134e84af91 . Changes: turret mount and gun removed, decimated to 80k / 4k / 1.9k triangle LODs, textures downscaled to 1024 px WebP, matte paint.

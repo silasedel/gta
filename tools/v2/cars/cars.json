@@ -2118,7 +2118,8 @@
    "^U_IntChrome$": "trim:chrome",
    "^U_Tire$": "trim:rubber",
    "^U_Rim$": "trim:chrome",
-   "^U_RimDark$|^U_Drum$": "trim"
+   "^U_RimDark$|^U_Drum$": "trim",
+   "^U_Stripe$": "trim"
   },
   "keepBadges": true,
   "keepUnderskin": true,
@@ -2132,10 +2133,11 @@
   "noAutoPlate": true
  },
  "humvee1": {
-  "src": "Trucks/Truck 14 - Military Utility Vehicle/source/Sketchfab_2020_12_15_23_05_09.blend",
+  "src": "Trucks/Truck 14 - Military Utility Vehicle/Truck 14.blend",
   "L": 4.93,
   "textured": true,
   "noPaint": true,
-  "dropObj": "m2hb|^Plane"
+  "dropObj": "m2hb|^Plane",
+  "matte": true
  }
 }

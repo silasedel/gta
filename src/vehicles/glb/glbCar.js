@@ -468,7 +468,7 @@ export function loadCarModel(key) {
       if (!n) return;
       const slot = String(o.material?.name || '').replace(/^S_/, '').replace(/\.\d+$/, '') || 'trim';
       const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
-      if (/^T_/.test(slot)) texMats[slot] ||= texturedMaterial(o.material);
+      if (/^T_/.test(slot)) texMats[slot] ||= texturedMaterial(o.material, man.cfg?.matte);
       (parts[n.name] ||= {})[slot] = mergeSafe([(parts[n.name] || {})[slot], g]);
     });
     const lv = [];
@@ -556,7 +556,8 @@ function contactMat() {
 }
 
 // textured parts of low-poly models (box trucks, vans): the source texture, roughness / metal from the vertex alpha
-function texturedMaterial(src) {
+// matte (cars.json cfg.matte, e.g. the military truck's CARC paint): the source metal maps read as chrome; flat paint instead
+function texturedMaterial(src, matte = false) {
   const m = new THREE.MeshStandardMaterial({ map: src.map || null, color: src.color?.clone?.() || new THREE.Color(1, 1, 1), normalMap: src.normalMap || null,
     roughness: 1, metalness: 1, envMapIntensity: 1.1, vertexColors: false, side: src.side ?? THREE.FrontSide, alphaTest: src.alphaTest || 0, transparent: false });
   if (m.map) { m.map.anisotropy = 4; m.map.colorSpace = THREE.SRGBColorSpace; }
@@ -564,9 +565,9 @@ function texturedMaterial(src) {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 aRM;\nvarying vec2 vRM;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vRM = aRM;');
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vRM;')
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = clamp(vRM.x, 0.3, 0.85);')
-      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y * step(0.3, dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)));');
+      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y * step(0.3, dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)));' + (matte ? '\n  metalnessFactor = min(metalnessFactor, 0.12); roughnessFactor = max(roughnessFactor, 0.72);' : ''));
   };
-  m.customProgramCacheKey = () => 'ps-cartex-v2';
+  m.customProgramCacheKey = () => (matte ? 'ps-cartex-v2m' : 'ps-cartex-v2');
   return m;
 }
 // ------------------------------------------------------------------ taxi: roof sign (lit at night) + door lettering

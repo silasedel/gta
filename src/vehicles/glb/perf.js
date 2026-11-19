@@ -45,7 +45,7 @@ export const PERF = {
   super6: { t100: 4.9, vmax: 295, mass: 1490, drive: 'rwd', grip: 2.6, downforce: 1.1, brakeK: 1.0 },
   // SUVs: G63 (heavy, boxy, loud twin-turbo V8), old Land Cruiser, Escalade, RAV4, Q7, Tucson, Cullinan, HR-V, RAV4, Kona,
   // CX-5, Bronco 2-door, Crosstrek, 4Runner, Highlander
-  suv1: { t100: 4.5, vmax: 220, mass: 2560, drive: 'awd', grip: 2.05, steer: 0.52, rollK: 1.7, comY: 0.72, antiRoll: 5, brakeK: 0.92, eng: 'v8tt' },
+  suv1: { t100: 4.5, vmax: 220, mass: 2560, drive: 'awd', grip: 2.05, steer: 0.52, rollK: 1.6, comY: 0.64, antiRoll: 6, brakeK: 0.92, eng: 'v8tt' },
   suv2: { t100: 12.5, vmax: 160, mass: 2100, drive: 'awd', grip: 1.9, rollK: 1.9 },
   suv3: { t100: 6.0, vmax: 210, mass: 2700, drive: 'awd', grip: 2.1, rollK: 1.5, comY: 0.66, brakeK: 0.95 },
   suv4: { t100: 8.5, vmax: 190, mass: 1600, drive: 'awd' },
@@ -68,13 +68,14 @@ export const PERF = {
   van6: { t100: 7.4, vmax: 190, mass: 2000, drive: 'fwd' },
   van7: { t100: 7.8, vmax: 180, mass: 2100, drive: 'fwd' },
   // military: M1151-like Humvee (6.5 L turbo diesel, 4,700 kg armored)
-  humvee1: { t100: 18, vmax: 113, mass: 4700, drive: 'awd', grip: 2.0, steer: 0.55, rollK: 1.4, comY: 0.9, antiRoll: 6, brakeK: 0.85 },
+  humvee1: { t100: 17, vmax: 113, mass: 4700, drive: 'awd', grip: 2.0, steer: 0.55, rollK: 1.4, comY: 0.9, antiRoll: 6, brakeK: 0.85, eng: 'dslV8' },
 };
 
 // engine profiles that the fleet's real cars need beyond glb/index.js E (merged there)
 export const EXTRA_ENGINES = {
   f6: { engine: 'flat6', cylinders: 6, aspiration: 'na', exhaust: 'race', maxRpm: 9000, idleRpm: 950, gears: [3.75, 2.38, 1.72, 1.34, 1.11, 0.96, 0.84], final: 4.97 },
   f6t: { engine: 'flat6', cylinders: 6, aspiration: 'twin-turbo', exhaust: 'sporty', maxRpm: 7500, idleRpm: 850, gears: [3.91, 2.29, 1.58, 1.18, 0.94, 0.79, 0.62, 0.5], final: 3.62 },
+  dslV8: { engine: 'diesel', cylinders: 8, aspiration: 'turbo', exhaust: 'diesel', maxRpm: 3400, idleRpm: 650, gears: [2.48, 1.48, 1.0, 0.75], final: 5.9 },
   v8f: { engine: 'v8', cylinders: 8, aspiration: 'twin-turbo', exhaust: 'race', maxRpm: 8000, idleRpm: 950, gears: [3.08, 2.19, 1.63, 1.29, 1.03, 0.84, 0.69], final: 4.44 },
   v8tt: { engine: 'v8', cylinders: 8, aspiration: 'twin-turbo', exhaust: 'loud', maxRpm: 6500, idleRpm: 650, gears: [4.38, 2.86, 1.92, 1.37, 1.0, 0.82, 0.73, 0.6], final: 3.27 },
 };
