@@ -27,6 +27,21 @@ import { patchRecipeGround } from '../ground/groundMaterial.js';
 import { patchCitySurfaces } from '../surfaces/surfaceShaders.js';
 import { ladder, LADDER_ON } from '../ground/depthLadder.js';
 
+// Downtown paving panel joints on the panel canvas (N x N panels of cs px, canvas S px; 1 px ~ 6 mm).
+// A 2 px joint, a shade darker than the slab, and a 1 px light lip on one side of each cut.
+function drawPanelJoints(ctx, N, cs, S) {
+  ctx.fillStyle = 'rgba(96,90,82,0.5)';
+  for (let k = 0; k <= N; k++) {
+    ctx.fillRect(k * cs - 1, 0, 2, S);
+    ctx.fillRect(0, k * cs - 1, S, 2);
+  }
+  ctx.fillStyle = 'rgba(255,250,240,0.12)';
+  for (let k = 0; k <= N; k++) {
+    ctx.fillRect(k * cs + 1, 0, 1, S);
+    ctx.fillRect(0, k * cs + 1, S, 1);
+  }
+}
+
 function warehouseFacade(renderer) {
   // corrugated metal with a high window band and roller doors; tile = 24m x 12m
   const S = 512,
@@ -565,11 +580,10 @@ export async function createMaterials(renderer) {
           y.stroke();
         } // crack
       }
-    y.fillStyle = 'rgba(70,66,60,0.85)';
-    for (let k = 0; k <= N; k++) {
-      y.fillRect(k * cs - 3, 0, 6, S);
-      y.fillRect(0, k * cs - 3, S, 6);
-    }
+    // ground pass (Nov 19): saw-cut joints. They were 6 px of near-black at 85 % (3.5 cm on the ground, a
+    // thick dark grid from any distance); a real joint is ~1 cm and only a shade darker than the slab,
+    // with a faint lit lip on one side.
+    drawPanelJoints(y, N, cs, S);
     for (let i = 0; i < 10; i++) {
       const g = y.createRadialGradient(0, 0, 0, 0, 0, 1);
       y.save();

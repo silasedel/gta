@@ -795,11 +795,18 @@ export async function loadMiamiData(game, opts = {}) {
     const t = terrainHeightAt(x, z); // (0 + relief on a flat build)
     if (s === S_SIDEWALK) return t + CURB;
     if (s === S_PIER) return PIER_Y;
+    // ground pass (Nov 19): the asphalt is drawn (and collides) 5 cm over the land, and raised plazas are
+    // clipped at the road (tilebuild PLAZA_CLIP). People placed with this height stood 5 cm into every
+    // street and 10 cm into the air where a plaza cell reached over the lanes.
+    if (s === S_ASPHALT) return t + ROAD_TOP;
     // stage 1: downtown plazas are raised flush with the sidewalk (tilebuild draws them at curb height)
     if (COVER_PLAZA >= 0 && coverCode(x, z) === COVER_PLAZA) return t + CURB;
     return t;
   }
   const COVER_PLAZA = COVER.indexOf('plaza');
+  // road surface top over the land (tilebuild draws road ribbons at 0.05; ?plazaclip=0 = old height 0)
+  const ROAD_TOP =
+    typeof location !== 'undefined' && /[?&]plazaclip=0\b/.test(location.search) ? 0 : 0.05;
   const isWater = (x, z) => surfCode(x, z) === S_WATER;
   function surfaceAt(x, z, y) {
     const s = surfCode(x, z);
@@ -1468,23 +1475,21 @@ export async function loadMiamiData(game, opts = {}) {
       tx: T.i,
       tz: T.j,
       bounds: tileBounds(T.k),
-      buildings: (T.b || [])
-        .filter(canopyOk)
-        .map((r) => ({
-          id: r.id,
-          ...polyT(r),
-          h: r.h,
-          minH: r.mh || 0,
-          levels: r.lv || 0,
-          type: r.t,
-          style: r.st,
-          zone: ZONES[r.zn],
-          part: !!r.part,
-          colour: r.col || null,
-          roofColour: r.rcol || null,
-          roofShape: r.rs || null,
-          ...bExtra(r),
-        })),
+      buildings: (T.b || []).filter(canopyOk).map((r) => ({
+        id: r.id,
+        ...polyT(r),
+        h: r.h,
+        minH: r.mh || 0,
+        levels: r.lv || 0,
+        type: r.t,
+        style: r.st,
+        zone: ZONES[r.zn],
+        part: !!r.part,
+        colour: r.col || null,
+        roofColour: r.rcol || null,
+        roofShape: r.rs || null,
+        ...bExtra(r),
+      })),
       land: (T.ld || []).map(polyT),
       sidewalks: (T.sw || []).map(polyT),
       landcover: (T.lu || []).map((r) => ({ cls: r.c, surface: r.s, ...polyT(r) })),

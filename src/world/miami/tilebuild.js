@@ -106,6 +106,10 @@ const FARVEG = !(typeof location !== 'undefined' && /[?&]farveg=0\b/.test(locati
 export const POOL_KEEP_EMPTY = {
   on: typeof location !== 'undefined' && /[?&]poolhide=0\b/.test(location.search),
 };
+// ground pass (Nov 19): A/B switches. ?lamppool=1 = the old tile lamp-pool quads; ?plazaclip=0 = raised
+// plazas drawn as the raw OSM polygon (over the road, chamfer onto the asphalt) instead of clipped like a sidewalk.
+const OLD_LAMP_POOLS = typeof location !== 'undefined' && /[?&]lamppool=1\b/.test(location.search);
+const PLAZA_CLIP = !(typeof location !== 'undefined' && /[?&]plazaclip=0\b/.test(location.search));
 const SH_Y = LADDER_ON ? 0.058 : 0.05; // W4: shoulders sit between the junction fill (0.055) and the decals (0.062), matching their ladder rung
 const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under the sand areas (0.01), not 2 mm (z-fight)
 const FAC = {
@@ -6389,8 +6393,14 @@ export function createTileBuilder(ctx) {
             const o = provider.getTile(tile.tx + i, tile.tz + j);
             if (o && !o.then && o.roads) nb.push(o);
           }
-      for (const tt of nb)
+      for (const tt of nb) {
         for (const rings of sidewalksOf(tt)) L.push({ rings, bb: bboxOf(rings[0]) });
+        // ground pass (Nov 19): a raised plaza is a slab too. Without it the corner curb returns and walk
+        // corners were built through the plaza: loose curb bars lying on the paving.
+        if (PLAZA_CLIP)
+          for (const a of tt.areas || [])
+            if (plazaRaised(a)) L.push({ rings: a.rings, bb: bboxOf(a.rings[0]) });
+      }
       slabIdx.set(tile, L);
     }
     for (const e of L)
@@ -8449,7 +8459,7 @@ export function createTileBuilder(ctx) {
     pool: 0.06,
   };
   const plazaRaised = (a) => !JOB4_OFF && a.cls === 'plaza' && a.kind === 'paved';
-  function areaFill(B, a) {
+  function areaFill(B, a, tile = null) {
     const k = a.kind,
       y = AREA_Y[k] ?? 0.004;
     if (synthArea(a)) return; // natural cover outside real Miami: drawn by the terrain mesh
@@ -8494,13 +8504,15 @@ export function createTileBuilder(ctx) {
             : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn)
               ? B.panels
               : B.sidewalk;
-      fillPoly(
-        tg,
-        a.rings,
-        CURB,
-        0xffffff,
-        tg === B.promenade ? 1 / 8 : tg === B.panels ? 1 / 6 : 1 / 2.5,
-      );
+      const uvS = tg === B.promenade ? 1 / 8 : tg === B.panels ? 1 / 6 : 1 / 2.5;
+      if (PLAZA_CLIP && tile && !tg.empty) {
+        // ground pass (Nov 19): the OSM plaza polygon runs over the street. Clip it like a sidewalk slab
+        // (road ribbons, junction cuts and curb ramps subtracted), so the road side gets the poured curb
+        // and the rest the chamfer, instead of a raised slab lying on the asphalt with a hard step.
+        sidewalkPoly(tg, a.rings, null, B.sidewalk, uvS, tile);
+        return;
+      }
+      fillPoly(tg, a.rings, CURB, 0xffffff, uvS);
       const cc = new THREE.Color(0xc8c4bc);
       if (CURB3D) {
         a.rings.forEach((ring, ri) => chamferRing(B.sidewalk, ring, CURB, cc, ri > 0));
@@ -12549,7 +12561,7 @@ export function createTileBuilder(ctx) {
     yield;
     seedRealProps(props, tile, B);
     yield;
-    for (const a of tile.areas || []) areaFill(B, a);
+    for (const a of tile.areas || []) areaFill(B, a, tile);
     const aprons = SHOP_APRONS
       ? shopAprons(
           [...(tile.storefronts || []), ...buildingsOf(tile).flatMap((b) => b.storefronts || [])],
@@ -13032,7 +13044,11 @@ export function createTileBuilder(ctx) {
       inst(group, lampPoleG, M.metal, props.lamp, { cast: true });
       inst(group, lampHeadG, M.lampHead, props.lamp, { cast: false });
     }
-    {
+    // ground pass (Nov 19): the old 11 m peach additive lamp-pool quads are not drawn any more. They sat at
+    // the asphalt height (under a raised plaza, over a sunken one), survived when their lamp was dropped,
+    // and doubled the clustered lamp lights (env/lamps.js lights near lamps, its own far pools beyond):
+    // a flat orange oval on the ground. `?lamppool=1` = old.
+    if (OLD_LAMP_POOLS) {
       const im = inst(group, poolG, M.pool, props.pool, { cast: false });
       if (im) im.renderOrder = 2;
     }
@@ -13793,7 +13809,8 @@ export function createTileBuilder(ctx) {
     } // same vertices as the rendered terrain
     else
       for (const a of tile.areas || [])
-        if (a.kind !== 'pool') fillPoly(g, a.rings, plazaRaised(a) ? CURB : 0, 0xffffff, 1); // job 4: raised block plazas walk at slab height
+        if (a.kind !== 'pool')
+          fillPoly(g, a.rings, plazaRaised(a) && !PLAZA_CLIP ? CURB : 0, 0xffffff, 1); // job 4: raised block plazas walk at slab height (clipped slab below)
     // ground cover: every 2 m cell of this tile that is land (not water) gets a floor at y = 0, so no land is ever without a collider
     // (OSM land polygons miss slivers along the coast, tile borders and whole map-edge tiles; the visual land base covers them)
     // r2-physics (QA-030/037, QA-007/036): the fallback land floor stands where the land is DRAWN: no floor where the terrain is drawn
@@ -13846,6 +13863,15 @@ export function createTileBuilder(ctx) {
       sidewalkPoly(null, rings, g, null, 1, tile);
       yield;
     }
+    // ground pass (Nov 19): raised plazas collide where they are drawn: the same clipped slab and curb
+    // faces as the render (relief tiles had no plaza collider at all, so feet sank 15 cm into the paving)
+    if (PLAZA_CLIP)
+      for (const a of tile.areas || []) {
+        if (!plazaRaised(a)) continue;
+        yield* clipGen(a.rings, tile);
+        sidewalkPoly(null, a.rings, g, null, 1, tile);
+        yield;
+      }
     if (audit) (add(g, soupOf('sidewalkPoly')), (g = new Batch()));
     for (const p of tile.piers || []) pierDeck(null, p, g, null);
     if (audit) (add(g, soupOf('pierDeck')), (g = new Batch()));
