@@ -34,6 +34,7 @@ export function build(ctx) {
   // over the yard at its edges; every canal wall top reaches at least this high, so a ray through the portal always ends inside the
   // lined channel (walls, bed, water), which is redrawn after it
   let lidY = -9; if (Cn.on) for (let x = Cn.x0 - 0.5; x <= Cn.x1 + 0.51; x += 0.75) for (let z = P.wallZ - 0.5; z <= Cn.z1 + 0.51; z += 0.75) lidY = Math.max(lidY, ground(x, z) + 0.03, x < Cn.x0 + 0.1 || x > Cn.x1 - 0.1 ? yard(x, z) + 0.06 : -9);
+  let capC = sea + 0.03; if (Cn.on) for (let z = P.wallZ; z <= Cn.z1; z += 1) for (const x of [Cn.x0 - 0.4, Cn.x1 + 0.4]) capC = Math.max(capC, yard(x, z) + 0.1);
   const inC = (x, z) => Cn.on && x > Cn.x0 - 0.8 && x < Cn.x1 + 0.8 && z > P.wallZ - 0.8 && z < Cn.z1 + 0.8;
   const topAt = (x, z, far) => { const t = yard(x, z) + 0.06; void far; return inC(x, z) ? Math.max(t, lidY) : t; };
   // a run of bulkhead from (ax, az) to (bx, bz); n = unit normal toward the water; planks on the land side of the line
@@ -47,7 +48,7 @@ export function build(ctx) {
       box(W, 0.2, top + 0.02 - bed, 0.2, px, (top + 0.02 + bed) / 2, pz, { grain: 1, color: gray(0.68), wear: 1, bevel: 0.02 }, 0, ry, 0, o.inCanal ? CI : B); }
     const [mx, mz] = at(L / 2, 0.12), tm = topAt(mx, mz, o.far); Fr.col.box(mx, (tm + bed) / 2, mz, L + 0.1, tm - bed + 0.2, 0.3, { ry, tag: 'seawall' });
     // the canal's inner faces again, drawn after the portal (the planks above keep their color, these guarantee the channel is lined)
-    if (o.inCanal) { const [lx, lz] = at(L / 2, -0.005), tt = lidY + 0.002; box(W, L + 0.02, tt - bed, 0.02, lx, (tt + bed) / 2, lz, { grain: 1, color: gray(0.7), wear: 0.95, uvS: 0.235 }, 0, ry, 0, CI); }
+    if (o.inCanal) { const [lx, lz] = at(L / 2, -0.005), tt = Math.max(lidY, capC) + 0.002; box(W, L + 0.02, tt - bed, 0.02, lx, (tt + bed) / 2, lz, { grain: 1, color: gray(0.7), wear: 0.95, uvS: 0.235 }, 0, ry, 0, CI); }
     return { L, ux, uz, ry, at }; };
   const fence = (ax, az, bx, bz, nx, nz, o = {}) => { const L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, ry = Math.atan2(-uz, ux), fo = 0.45, n = Math.max(1, Math.round(L / 2.0)), at = (t) => [ax + ux * t - nx * fo, az + uz * t - nz * fo];
     if (o.chain) { const CH = mat.art('r8chain', 128, 128, (g, w, h) => { g.clearRect(0, 0, w, h); g.strokeStyle = 'rgba(170,172,168,1)'; g.lineWidth = 3; for (let k = -h; k < w + h; k += 16) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k + h, h); g.stroke(); g.beginPath(); g.moveTo(k + h, 0); g.lineTo(k, h); g.stroke(); } }, { rough: 0.6 });
@@ -104,19 +105,22 @@ export function build(ctx) {
       const pa = g.attributes.position; for (let i = 0; i < pa.count; i++) pa.setY(i, Math.max(ground(pa.getX(i), pa.getZ(i)) + 0.03, floor)); g.computeBoundingSphere();
       const m = new THREE.Mesh(g, lidM); m.renderOrder = 60; m.castShadow = m.receiveShadow = false; m.frustumCulled = false; m.raycast = () => {}; m.name = 'r8_water_portal'; Fr.groups.ext.add(m); };
     const BX = { x0: P.wallX0, x1: Cn.x1 + 18, z0: Wz - 22, z1: Wz };
-    if (Cn.on) lidGrid(Cn.x0, Cn.x1, Wz - 0.01, Cn.z1, 0.75, sea + 0.03);
-    if (bayLand) lidGrid(BX.x0, BX.x1, BX.z0, BX.z1, 1.0, sea + 0.03);
+    // the canal's portal is flat at the bulkhead caps: it also clears the yard ground and decals that reach over the channel's line
+    void lidGrid; void capC;   // r8: no depth portal (it stopped clearing depth in the current render pipeline); the surface follows the ground instead
     // the water: one surface over the canal and (when the world has beach there) the bay strip; opaque, 12 mm over the sea plane
     const WM = new THREE.MeshStandardMaterial({ color: 0x1d5a57, roughness: 0.06, metalness: 0.0, envMapIntensity: 1.15, vertexColors: true }); WM.name = 'r8water';
     const WF = new THREE.MeshStandardMaterial({ color: 0x1d5a57, roughness: 0.06, metalness: 0.0, envMapIntensity: 1.15, vertexColors: true, transparent: true, depthWrite: false }); WF.name = 'r8waterFeather';
     WF.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <color_pars_vertex>', '#include <color_pars_vertex>\nattribute float aA; varying float vA;').replace('#include <color_vertex>', '#include <color_vertex>\nvA = aA;');
       sh.fragmentShader = sh.fragmentShader.replace('#include <color_pars_fragment>', '#include <color_pars_fragment>\nvarying float vA;').replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= vA;'); };
-    new THREE.TextureLoader().load((import.meta.env?.BASE_URL ?? '/') + 'assets/env/waternormals.jpg', (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.2, 0.2); for (const m of [WM, WF]) { m.normalMap = t; m.normalScale.set(0.16, 0.16); m.needsUpdate = true; } ctx.updaters.push((dt) => { t.offset.x = (t.offset.x + dt * 0.002) % 1; t.offset.y = (t.offset.y - dt * 0.0035) % 1; }); });
+    // the normal map is assigned up front (no program change when it arrives: the perf shader gate queues each object once)
+    { const t = new THREE.TextureLoader().load((import.meta.env?.BASE_URL ?? '/') + 'assets/env/waternormals.jpg'); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.2, 0.2);
+      for (const m of [WM, WF]) { m.normalMap = t; m.normalScale.set(0.16, 0.16); } ctx.updaters.push((dt) => { t.offset.x = (t.offset.x + dt * 0.002) % 1; t.offset.y = (t.offset.y - dt * 0.0035) % 1; }); }
     // darker toward the walls (shade, depth): k(x, z) from the distance to the nearest bulkhead
     const shade = (x, z) => { const inCn = x > Cn.x0 && x < Cn.x1 && z > Wz - 0.5; const d = inCn ? Math.min(x - Cn.x0, Cn.x1 - x, Cn.z1 - z) : Math.max(0, Wz - z); return 0.58 + 0.42 * Math.min(1, d / 2.2); };
     const sheet = (x0, x1, z0, z1, step, mat, alpha) => { const nx = Math.max(1, Math.ceil((x1 - x0) / step)), nz = Math.max(1, Math.ceil((z1 - z0) / step)), g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, sea + 0.012, (z0 + z1) / 2);
       const pa = g.attributes.position, col = new Float32Array(pa.count * 3), al = new Float32Array(pa.count), uv = g.attributes.uv;
-      for (let i = 0; i < pa.count; i++) { const x = pa.getX(i), z = pa.getZ(i), k = shade(x, z); col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = k; al[i] = alpha ? alpha(x, z) : 1; uv.setXY(i, x, z); }
+      for (let i = 0; i < pa.count; i++) { const x = pa.getX(i), z = pa.getZ(i), k = shade(x, z); col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = k; al[i] = alpha ? alpha(x, z) : 1; uv.setXY(i, x, z); pa.setY(i, Math.max(sea + 0.012, ground(x, z) + 0.06)); }   /* r8: the surface rides 6 cm over the world's coarse ground where that stands above the sea (no depth tricks) */
+      pa.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere();
       g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('aA', new THREE.BufferAttribute(al, 1));
       const m = new THREE.Mesh(g, mat); m.renderOrder = mat.transparent ? 62 : 61; m.receiveShadow = true; m.castShadow = false; m.raycast = () => {}; m.name = mat.name; Fr.groups.ext.add(m); return m; };
     if (Cn.on) sheet(Cn.x0, Cn.x1, Wz - 0.01, Cn.z1, 0.75, WM);

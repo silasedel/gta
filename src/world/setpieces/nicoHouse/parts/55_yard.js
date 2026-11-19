@@ -59,7 +59,7 @@ export function build(ctx) {
   // ======================================================================= galvanized can (own model) for BINS with can: 'galv'
   // r2-keys (Nov 17 pm): the user's galvanized can with lid (Trash Can 7 -> keys/galv_can.glb); the hand-built can is the fallback
   const LIBGALV = true;
-  const DYNBINS = R8 && !!ctx.opts.game?.world;   // r8 (SPEC: hitting a bin must not explode it into blocks): real rigid-body bins
+  const DYNBINS = R8 && !!ctx.opts.game?.world && !(typeof location !== "undefined" && /[?&]dynbins=0\b/.test(location.search));   // r8 (SPEC: hitting a bin must not explode it into blocks): real rigid-body bins
   for (const b of BINS) if (b.can === 'galv' && LIBGALV && !DYNBINS) { const gy = yG(b.x, b.z); (ctx.libProps ||= []).push(['galv_can', M(b.x, gy, b.z, 0, (b.h || 0) + b.x * 1.7, 0)]); col.cyl(b.x, 0.38 + gy, b.z, 0.28, 0.76, { tag: 'bin' }); }
   for (const b of BINS) if (b.can === 'galv' && !LIBGALV) {
     const x = b.x, z = b.z, gy = yG(x, z), M = (x2, y2, z2, ...a) => kit.M(x2, y2 + gy, z2, ...a); D.geo(ST, new THREE.CylinderGeometry(0.27, 0.24, 0.72, 18, 3, true), M(x, 0.37, z), { color: 0xa4a7a1, wear: 0.6 });

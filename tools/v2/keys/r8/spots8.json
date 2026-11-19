@@ -163,5 +163,70 @@
   "pitch": -15,
   "fov": 80,
   "tod": 10
+ },
+ "dbgLid": {
+  "ref": null,
+  "eye": [
+   12,
+   60,
+   -6
+  ],
+  "top": true,
+  "fov": 40,
+  "tod": 12,
+  "skip": true,
+  "eval": "game.scene.traverse((o)=>{ if (o.name==='r8_water_portal') o.material=new game.THREE.MeshBasicMaterial({color:0xff0000}); });"
+ },
+ "dbgWater": {
+  "ref": null,
+  "eye": [
+   12,
+   60,
+   -6
+  ],
+  "top": true,
+  "fov": 40,
+  "tod": 12,
+  "skip": true,
+  "eval": "game.scene.traverse((o)=>{ if (o.name==='r8_water_portal') o.visible=false; if (o.name==='r8water') o.material=new game.THREE.MeshBasicMaterial({color:0x00ff00}); });"
+ },
+ "x1": {
+  "ref": null,
+  "eye": [
+   12,
+   60,
+   -6
+  ],
+  "top": true,
+  "fov": 40,
+  "tod": 12,
+  "skip": true,
+  "eval": "game.scene.traverse((o)=>{ if (o.name==='r8_water_portal') o.renderOrder=1000; if (/^r8water|^r8canalIn|^r8wat/.test(o.name)) o.renderOrder=1001; });"
+ },
+ "x2": {
+  "ref": null,
+  "eye": [
+   12,
+   60,
+   -6
+  ],
+  "top": true,
+  "fov": 40,
+  "tod": 12,
+  "skip": true,
+  "eval": "game.drawOrder.on=false;"
+ },
+ "x3": {
+  "ref": null,
+  "eye": [
+   12,
+   60,
+   -6
+  ],
+  "top": true,
+  "fov": 40,
+  "tod": 12,
+  "skip": true,
+  "eval": "game.drawOrder.on=true; game.scene.traverse((o)=>{ if (o.name==='r8water') { o.material.depthTest=false; o.renderOrder=2000; } });"
  }
 }
