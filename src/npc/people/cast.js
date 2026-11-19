@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { loadPeopleIndex, loadPerson, getPerson, loadedPeople, isLoadingPerson, personMaterial, hiRes, unloadPerson } from './lib.js';
 import { createNpc, LOD_CFG, SHADOW_PROXY } from '../arch/character.js';
 import { FAR_IN_USE } from './farCrowd.js';
+import { areaType, lookOf, lookWeight, isPublicZone, DISTRICT_AREA, NEUTRAL } from './casting.js';
 
 export const NEAR_DUP = 320;     // m: the same person never twice inside this radius (= the crowd despawn radius: no twins on screen)
 const CAP = 48;                  // people loaded at once (crowd textures ~8 MB each; close-up sets stream separately)
@@ -81,6 +82,19 @@ export async function createCast(game) {
     return { district: d, keys: /Key|Marathon|Islamorada|Tavernier/i.test(d) || pos.z > 4300, rough: /Overtown|Liberty/i.test(d), night: hour() > 20 || hour() < 5, swat: (game.wanted?.level || 0) >= 4 };
   };
   const has = (p, places) => p.places.some((x) => places.includes(x));
+  // r6-casting (user: "make the npcs fit the area"): the look context of a spot (area type from the district + zone,
+  // src/npc/people/casting.js) and a person's weight there (0 = that look class never appears in this area)
+  const lookCtx = (pos, zone, act) => {
+    if (!pos) return null;
+    const d = districtAt(pos.x, pos.z); const z = zone || zoneAt(pos.x, pos.z);
+    let area = areaType(d, z, pos);
+    if (!DISTRICT_AREA[d] && pos.z > 4300 && area !== 'rural') area = 'keys';   // the island chain south of the mainland
+    return { area, zone: z, act: act || null, night: hour() > 20 || hour() < 5 };
+  };
+  const wOf = (p, lc) => (lc ? lookWeight(lookOf(p), lc) : 1);
+  const neutral = (p) => lookOf(p) === NEUTRAL && p.age !== 'kid';
+  // people of the index that fit both the places and the area (how deep the proper pool is)
+  const poolSize = (places, lc) => { let n = 0; for (const p of people) if (has(p, places) && wOf(p, lc) > 0) n++; return n; };
   const rank = (p, places) => { let best = 9; for (const x of p.places) { const i = places.indexOf(x); if (i >= 0 && i < best) best = i; } return best; };
 
   // ---------------------------------------------------------------- loading (one at a time, idle time)
@@ -93,8 +107,8 @@ export async function createCast(game) {
       queued.add(id); if (urgent) queue.unshift(id); else queue.push(id);
     }
   };
-  function wantPlaces(places, n = 8, urgent = false) {
-    const c = people.filter((p) => has(p, places)).sort((a, b) => rank(a, places) - rank(b, places) || Math.random() - 0.5);
+  function wantPlaces(places, n = 8, urgent = false, lc = null) {
+    const c = people.filter((p) => has(p, places) && wOf(p, lc) > 0).sort((a, b) => rank(a, places) - rank(b, places) || Math.random() - 0.5);
     want(c.slice(0, n).map((p) => p.id).reverse(), urgent);
   }
   const idle = (f) => (globalThis.requestIdleCallback ? requestIdleCallback(f, { timeout: 500 }) : setTimeout(f, 60));
@@ -133,13 +147,15 @@ export async function createCast(game) {
   }
   function pickStrict(places, pos, opts = {}, minDist = NEAR_DUP) {
     const g = opts.gender ? (String(opts.gender)[0] === 'f' ? 'f' : 'm') : null;
+    const lc = opts.lc || null, cand = opts.cand || null;
     let best = null, bs = -1;
     const t = now();
     for (const b of loadedPeople()) {
-      const p = byId.get(b.id); if (!p || !has(p, places)) continue;
+      const p = byId.get(b.id); if (!p || !(cand ? cand(p) : has(p, places))) continue;
       if (g && p.g !== g) continue;
       if (opts.exclude?.has(b.id)) continue;
-      let s = (1 / (1 + rank(p, places) * 0.6)) * (0.55 + Math.random() * 0.45);
+      const lw = wOf(p, lc); if (!(lw > 0)) continue;       // r6-casting: this look class does not belong in this area
+      let s = (1 / (1 + rank(p, places) * 0.6)) * (0.55 + Math.random() * 0.45) * (0.3 + 0.7 * lw);
       let near = 1e9, n = 0;
       for (const c of live) {
         if (c.npcArch !== b.id) continue;
@@ -152,8 +168,13 @@ export async function createCast(game) {
       if (s > bs) { bs = s; best = b; }
     }
     // ask for more people of these places (so the next spawn has fresh faces)
-    const loadedN = people.filter((p) => has(p, places) && getPerson(p.id)).length;
-    if (loadedN < 14) { wantPlaces(places, loadedN + 6, true); pump(); }
+    if (cand) {
+      const L = people.filter((p) => cand(p) && wOf(p, lc) > 0); const loadedN = L.filter((p) => getPerson(p.id)).length;
+      if (loadedN < 10) { want(L.filter((p) => !getPerson(p.id)).sort(() => Math.random() - 0.5).slice(0, 6).map((p) => p.id), true); pump(); }
+      return best;
+    }
+    const loadedN = people.filter((p) => has(p, places) && wOf(p, lc) > 0 && getPerson(p.id)).length;
+    if (loadedN < 14) { wantPlaces(places, loadedN + 6, true, lc); pump(); }
     return best;
   }
   function make(b, opts = {}) {
@@ -163,7 +184,7 @@ export async function createCast(game) {
     if (!c) return null;
     const p = byId.get(b.id);
     c.zoneTag = TAG[p.places[0]] || 'casual'; c.human.zone = c.zoneTag;
-    c.personMeta = p;
+    c.personMeta = p; c.look = lookOf(p);
     if (opts.pos) c.root.position.set(opts.pos.x, opts.pos.y || 0, opts.pos.z);   // so the next pick in this frame sees it here
     c._born = now();
     live.add(c); lastUse.set(b.id, now());
@@ -177,10 +198,16 @@ export async function createCast(game) {
     const ctx = ctxAt(pos);
     const zone = opts.zone === 'cop' || opts.outfit === 'cop' ? 'cop' : (opts.outfit || opts.zone || zoneAt(pos?.x || 0, pos?.z || 0));
     const places = placesFor(zone, opts.act, ctx);
-    let b = pick(places, pos, opts);
+    // r6-casting: on public ground only look classes the area allows; a thin pool (fewer than 4 people of the index fit
+    // both the place and the area) falls back to the neutral casual pool, never to a look that does not belong
+    const lc = isPublicZone(zone) ? lookCtx(pos, zone, opts.act) : null;
+    // r7-groups (peds.js): opts.cand narrows the pick to people who fit a group (age band, look family), always within places
+    const gc = opts.cand || null;
+    let b = pick(places, pos, { ...opts, lc, cand: gc ? (p) => has(p, places) && gc(p) : null });
+    if (!b && lc && !opts.act && poolSize(places, lc) < 4) b = pick(places, pos, { ...opts, lc, cand: gc ? (p) => neutral(p) && gc(p) : neutral });
     // a person the game needs right now (a mission victim, a shop owner): the best loaded civilian when none of this
     // place is in yet (never police / lifeguards; never a twin within 60 m)
-    if (!b && opts.force) b = anyCivilian(pos, opts);
+    if (!b && opts.force) b = anyCivilian(pos, { ...opts, lc: lc || lookCtx(pos, 'casual') });
     return b ? make(b, opts) : null;
   }
   /** police model hook: a uniformed officer (SWAT armor at 4+ stars), or null */
@@ -196,9 +223,16 @@ export async function createCast(game) {
     return c;
   }
   function anyCivilian(pos, opts = {}) {
+    // r6-casting: a look that fits the area first, then plain casual; anybody only when a mission needs its person now
+    const lc = opts.lc || null;
+    if (lc) return anyCivilianOf(pos, opts, (p) => wOf(p, lc) > 0) || anyCivilianOf(pos, opts, neutral) || anyCivilianOf(pos, opts, (p) => lookOf(p) !== 'gang' && lookOf(p) !== 'uniform') || anyCivilianOf(pos, opts, null);
+    return anyCivilianOf(pos, opts, null);
+  }
+  function anyCivilianOf(pos, opts, ok) {
     let best = null, bs = -1; const g = opts.gender ? (String(opts.gender)[0] === 'f' ? 'f' : 'm') : null;
     for (const x of loadedPeople()) {
       const p = byId.get(x.id); if (!p || NO_CAR(p) || p.age === 'kid' || opts.exclude?.has?.(x.id)) continue;   // mission / event stand-ins are never kids
+      if (ok && !ok(p)) continue;
       let near = 1e9; for (const c of live) if (c.npcArch === x.id) near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(at(c).x - pos.x, at(c).z - pos.z));
       if (near < 60) continue;
       const s = Math.min(near, 400) + Math.random() * 50 + (g && p.g === g ? 500 : 0); if (s > bs) { bs = s; best = x; }
@@ -217,11 +251,14 @@ export async function createCast(game) {
     const ex = new Set(opts.exclude || []);
     const maxH = Number.isFinite(opts.maxHeight) ? opts.maxHeight : Infinity;
     for (const p of people) if ((p.height || 1.75) > maxH || NO_CAR(p) || (opts.role !== 'passenger' && (p.age === 'kid' || p.age === 'teen' || (p.years || 30) < 17))) ex.add(p.id);   // kids ride, never drive
-    let b = pick(places, pos, { ...opts, exclude: ex });
-    if (!b) {   // relaxed: any loaded civilian, a twin only when 60 m away or more
+    // r6-casting: drivers belong to the area too (no suit at the wheel in the Keys, no fisherman downtown)
+    const lc = lookCtx(pos, zone === 'beach' || zone === 'water' ? 'casual' : zone);
+    let b = pick(places, pos, { ...opts, exclude: ex, lc });
+    if (!b) {   // relaxed: any loaded civilian whose look fits the area, a twin only when 60 m away or more
       let best = null, bs = -1;
       for (const x of loadedPeople()) {
         if (ex.has(x.id)) continue;
+        const px = byId.get(x.id); if (!px || !(wOf(px, lc) > 0)) continue;
         let near = 1e9; for (const c of live) if (c.npcArch === x.id) near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(at(c).x - pos.x, at(c).z - pos.z));
         if (near < 60) continue;
         const s = Math.min(near, 400) + Math.random() * 50; if (s > bs) { bs = s; best = x; }
@@ -235,7 +272,9 @@ export async function createCast(game) {
   }
   /** staged person for a place (shop staff, kitchen, bar, hotel, lifeguard, dock ...), or null */
   function createFor(place, opts = {}) {
-    const b = (opts.id && getPerson(opts.id)) || pick(Array.isArray(place) ? place : [place], opts.pos, opts) || (opts.force ? anyCivilian(opts.pos, opts) : null);
+    // (force = the generic stand-in when no person of the role is loaded: a look that fits the area, r6-casting)
+    const lc = opts.force && opts.pos ? lookCtx(opts.pos, 'casual') : null;
+    const b = (opts.id && getPerson(opts.id)) || pick(Array.isArray(place) ? place : [place], opts.pos, { ...opts, lc }) || (opts.force ? anyCivilian(opts.pos, { ...opts, lc }) : null);
     return b ? make(b, opts) : null;
   }
   /** can a pooled person character be reused for this zone here? */
@@ -244,7 +283,9 @@ export async function createCast(game) {
     if (zone === 'cop') return p.places.includes('police');
     if (p.places.includes('police') || p.places.includes('police_swat')) return false;
     const places = placesFor(zone, null, ctxAt(pos));
-    if (!has(p, places)) return false;
+    const lc = isPublicZone(zone) ? lookCtx(pos, zone) : null;
+    if (lc && !(wOf(p, lc) > 0)) return false;              // r6-casting: never reused in an area its look does not belong to
+    if (!has(p, places) && !(lc && neutral(p) && poolSize(places, lc) < 4)) return false;
     if (pos) for (const o of live) if (o !== c && o.npcArch === c.npcArch && o.root.visible && o.root.parent && Math.hypot(at(o).x - pos.x, at(o).z - pos.z) < NEAR_DUP) return false;
     return true;
   }
@@ -282,7 +323,8 @@ export async function createCast(game) {
   const isWater = (x, z) => { try { return !!game.city?.isWater?.(x, z); } catch (e) { return false; } };
   const gy = (x, z) => { try { const g = game.city?.groundHeightAt?.(x, z, 2); return Number.isFinite(g) ? g : 0; } catch (e) { return 0; } };
   function addPost(kind, places, x, z, heading, pose) {
-    const b = pick(places, { x, z }); if (!b) return false;
+    // r6-casting: dock people follow the area (fishermen in waders in the Keys / the country, captains at city marinas)
+    const b = pick(places, { x, z }, kind === 'dock' ? { lc: lookCtx({ x, z }, 'casual') } : {}); if (!b) return false;
     const c = make(b, { pose }); if (!c) return false;
     c.root.position.set(x, gy(x, z), z); c.root.rotation.y = heading; game.scene.add(c.root);
     posts.push({ kind, c, x, z }); return true;
@@ -334,33 +376,43 @@ export async function createCast(game) {
     zT -= dt; if (zT > 0) return; zT = 4;
     const pp = game.player?.position; if (!pp) return;
     const ctx = ctxAt(pp); const z = zoneAt(pp.x, pp.z);
-    wantPlaces(placesFor(z, null, ctx), 14, true);
+    const lc = lookCtx(pp, z); const pl = placesFor(z, null, ctx);
+    wantPlaces(pl, 14, true, lc);
+    if (poolSize(pl, lc) < 4) want(people.filter((p) => neutral(p) && wOf(p, lc) > 0 && !getPerson(p.id)).slice(0, 6).map((p) => p.id), true);
     if (z === 'beach') wantPlaces(['beach', 'swim'], 6);
     if (game.wanted?.level) wantPlaces(ctx.swat ? ['police_swat', 'police'] : ['police'], 4);
     pump();
   });
-  { const pp = game.player?.position; const ctx = ctxAt(pp); wantPlaces(['police', 'police_swat'], 10); if (pp) wantPlaces(placesFor(zoneAt(pp.x, pp.z), null, ctx), 12); wantPlaces(['street', 'residential'], 6); pump(); }
+  { const pp = game.player?.position; const ctx = ctxAt(pp); wantPlaces(['police', 'police_swat'], 10); if (pp) wantPlaces(placesFor(zoneAt(pp.x, pp.z), null, ctx), 12, false, lookCtx(pp)); wantPlaces(['street', 'residential'], 6, false, pp ? lookCtx(pp, 'casual') : null); pump(); }
 
   /** far crowd tier (src/npc/crowd.js): any of the user's people for this zone (needs no loading: index palette only) */
   const farPool = new Map();
-  function farPerson(zone, pos, act = null, avoid = null) {
+  function farPerson(zone, pos, act = null, avoid = null, cand = null) {
     const ctx = ctxAt(pos); const places = placesFor(zone, act, ctx);
-    const key = places.join(',');
+    // r6-casting: only look classes the area allows; a thin pool gets the neutral casual people added (never a mismatch)
+    const lc = isPublicZone(zone) ? lookCtx(pos, zone, act) : null;
+    const key = places.join(',') + '|' + (lc ? lc.area + (lc.night ? 'n' : 'd') + (lc.zone === 'beach' || lc.zone === 'water' ? 's' : '') : '');
     let L = farPool.get(key);
-    if (!L) { L = people.filter((p) => p.cols && has(p, places) && !p.places.includes('police') && !p.places.includes('police_swat')); farPool.set(key, L); }
+    if (!L) {
+      const civ = (p) => p.cols && !p.places.includes('police') && !p.places.includes('police_swat') && wOf(p, lc) > 0;
+      L = people.filter((p) => civ(p) && has(p, places));
+      if (lc && !act && L.length < 4) { const S = new Set(L); for (const p of people) if (civ(p) && neutral(p) && !S.has(p)) L.push(p); }
+      farPool.set(key, L);
+    }
+    if (cand) L = L.filter(cand);   // r7-groups: must fit the group (src/npc/people/groups.js)
     if (!L.length) return null;
     // the far tier draws the real person (src/npc/people/farCrowd.js): only people already loaded
     const LL = L.filter((p) => getPerson(p.id)); if (LL.length) L = LL;
     // r3-people (user: "4-5 sunbathers next to each other were the same woman"): never a person already used close by
-    if (avoid && avoid.size) { const L2 = L.filter((p) => !avoid.has(p.id)); if (L2.length) L = L2; else { wantPlaces(places, 24, true); pump(); return null; } }   // nobody new loaded yet: the caller skips this spawn
+    if (avoid && avoid.size) { const L2 = L.filter((p) => !avoid.has(p.id)); if (L2.length) L = L2; else { wantPlaces(places, 24, true, lc); pump(); return null; } }   // nobody new loaded yet: the caller skips this spawn
     // first places weigh more
-    for (let t = 0; t < 4; t++) { const p = L[(Math.random() * L.length) | 0]; if (Math.random() < 1 / (1 + rank(p, places) * 0.5)) return p; }
+    for (let t = 0; t < 6; t++) { const p = L[(Math.random() * L.length) | 0]; if (Math.random() < (0.3 + 0.7 * wOf(p, lc)) / (1 + Math.min(rank(p, places), 4) * 0.5)) return p; }
     return L[(Math.random() * L.length) | 0];
   }
   return {
     people, createPed, createCop, createDriver, createFor, fits, placesFor, farPerson, pick: (places, pos) => pick(places, pos),
     make, get: getPerson, want: (ids) => { want(ids); pump(); }, wantPlaces: (pl, n) => { wantPlaces(pl, n); pump(); },
-    posts,
+    posts, lookOf, areaAt: (pos, zone) => lookCtx(pos, zone)?.area || null, lookWeightAt: (p, pos, zone, act) => wOf(p, lookCtx(pos, zone, act)),
     stats: () => ({ posts: posts.map((p) => p.kind + ':' + p.c.npcArch), total: people.length, loaded: loadedPeople().length, queued: queue.length, live: live.size, visible: [...live].filter((c) => c.root.visible && c.root.parent).length, hi: hiOn.size, lodMax: LOD_CFG.maxFull }),
     live,
   };

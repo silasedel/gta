@@ -17,6 +17,8 @@ import { hasLOS } from '../gameplay/util.js';
 import { createTalk } from './talk.js';
 import * as PR from './props.js';
 import { createSignals, createSpots, createGovernor } from './streetlife.js';
+import { walkGround } from './walk.js';
+import { GROUP_THEMES, groupMate, pickTheme } from './people/groups.js';
 
 export const order = 120;
 
@@ -266,6 +268,7 @@ export async function initV2(game) {
 
   // ---------------------------------------------------------------- far tier: instanced crowd on the sidewalks
   const NAV = peds._nav || null;
+  const SPACE = NAV?.space || null;   // r6-walk: everybody on foot in one spatial hash (src/npc/walk.js)
   let crowd = null;
   // the far tier wears the user's own people (src/npc/people/farCrowd.js: each person's LOD2 mesh, GPU-skinned by the
   // game's clips); '?farcrowd=old' = the procedural mannequin body (crowd.js) for A/B
@@ -300,13 +303,13 @@ export async function initV2(game) {
   // r3-people: the renderer's own rain state (src/world/env/weather.v2.js: rain / wetness 0..1), the kind string as fallback
   const rainy = () => { const w = game.weather; if (w && typeof w.rain === 'number') return w.rain > 0.12 || (w.wetness || 0) > 0.45; return /rain|storm|shower/.test(weather()); };
   // far tier wears the user's people (src/npc/people/cast.js palettes: skin, top, bottom, hair, shoes, sleeve and leg cut)
-  function farLook(L, pos, still = false) {
+  function farLook(L, pos, still = false, cand = null) {
     const base = crowdLook(L);
     const cast = game.npc?.cast; if (!cast?.farPerson) return base;
     try {
       const avoid = new Set(); for (const w of walkers) if (w.look?.personId && Math.abs(w.pos.x - pos.x) < 45 && Math.abs(w.pos.z - pos.z) < 45) avoid.add(w.look.personId);
-      const zn = NAV ? NAV.zoneAt(pos.x, pos.z) : 'residential'; const p = cast.farPerson(zn, pos, still && (zn === 'beach' || zn === 'water') ? 'sunbathe' : null, avoid); const c = p?.cols; if (!c) return base;
-      L.height = p.height * (0.97 + Math.random() * 0.06); L.gender = p.g; L.personId = p.id;
+      const zn = NAV ? NAV.zoneAt(pos.x, pos.z) : 'residential'; const p = cast.farPerson(zn, pos, still && (zn === 'beach' || zn === 'water') ? 'sunbathe' : null, avoid, cand); const c = p?.cols; if (!c) return base;
+      L.personMeta = p; L.height = p.height * (0.97 + Math.random() * 0.06); L.gender = p.g; L.personId = p.id;
       const f = p.g === 'f';
       return { ...base, personId: p.id, gender: p.g, skin: c.skin ?? base.skin, top: c.top ?? base.top, bottom: c.bottom ?? base.bottom, hair: c.hair ?? base.hair, shoes: c.shoes ?? base.shoes,
         sleeve: c.sleeve ?? base.sleeve, leg: c.leg ?? base.leg, hatKind: c.hat ? 1 : 0, hat: c.hat ? (c.hair ?? base.hat) : base.hat,
@@ -327,11 +330,11 @@ export async function initV2(game) {
   }
   // gait: stride length follows leg swing and body height, cadence follows speed, so feet plant without sliding
   const STRIDE_REF = 1.41; // meters per full cycle of the crowd walk at amp 1 for a 1.75 m person
-  function gaitFor(w) {
+  function gaitFor(w, v = w.speed) {
     const sc = (w.look?.height || 1.75) / 1.75;
-    const amp = clamp(0.78 + 0.3 * (w.speed / 1.35), 0.8, 1.15) * (w.ampJit || 1);
+    const amp = clamp(0.78 + 0.3 * (v / 1.35), 0.8, 1.15) * (w.ampJit || 1);
     const stride = STRIDE_REF * amp * sc;
-    const cadence = (Math.PI * 2 * w.speed) / stride;
+    const cadence = (Math.PI * 2 * v) / stride;
     return { cadence, amp };
   }
   const _fwd = new THREE.Vector3();
@@ -372,7 +375,8 @@ export async function initV2(game) {
       const r = crowdCfg.near + 12 + Math.pow(Math.random(), 1.4) * (crowdCfg.far - crowdCfg.near - 25);
       const q = lounger ? NAV.sandPoint(cam, r) : shoreWalker ? NAV.sandPoint(cam, r, true) : NAV.sidewalkNear(cam, r);
       if (!q) continue;
-      if (NAV.spotOK && !NAV.spotOK(q.x, q.z)) continue; // never on a carriageway, highway, bridge or deck
+      if (NAV.spotOK && !lounger && !shoreWalker && !NAV.spotOK(q.x, q.z)) continue; // never on a carriageway, highway, bridge or deck, never in an open field
+      if (SPACE && SPACE.occupied(q.x, q.z, 0.9)) continue;   // r6-walk: never inside somebody
       // r3-people (user, item 30): never appear in plain sight (the fade-in band at the far edge excepted)
       if (NAV.inCamView && Math.hypot(q.x - cam.x, q.z - cam.z) < crowdCfg.far - 20 && NAV.inCamView(q.x, q.y || 0, q.z)) continue;
       const dx = q.x - cam.x, dz = q.z - cam.z, dl = Math.hypot(dx, dz) || 1, dot = (dx * _fwd.x + dz * _fwd.z) / dl;
@@ -390,7 +394,7 @@ export async function initV2(game) {
     const L = makeLook(pick.id, { zone: zk, hour: h, weather: weather(), activity: 'walk', onShift: /^work/.test(pick.act.act), noCarry: true }, bodies, null, 0);
     if (!L) { audit.lookFailed++; return false; }
     const i = crowd.alloc(); if (i < 0) return false;
-    const w = { i, pos: new THREE.Vector3(pos.x, pos.y || 0, pos.z), nav: null, heading: Math.random() * 6.28, id: pick.id, look: L, speed: L.gait.speed, gy: NAV.groundAt(pos.x, pos.z, pos.y || 0), phase: Math.random() * 6.28, still: lounger, fade: 0, leaving: false, ampJit: 0.92 + Math.random() * 0.16 };
+    const w = { i, pos: new THREE.Vector3(pos.x, pos.y || 0, pos.z), nav: null, heading: Math.random() * 6.28, id: pick.id, look: L, speed: L.gait.speed, gy: NAV.groundAt(pos.x, pos.z, pos.y || 0), phase: Math.random() * 6.28, still: lounger, fade: 0, leaving: false, ampJit: 0.92 + Math.random() * 0.16, v: 0 };
     crowd.setFade(i, 0);
     const FL = farLook(L, w.pos, w.still);
     // r3-people: every far person is one of the user's people and never one already used within ~45 m (no twins in a group)
@@ -471,13 +475,38 @@ export async function initV2(game) {
         } else if (wet) {
           w.speed = Math.min(2.0, w.speed * 1.3);
         }
-        w.baseSpeed = w.speed;
+        // r6-walk: where this walker is going (a shop door a few blocks away), its own pace, now and then a companion
+        if (!w.jog && (act === 'errands' || act === 'stroll' || act === 'lunch' || act === 'dinner')) { const dd = spots.door(pos.x, pos.z, 30, 150); if (dd) w.nav.dest = dd; }
+        w.baseSpeed = w.speed; w.v = w.speed;
+        if (!w.jog && !wet && !w.exitT && Math.random() < 0.16) spawnBuddy(w, zk, district, h, bodies);
         const g1 = gaitFor(w);
         crowd.setPose(i, w.jog ? POSE.run : POSE.walk, w.jog ? g1.cadence * 0.62 : g1.cadence, w.phase, w.jog ? 0.75 : g1.amp);
       }
     }
     walkers.push(w); audit.crowdSpawned++; record('crowd|' + L.sig, pick.id.id);
     return true;
+  }
+  /** r6-walk: a companion who walks beside a walker at the same pace (a couple) */
+  let groupN = 1;
+  function spawnBuddy(w, zk, district, h, bodies) {
+    try {
+      const pick = personForPlace({ zone: zk, district, hour: h });
+      const L = makeLook(pick.id, { zone: zk, hour: h, weather: weather(), activity: 'walk', noCarry: true }, bodies, null, 1);
+      if (!L) return false;
+      const i = crowd.alloc(); if (i < 0) return false;
+      const os = -w.nav.hand, hd = w.heading;
+      const b = { i, pos: new THREE.Vector3(w.pos.x + Math.cos(hd) * os * 0.74, w.pos.y, w.pos.z - Math.sin(hd) * os * 0.74), nav: null, heading: hd, id: pick.id, look: L, speed: w.speed, gy: w.gy, phase: Math.random() * 6.28, still: false, fade: 0, leaving: false, ampJit: 0.92 + Math.random() * 0.16, v: w.speed, buddy: w };
+      crowd.setFade(i, 0);
+      const FL = farLook(L, b.pos, false);
+      if (FAR_PEOPLE && game.npc?.cast?.farPerson && !FL.personId) { crowd.release(i); return false; }
+      crowd.setLook(i, FL);
+      w.group = b.group = 'g' + (groupN++);
+      w.nav.lane = Math.min(w.nav.lane ?? 0.3, 0.3); w.nav.laneMax = 0.35; w.nav.laneG = w.nav.lane;
+      const g = gaitFor(b); crowd.setPose(i, POSE.walk, g.cadence, b.phase, g.amp); b.poseK = 'walk'; b.poseV = b.v;
+      crowd.setTransform(i, b.pos.x, b.gy, b.pos.z, b.heading, L.height);
+      walkers.push(b); audit.crowdSpawned++; record('crowd|' + L.sig, pick.id.id); lifeStats.couples = (lifeStats.couples || 0) + 1;
+      return true;
+    } catch (e) { return false; }
   }
   /** a small group talking on the sidewalk in front of a shop (2-4 people in a ring) */
   function spawnGroup(cam) {
@@ -499,8 +528,12 @@ export async function initV2(game) {
     }
     const h = hour();
     const night = h >= 21 || h < 3;
-    let made = 0;
+    // r7-groups: one theme per group (friends, seniors, workers, teens, family, business, night out); every member fits the first
+    const theme = pickTheme(zone, night, h), TH = GROUP_THEMES[theme];
+    g.n = Math.max(TH.n[0], Math.min(TH.n[1], g.n));
+    let made = 0, lead = null;
     for (let m = 0; m < g.n; m++) {
+      const L0 = lead, slot = made, cand = L0 ? (p) => groupMate(theme, L0, p, slot) : TH.lead;
       const pick = personForPlace({ zone: zk, district: districtAt(g.x, g.z), hour: h });
       const L = makeLook(pick.id, { zone: zk, hour: h, weather: weather(), activity: 'talk', noCarry: true }, bodies, null, m);
       if (!L) {
@@ -511,12 +544,16 @@ export async function initV2(game) {
         break;
       }
       const a = (m / g.n) * Math.PI * 2 + Math.random() * 0.4;
-      const rad = 0.55 + g.n * 0.12;
+      const rad = (g.n <= 2 ? 0.62 : g.n === 3 ? 0.85 : 1.0) + Math.random() * 0.14 - 0.06;
       const x = g.x + Math.sin(a) * rad;
       const z = g.z + Math.cos(a) * rad;
+      if (walkGround(game, x, z) === 'road') { crowd.release(i); continue; }
       const w = { i, pos: new THREE.Vector3(x, g.y, z), nav: null, heading: a + Math.PI, id: pick.id, look: L, speed: L.gait.speed, gy: g.y, phase: Math.random() * 6.28, still: true, fade: 0, leaving: false, ampJit: 1, groupKey: m === 0 ? g.key : null };
       crowd.setFade(i, 0);
-      crowd.setLook(i, farLook(L, w.pos, w.still));
+      const FL = farLook(L, w.pos, w.still, cand);
+      if (game.npc?.cast?.farPerson && !FL.personId) { crowd.release(i); continue; }   // nobody of this group's kind loaded yet
+      if (!lead) lead = L.personMeta || { years: 32, age: 'adult', look: 'casual' };
+      crowd.setLook(i, FL);
       const roll = Math.random();
       const pose = night && roll < 0.3 ? POSE.dance : roll < 0.62 ? POSE.talk : roll < 0.74 ? POSE.argue : roll < 0.86 ? POSE.sip : roll < 0.94 ? POSE.phone : POSE.film;
       w.pose = pose;
@@ -689,7 +726,7 @@ export async function initV2(game) {
             crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp);
           }
         } else if (!w.waiting) {
-          w.waiting = true;
+          w.waiting = true; w.v = 0; w.poseK = null;
           lifeStats.signalWaits++;
           crowd.setPose(w.i, Math.random() < 0.3 ? POSE.phone : POSE.stand, 1, null, 1);
         }
@@ -703,21 +740,19 @@ export async function initV2(game) {
     // errands: now and then step into a shop the walker is passing
     if ((w.act === 'errands' || w.act === 'stroll') && ((crowdFrame + n) % 90) === 0 && Math.random() < 0.25) {
       const dr = spots.door(w.pos.x, w.pos.z, 0, 7);
-      if (dr) {
+      if (dr && !w.buddy && !w.group && !w.nav?.path && walkGround(game, (dr.x + w.pos.x) / 2, (dr.z + w.pos.z) / 2) !== 'road' && walkGround(game, dr.x, dr.z) !== 'road') {
         w.goal = dr;
         return true;
       }
     }
-    // avoidance: slow down and drift to the free side when someone is right ahead
-    const base = w.baseSpeed ?? w.speed;
-    const side = blockedAhead(w, n);
-    if (side !== 0 && w.nav) {
-      lifeStats.avoid++;
-      w.nav.jit = clamp(w.nav.jit - side * dt * 1.6, -0.6, 1.2);
-      w.curSpeed = base * 0.55;
-    } else {
-      w.curSpeed = base;
+    // arrived at the door it was walking to: go in
+    const dst = w.nav?.dest;
+    if (dst && !w.nav.path && ((crowdFrame + n) % 30) === 0 && Math.hypot(dst.x - w.pos.x, dst.z - w.pos.z) < 8) {
+      w.nav.dest = null;
+      if (!w.buddy && !w.group && walkGround(game, (dst.x + w.pos.x) / 2, (dst.z + w.pos.z) / 2) !== 'road' && walkGround(game, dst.x, dst.z) !== 'road') { w.goal = dst; return true; }
     }
+    // (avoidance: the shared spatial hash in updateCrowd, src/npc/walk.js)
+    if (!(w.panicT > 0)) w.curSpeed = w.baseSpeed ?? w.speed;
     return false;
   }
   const _frus = new THREE.Frustum();
@@ -754,7 +789,7 @@ export async function initV2(game) {
         staying++;
       }
     }
-    buildGrid();
+    const tNow = (performance.now() / 1000) % 100000;
     let excess = staying - (want + 8);
     const wetNow = rainy();
     for (let n = walkers.length - 1; n >= 0; n--) {
@@ -781,7 +816,7 @@ export async function initV2(game) {
       if (w.leaving && w.fade <= 0) {
         spots.free(w.spotKey);
         spots.free(w.groupKey);
-        crowd.release(w.i);
+        crowd.release(w.i); w.gone = true;
         if (w.towel) { game.scene.remove(w.towel); w.towel.geometry?.dispose?.(); towelN--; }
         walkers.splice(n, 1);
         continue;
@@ -792,8 +827,12 @@ export async function initV2(game) {
       if (d > 60) { if (((crowdFrame + w.i) & 1) === 1) { w._acc = (w._acc || 0) + dt; continue; } sdt = dt + (w._acc || 0); w._acc = 0; } else if (w._acc) { sdt = dt + w._acc; w._acc = 0; }
       if (lifeStep(w, n, sdt)) continue;
       if (w.shore) {
-        w.pos.x += Math.sin(w.heading) * w.speed * sdt;
-        w.pos.z += Math.cos(w.heading) * w.speed * sdt;
+        let sv = w.speed;
+        if (SPACE && w.ag) { const st = SPACE.steer(w.ag, w.pos.x, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), w.v || 0); sv *= st.slow; w.heading -= st.side * sdt * 0.7; }
+        w.v = (w.v ?? sv) + (sv - (w.v ?? sv)) * Math.min(1, sdt * 3);
+        if (Math.abs(w.v - (w.poseV ?? w.speed)) > 0.06) { w.poseV = w.v; const g = gaitFor(w, Math.max(0.05, w.v)); crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp); }
+        w.pos.x += Math.sin(w.heading) * w.v * sdt;
+        w.pos.z += Math.cos(w.heading) * w.v * sdt;
         w.turnT = (w.turnT || 0) - sdt;
         if (w.turnT <= 0) {
           w.turnT = 1;
@@ -804,7 +843,47 @@ export async function initV2(game) {
         crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
         continue;
       }
-      try { const hd = NAV.navStep(w, sdt, w.curSpeed ?? w.speed); w.heading += Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, sdt * 5); } catch (e) { crowd.release(w.i); walkers.splice(n, 1); continue; }
+      try {
+        // r6-walk: natural pace (breathes a little, brisk across a street, short stops to look at a phone or a shop
+        // window, smooth starts), local avoidance (sidestep early, slow behind someone, never step into anybody),
+        // companions beside their leader, and a walk cycle that follows the real speed (no sliding feet)
+        const calm = !w.jog && !(w.panicT > 0);
+        const base = w.curSpeed ?? w.speed;
+        let tgt = base * (calm ? 1 + 0.07 * Math.sin(tNow * 0.21 + w.phase) : 1) * (calm && w.nav?.cross ? 1.25 : 1);
+        if (w.buddy) {
+          const Ld = w.buddy;
+          if (Ld.gone || Ld.leaving || Ld.still || Ld.goal || Ld.panicT > 0 || !Ld.nav || Math.hypot(Ld.pos.x - w.pos.x, Ld.pos.z - w.pos.z) > 9) {
+            w.buddy = null; w.group = 0; Ld.group = 0; if (Ld.nav) Ld.nav.laneMax = 1;
+            w.nav = NAV.navFromPos(w); if (!w.nav) { w.leaving = true; continue; }
+          } else {
+            const ah = (Ld.pos.x - w.pos.x) * Math.sin(Ld.heading) + (Ld.pos.z - w.pos.z) * Math.cos(Ld.heading);
+            tgt = Math.max(0, (Ld.v || 0) * (1 + clamp(ah * 0.5, -0.3, 0.4)));
+          }
+        } else if (w.pauseT > 0) { w.pauseT -= sdt; tgt = 0; }
+        else if (calm && !w.group && !w.nav?.path && Math.random() < sdt / 55) { w.pauseT = 3 + Math.random() * 6; w.pausePose = Math.random() < 0.6 ? POSE.phone : POSE.stand; }
+        if (SPACE && w.ag) {
+          const st = SPACE.steer(w.ag, w.pos.x, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), w.v || 0);
+          if (w.nav) w.nav.steer = st.side;
+          tgt *= st.slow;
+          if (st.block) { w.v = 0; w.blockT = (w.blockT || 0) + sdt; if (w.blockT > 4 && w.nav && !w.nav.path && !w.buddy) { w.nav.dir *= -1; w.nav.sbE = null; w.blockT = 0; } } else w.blockT = 0;
+        }
+        const v0 = w.v ?? base;
+        w.v = v0 + (tgt - v0) * Math.min(1, sdt * (tgt < v0 ? 4 : 1.8));
+        if (calm) {
+          if (w.v < 0.16) { if (w.poseK !== 'idle') { w.poseK = 'idle'; crowd.setPose(w.i, w.pauseT > 0 ? w.pausePose : POSE.stand, 1, null, 1); } }
+          else if (w.poseK !== 'walk' || Math.abs(w.v - w.poseV) > 0.06) { w.poseK = 'walk'; w.poseV = w.v; const g = gaitFor(w, w.v); crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp); }
+        } else w.poseK = null;
+        let hd;
+        if (w.buddy) {
+          const Ld = w.buddy, h = Ld.heading, os = Ld.nav ? -Ld.nav.hand : 1;
+          const wide = Ld.nav.path || !NAV.laneRoom || NAV.laneRoom(Ld.nav) > 0.7;
+          const tx = wide ? Ld.pos.x + Math.cos(h) * os * 0.74 : Ld.pos.x - Math.sin(h) * 0.9, tz = wide ? Ld.pos.z - Math.sin(h) * os * 0.74 : Ld.pos.z - Math.cos(h) * 0.9;
+          const dx = tx - w.pos.x, dz = tz - w.pos.z, d = Math.hypot(dx, dz), k = d > 1e-4 ? Math.min(d * Math.min(1, sdt * 2.5), 1.2 * sdt) / d : 0;
+          w.pos.x += Math.sin(h) * w.v * sdt + dx * k; w.pos.z += Math.cos(h) * w.v * sdt + dz * k;
+          hd = h;
+        } else hd = NAV.navStep(w, sdt, w.v);
+        w.heading += Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, sdt * 5);
+      } catch (e) { w.gone = true; crowd.release(w.i); walkers.splice(n, 1); continue; }
       if (((crowdFrame + n) & 7) === 0) w.gy = NAV.groundAt(w.pos.x, w.pos.z, w.gy);
       crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
     }
@@ -844,6 +923,7 @@ export async function initV2(game) {
   game.updaters?.push?.((dt) => {
     try { sense(dt); } catch (e) { /* never break the frame */ }
     try { updateCrowd(Math.min(dt, 0.1)); } catch (e) { console.warn('[people] crowd', e); }
+    try { walkAuditStep(dt); } catch (e) { /* */ }
     try { updateBubbles(); } catch (e) { /* */ }
     try { updateBar(dt); } catch (e) { console.warn('[people] bar', e); }
     try { game.people?.talk?.update(dt); } catch (e) { console.warn('[people] talk', e); }
@@ -851,8 +931,36 @@ export async function initV2(game) {
     for (const [p] of roster) if (!p.active) roster.delete(p);
   });
 
+  // ---------------------------------------------------------------- r6-walk audit: where walkers spend their time
+  // game.people.walkAudit.start() ... .stop() -> share of walking time on carriageways outside crossings, in open fields
+  // away from paths, and overlapping pairs (closer than 0.5 m, not walking together) per second
+  const WA = { on: false, f: 0, acc: 0, T: 0, road: 0, cross: 0, field: 0, n: 0, maxN: 0, samples: 0, pairs: 0, secs: 0, bad: [] };
+  function walkAuditStep(dt) {
+    if (!WA.on) return;
+    WA.acc += dt; WA.secs += dt; if ((++WA.f & 3) !== 0) return;
+    const d = WA.acc; WA.acc = 0; let n = 0;
+    const one = (x, z, nav, tier, mode) => {
+      n++; WA.T += d;
+      const g = walkGround(game, x, z);
+      if (g === 'road') { if (nav?.cross) WA.cross += d; else { WA.road += d; if (WA.bad.length < 40 && Math.random() < 0.1) WA.bad.push({ k: 'road', tier, mode, x: Math.round(x), z: Math.round(z), kind: nav?.edge?.kind, w: nav?.edge?.width, sw: nav?.edge?.sidewalk, off: nav?.offNow && Math.round(nav.offNow * 10) / 10, path: !!nav?.path }); } }
+      else if (g === 'field') { WA.field += d; if (WA.bad.length < 40 && Math.random() < 0.1) WA.bad.push({ k: 'field', tier, mode, x: Math.round(x), z: Math.round(z), kind: nav?.edge?.kind, path: !!nav?.path }); }
+    };
+    for (const w of walkers) { if (w.still || w.leaving || w.lounger) continue; one(w.pos.x, w.pos.z, w.buddy ? w.buddy.nav : w.nav, 'crowd', w.shore ? 'shore' : w.buddy ? 'buddy' : w.goal ? 'goal' : w.exitT > 0 ? 'exit' : 'nav'); }
+    for (const p of peds.list) { if (!p.active || p.dead || p.state !== 'walk' || p.venue) continue; one(p.pos.x, p.pos.z, p.follow ? p.follow.nav : p.nav, 'near', p.follow ? 'follow' : p.nav ? 'nav' : p.act); }
+    WA.n += n; WA.maxN = Math.max(WA.maxN, n); WA.samples++;
+    if (SPACE) WA.pairs += SPACE.overlaps(0.5);
+  }
+  const walkAudit = {
+    start() { Object.assign(WA, { on: true, f: 0, acc: 0, T: 0, road: 0, cross: 0, field: 0, n: 0, maxN: 0, samples: 0, pairs: 0, secs: 0, bad: [] }); },
+    stop() {
+      WA.on = false; const pc = (v) => Math.round((v / Math.max(WA.T, 1e-6)) * 10000) / 100;
+      return { seconds: Math.round(WA.secs * 10) / 10, walkersAvg: Math.round(WA.n / Math.max(1, WA.samples)), walkersMax: WA.maxN, roadPct: pc(WA.road), crossingPct: pc(WA.cross), fieldPct: pc(WA.field),
+        overlapPairsAvg: Math.round((WA.pairs / Math.max(1, WA.samples)) * 1000) / 1000, bad: WA.bad };
+    },
+  };
   // ---------------------------------------------------------------- API
   game.people = {
+    walkAudit,
     dress, undress, react, callDone, say, voiceLine, honk, bubble,
     barPeople: () => barPeople.filter((p) => p.active).map((p) => ({ name: p.identity?.name, job: p.identity?.job, state: p.state, anchor: p.barAnchor?.id })),
     densityFor: (x, z) => streetDensity(zoneKey(NAV?.zoneAt?.(x, z) || 'residential'), districtAt(x, z), hour()),
@@ -869,7 +977,7 @@ export async function initV2(game) {
       // returns where it stood, so the car code can put a full person there and knock it down (vehicles.js hitPeds)
       hitAt(x, z, r = 1.2) { for (let n = walkers.length - 1; n >= 0; n--) { const w = walkers[n]; if (Math.hypot(w.pos.x - x, w.pos.z - z) > r) continue;
         try { spots.free(w.spotKey); spots.free(w.groupKey); crowd.release(w.i); if (w.towel) { game.scene.remove(w.towel); w.towel.geometry?.dispose?.(); towelN--; } } catch (e) { /* */ }
-        walkers.splice(n, 1); return { x: w.pos.x, y: w.gy ?? 0, z: w.pos.z, heading: w.heading || 0 }; } return null; }, get count() { return walkers.length; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]), persons: () => walkers.map((w) => [w.look?.personId || null, w.pos.x, w.pos.z, !!w.lounger, !!w.leaving]) },
+        w.gone = true; walkers.splice(n, 1); return { x: w.pos.x, y: w.gy ?? 0, z: w.pos.z, heading: w.heading || 0 }; } return null; }, get count() { return walkers.length; }, get list() { return walkers; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]), persons: () => walkers.map((w) => [w.look?.personId || null, w.pos.x, w.pos.z, !!w.lounger, !!w.leaving]) },
     sigList: () => [...audit.sigs.keys()],
     inView() { // people inside the camera frustum (near tier + crowd tier)
       const cam = game.camera; if (!cam) return null; cam.updateMatrixWorld();

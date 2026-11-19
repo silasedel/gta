@@ -10,7 +10,9 @@ import { createCharacter, humansLoaded, humansTotal } from '../player/characterM
 import { sitOnFurniture, standUp } from './furnitureSeat.js';
 import { makeTowel, makeBeachThings, restOnTowel, clearTowelContact } from './beachTowel.js';
 import { createRagdollSystem } from './ragdoll.js';
+import { cornerRoute, cornerSetback, laneBase, createSpace, walkGround, SOFT_PATH } from './walk.js';
 import { PERSONAS, pickPersona } from './personality.js';
+import { AGE, GROUP_THEMES, groupMate, pickTheme } from './people/groups.js';
 import { createSignals } from './streetlife.js';
 import { preloadDog, createLibDog } from './dog.js';
 import { preloadLib, libSwap } from '../world/libprops.js';
@@ -96,13 +98,15 @@ export async function createPeds(game) {
   // lateral offset of this walker's lane on its edge and side (m from the centerline)
   const _wp2 = { x: 0, z: 0, tx: 0, tz: 1 };
   function laneOff(n, side) {
-    const e = n.edge, hw = (e.width || 8) / 2, sw = e.sidewalk || 0;
+    const e = n.edge, hw = (e.width || 8) / 2, soft = SOFT_PATH.test(e.kind || '');
     if (n.lane === undefined) n.lane = Math.random();
-    let off = sw > 0.5 ? hw + 0.45 + n.lane * Math.max(0.3, sw - 0.9) : hw + 1.1 + n.lane * 1.6;
+    // r6-walk: the lane sits on the sidewalk, on the road edge where there is none (0.5-1.5 m off the carriageway), and
+    // ON footpaths / pedestrian streets (src/npc/walk.js laneBase)
+    let off = laneBase(e, n.lane);
     // wall clamp (cached per edge / side / ~6 m of travel)
     if (n.wE !== e || n.wSide !== side || Math.abs(n.s - n.wS) > 6) {
       n.wE = e; n.wSide = side; n.wS = n.s; n.wMax = 1e9;
-      if (collidersReady(_ep.x, _ep.z)) {
+      if (!soft && collidersReady(_ep.x, _ep.z)) {
         const nx = -_ep.tz * side, nz = _ep.tx * side; let best = 0;
         const y = groundAt(_ep.x, _ep.z, 0) + 1.3;
         for (const k of [-1.6, 1.6]) {
@@ -119,10 +123,14 @@ export async function createPeds(game) {
       } catch (e) { /* */ }
     }
     if (n.jit0 === undefined) n.jit0 = n.jit || 0;
-    off += (n.jit || 0) - n.jit0;   // people.v2 sidesteps (avoidance) still shift the lane
-    if (off > n.wMax) off = Math.max(hw + 0.3, n.wMax);
+    off += (n.jit || 0) - n.jit0 + (n.sway || 0);   // sidesteps (avoidance) and the walker's own slight sway shift the lane
+    if (soft) { if (off > hw + 0.5) off = hw + 0.5; else if (off < -hw * 0.5) off = -hw * 0.5; }
+    else { if (off > n.wMax) off = n.wMax; if (off < hw + 0.3) off = hw + 0.3; }   // never on the carriageway
+    n.offNow = off;
     return off;
   }
+  // room (m) between a walker's lane and the wall / the outer edge of its sidewalk (for a companion walking beside it)
+  function laneRoom(n) { if (!n || !n.edge) return 0; return Math.min(n.wMax ?? 1e9, laneBase(n.edge, 1) + 0.35) - (n.offNow ?? laneBase(n.edge, n.lane ?? 0.5)); }
   // is the straight line from the walker to (x, z) free of walls?
   function lineFree(ped, x, z) {
     const dx = x - ped.pos.x, dz = z - ped.pos.z, d = Math.hypot(dx, dz);
@@ -135,14 +143,14 @@ export async function createPeds(game) {
   function navFromPos(ped) {
     if (!RG) return null;
     let r = null; try { r = RG.nearestEdge(ped.pos.x, ped.pos.z); } catch (e) { r = null; }
-    if (!r || !walkable(r.edge) || r.dist > 40) return null;
+    if (!r || !walkable(r.edge) || r.dist > 25) return null;
     const e = r.edge, L = edgeLen(e);
     const s = Math.max(0, Math.min(L, (r.t ?? 0.5) <= 1 ? (r.t ?? 0.5) * L : r.t));
     edgeAt(e, s, _ep);
     const nx = -_ep.tz, nz = _ep.tx;
     const side = ((ped.pos.x - _ep.x) * nx + (ped.pos.z - _ep.z) * nz) >= 0 ? 1 : -1;
     const dir = Math.random() < 0.5 ? 1 : -1;
-    return { edge: e, s, dir, hand: side * dir, jit: rand(-0.5, 0.9), cross: null };
+    return { edge: e, s, dir, hand: side * dir, jit: 0, cross: null, ph: Math.random() * 6.28, t: 0 };
   }
   function navTarget(ped, out) {
     const n = ped.nav; const e = n.edge;
@@ -152,64 +160,109 @@ export async function createPeds(game) {
     out.x = _ep.x - _ep.tz * side * off; out.z = _ep.z + _ep.tx * side * off;
     return Math.atan2(_ep.tx * n.dir, _ep.tz * n.dir);
   }
+  // r6-walk: at the end of a street the walker rounds the corner on the sidewalk and crosses one street at a time,
+  // corner to corner (src/npc/walk.js cornerRoute). Sets n.path (waypoints) and moves the nav onto the next edge.
+  const _jo = { x: 0, z: 0, tx: 0, tz: 1 };
+  function junction(ped) {
+    const n = ped.nav, A = n.edge, L = edgeLen(A), atEnd = n.dir > 0, node = atEnd ? A.b : A.a;
+    const all = nodeEdges(node);
+    const turnBack = () => { n.dir *= -1; n.s = Math.max(0, Math.min(L, n.s)); n.sbE = null; };
+    const cands = all.filter((e) => e !== A && walkable(e));
+    if (!cands.length || !all.includes(A)) { turnBack(); return; }
+    edgeAt(A, atEnd ? L : 0, _jo);
+    const hx = _jo.tx * n.dir, hz = _jo.tz * n.dir, nxp = _jo.x, nzp = _jo.z;
+    // which side of A (seen from the node, looking out along A) the walker is on: + = counter-clockwise
+    const ux = -hx, uz = -hz;
+    const sigA = ((ped.pos.x - nxp) * -uz + (ped.pos.z - nzp) * ux) >= 0 ? 1 : -1;
+    const offA = Math.max(0.2, Math.abs((ped.pos.x - nxp) * -uz + (ped.pos.z - nzp) * ux));
+    // prefer going roughly straight, and toward the walker's destination when it has one
+    let dxn = 0, dzn = 0; if (n.dest) { const dl = Math.hypot(n.dest.x - nxp, n.dest.z - nzp) || 1; dxn = (n.dest.x - nxp) / dl; dzn = (n.dest.z - nzp) / dl; }
+    const scored = cands.map((e) => { const fwd = e.a === node; const q = edgeAt(e, fwd ? 0.5 : edgeLen(e) - 0.5, { x: 0, z: 0, tx: 0, tz: 0 }); const dd = fwd ? 1 : -1; return { e, fwd, w: 0.35 + Math.max(0, q.tx * dd * hx + q.tz * dd * hz) + (n.dest ? 1.3 * Math.max(0, q.tx * dd * dxn + q.tz * dd * dzn) : 0) }; });
+    for (let tries = 0; tries < 3 && scored.length; tries++) {
+      let tot = scored.reduce((a, b) => a + b.w, 0), r = Math.random() * tot, k = 0;
+      for (let i = 0; i < scored.length; i++) { r -= scored[i].w; if (r <= 0) { k = i; break; } }
+      const ch = scored.splice(k, 1)[0];
+      let rt = null; try { rt = cornerRoute(node, A, sigA, offA, ch.e, all, n.lane ?? 0.5, Math.random() < 0.15); } catch (e) { rt = null; }
+      if (!rt) continue;
+      const B = ch.e, LB = edgeLen(B), sB = Math.min(rt.sB, LB * 0.45);
+      n.edge = B; n.dir = ch.fwd ? 1 : -1; n.hand = rt.sigmaB * (ch.fwd ? 1 : -1) * n.dir; n.s = ch.fwd ? sB : LB - sB;
+      n.path = rt.pts; n.pi = 0; n.pathT = 0; n.pathNode = node; n.cross = null; n.wE = null; n.sbE = null; n.mh = undefined;
+      // patient people wait at the corner before crossing; impatient ones go straight (people.v2.js traits)
+      if (rt.crossings && ped.P && ped.P.patience !== undefined && ped.state === 'walk' && ped.P.patience > 0.4 && Math.random() < 0.5) ped.waitT = rand(0.6, 1.2 + ped.P.patience * 3);
+      return;
+    }
+    turnBack();
+  }
   // advance along the sidewalk; returns desired heading; moves ped.pos in xz
   function navStep(ped, dt, speed) {
     const n = ped.nav;
-    if (n.via) { // r3-people: detour point (curb) before a straight move that would cross a wall
-      const dx = n.via.x - ped.pos.x, dz = n.via.z - ped.pos.z, d = Math.hypot(dx, dz);
-      n.viaT = (n.viaT || 0) + dt;
-      if (d < 0.4 || n.viaT > 8) { n.via = null; n.viaT = 0; }
-      else { const k = Math.min(1, speed * dt / d); ped.pos.x += dx * k; ped.pos.z += dz * k; return Math.atan2(dx, dz); }
-    }
-    if (n.cross) { // crossing an intersection / crosswalk in a straight line
-      const dx = n.cross.x - ped.pos.x, dz = n.cross.z - ped.pos.z, d = Math.hypot(dx, dz);
-      if (d < 0.35 || n.crossT > 12) { n.cross = null; }
-      else { n.crossT += dt; const k = Math.min(1, speed * dt / d); ped.pos.x += dx * k; ped.pos.z += dz * k; return Math.atan2(dx, dz); }
+    // r6-walk natural motion: a slow drift of the walker's lane across the sidewalk (never a zigzag) and a few cm of sway
+    n.t = (n.t || 0) + dt; if (n.ph === undefined) n.ph = Math.random() * 6.28;
+    if (n.lane === undefined) n.lane = Math.random();
+    if ((n.laneT = (n.laneT || 0) - dt) <= 0) { n.laneT = rand(7, 18); n.laneG = Math.max(0, Math.min(n.laneMax ?? 1, n.lane + rand(-0.35, 0.35))); }
+    n.lane += Math.max(-dt * 0.05, Math.min(dt * 0.05, (n.laneG ?? n.lane) - n.lane));
+    n.sway = Math.sin(n.t * 0.9 + n.ph) * 0.035 + Math.sin(n.t * 0.37 + n.ph * 2) * 0.03;
+    // sidestep asked for by the avoidance (n.steer: + = toward (cos h, -sin h)); the lane's outward side is -hand there
+    if (n.jit0 === undefined) n.jit0 = n.jit || 0;
+    if (n.steer) n.jit = Math.max(n.jit0 - 0.7, Math.min(n.jit0 + 1.3, (n.jit || 0) + n.steer * -n.hand * 1.1 * dt));
+    else n.jit = (n.jit || 0) + Math.max(-0.12 * dt, Math.min(0.12 * dt, n.jit0 - (n.jit || 0)));
+    for (let guard = 0; guard < 6 && n.path; guard++) {   // waypoints: rounding a corner, crossing at a junction, rejoining the lane
+      const wp = n.path[n.pi];
+      const dx = wp.x - ped.pos.x, dz = wp.z - ped.pos.z, d = Math.hypot(dx, dz);
+      const nxt = n.path[n.pi + 1];
+      if (d < (!nxt || wp.cross || nxt.cross ? 0.3 : 0.8)) {   // plain corners are cut round, crossings start and end on the corner
+        n.pi++;
+        if (!nxt) { n.path = null; n.cross = null; break; }
+        n.cross = nxt.cross ? { x: nxt.x, z: nxt.z, node: n.pathNode, sig: 0 } : null; n.crossT = 0;
+        continue;
+      }
+      n.pathT = (n.pathT || 0) + dt;
+      if (n.pathT > 40) { n.path = null; n.cross = null; break; }
+      // eased turn toward the waypoint, straight in for the last stretch
+      const hd = Math.atan2(dx, dz);
+      n.mh = n.mh === undefined ? hd : n.mh + Math.atan2(Math.sin(hd - n.mh), Math.cos(hd - n.mh)) * Math.min(1, dt * 7);
+      const step = speed * dt;
+      if (d < 1.3 || step >= d) { const k = Math.min(1, step / d); ped.pos.x += dx * k; ped.pos.z += dz * k; }
+      else { ped.pos.x += Math.sin(n.mh) * step; ped.pos.z += Math.cos(n.mh) * step; }
+      return hd;
     }
     const L = edgeLen(n.edge);
     n.s += n.dir * speed * dt;
-    if (n.s < 0 || n.s > L) {
-      const atEnd = n.s > L;
-      const node = atEnd ? n.edge.b : n.edge.a;
-      let cands = nodeEdges(node).filter((e) => e !== n.edge && walkable(e));
-      if (!cands.length) { n.dir *= -1; n.s = Math.max(0, Math.min(L, n.s)); }
-      else {
-        // prefer going roughly straight
-        edgeAt(n.edge, atEnd ? L : 0, _ep);
-        const hx = _ep.tx * n.dir, hz = _ep.tz * n.dir;
-        const scored = cands.map((e) => { const fwd = e.a === node; const q = edgeAt(e, fwd ? 0.5 : edgeLen(e) - 0.5, { x: 0, z: 0, tx: 0, tz: 0 }); const dd = fwd ? 1 : -1; return { e, fwd, w: 0.35 + Math.max(0, q.tx * dd * hx + q.tz * dd * hz) }; });
-        let tot = scored.reduce((a, b) => a + b.w, 0), r = Math.random() * tot, ch = scored[0];
-        for (const sc of scored) { r -= sc.w; if (r <= 0) { ch = sc; break; } }
-        if (Math.random() < 0.18) n.hand *= -1; // cross over to the other side at the crosswalk
-        n.edge = ch.e; n.dir = ch.fwd ? 1 : -1; n.s = ch.fwd ? 0.01 : edgeLen(ch.e) - 0.01;
-        const t = _nt; navTarget(ped, t);
-        n.cross = { x: t.x, z: t.z }; n.crossT = 0;
-        if (!NAV_OLD && !lineFree(ped, t.x, t.z)) { const q = edgeAt(n.edge, n.dir > 0 ? 0 : edgeLen(n.edge), _wp2); const vx = ped.pos.x - q.x, vz = ped.pos.z - q.z, vl = Math.hypot(vx, vz) || 1, r0 = (n.edge.width || 8) / 2 + 0.6; n.via = { x: q.x + vx / vl * r0, z: q.z + vz / vl * r0 }; }   // round the corner at the curb, not through the corner building
-        // npc-life: remember the corner, so walkers can wait for the walk signal there (streetlife.js)
-        n.cross.node = node;
-        n.cross.sig = 0;
-        // patient people wait at the corner before crossing; impatient ones go straight (people.v2.js traits)
-        if (ped.P && ped.P.patience !== undefined && ped.state === 'walk' && ped.P.patience > 0.4 && Math.random() < 0.7) ped.waitT = rand(0.8, 1.5 + ped.P.patience * 4);
-        return Math.atan2(t.x - ped.pos.x, t.z - ped.pos.z);
-      }
+    if (n.sbE !== n.edge || n.sbD !== n.dir) { n.sbE = n.edge; n.sbD = n.dir; try { n.sb = Math.min(cornerSetback(n.dir > 0 ? n.edge.b : n.edge.a, n.edge, nodeEdges(n.dir > 0 ? n.edge.b : n.edge.a)), L * 0.45); } catch (e) { n.sb = 0.5; } }
+    if ((n.dir > 0 ? L - n.s : n.s) <= n.sb) {
+      junction(ped);
+      if (n.path) { const wp = n.path[0]; return Math.atan2(wp.x - ped.pos.x, wp.z - ped.pos.z); }
     }
     const t = _nt; const h = navTarget(ped, t);
     const dx = t.x - ped.pos.x, dz = t.z - ped.pos.z, d = Math.hypot(dx, dz);
     if (d > 6) {
-      n.cross = { x: t.x, z: t.z }; n.crossT = 0;
+      n.path = [{ x: t.x, z: t.z, cross: false }]; n.pi = 0; n.pathT = 0; n.cross = null; n.mh = undefined;
       // a wall in the way: step out to the curb first (the curb point of this edge at the walker's station)
-      if (!NAV_OLD && !lineFree(ped, t.x, t.z)) { edgeAt(n.edge, n.s, _ep); const hw = (n.edge.width || 8) / 2 + 0.4, sd = ((ped.pos.x - _ep.x) * -_ep.tz + (ped.pos.z - _ep.z) * _ep.tx) >= 0 ? 1 : -1; n.via = { x: _ep.x - _ep.tz * sd * hw, z: _ep.z + _ep.tx * sd * hw }; }
+      if (!NAV_OLD && !lineFree(ped, t.x, t.z)) { edgeAt(n.edge, n.s, _ep); const hw = (n.edge.width || 8) / 2 + 0.4, sd = ((ped.pos.x - _ep.x) * -_ep.tz + (ped.pos.z - _ep.z) * _ep.tx) >= 0 ? 1 : -1; n.path.unshift({ x: _ep.x - _ep.tz * sd * hw, z: _ep.z + _ep.tx * sd * hw, cross: false }); }
       return Math.atan2(dx, dz);
     }
-    // follow the sidewalk line with gentle lateral correction
-    ped.pos.x += Math.sin(h) * speed * dt + dx * Math.min(1, dt * 2);
-    ped.pos.z += Math.cos(h) * speed * dt + dz * Math.min(1, dt * 2);
+    // follow the sidewalk line with gentle lateral correction (at most a brisk sidestep, never a slide)
+    const k = d > 1e-4 ? Math.min(d * Math.min(1, dt * 2), 1.1 * dt) / d : 0;
+    ped.pos.x += Math.sin(h) * speed * dt + dx * k;
+    ped.pos.z += Math.cos(h) * speed * dt + dz * k;
     return h;
   }
+  // r6-walk: a person without a street to follow (placed by a mission, pushed off its line) walks to the nearest
+  // sidewalk and joins it; never a random straight line across roads or fields. Shore walkers stay on the sand.
+  const lineOnRoad = (x0, z0, x1, z1) => { const d = Math.hypot(x1 - x0, z1 - z0), nS = Math.max(1, Math.ceil(d / 1.5)); for (let i = 1; i <= nS; i++) { const k = i / nS; try { if (game.placement?.onRoad?.(x0 + (x1 - x0) * k, z0 + (z1 - z0) * k, 0)) return true; } catch (e) { return false; } } return false; };
   function freeStep(ped, dt, speed) {
+    const shore = ped.act === 'shore';
+    if (!shore && ped.state === 'walk') {
+      ped.navTry = (ped.navTry || 0) - dt;
+      if (ped.navTry <= 0) { ped.navTry = 1.5; const nv = navFromPos(ped); if (nv) { ped.nav = nv; ped.target = null; return navTarget(ped, _nt); } }
+    }
     if (!ped.target || Math.hypot(ped.target.x - ped.pos.x, ped.target.z - ped.pos.z) < 1.2) {
-      ped.target = ped.act === 'shore' ? shorePoint(ped.pos, 40) : sidewalkNear(ped.pos, 35);
-      if (!ped.target) ped.target = new THREE.Vector3(ped.pos.x + rand(-15, 15), ped.pos.y, ped.pos.z + rand(-15, 15));
+      let tg = shore ? shorePoint(ped.pos, 40) : sidewalkNear(ped.pos, 35);
+      const strict = !shore && ped.state === 'walk';
+      if (tg && strict && (Math.hypot(tg.x - ped.pos.x, tg.z - ped.pos.z) > 60 || lineOnRoad(ped.pos.x, ped.pos.z, tg.x, tg.z))) tg = null;
+      if (!tg && !strict) tg = new THREE.Vector3(ped.pos.x + rand(-15, 15), ped.pos.y, ped.pos.z + rand(-15, 15));   // fleeing / chasing: anywhere
+      ped.target = tg;
+      if (!tg) { ped.pause = Math.max(ped.pause || 0, 3); ped.lostT = (ped.lostT || 0) + 3; if (ped.lostT > 12 && !(ped.pinned > 0) && !inCamView(ped.pos.x, ped.pos.y, ped.pos.z)) ped.despawnNow = true; return ped.heading; }
     }
     const dx = ped.target.x - ped.pos.x, dz = ped.target.z - ped.pos.z, d = Math.hypot(dx, dz) || 1;
     ped.pos.x += (dx / d) * speed * dt; ped.pos.z += (dz / d) * speed * dt;
@@ -250,12 +303,13 @@ export async function createPeds(game) {
     return null;
   }
   // spot lists near the player (benches / lean spots / storefronts), refreshed every few seconds
-  let spotsT = 99; const spots = { benches: [], lean: [], fronts: [] }; const used = new Set();
+  let spotsT = 99; const spots = { benches: [], lean: [], fronts: [], stops: [] }; const used = new Set();
   function refreshSpots(pp) {
     const near = (arr, r, getP) => { const out = []; if (!Array.isArray(arr)) return out; for (const s of arr) { const p = getP(s); if (p && Math.abs(p.x - pp.x) < r && Math.abs(p.z - pp.z) < r) out.push(s); } return out; };
     spots.benches = near(city.benches, 150, (s) => s.pos);
     spots.lean = near(city.leanSpots, 150, (s) => s.pos);
     spots.fronts = near(city.storefronts || city.shopLots, 160, (s) => s);
+    spots.stops = near(game.miamiData?.transit?.stops, 180, (s) => s);
   }
   const freeSpot = (arr, pp) => {
     const c = arr.filter((s) => !used.has(s)); if (!c.length) return null;
@@ -358,6 +412,7 @@ export async function createPeds(game) {
       if (c.human && activeIds.has(c.human.id)) continue;
       // the user's people carry a role: only reuse one where that role belongs (and never next to its twin)
       if (c.personMeta && !(game.npc?.fitsPlace?.(c, want, opts.pos) ?? true)) continue;
+      if (opts.cand && c.personMeta && !opts.cand(c.personMeta)) continue;          // r7-groups: must fit the group
       if (c.personMeta && opts.act && /sunbathe|swim|wade|volley|frisbee/.test(opts.act) && !c.personMeta.places.some((x) => x === 'beach' || x === 'swim')) continue;
       if (c.zoneTag && zoneFits(c.zoneTag, want) && (!opts.gender || (c.human?.gender === (opts.gender[0] === 'f' ? 'f' : 'm')))) { pool.splice(i, 1); c.root.visible = true; return c; }
     }
@@ -365,7 +420,7 @@ export async function createPeds(game) {
       if (pool.length) {
         // never a pooled person whose role does not belong here, or whose twin is close by (wait a frame instead)
         let k = -1;
-        for (let j = pool.length - 1; j >= 0; j--) { const c = pool[j]; if (c.human && activeIds.has(c.human.id)) continue; if (!c.personMeta || (game.npc?.fitsPlace?.(c, want, opts.pos) ?? true)) { k = j; break; } }
+        for (let j = pool.length - 1; j >= 0; j--) { const c = pool[j]; if (c.human && activeIds.has(c.human.id)) continue; if (opts.cand && c.personMeta && !opts.cand(c.personMeta)) continue; if (!c.personMeta || (game.npc?.fitsPlace?.(c, want, opts.pos) ?? true)) { k = j; break; } }
         if (k < 0) return null;
         const c = pool.splice(k, 1)[0]; c.root.visible = true; return c;
       }
@@ -376,7 +431,7 @@ export async function createPeds(game) {
     // archetype people (src/npc/arch, PEOPLE-LOOK) when loaded for this place; the legacy library body otherwise
     // the user's people only (src/npc/people): when none fits / is loaded yet, nobody spawns this frame (the cast loads
     // them); the old library body is used only when the people system is off ('?people=0' / '?npc=legacy')
-    const c = game.npc?.createPed?.({ seed: sd, zone: want, gender: opts.gender, pos: opts.pos, act: opts.act, force: opts.force }) || (game.npc?.cast ? null : createCharacter(game, { variant: 'ped', seed: sd, zone: want, gender: opts.gender, exclude: activeIds }));
+    const c = game.npc?.createPed?.({ seed: sd, zone: want, gender: opts.gender, pos: opts.pos, act: opts.act, force: opts.force, cand: opts.cand }) || (game.npc?.cast ? null : createCharacter(game, { variant: 'ped', seed: sd, zone: want, gender: opts.gender, exclude: activeIds }));
     if (!c) { createdThisFrame--; return null; }
     scene.add(c.root);
     return c;
@@ -395,12 +450,15 @@ export async function createPeds(game) {
   const _sfr = new THREE.Frustum(), _spm = new THREE.Matrix4(), _ssp = new THREE.Sphere(new THREE.Vector3(), 1.2);
   let _rainT = -1, _rainV = false;
   function isRaining() { const t = performance.now(); if (t - _rainT > 1000) { _rainT = t; const w = game.weather; _rainV = !!w && (typeof w.rain === 'number' ? w.rain > 0.12 || (w.wetness || 0) > 0.45 : /rain|storm|shower/.test(String(w.kind || ''))); } return _rainV; }
+  const _wg = {};
   function inCamView(x, y, z) {
     const c = game.camera; if (!c) return false;
     try { c.updateMatrixWorld(); _spm.multiplyMatrices(c.projectionMatrix, c.matrixWorldInverse); _sfr.setFromProjectionMatrix(_spm); _ssp.center.set(x, y + 1, z); return _sfr.intersectsSphere(_ssp); } catch (e) { return false; }
   }
   function spotOK(x, z) {
     try {
+      // r6-walk: the one shared ground rule (never a carriageway, never an open field away from any path)
+      if (walkGround(game, x, z, _wg) !== 'ok') return false;
       if (RG) {
         const r = RG.nearestEdge(x, z);
         const e = r?.edge;
@@ -486,13 +544,15 @@ export async function createPeds(game) {
     ped.personality = opts.personality || (zone === 'cop' ? 'tough' : pickPersona(zone, hourNow()));
     ped.P = PERSONAS[ped.personality] || PERSONAS.calm;
     ped.tough = Math.random() < ped.P.fight;
-    ped.walkSpeed = (act === 'jog' ? rand(2.6, 3.2) : zone === 'business' || zone === 'downtown' ? rand(1.4, 1.75) : zone === 'beach' ? rand(0.9, 1.25) : rand(1.05, 1.5)) * (act === 'jog' ? 1 : ped.P.walk);
+    // r6-walk: everybody has their own pace, about 1.1-1.5 m/s (office people at the brisk end, beach strollers slower)
+    ped.walkSpeed = act === 'jog' ? rand(2.6, 3.2) : Math.max(1.0, Math.min(1.58, (zone === 'business' || zone === 'downtown' ? rand(1.3, 1.52) : zone === 'beach' ? rand(1.0, 1.25) : rand(1.1, 1.5)) * ped.P.walk));
+    ped.follow = null; ped.pairId = 0; ped.lookDest = null; ped.lostT = 0; ped.blockT = 0;
     ped.call = Math.random() < ped.P.call;
     ped.greeted = false; ped.lookT = 0; ped.argueT = 0;
     ped.char.setPersonality?.(ped.personality);
     ped.nav = (act === 'walk' || act === 'jog' || act === 'dog') ? navFromPos(ped) : null;
     ped.target = null; ped.heading = opts.heading ?? Math.random() * Math.PI * 2;
-    if (ped.nav) { ped.heading = navTarget(ped, _nt); }
+    if (ped.nav) { ped.heading = navTarget(ped, _nt); if (act === 'walk') ped.nav.dest = pickDest(ped.pos); }
     const gy = groundAt(pos.x, pos.z, pos.y || 0); ped.pos.y = opts.y ?? gy; ped.groundY = ped.pos.y;
     if (ped.collider) { ped.collider.setEnabled(!opts.noCollider); ped.body.setTranslation({ x: ped.pos.x, y: ped.pos.y + 0.9, z: ped.pos.z }, true); ped.teleported = true; }
     if (act === 'dog') { ped.dog = makeDog(); ped.dog.pos.copy(ped.pos); ped.dog.prev?.copy(ped.pos); }
@@ -559,24 +619,112 @@ export async function createPeds(game) {
     if ((zone0 === 'beach' || zone0 === 'causeway') && r < 0.35) return [activate(freePeds(1)[0], base, zone0, 'jog', { outfit: 'sport' })];
     // ---- talking groups anywhere
     if (budget >= 2 && r < 0.62) return crowd(base, zone0, 2 + (Math.random() < 0.35 ? 1 : 0), false);
-    // ---- default: walker
+    // ---- default: walker (now and then a couple walking side by side)
+    if (budget >= 2 && Math.random() < 0.22) return couple(base, zone0);
     return [activate(freePeds(1)[0], base, zone0, 'walk')];
   }
   const countGroups = (k) => { let n = 0; for (const g of groups) if (g[k]) n++; return n; };
+  // ---------------------------------------------------------------- r7-groups (user, Nov 18 #23: "about 10 NPCs stand clumped
+  // together doing nothing, glitching up and down, mismatched: old people, a little girl, a random old man")
+  // A gathering is 2-5 people who belong together, doing one thing: friends chatting, seniors on a corner, workers on a
+  // break, teens hanging out, a business pair, a family, a night-out crowd. The first member sets the theme; every other
+  // member must fit the first (age band, look family). They stand in a loose, staggered ring facing in, take turns to
+  // speak (one talks with gestures, the others listen and face the speaker), and leave together. Groups keep 16 m apart,
+  // never stand on a carriageway (game.placement), and every member spot is clear of trunks / poles / walls (static
+  // colliders at chest height).
+  const _bq = { x: 0, y: 0, z: 0, w: 1 };
+  let _ball = null;
+  const clearWhy = {};
+  const why = (k) => { clearWhy[k] = (clearWhy[k] || 0) + 1; return false; };
+  function memberClear(x, y, z) {
+    try { if (game.placement?.onRoad?.(x, z, 0.25)) return why('road'); if (game.placement?.inWater?.(x, z)) return why('water'); } catch (e) { /* */ }
+    if (walkGround(game, x, z, _wg) === 'road') return why('road');
+    try {   // trunks (r2-physics colliders), poles, walls, fences, parked cars' static shells: a ball at chest height
+      _ball = _ball || new RAPIER.Ball(0.32);
+      const QF = RAPIER.QueryFilterFlags;
+      if (world.intersectionWithShape({ x, y: y + 1.05, z }, _bq, _ball, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS)) return why('solid');
+    } catch (e) { /* keep */ }
+    return true;
+  }
+  // r7-groups: no gathering within 16 m of another one, and not where 2+ people already stand around
+  function groupRoom(c) {
+    for (const g of groups) if (g.talk && g.members.length && Math.hypot(g.center.x - c.x, g.center.z - c.z) < 16) return false;
+    let n = 0;
+    for (const p of list) if (p.active && NONMOVING.has(p.state) && Math.abs(p.pos.x - c.x) < 8 && Math.abs(p.pos.z - c.z) < 8 && ++n >= 2) return false;
+    return true;
+  }
+  const groupStats = { _fail: {} };
+  const LISTEN = { friends: [0.15, 'phone'], teens: [0.35, 'phone'], workers: [0.3, 'phone'], business: [0.2, 'phone'], night: [0.12, 'phone'], seniors: [0, null], family: [0.1, 'phone'] };
   function crowd(c, zone, n, dance, front) {
-    if (!canSpawn(n)) return [];
-    const g = { members: [], center: c.clone(), props: [] }; groups.add(g);
-    // face the storefront for nightlife crowds, otherwise a ring
-    const ps = freePeds(n);
-    ps.forEach((p, k) => {
-      const a = (k / n) * Math.PI * 2 + rand(-0.25, 0.25), rr = n <= 2 ? 0.62 : rand(0.75, 1.1);
-      const pos = new THREE.Vector3(c.x + Math.sin(a) * rr, 0, c.z + Math.cos(a) * rr);
-      if (!activate(p, pos, zone, dance && Math.random() < 0.75 ? 'dance' : 'talk', { heading: Math.atan2(c.x - pos.x, c.z - pos.z) })) return;
-      p.group = g; g.members.push(p); p.stateT = rand(25, 70);
-      p.idleStyle = p.act === 'dance' ? 'dance' : (Math.random() < 0.6 ? 'talk' : null); p.styleT = rand(1, 4);
-    });
-    if (front) { used.add(front); ps[0].spot = front; }
-    return ps;
+    const fail = (k) => { groupStats._fail[k] = (groupStats._fail[k] || 0) + 1; return []; };
+    if (!c || !groupRoom(c)) return fail('room');
+    const night = dance || hourNow() >= 21 || hourNow() < 4;
+    const theme = pickTheme(zone, dance && night, hourNow());
+    const T = GROUP_THEMES[theme];
+    n = Math.max(T.n[0], Math.min(T.n[1], n, 5));
+    if (!canSpawn(n)) return fail('budget');
+    // the formation: a loose ring facing in (radius by size, staggered), turned until every spot is clear
+    const rr0 = n <= 2 ? 0.62 : n === 3 ? 0.85 : n === 4 ? 1.0 : 1.15;
+    const cy = c.y ?? groundAt(c.x, c.z, 0);
+    let spots = null, ccx = c.x, ccz = c.z;
+    for (let tr = 0; tr < 10 && !spots; tr++) {
+      const a0 = Math.random() * Math.PI * 2, rr = rr0 * (tr % 2 ? 0.9 : 1);
+      if (tr >= 2) { const sa = (tr - 2) * Math.PI / 4; ccx = c.x + Math.sin(sa) * 1.3; ccz = c.z + Math.cos(sa) * 1.3; }   // nudge the center off a curb / pole
+      const out = [];
+      for (let k = 0; k < n; k++) {
+        const a = a0 + (k / n) * Math.PI * 2 + rand(-0.22, 0.22), r = rr + rand(-0.1, 0.14);
+        const x = ccx + Math.sin(a) * r, z = ccz + Math.cos(a) * r;
+        if (!memberClear(x, cy, z)) break;
+        out.push(x, z);
+      }
+      if (out.length === n * 2) spots = out;
+    }
+    if (!spots) return fail('spots');
+    const g = { members: [], center: new THREE.Vector3(ccx, cy, ccz), props: [], talk: true, theme, spk: 0, spkT: rand(1.5, 4), zone, dance: !!(dance && night),
+      pend: [], pendT: 5, lead: null, stay: rand(30, 80) }; groups.add(g);
+    for (let k = 0; k < n; k++) g.pend.push(spots[k * 2], spots[k * 2 + 1]);
+    // members come in one per frame (a new body is built at most once a frame, so a group fills over a few frames, out of
+    // sight like every spawn); a group that cannot be cast within 5 s is dropped (a single person walks on)
+    fillGroup(g);
+    if (front) { used.add(front); g.front = front; if (g.members[0]) g.members[0].spot = front; }
+    groupStats[theme] = (groupStats[theme] || 0) + 1;
+    return g.members.slice();
+  }
+  function fillGroup(g) {
+    const T = GROUP_THEMES[g.theme];
+    let tries = 0;
+    while (g.pend.length && tries++ < 3) {
+      const x = g.pend[g.pend.length - 2], z = g.pend[g.pend.length - 1];
+      const L0 = g.lead, kk = g.members.length, theme = g.theme;
+      const cand = L0 ? (m) => groupMate(theme, L0, m, kk) : T.lead;
+      const p = freePeds(1)[0];
+      const act = g.dance && theme === 'night' && Math.random() < 0.75 ? 'dance' : 'talk';
+      if (!activate(p, new THREE.Vector3(x, g.center.y, z), g.zone, act, { heading: Math.atan2(g.center.x - x, g.center.z - z) + rand(-0.2, 0.2), cand })) return;   // nobody fitting free this frame: try next frame
+      if (p.char?.personMeta && !cand(p.char.personMeta)) { despawn(p); return; }
+      g.pend.length -= 2;
+      if (!g.lead) g.lead = p.char?.personMeta || { years: 32, age: 'adult', look: 'casual' };
+      p.group = g; g.members.push(p); p.stateT = g.stay - (5 - g.pendT) + rand(0, 2.5);
+      const ls = LISTEN[theme] || LISTEN.friends;
+      p.listenStyle = AGE(p.char?.personMeta) === 'kid' ? null : Math.random() < ls[0] ? ls[1] : null;
+      p.idleStyle = p.act === 'dance' ? 'dance' : p.listenStyle; p.styleT = rand(1, 4);
+      if (g.front && g.members.length === 1) p.spot = g.front;
+    }
+  }
+  function updateGroups(dt) {
+    for (const g of groups) {
+      if (!g.talk || !g.pend || (!g.pend.length && g.pendT <= 0)) continue;
+      g.pendT -= dt;
+      if (g.pend.length) fillGroup(g);
+      if (g.pendT > 0 && g.pend.length) continue;
+      g.pend.length = 0; g.pendT = 0;
+      // what came together: a lone person walks on; a family without an adult (kids alone) never stays
+      const kidsOnly = g.theme === 'family' && !g.members.some((p) => AGE(p.char?.personMeta) === 'adult');
+      if (g.members.length < 2 || kidsOnly) {
+        groupStats._fail['cast' + g.members.length] = (groupStats._fail['cast' + g.members.length] || 0) + 1;
+        for (const p of g.members.slice()) { if (kidsOnly) { despawn(p); continue; } p.group = null; p.state = 'walk'; p.act = 'walk'; p.idleStyle = null; if (!p.nav) p.nav = navFromPos(p); if (p.nav) p.nav.dest = pickDest(p.pos); }
+        g.members.length = 0; endGroup(g);
+      }
+    }
   }
   function seat(s, zone) {
     const p = freePeds(1)[0]; used.add(s);
@@ -859,6 +1007,7 @@ export async function createPeds(game) {
       c.push(ped);
       sepList.push(ped);
     }
+    for (const a of sepList) { a._sx = a.pos.x; a._sz = a.pos.z; }
     for (const a of sepList) {
       const cx = Math.floor(a.pos.x / 2);
       const cz = Math.floor(a.pos.z / 2);
@@ -907,11 +1056,73 @@ export async function createPeds(game) {
         }
       }
     }
+    // r6-walk: a nudge never lands a walker on the carriageway (the avoidance steers people apart long before this)
+    for (const a of sepList) {
+      if (a.pos.x === a._sx && a.pos.z === a._sz) continue;
+      if (a.state !== 'walk' || a.nav?.cross) continue;
+      try { if (game.placement?.onRoad?.(a.pos.x, a.pos.z, 0) && !game.placement.onRoad(a._sx, a._sz, 0)) { a.pos.x = a._sx; a.pos.z = a._sz; } } catch (e) { /* */ }
+    }
+  }
+  // ---- r6-walk: everybody on foot in one spatial hash (near people, the crowd tier, the player) for the avoidance
+  const space = createSpace(1.6);
+  const playerAg = { id: -1, x: 0, z: 0, vx: 0, vz: 0, still: false, group: 0 };
+  function fillSpace(pp, inCar) {
+    space.clear();
+    if (!inCar) { const v = game.player?.velocity; playerAg.x = pp.x; playerAg.z = pp.z; playerAg.vx = v?.x || 0; playerAg.vz = v?.z || 0; space.add(playerAg); }
+    for (const p of list) {
+      const ag = p._ag || (p._ag = { id: p.id, x: 0, z: 0, vx: 0, vz: 0, still: false, group: 0, ped: p });
+      if (!p.active || p.dead || p.rag || p.state === 'swim' || p.state === 'off') continue;
+      const mv = p.speed > 0.05 && !NONMOVING.has(p.state);
+      ag.x = p.pos.x; ag.z = p.pos.z; ag.vx = mv ? Math.sin(p.heading) * p.speed : 0; ag.vz = mv ? Math.cos(p.heading) * p.speed : 0; ag.still = !mv; ag.group = p.pairId || 0;
+      space.add(ag);
+    }
+    const ws = game.people?.crowd?.list;
+    if (ws) for (const w of ws) {
+      const ag = w.ag || (w.ag = { id: 100000 + (crowdAgN++), x: 0, z: 0, vx: 0, vz: 0, still: false, group: 0 });
+      const v = w.still ? 0 : (w.v ?? w.speed ?? 0);
+      ag.x = w.pos.x; ag.z = w.pos.z; ag.vx = Math.sin(w.heading) * v; ag.vz = Math.cos(w.heading) * v; ag.still = !!w.still || v < 0.05; ag.group = w.group || 0;
+      space.add(ag);
+    }
+  }
+  let crowdAgN = 0, pairN = 1;
+  // a companion walks beside its leader, on the side away from the road (behind it where the sidewalk is narrow)
+  function followStep(ped, dt) {
+    const Ld = ped.follow, h = Ld.heading, os = Ld.nav ? -Ld.nav.hand : 1;
+    const wide = !Ld.nav || Ld.nav.path || laneRoom(Ld.nav) > 0.7;
+    const tx = wide ? Ld.pos.x + Math.cos(h) * os * 0.74 : Ld.pos.x - Math.sin(h) * 0.9, tz = wide ? Ld.pos.z - Math.sin(h) * os * 0.74 : Ld.pos.z - Math.cos(h) * 0.9;
+    const dx = tx - ped.pos.x, dz = tz - ped.pos.z, d = Math.hypot(dx, dz);
+    const fx = Math.sin(h), fz = Math.cos(h);
+    // forward at the shared pace, plus a gentle correction toward the spot beside the leader
+    const k = d > 1e-4 ? Math.min(d * Math.min(1, dt * 2.5), 1.2 * dt) / d : 0;
+    ped.pos.x += fx * ped.speed * dt + dx * k; ped.pos.z += fz * ped.speed * dt + dz * k;
+    return d > 1.5 ? Math.atan2(dx + fx, dz + fz) : h;
+  }
+  // where a walker is heading: a shop door / storefront or a bus stop within a few blocks (r6-walk destinations)
+  function pickDest(pos) {
+    try {
+      const c = [];
+      for (const f of spots.fronts) { const x = f.fx ?? f.x, z = f.fz ?? f.z, d = Math.hypot(x - pos.x, z - pos.z); if (d > 30 && d < 170) c.push({ x, z, stop: false }); }
+      for (const b of spots.stops) { const d = Math.hypot(b.x - pos.x, b.z - pos.z); if (d > 30 && d < 170) c.push({ x: b.x, z: b.z, stop: true }); }
+      return c.length ? c[(Math.random() * c.length) | 0] : null;
+    } catch (e) { return null; }
+  }
+  // two people walking side by side at a shared pace
+  function couple(base, zone) {
+    const [a, b] = freePeds(2);
+    if (!activate(a, base, zone, 'walk')) return [];
+    if (!a.nav) return [a];
+    a.nav.lane = Math.min(a.nav.lane ?? 0.3, 0.3); a.nav.laneMax = 0.35; a.nav.laneG = a.nav.lane;
+    const h = a.heading, os = -a.nav.hand;
+    const p2 = new THREE.Vector3(a.pos.x + Math.cos(h) * os * 0.74, a.pos.y, a.pos.z - Math.sin(h) * os * 0.74);
+    if (!activate(b, p2, zone, 'walk')) return [a];
+    b.follow = a; b.nav = null; b.heading = h; a.pairId = b.pairId = 'c' + (pairN++); b.walkSpeed = a.walkSpeed;
+    return [a, b];
   }
   let frameN = 0;
   function update(dt) {
     dt = Math.min(dt, 0.1);
     createdThisFrame = 0; frameN++;
+    try { updateGroups(dt); } catch (e) { /* never break the crowd */ }
     const P = game.player || {};
     const pp = playerPos();
     const ph = P.heading || 0;
@@ -977,6 +1188,7 @@ export async function createPeds(game) {
 
     // colliders may have been added/removed this frame (tile streaming, ragdolls): refresh the query BVH before KCC queries
     try { world.updateSceneQueries?.(); } catch (e) { /* older rapier */ }
+    try { fillSpace(pp, inCar); } catch (e) { /* */ }
     try {
       separate(pp, inCar);
     } catch (e) {
@@ -1182,9 +1394,30 @@ export async function createPeds(game) {
         }
         case 'talk': case 'dance': {
           ped.stateT -= dt; ped.styleT -= dt;
-          if (ped.group) ped.heading = approachAngle(ped.heading, Math.atan2(ped.group.center.x - ped.pos.x, ped.group.center.z - ped.pos.z), dt * 2);
-          if (ped.state === 'talk' && ped.styleT <= 0) { ped.styleT = rand(2.5, 6); ped.idleStyle = Math.random() < 0.6 ? 'talk' : (Math.random() < 0.35 ? 'phone' : null); }
-          if (ped.stateT <= 0) { ped.leaveGroup = true; ped.state = 'walk'; ped.act = 'walk'; ped.idleStyle = null; }
+          const G = ped.group;
+          if (G && G.talk && ped.state === 'talk') {
+            // r7-groups: one speaker at a time (talk gestures); the others listen, face the speaker, now and then check a phone
+            const M = G.members, me = M.indexOf(ped);
+            if (me === 0) { G.spkT -= dt; if (G.spkT <= 0 && M.length > 1) { G.spkT = rand(2.2, 6.5); G.spk = (G.spk + 1 + ((Math.random() * (M.length - 1)) | 0)) % M.length; } }
+            const sp = M[G.spk % Math.max(1, M.length)];
+            if (sp === ped || !sp) ped.idleStyle = 'talk';
+            else if (ped.styleT <= 0) { ped.styleT = rand(4, 9); ped.idleStyle = ped.listenStyle && Math.random() < 0.6 ? ped.listenStyle : null; }
+            const tx = sp && sp !== ped ? (G.center.x + sp.pos.x) * 0.5 : G.center.x, tz = sp && sp !== ped ? (G.center.z + sp.pos.z) * 0.5 : G.center.z;
+            ped.heading = approachAngle(ped.heading, Math.atan2(tx - ped.pos.x, tz - ped.pos.z), dt * 1.6);
+            if (sp && sp !== ped && dPlayer >= 5) lookAt = sp.pos;
+            // leaving together: the first to go takes the others along (one walks beside them, the rest go their own way)
+            if (ped.stateT <= 0) {
+              const lead = ped;
+              for (let q = M.length - 1; q >= 0; q--) { const o = M[q]; if (o === lead) continue; o.stateT = Math.min(o.stateT, rand(0.2, 1.6)); }
+              if (M.length === 2 || G.theme === 'family') { for (const o of M) if (o !== lead && !o.follow && !lead.follow) { o.pendFollow = lead; break; } }
+            }
+          } else if (ped.group) ped.heading = approachAngle(ped.heading, Math.atan2(ped.group.center.x - ped.pos.x, ped.group.center.z - ped.pos.z), dt * 2);
+          if (ped.state === 'talk' && !(G && G.talk) && ped.styleT <= 0) { ped.styleT = rand(2.5, 6); ped.idleStyle = Math.random() < 0.6 ? 'talk' : (Math.random() < 0.35 ? 'phone' : null); }
+          if (ped.stateT <= 0) {
+            ped.leaveGroup = true; ped.state = 'walk'; ped.act = 'walk'; ped.idleStyle = null;
+            const L2 = ped.pendFollow; ped.pendFollow = null;
+            if (L2 && L2.active && L2.state === 'walk' && L2.nav) { ped.follow = L2; ped.nav = null; ped.walkSpeed = L2.walkSpeed; L2.pairId = ped.pairId = 'c' + (pairN++); L2.nav.lane = Math.min(L2.nav.lane ?? 0.3, 0.3); L2.nav.laneMax = 0.35; }
+          }
           if (dPlayer < 5 && !inCar) lookAt = pp;
           break;
         }
@@ -1236,12 +1469,34 @@ export async function createPeds(game) {
             if (!ped.idleStyle && ped.pauseStyle) ped.idleStyle = ped.pauseStyle;
             if (ped.pause <= 0) ped.idleStyle = null;
           } else {
-            targetSpeed = ped.walkSpeed; ped.idleStyle = null;
-            if (ped.act !== 'jog' && Math.random() < dt / (ped.P.pauseEvery || 45)) { ped.pause = rand(4, 12); const ids = ped.P.idles; ped.pauseStyle = ids[(Math.random() * ids.length) | 0]; }
+            // r6-walk: the pace breathes a little along the way; brisk across a street
+            targetSpeed = ped.walkSpeed * (ped.act === 'jog' ? 1 : 1 + 0.07 * Math.sin(now * 0.23 + ped.id * 1.7)) * (ped.nav?.cross && ped.act !== 'jog' ? 1.25 : 1); ped.idleStyle = null;
+            if (ped.act !== 'jog' && !ped.follow && !ped.nav?.path && Math.random() < dt / (ped.P.pauseEvery || 45)) { ped.pause = rand(4, 12); const ids = ped.P.idles; ped.pauseStyle = ids[(Math.random() * ids.length) | 0]; }
+            // arrived at the shop window / bus stop it was heading for: stop and look, then pick the next place
+            const dst = ped.nav?.dest;
+            if (dst && !ped.nav.path && !ped.follow && ((frameN + ped.id) % 20) === 0 && Math.hypot(dst.x - ped.pos.x, dst.z - ped.pos.z) < 9) {
+              ped.pause = dst.stop ? rand(9, 20) : rand(4, 9); ped.pauseStyle = dst.stop || Math.random() < 0.5 ? (ped.P.idles.includes('phone') ? 'phone' : null) : null; ped.lookDest = dst; ped.nav.dest = pickDest(ped.pos);
+            }
           }
+          if (ped.pause > 0 && ped.lookDest) ped.heading = approachAngle(ped.heading, Math.atan2(ped.lookDest.x - ped.pos.x, ped.lookDest.z - ped.pos.z), dt * 2.5); else if (ped.lookDest) ped.lookDest = null;
+          // a couple: the companion keeps the leader's pace (catching up / easing off a little)
+          if (ped.follow) {
+            const Ld = ped.follow;
+            if (!Ld.active || Ld.dead || Ld.state !== 'walk' || Ld.follow || Math.hypot(Ld.pos.x - ped.pos.x, Ld.pos.z - ped.pos.z) > 9) { ped.follow = null; ped.pairId = 0; Ld.pairId = 0; ped.nav = navFromPos(ped); }
+            else { const ah = (Ld.pos.x - ped.pos.x) * Math.sin(Ld.heading) + (Ld.pos.z - ped.pos.z) * Math.cos(Ld.heading); targetSpeed = Math.max(0, Ld.speed * (1 + Math.max(-0.3, Math.min(0.4, ah * 0.5)))); ped.pause = 0; ped.idleStyle = Ld.speed < 0.1 ? Ld.idleStyle : null; }
+          }
+          // local avoidance (src/npc/walk.js): sidestep early inside the walker's own lane, slow down behind someone,
+          // never step into anybody (steering only: nobody is pushed into a wall or the road)
+          if (targetSpeed > 0) {
+            const st = space.steer(ped._ag, ped.pos.x, ped.pos.z, Math.sin(ped.heading), Math.cos(ped.heading), ped.speed);
+            if (ped.nav) ped.nav.steer = st.side;
+            targetSpeed *= st.slow;
+            if (st.block) { ped.speed = 0; ped.blockT = (ped.blockT || 0) + dt; if (ped.blockT > 4 && ped.nav && !ped.nav.path && !ped.follow) { ped.nav.dir *= -1; ped.nav.sbE = null; ped.blockT = 0; } }   // a blocked narrow sidewalk: turn back
+            else ped.blockT = 0;
+          } else if (ped.nav) ped.nav.steer = 0;
           // impatient people cut across the street mid-block; honked-at people hurry
           // (only on quiet local streets: busy primary / secondary / tertiary / trunk roads are crossed at junctions only)
-          if (ped.nav && !ped.nav.cross && ped.act === 'walk' && ped.P.jaywalk && /residential|service|living|unclassified|pedestrian|footway|path/.test(ped.nav.edge?.kind || '') && Math.random() < dt * ped.P.jaywalk / 40) { ped.nav.hand *= -1; ped.jaywalks = (ped.jaywalks || 0) + 1; }
+          if (ped.nav && !ped.nav.cross && ped.act === 'walk' && ped.P.jaywalk && /pedestrian|footway|path/.test(ped.nav.edge?.kind || '') && !ped.nav.path && !ped.follow && Math.random() < dt * ped.P.jaywalk / 40) { ped.nav.hand *= -1; ped.jaywalks = (ped.jaywalks || 0) + 1; }
           if (ped.walkBoostT > 0) { ped.walkBoostT -= dt; targetSpeed *= 1.6; }
           // step aside when the player walks into us; stumble when shoved by a sprinting player
           if (dPlayer < 1.15 && pSpeed > 0.6 && !inCar) {
@@ -1283,7 +1538,7 @@ export async function createPeds(game) {
           ped.pos.x += Math.sin(ped.swimDir) * ped.speed * dt; ped.pos.z += Math.cos(ped.swimDir) * ped.speed * dt;
           ped.heading = approachAngle(ped.heading, ped.swimDir, dt * 2);
         } else {
-          moveHeading = ped.nav && ped.act !== 'shore' && ped.state !== 'approach' ? navStep(ped, dt, ped.speed) : freeStep(ped, dt, ped.speed);
+          moveHeading = ped.follow && ped.state === 'walk' ? followStep(ped, dt) : ped.nav && ped.act !== 'shore' && ped.state !== 'approach' ? navStep(ped, dt, ped.speed) : freeStep(ped, dt, ped.speed);
           ped.heading = approachAngle(ped.heading, moveHeading + (ped.P.sway ? Math.sin(now * 1.3 + ped.id) * ped.P.sway : 0), dt * (ped.state === 'flee' ? 9 : 4.5));
         }
       }
@@ -1293,6 +1548,16 @@ export async function createPeds(game) {
       let kccOk = false;
       // wall checks: every frame close to the player (no clipping where it can be seen), every third frame to 25 m
       const kccTurn = dPlayer < 10 || (dPlayer < 25 && ((frameN + ped.id) % 3 === 0));
+      // r7-groups (user: "glitching up and down"): people standing still are not run through the character controller;
+      // its 0.12 m snap-down plus the neighbors' and the player's capsules bumped them up and down every frame. They hold
+      // the ground height (re-read now and then, eased, with a 3 cm dead band).
+      const standing = !moving && NONMOVING.has(ped.state) && !(ped.asideT > 0) && ped.state !== 'gettingUp' && !ped.knock.lengthSq();
+      if (standing && ped.state !== 'swim' && ped.state !== 'wade' && !ped.v21) {
+        if (ped.gy === undefined || ((frameN + ped.id) & 15) === 0) ped.gy = groundAt(ped.pos.x, ped.pos.z, ped.pos.y);
+        const dy = ped.gy - ped.pos.y;
+        if (Math.abs(dy) > 0.6) ped.pos.y = ped.gy; else if (Math.abs(dy) > 0.03) ped.pos.y += dy * Math.min(1, dt * 4);
+        kccOk = true;
+      } else
       if (kccTurn && kcc && ped.collider && ped.collider.isEnabled?.() !== false && ped.state !== 'swim' && ped.state !== 'wade' && !ped.teleported && groundOK) {
         try {
           const base = ped.collider.translation();
@@ -1366,5 +1631,5 @@ export async function createPeds(game) {
     }
   }
 
-  return { list, update, panic, damage, spawnAt, _umbrella: makeUmbrella, _removeProp: removeProp, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView }, get count() { return list.filter((p) => p.active).length; } };
+  return { list, update, panic, damage, spawnAt, _umbrella: makeUmbrella, _removeProp: removeProp, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView, laneRoom, space }, groups, groupStats, clearWhy, _crowd: (c, zone, n) => crowd(c, zone, n, false), get count() { return list.filter((p) => p.active).length; } };
 }
