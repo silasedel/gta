@@ -40,6 +40,7 @@ export function createVenuePeople(game, opts = {}) {
     if (!s.venue || !s.built?.visible) return; const P = game.player?.position; if (!P || s.dist > (opts.radius ?? 32)) { release(s); return; }
     let L = live.get(s); if (!L) { L = { peds: [], used: new Set(), t: 0 }; live.set(s, L); }
     for (let i = L.peds.length - 1; i >= 0; i--) { const e = L.peds[i], p = e.p; if (!p.active || p.dead || p.state === 'flee' || p.state === 'fight' || p.v21?.venue !== s.key) { L.used.delete(e.poi); L.peds.splice(i, 1); } else if (p.state !== e.state && p.state === 'walk') { p.state = e.state; p.act = e.state; p.stateT = 1e9; } }
+    if (s.venue.kind === 'shop' || s.venue.kind === 'grocery') for (const e of L.peds) if (e.role === 'guest' && e.tag === 'browse') wander(s, L, e);
     L.t -= dt; if (L.t > 0) return; L.t = 0.12; // one person per few frames: dressing a body is not free
     const pois = s.built.pois || [], want = cast(s, hour);
     for (const [role, tag, state, n] of want) {
@@ -49,6 +50,27 @@ export function createVenuePeople(game, opts = {}) {
       if (tag === 'barStand') { const fx = Math.sin(poi.ry), fz = Math.cos(poi.ry), sx = Math.cos(poi.ry), sz = -Math.sin(poi.ry); poi = { ...poi, x: poi.x - fx * 0.32 + sx * 0.32, z: poi.z - fz * 0.32 + sz * 0.32, base: poi }; }
       const p = spawnOne(s, role, poi, state); L.used.add(poi.base || poi); if (p) L.peds.push({ p, role, tag, state, poi: poi.base || poi }); return;
     }
+  }
+  // r7: shoppers walk the aisles. Every 8-25 s a browsing shopper picks another free shelf spot and walks there along the store's
+  // nav path (built.nav, A* around the fixtures). The ped system does the walking ('approach' state: walk cycle, collisions);
+  // we feed it a carrot 1.6 m ahead on the path and stop the person on the spot, facing the shelf.
+  const _w = new THREE.Vector3(), _l = {};
+  function wander(s, L, e) {
+    const p = e.p, now = performance.now() / 1000, nav = s.built?.nav; if (!nav || !p.active) return; e.next ??= now + 4 + Math.random() * 14;
+    const loc = s.toLocal(p.pos.x, p.pos.z, _l);
+    if (e.walk) { const W = e.walk, P = W.path;
+      while (W.i < P.length - 1 && Math.hypot(P[W.i].x - loc.x, P[W.i].z - loc.z) < 0.45) W.i++;
+      const end = P[P.length - 1], left = Math.hypot(end.x - loc.x, end.z - loc.z);
+      if (left < 0.22 || now - W.t0 > 40) { p.state = 'talk'; p.act = 'talk'; p.stateT = 1e9; p.target = null; p.speed = 0; p.heading = s.facing + (W.poi.ry || 0); e.walk = null; e.next = now + 8 + Math.random() * 17; return; }
+      // carrot: 1.6 m along the path from here (past the end when closer: the ped system stops 1.4 m short of its target)
+      let rem = 1.6, ax = loc.x, az = loc.z, cx = end.x, cz = end.z, found = false;
+      for (let k = W.i; k < P.length; k++) { const d = Math.hypot(P[k].x - ax, P[k].z - az); if (d >= rem) { cx = ax + (P[k].x - ax) * rem / d; cz = az + (P[k].z - az) * rem / d; found = true; break; } rem -= d; ax = P[k].x; az = P[k].z; }
+      if (!found) { const dx = end.x - loc.x, dz = end.z - loc.z, d = Math.hypot(dx, dz) || 1; cx = end.x + dx / d * 1.5; cz = end.z + dz / d * 1.5; }
+      s.toWorld(cx, cz, _w); (p.target ||= new THREE.Vector3()).set(_w.x, p.pos.y, _w.z); p.state = 'approach'; p.act = 'walk'; p.helper = false; p.stateT = 1e9; return; }
+    if (now < e.next || s.dist > 22) return; e.next = now + 5 + Math.random() * 10;
+    const pois = (s.built.pois || []).filter((q) => q.tag === 'browse' && !L.used.has(q) && Math.hypot(q.x - loc.x, q.z - loc.z) > 2.5); if (!pois.length) return;
+    const poi = pois[Math.floor(Math.random() * pois.length)], path = nav.path(loc.x, loc.z, poi.x, poi.z); if (!path || !path.length) return;
+    L.used.delete(e.poi); L.used.add(poi); e.poi = poi; e.walk = { path, i: 0, poi, t0: now };
   }
   function release(s) { const L = live.get(s); if (!L) return; for (const { p } of L.peds) { if (!p.active) continue; p.pinned = 0; p.v21 = null; p.despawnNow = true; } live.delete(s); }
   return { update, release, live, stats: () => [...live.entries()].map(([s, L]) => ({ store: s.name, people: L.peds.length })) };

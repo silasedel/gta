@@ -5,11 +5,13 @@ import * as THREE from 'three';
 import { typeFor, standoutFor, getStoreType, registerStoreType, storeTypes } from './registry.js';
 import { baseProfile } from './variation.js';
 import { buildInterior, disposeBuilt } from './build.js';
+import { Plan } from './plan.js';
+import { FACADE_STYLES } from './facade.js';
 import { updateDoors } from './doors.js';
 import { updateSky, createLightPool } from './lighting.js';
 import { pumpBakes, bakesPending } from './kit/bake.js';
 import { GLOBAL } from './kit/atlas.js';
-import { setDesign, getProduct } from './items/catalog.js';
+import { setDesign, getProduct, allProducts, productCell } from './items/catalog.js';
 import { auditClerk, STAFF_TAGS, LANE_MIN } from './clerkLane.js';
 import { rng, hashStr, clamp } from './kit/util.js';
 import { probeJob, probePlaceholder } from './kit/probe.js';
@@ -28,7 +30,11 @@ export function createEngine(game, opts = {}) {
   const fastS = { x: undefined, z: undefined, v: 0 }; // r2-perf: player ground speed (m/s, smoothed)
   const INT_FAST_OLD = typeof location !== 'undefined' && /[?&]intfast=1\b/.test(location.search);
   let current = null, pending = null, fitter = opts.fitter || null, ingN = 0, ingSrc = null, pollT = 0, scanT = 0, nearList = [], upMax = 0, buildMax = 0, clock = 0;
-  try { preloadModels(); } catch (e) { /* fixtures fall back to code-built */ }
+  try { preloadModels()?.then?.(() => warmLabels()); } catch (e) { /* fixtures fall back to code-built */ }
+  // r7: paint every product's label cell into the shared atlas in idle time after start (one per idle slot), so the first
+  // shop the player walks into does not paint hundreds of labels inside its build steps (the 300-700 ms first-entry hitch)
+  function warmLabels() { const ids = allProducts().map((p) => p.id), idle = globalThis.requestIdleCallback || ((f) => setTimeout(() => f({ timeRemaining: () => 6 }), 40)); let i = 0;
+    const step = (dl) => { const t0 = performance.now(); while (i < ids.length && performance.now() - t0 < Math.min(6, dl?.timeRemaining?.() ?? 6)) { try { productCell(ids[i]); } catch (e) { /* */ } i++; } if (i < ids.length) idle(step, { timeout: 500 }); }; idle(step, { timeout: 500 }); }
   try { if (game.design) setDesign(game.design); } catch (e) { /* */ }
   try { if (game.renderer) setProbePlaceholder(probePlaceholder(game.renderer, 256)); } catch (e) { console.warn('[interiors] probe placeholder', e); }
 
@@ -77,6 +83,14 @@ export function createEngine(game, opts = {}) {
   function prewarm(s) { s.warmQ = true; const p = s.profile, w = { wear: p.wear }, list = [];
     const add = (spec, extra) => { if (Array.isArray(spec) && typeof spec[0] === 'string') list.push([spec[0], { ...(spec[1] || {}), ...extra }]); };
     add(p.floor, w); add(p.wall?.surf, w); add(p.wall?.wainscot?.surf, w); try { for (const it of s.def.prewarm?.(p) || []) list.push(it); } catch (e) { /* */ }
+    // r7: dry-run the type's floor plan so every room's floor, wall, wainscot and ceiling texture is drawn before the build
+    // (back rooms, offices, restrooms and drop ceilings were drawn inside the shell step: 300-500 ms on first entry)
+    try { const P = new Plan({ W: s.W, D: s.D, H: s.H, levels: s.levels, doorX: s.doorX, doorW: s.doorW }); s.def.plan(P, { profile: p, store: s, R: rng(s.seed, 'prewarm') }); const wr = Math.round(p.wear * 4);
+      for (const r of P.rooms) { add(r.floor, w); add(r.wall?.surf, w); add(r.wall?.wainscot?.surf, w); const ct = r.ceil?.type || p.ceil?.type || 'drop';
+        add(r.ceil?.surf || (ct === 'drop' ? ['dropTile', { c: [228 - wr * 4, 224 - wr * 6, 214 - wr * 11] }] : ct === 'tin' ? ['tin', { c: p.ceil.c }] : ct === 'open' ? ['deck', { c: p.ceil.c || [28, 28, 30] }] : ['paint', { c: p.ceil?.c || [232, 230, 224] }]), w); }
+      list.push(['steel', w], ['steel', { wear: 0.6 }], ['steel', { wear: 0.4 }], ['steel', { wear: 0.2 }], ['plastic', { wear: 0.2 }], ['rubber', { c: [30, 30, 34] }], ['fabric', { c: [160, 40, 40] }]);
+      const F = P.front; if (F) { const st = { ...(FACADE_STYLES[F.style] || FACADE_STYLES.aluminum), ...(F.over || {}) }, ext = (sp) => sp && add(sp, { ...w, ...(F.extC && sp[0] === 'stucco' ? { c: F.extC } : {}) }); ext(F.pierSurf || st.pier); ext(F.bulkSurf || st.bulk); } // r7: storefront piers / bulkheads (the facade step drew them: ~500 ms)
+    } catch (e) { /* plan needs more context: the build draws the rest */ }
     const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 30)); const step = () => { const it = list.shift(); if (!it || s.built) return; try { surfaceTextures(it[0], it[1]); } catch (e) { /* unknown surface: the build reports it */ } idle(step, { timeout: 400 }); }; idle(step, { timeout: 400 }); }
   // compile the interior's shaders in the background (KHR_parallel_shader_compile) before it is first drawn: no stall on show
   let compileRT = null; // the game draws the scene into the post composer's HDR target: compile for that (tone mapping / color space are part of the program key)

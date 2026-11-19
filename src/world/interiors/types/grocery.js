@@ -11,6 +11,7 @@ import { family, wallShelf, coolerBank, trashCan, floorSign, mopBucket, cctvDome
 import { stockRack, handTruck, officeDesk, safe, dvr, restroom, lockers, wallClock, breakerPanel } from '../fixtures/backroom.js';
 import { aisleBlock, checkoutLane, produceTable, magRack, chestFreezer, cartCorral, basketStack, pallet, lightRows } from '../fixtures/aisles.js';
 import { DEPT as D } from '../items/range.js';
+import { MODEL_IDS as MI } from '../items/modelProducts.js';
 
 const VARIANTS = [
   { key: 'chain', names: ['FreshWay Market', 'Bayside Foods', 'Harbor Market', 'Sunrise Grocers'], pal: ['#1f7a3d', '#ffffff', '#f2b01e'], fam: 'white', floor: ['vct', { c: [228, 228, 222], c2: [150, 160, 150] }], ceil: { type: 'drop' }, lamp: 'coolwhite', facade: 'aluminum', wear: 0.2, sign: '#1f7a3d', aisleC: '#1f7a3d' },
@@ -21,10 +22,10 @@ const VARIANTS = [
 const SODA2L = ['zumbo-cola-2l'], CHIPS = ['crunchero-classic', 'crunchero-limon', 'crunchero-bbq', 'quesitos', 'donpepe-mariquitas'];
 // aisle themes: [name list for the sign, levels bottom -> top]
 const AISLES = [
-  [['Cereal', 'Breakfast', 'Coffee'], [D.baking.slice(3), D.cereal.slice(0, 4), D.cereal.slice(4), D.cookies.slice(0, 3), D.cereal]],
-  [['Pasta', 'Rice', 'Sauces'], [D.pasta.slice(4), D.sauce.slice(6), D.pasta.slice(0, 4), D.sauce.slice(0, 6), D.pasta]],
-  [['Canned', 'Soup', 'Beans'], [D.canned.slice(0, 4), D.canned.slice(4), D.canned, ['abuela-beans', 'abuela-soup', 'sopa-ya-chicken', 'sopa-ya-shrimp'], D.canned.slice(2, 6)]],
-  [['Snacks', 'Soda', 'Cookies'], [SODA2L, CHIPS.slice(0, 3), CHIPS.slice(2), D.cookies, ['dona-pastelito', 'dona-cake', 'nutty-peanuts', 'gummi-gator']]],
+  [['Cereal', 'Breakfast', 'Coffee'], [D.baking.slice(3).concat(['mp-coffee']), D.cereal.slice(0, 4).concat(['mp-cereal']), D.cereal.slice(4).concat(MI.dry.slice(0, 2)), D.cookies.slice(0, 3).concat(['mp-tea', 'mp-choco']), D.cereal]],
+  [['Pasta', 'Rice', 'Sauces'], [D.pasta.slice(4), D.sauce.slice(6).concat(['mp-sauce']), D.pasta.slice(0, 4), D.sauce.slice(0, 3).concat(MI.sauce.slice(0, 4)), D.sauce.slice(3, 6).concat(['mp-jam', 'mp-mayo'])]],
+  [['Canned', 'Soup', 'Beans'], [D.canned.slice(0, 4), D.canned.slice(4), D.canned, ['abuela-beans', 'abuela-soup', 'sopa-ya-chicken', 'sopa-ya-shrimp'].concat(MI.canned), D.canned.slice(2, 6).concat(['mp-powder'])]],
+  [['Snacks', 'Soda', 'Cookies'], [SODA2L, CHIPS.slice(0, 3).concat(MI.chips.slice(0, 6)), MI.chips.slice(6, 16), D.cookies, ['dona-pastelito', 'dona-cake', 'nutty-peanuts', 'gummi-gator']]],
   [['Cleaning', 'Laundry', 'Paper'], [D.household.slice(0, 3), D.household.slice(3), D.paper.slice(1), D.paper.slice(0, 1), D.household.slice(3)]],
   [['Health', 'Beauty', 'Pharmacy'], [D.beauty.slice(1), D.health.slice(0, 3), D.health.slice(3), D.beauty, D.health]],
   [['Pet Food', 'Baking', 'Oil'], [D.pet, D.baking.slice(0, 3), D.sauce.slice(6), D.baking, D.cookies.slice(3)]],
@@ -58,7 +59,7 @@ registerStoreType({
     const front = 5.2, za = S.z0 + 0.84 + 2.1, zb = S.z1 - front, xl = S.x0 + 0.84 + 1.75, xr = S.x1 - 0.47 - 1.55; // aisle field
     // ---- back wall: dairy and meat coolers (several banks), department signs above
     for (const sp of P.spans(S, 'back', 1.6)) { const n = Math.min(8, Math.floor((sp.len - 0.2) / 0.76)); if (n < 2) continue; const mid = (sp.a + sp.b) / 2, at = P.onFace(sp.face, mid, 0), dairy = R.chance(0.6);
-      const plans = dairy ? [[['vaca-milk'], ['bayleaf-gallon'], D.dairy.slice(0, 4), D.dairy.slice(4, 7), ['eggs']], [['vaca-milk', 'vaca-choc'], D.dairy.slice(4, 7), D.dairy.slice(0, 2), D.dairy.slice(2, 4), ['eggs', 'egg-sandwich']]] : [[['lobo-12', 'cayo-12'], ['cayo-light', 'lobo-lager'], ['cayo-tall'], ['malta-faro', 'cayo-tall'], ['lobo-lager']], [['zumbo-cola-2l'], ['zumbo-cola', 'zumbo-cherry'], ['tiki-orange', 'limonazo'], ['aguamar', 'bayleaf-tea'], ['voltra', 'voltra-mango']]];
+      const plans = dairy ? [[['vaca-milk'], ['bayleaf-gallon'], D.dairy.slice(0, 4), D.dairy.slice(4, 7).concat(MI.cooler.slice(0, 2)), ['eggs']], [['vaca-milk', 'mp-milkjug'], D.dairy.slice(4, 7), D.dairy.slice(0, 2).concat(['mp-milkdrink']), D.dairy.slice(2, 4), ['eggs', 'egg-sandwich']]] : [[['lobo-12', 'cayo-12'], ['cayo-light', 'lobo-lager'], ['cayo-tall'], ['malta-faro', 'cayo-tall'], ['lobo-lager']], [['zumbo-cola-2l'], ['zumbo-cola', 'zumbo-cherry'], ['tiki-orange', 'limonazo'], ['aguamar', 'bayleaf-tea'], ['voltra', 'voltra-mango']]];
       coolerBank(ctx, at.x, at.z, at.ry, { doors: n, plans, header: prints.make('ghdr' + (dairy ? 'd' : 'b'), 600, 90, (g, w, h) => { g.fillStyle = v.sign; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = '900 56px Arial Black, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(dairy ? 'DAIRY · EGGS · JUICE' : 'BEER · SODA · WATER', w / 2, h / 2 + 3, w - 30); }, { lit: 1.2, ch: 1 }), headerC: '#dff2ff' });
       P.take(sp.face, mid - n * 0.38 - 0.1, mid + n * 0.38 + 0.1); yield; }
     // ---- freezer side (left wall from the aisle field to the front zone): freezer doors with frozen boxes

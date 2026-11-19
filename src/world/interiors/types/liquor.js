@@ -71,7 +71,7 @@ registerStoreType({
     // ---- wine gondolas in the middle, beer case stacks at the ends
     const gx0 = S.x0 + 0.4 + 1.5, gx1 = S.x1 - 0.4 - 1.5, gz0 = S.z0 + 0.84 + 1.7, gz1 = Math.min(S.z1 - 2.6, cz - cl / 2 - 0.3), gl = gz1 - gz0, ng = gl > 1.6 ? clamp(Math.floor((gx1 - gx0 + 1.2) / 2.1), 1, 4) : 0;
     for (let i = 0; i < ng; i++) { const gx = ng === 1 ? (gx0 + gx1) / 2 : gx0 + i * (gx1 - gx0) / (ng - 1); if (Math.abs(gx - cx) < 1.5 && gz1 > cz - cl / 2 - 0.4) continue;
-      const W = D.wine, sg = prints.promo(R.pick(['WINE SALE', 'STAFF PICK', 'NEW']), R.pick(['2 FOR $20', '$9.99', '15% OFF 6']), R.pick(['Marisol reds', 'Brisa whites', 'Any 750 ml wine']), { bg: '#f6efe0', band: v.pal[0] });
+      const W = D.wine.concat(['mp-wine']), sg = prints.promo(R.pick(['WINE SALE', 'STAFF PICK', 'NEW']), R.pick(['2 FOR $20', '$9.99', '15% OFF 6']), R.pick(['Marisol reds', 'Brisa whites', 'Any 750 ml wine']), { bg: '#f6efe0', band: v.pal[0] });
       gondola(ctx, gx, (gz0 + gz1) / 2, Math.PI / 2, { l: gl, h: 1.65, levels: 4, d: 0.36, rows: 2, block: 0.2, sides: [[W.slice(0, 2), W.slice(2, 4), W.slice(4), W], [W.slice(3), W.slice(0, 3), SP.slice(0, 4), SP.slice(4, 8)]], ends: [{ pegs: ['chispa-lighter', 'nutty-peanuts', 'gatorbite-original'], sign: sg }, [D.beer, ['lobo-lager'], SP.slice(8), D.minis]] });
       stack(ctx, R.pick(['lobo-12', 'cayo-12']), gx, ctx.FLOOR_Y, gz1 + 0.75, 2, 1, R.int(3, 5)); ctx.G.at(gx, gz1 + 0.75, 0, () => ctx.solid(-0.42, 0, -0.15, 0.42, 0.65, 0.15, { occ: false })); yield; }
     // r7: oak barrels (the user's Barrel 2) by the window in the cellar variant, wine on the heads

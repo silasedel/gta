@@ -53,8 +53,8 @@ export function* buildInterior(game, store, def) {
   if (def.lighting) def.lighting(ctx); for (const r of plan.rooms) if (!r.lit) { defaultRig(ctx, r); r.lit = true; }
   registerDaylight(ctx, store.profile.daylight ?? 1); lap('lights'); yield;
   // ---- meshes
-  const built = G.build(group); ctx.bakeParts.unshift(built.bake); lap('meshes'); yield;
-  const ib = ctx.items.build(group); lap('items'); yield;
+  const built = yield* G.buildIter(group, { slice: 3 }); ctx.bakeParts.unshift(built.bake); lap('meshes'); yield;
+  const ib = yield* ctx.items.buildIter(group, 3); lap('items'); yield;
   // ---- nav (level 0) + bake input
   const nav = buildNav(plan, ctx.colliders); lap('nav'); yield;
   let n = ib.count; for (const b of ctx.bakeParts) n += b.count;

@@ -9,6 +9,7 @@ import { stockRack, handTruck, officeDesk, safe, dvr, restroom, lockers, wallClo
 import { stack, shelfRun } from '../items/stock.js';
 import { magRack, basketStack, chestFreezer } from '../fixtures/aisles.js';
 import { DEPT } from '../items/range.js';
+import { MODEL_IDS as MI } from '../items/modelProducts.js';
 
 const VARIANTS = [
   { name: 'Marlin Mart', sub: 'FOOD · FUEL · 24 HR', tier: 'mid', pal: ['#0f5fb4', '#ffffff', '#ff8a1f'], fam: 'white', floor: ['vct', { c: [232, 232, 228], c2: [70, 120, 180] }], ceil: { type: 'drop' }, lamp: 'coolwhite', facade: 'aluminum', door: 'auto', wear: 0.2, open24: true, counter: [[40, 70, 120], [240, 240, 236]], band: '#0f5fb4', cooler: 'COLD DRINKS', signFont: 'deco' },
@@ -19,7 +20,7 @@ const VARIANTS = [
   { name: 'NightOwl', sub: 'OPEN ALL NIGHT', tier: 'mid', pal: ['#5a2ca0', '#ffd21f', '#35c6f4'], fam: 'gray', floor: ['terrazzo', { c: [70, 66, 80], chips: [[150, 120, 200], [240, 220, 120], [40, 40, 50]] }], ceil: { type: 'drop' }, lamp: 'daylight', facade: 'bronze', door: 'auto', wear: 0.35, open24: true, counter: [[60, 40, 100], [30, 30, 36]], band: '#ffd21f', cooler: 'ICY DRINKS', signFont: 'block', glass: true, led: '#c9a8ff' },
 ];
 const SODA = ['zumbo-cola', 'zumbo-cherry', 'zumbo-zero', 'tiki-orange', 'tiki-pina', 'limonazo'], SODA20 = ['zumbo-cola-20', 'tiki-orange-20', 'limonazo-20', 'rally-orange', 'rally-blue'], ENERGY = ['voltra', 'voltra-riptide', 'voltra-mango', 'tocororo-cold'], WATER = ['aguamar', 'aguamar-1l', 'bayleaf-tea', 'vaca-choc'], BEER = ['lobo-lager', 'cayo-light', 'cayo-tall', 'malta-faro'], DAIRY = ['vaca-milk', 'bayleaf-gallon', 'egg-sandwich', 'tuna-sandwich'];
-const CHIPS = ['crunchero-classic', 'crunchero-limon', 'crunchero-bbq', 'quesitos'], SNACK = ['crunchero-jalapeno', 'donpepe-mariquitas', 'dona-pastelito', 'dona-cake'], PANTRY = ['sopa-ya-chicken', 'sopa-ya-shrimp', 'abuela-beans', 'abuela-soup'], PEGS = ['gatorbite-original', 'gatorbite-teriyaki', 'gummi-gator', 'nutty-peanuts', 'ampd-cable'], MISC = ['torque-oil', 'alivio', 'zumbo-cola-2l'], BARS = ['nubo-milk', 'nubo-caramel', 'nubo-almond', 'chicle-pop', 'polar-mints', 'chispa-lighter'], LOTTO = ['scratch-flamingo', 'scratch-gator', 'scratch-hurricane', 'scratch-mango'];
+const CHIPS = ['crunchero-classic', 'crunchero-limon', 'crunchero-bbq', 'quesitos'], SNACK = ['crunchero-jalapeno', 'donpepe-mariquitas', 'dona-pastelito', 'dona-cake', 'mp-chips3', 'mp-chips8', 'mp-chips13'], PANTRY = ['sopa-ya-chicken', 'sopa-ya-shrimp', 'abuela-beans', 'abuela-soup', 'mp-soup', 'mp-tuna'], PEGS = ['gatorbite-original', 'gatorbite-teriyaki', 'gummi-gator', 'nutty-peanuts', 'ampd-cable'], MISC = ['torque-oil', 'alivio', 'zumbo-cola-2l'], BARS = ['nubo-milk', 'nubo-caramel', 'nubo-almond', 'chicle-pop', 'polar-mints', 'chispa-lighter'], LOTTO = ['scratch-flamingo', 'scratch-gator', 'scratch-hurricane', 'scratch-mango'];
 
 const S0 = (ctx) => ctx.store.W * ctx.store.D; // floor area (m2)
 registerStoreType({

@@ -57,6 +57,7 @@ export function paintCell(g, w, h, prod, brand) {
   const R = rng(prod.id, 'label'), P = brand.palette, a = prod.art || {}, sh = Math.round(h * 0.2), lh = h - sh, sw = prod.swatch || [P.primary, a.bg || P.primary, P.secondary, '#c8ccd0'];
   for (let i = 0; i < 4; i++) { g.fillStyle = css(sw[i] || sw[0]); g.fillRect(i * w / 4, 0, w / 4 + 1, sh + 1); }
   g.save(); g.translate(0, sh); g.beginPath(); g.rect(0, 0, w, lh); g.clip();
+  if (a.style === 'image' && a.img) { g.drawImage(a.img, 0, 0, w, lh); g.restore(); return; } // r7: library model products (items/modelProducts.js)
   const bg = a.bg || P.primary, bg2 = a.bg2 || P.secondary, ink = a.ink || inkOn(bg), style = a.style || 'wrap', icon = ICONS[a.icon] ? a.icon : null, flavor = a.flavor || prod.flavor || '';
   const gr = g.createLinearGradient(0, 0, 0, lh); gr.addColorStop(0, css(shade(bg, 0.12))); gr.addColorStop(1, css(shade(bg, -0.12))); g.fillStyle = gr; g.fillRect(0, 0, w, lh);
   if (style === 'wrap' || style === 'band') { // cylinder wrap: front panel centered, facts + barcode on the back seam

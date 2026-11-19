@@ -4,6 +4,7 @@
 // resort wear (whitewashed wood, rattan, coral and teal), streetwear and sneakers (concrete, black, neon, sneaker wall), luxury
 // (pale stone with the reflection probe, brass rails, few pieces, chandelier).
 import { registerStoreType } from '../registry.js';
+import { libModel, hasModel } from '../kit/models.js';
 import { cut } from '../plan.js';
 import { clamp } from '../kit/util.js';
 import { neonSign } from '../kit/neon.js';
@@ -42,7 +43,11 @@ if (!/[?&]noart\b/.test(globalThis.location?.search || '')) registerStoreType({
     yield;
     // ---- floor: racks and nesting tables down the middle, mannequins by the window
     const mx = 0, zA = S.z0 + 1.6, zB = S.z1 - 2.0; let z = zA, k = 0;
-    while (z < zB) { if (k % 2 === 0) foldTable(ctx, mx + R.jit(0.2), z, R.jit(0.1), { pal, colors: cols, top: v.key === 'luxe' ? V.marble : undefined }); else { garmentRack(ctx, mx - 1.1, z, Math.PI / 2, { pal, colors: cols, round: true, r: 0.45, metal: v.metal, sparse: v.sparse }); garmentRack(ctx, mx + 1.1, z, Math.PI / 2, { pal, colors: cols, l: 1.2, metal: v.metal, sparse: v.sparse }); } z += 1.9; k++; }
+    while (z < zB) { if (k % 4 === 2 && hasModel('clothing_rack') && hasModel('mannequin_m')) { // r7: the user's rolling rail with shirts + a full mannequin on a plinth
+        libModel(ctx, 'clothing_rack', mx - 0.95, z, R.chance(0.5) ? 0 : Math.PI); G.at(mx - 0.95, z, 0, () => { ctx.solid(-0.34, 0, -0.9, 0.34, 1.6, 0.9, { occ: false }); ctx.shadow(0, 0, 0.8, 2.0); });
+        G.cylB(M.flat(v.key === 'street' ? '#16171a' : '#e8e4dc', { rough: 0.4 }), mx + 0.95, 0, z, 0.38, 0.12, { seg: 24 }); G.at(mx + 0.95, z, 0, () => ctx.solid(-0.38, 0, -0.38, 0.38, 0.12, 0.38, { occ: false }));
+        G.at(mx + 0.95, z, 0, () => {}, 0); libModel(ctx, 'mannequin_m', mx + 0.95, z, R.range(-0.6, 0.6) + Math.PI * (R.chance(0.5) ? 0 : 1), 0.12); G.at(mx + 0.95, z, 0, () => ctx.solid(-0.25, 0.12, -0.2, 0.25, 1.95, 0.2, { occ: false })); }
+      else if (k % 2 === 0) foldTable(ctx, mx + R.jit(0.2), z, R.jit(0.1), { pal, colors: cols, top: v.key === 'luxe' ? V.marble : undefined }); else { garmentRack(ctx, mx - 1.1, z, Math.PI / 2, { pal, colors: cols, round: true, r: 0.45, metal: v.metal, sparse: v.sparse }); garmentRack(ctx, mx + 1.1, z, Math.PI / 2, { pal, colors: cols, l: 1.2, metal: v.metal, sparse: v.sparse }); } z += 1.9; k++; }
     for (const s of [-1, 1]) { const mxs = clamp(P.doorX + s * (P.doorW / 2 + 0.9), -W / 2 + 0.5, W / 2 - 0.5); mannequin(ctx, mxs, S.z1 - 0.75, Math.PI + R.jit(0.3), { top: R.pick(cols), bottom: R.pick(cols), lib: s > 0 ? 'mannequin_torso' : null }); }
     yield;
     // ---- back: cash wrap with a logo wall, fitting rooms on the other side, mirror, plants, light

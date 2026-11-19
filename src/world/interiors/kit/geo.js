@@ -65,9 +65,12 @@ export class Geo {
 
   vertexCount() { let n = 0; for (const p of this.parts.values()) n += p.n; return n; }
   // Build one mesh per material. Returns { meshes, bake } where bake = { pos, nor, apply(bk0, bk1, bk2) } covers every baked part.
-  build(group, o = {}) {
-    const meshes = [], ranges = []; let total = 0;
+  build(group, o = {}) { const it = this.buildIter(group, o); let r = it.next(); while (!r.done) r = it.next(); return r.value; }
+  // r7: same, as a generator that yields after each material's mesh (the build of a big store was one 300-600 ms step)
+  *buildIter(group, o = {}) {
+    const meshes = [], ranges = []; let total = 0, t0 = performance.now();
     for (const [mat, p] of this.parts) {
+      if (o.slice && performance.now() - t0 > o.slice) { yield; t0 = performance.now(); }
       if (!p.n) continue;
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(p.pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(p.nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(p.uv, 2));

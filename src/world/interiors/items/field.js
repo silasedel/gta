@@ -23,10 +23,12 @@ export class ItemField {
   }
   _matrix(s, out = _m) { _e.set(s.rx, s.ry, s.rz, 'YXZ'); return out.compose(_p.set(s.x, s.y, s.z), _q.setFromEuler(_e), _s.set(s.s, s.s, s.s)); }
   // -> { pos, nor, gain, count } bake sample points (one per instance), in the order applyBake expects
-  build(group) {
+  build(group) { const it = this.buildIter(group, 0); let r = it.next(); while (!r.done) r = it.next(); return r.value; }
+  *buildIter(group, slice = 0) { let t0 = performance.now();
     let n = 0; for (const g of this.groups.values()) n += g.list.length;
     const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), gain = new Float32Array(n); let k = 0; this.order = [];
     for (const g of this.groups.values()) {
+      if (slice && performance.now() - t0 > slice) { yield; t0 = performance.now(); }
       const geo = g.geo.clone(), cnt = g.list.length, im = new THREE.InstancedMesh(geo, this.M.items(g.tex), cnt), uv = new Float32Array(cnt * 4), h = g.geo.userData.size.h;
       g.list.forEach((s, ii) => { s.im = im; s.ii = ii; im.setMatrixAt(ii, this._matrix(s)); const r = s.rect; uv.set([r[0], r[1], r[2] - r[0], r[3] - r[1]], ii * 4);
         const up = Math.cos(s.rx) * Math.cos(s.rz); pos[k * 3] = s.x + Math.sin(s.ry) * 0.04; pos[k * 3 + 1] = s.y + h * 0.6 * s.s * Math.max(0.3, up); pos[k * 3 + 2] = s.z + Math.cos(s.ry) * 0.04; const nl = Math.hypot(1, 0.55); nor[k * 3] = Math.sin(s.ry) / nl; nor[k * 3 + 1] = 0.55 / nl; nor[k * 3 + 2] = Math.cos(s.ry) / nl; gain[k] = s.gain; k++; });

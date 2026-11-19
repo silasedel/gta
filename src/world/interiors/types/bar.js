@@ -4,6 +4,7 @@
 // Shared bones: a back bar with lit shelves and bottles, a bar with stools, booths on the other wall, a neon sign, a back hall
 // with a restroom and a stock room.
 import { registerStoreType } from '../registry.js';
+import { libModel, hasModel } from '../kit/models.js';
 import { cut, rw } from '../plan.js';
 import { clamp } from '../kit/util.js';
 import { neonSign } from '../kit/neon.js';
@@ -45,7 +46,10 @@ if (!/[?&]noart\b/.test(globalThis.location?.search || '')) registerStoreType({
     const { G, M, plan: P, R, profile: p } = ctx, v = p.v, pal = p.pal, S = P.get('bar'), W = S.w, D = S.d, bs = p.flip ? 1 : -1, ch = S.ceilY, B = new BottleField(ctx); S.lit = true; ctx.bottles = B;
     // ---- bar along the side wall
     const wx = bs * W / 2, ryW = bs < 0 ? Math.PI / 2 : -Math.PI / 2, zA = S.z0 + 0.25, zB = S.z1 - 1.7, Lb = zB - zA;
-    backBar(ctx, wx, (zA + zB) / 2, ryW, { l: Lb, h: Math.min(2.9, ch - 0.15), shelves: 3, pal: { ...pal, shelf: v.key === 'sports' ? '#dff1ff' : '#ffc27a' }, bottles: B });
+    // r7: the user's bar room set (Interior 20, relabeled with our brands): its 4.3 m back-bar wall with mirror and bottles at the
+    // back end of the bar when the room is deep enough; the code-built back bar fills the rest
+    let zLib = zA; if (Lb > 7.2 && ch > 2.8 && hasModel('backbar_set')) { libModel(ctx, 'backbar_set', wx - bs * 0.31, zA + 2.15, ryW); G.at(wx, zA + 2.15, ryW, () => { ctx.solid(-2.13, 0, 0, 2.13, 2.7, 0.62); ctx.shadow(0, 0.3, 4.3, 0.8); }); zLib = zA + 4.35; }
+    backBar(ctx, wx, (zLib + zB) / 2, ryW, { l: zB - zLib, h: Math.min(2.9, ch - 0.15), shelves: 3, pal: { ...pal, shelf: v.key === 'sports' ? '#dff1ff' : '#ffc27a' }, bottles: B });
     const cxBar = bs * (W / 2 - 1.95), Lc = Lb - 0.95; barCounter(ctx, cxBar, zB - Lc / 2, ryW, { l: Lc, pal, bottles: B, stools: 0.64, kUnder: v.key === 'lounge' ? 0.8 : 1.4, kTop: 0.8, frontC: v.key === 'dive' || v.key === 'tiki' ? [70, 44, 28] : [30, 34, 32] });
     if (v.taps) G.at(cxBar, zB - Lc * 0.3, ryW, () => beerTaps(ctx, 0, 1.08, 0.0, 0, { n: 6 }));
     hangingBulbs(ctx, [cxBar, zB - Lc + 0.4], [cxBar, zB - 0.3], ch, { shade: v.pendant, drop: ch - 2.1, r: v.pendant === 'globe' ? 0.12 : 0.16, lamp: v.lamp, k: 2.6, n: Math.max(2, Math.round(Lc / 1.2)), c: v.key === 'lounge' ? '#b08a4a' : '#1a1a1c' });

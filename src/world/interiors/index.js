@@ -17,6 +17,8 @@ export async function createInteriors(game, opts = {}) {
     v2, legacy, get list() { return [...(v2?.list || []), ...(legacy?.list || [])]; }, get current() { return v2?.current || legacy?.current || null; }, legacyCurrent: () => legacy?.current || null,
     update(dt) { if (v2) v2.update(dt); if (legacy) legacy.update(dt); try { updateShopRoomHide([v2?.list, legacy?.list]); } catch (e) { /* */ } }, // shops pass: painted shop rooms step aside for shown interiors
     stats(reset) { return { ...(legacy?.stats?.(reset) || {}), v2: v2?.stats(reset) || null }; }, get fitStats() { return legacy?.fitStats || null; },
+    // dev check: clerk-vs-furniture overlaps and narrow clerk lanes, over every v1 shop type x layout x room size and every built interior (0 / 0 expected)
+    auditClerks() { const a = v2?.auditClerks?.() || { built: [], overlaps: 0, narrow: 0 }, l = legacy?.auditClerks?.() || { built: [], overlaps: 0, narrow: 0, layouts: null }; return { overlaps: a.overlaps + l.overlaps, narrow: a.narrow + l.narrow, layouts: l.layouts, v2: a.built, v1: l.built }; },
     registerStoreType: (d) => v2?.registerStoreType(d), saveState: () => v2?.saveState(), loadState: (o) => v2?.loadState(o),
   };
   return api;
