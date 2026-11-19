@@ -65,6 +65,7 @@ export function* buildInterior(game, store, def) {
   const input = { pos, nor, gain, count: n, lights: ctx.lights, occ: new Float32Array(ctx.occ), rooms, bounce: (store.profile.bounce ?? 0.55) * 0.85, ao: 0.85 };
   const b = { probe: ctx.probe || null, ctx, group, plan, M: ctx.M, prints: ctx.prints, items: ctx.items, doors, colliders: ctx.colliders, nav, pois: ctx.pois, uses: ctx.uses, anim: ctx.anim, seats: ctx.seats, fixtureLights: ctx.fixtureLights, spill: ctx.spill, front: ctx.front, disposables: ctx.disposables, meshes: built.meshes, body: null, ready: false, visible: false, levels: [1, 1], prof, verts: n, lights: ctx.lights.length, people: [], t0 };
   b.baked = bake(input).then((out) => { if (b.disposed) return; const ta = performance.now(); for (const [p, o] of parts) p.apply(out[0], out[1], out[2], o); ctx.items.applyBake(out[0], out[1], out[2], itemOff); globalThis.__intProf?.on && globalThis.__intProf.list.push(['bakeApply', Math.round(performance.now() - ta), Math.round(ta)]); b.ready = true; prof.bake = Math.round(performance.now() - t0); }).catch((e) => { console.warn('[interiors] bake failed', store.name, e); b.ready = true; b.M.uBk.value.set(0, 0, 0); });
+  setTimeout(() => { if (!b.ready && !b.disposed) { console.warn('[interiors] bake timed out, showing unbaked', store.name); b.ready = true; b.M.uBk.value.set(0, 0, 0); } }, 20000); // a bake that never answers must not keep the store hidden for good (a late result still applies)
   ctx.bakeParts = null; lap('total');
   return b;
 }

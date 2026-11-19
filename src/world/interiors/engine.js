@@ -140,7 +140,9 @@ export function createEngine(game, opts = {}) {
     pollT -= dt; if (pollT <= 0) { pollT = 1; ingest(); }
     scanT -= dt; if (scanT <= 0) { scanT = 0.25; nearList = list.filter((s) => Math.abs(s.center.x - pp.x) < DISPOSE_R + 30 && Math.abs(s.center.z - pp.z) < DISPOSE_R + 30); }
     for (const s of nearList) s.dist = Math.hypot(pp.x - s.center.x, pp.z - s.center.z); nearList.sort((a, b) => a.dist - b.dist);
-    const wanted = []; for (const s of nearList) { if (s.dist > ACTIVE_R || wanted.length >= MAX_ACTIVE) break; if (!s.failed) wanted.push(s); }
+    // a lot the city never cut a shell for (overlapping / upper-level / part footprints: no h / doorX / doorW stamp) can never be
+    // built: it must not hold one of the MAX_ACTIVE slots, or the real shop next to it waits forever (a store that never loads)
+    const wanted = []; for (const s of nearList) { if (s.dist > ACTIVE_R || wanted.length >= MAX_ACTIVE) break; if (!s.failed && (s.built || hasShell(s))) wanted.push(s); }
     // r2-perf: passing at speed (car, > 12 m/s) never starts or steps an interior build, nor its idle texture prewarm: a
     // build (procedural surface textures, ~250 meshes) cost 50 ms per frame on average and single steps up to 1 s while
     // driving past shops. They resume as soon as the player slows down (walking, parking). ?intfast=1 = old behavior.
