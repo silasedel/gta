@@ -10,13 +10,20 @@ import * as THREE from 'three';
 import { createRagdollSystem } from '../npc/ragdoll.js';
 
 export const order = 46;
-const CAR_KMH = 15, FALL_M = 4.0, GETUP_S = { back: 2.6, fwd: 2.4 };
+const CAR_KMH = 15, FALL_M = 4.0;
+// Nov 19 (user: "lies on the ground too long, then glitches up"): get up 0.6-1.1 s after the body stops travelling (the
+// pelvis and chest, not every twitching limb), through the slower get-ups (proceduralClips getUpRoll / getUpProne: roll
+// over, hands and knees, one foot, stand). Control returns just before the clip ends (its last 0.3 s blends to idle).
+// ?getup=old = the old clips and timing.
+const OLD_GETUP = typeof location !== 'undefined' && /[?&]getup=old\b/.test(location.search);
+const GETUP_S = OLD_GETUP ? { back: 2.6, fwd: 2.4 } : { roll: 3.35, prone: 2.95 };
+const CALM_V = 0.35, MAX_DOWN = 4.5;
 
 export async function initV2(game) {
   const P = game.player, R = game.RAPIER, W = game.world;
   let sys = null;
   try { sys = createRagdollSystem(game, 1); } catch (e) { console.warn('[playerRagdoll] no ragdoll system', e); return; }
-  const S = { rd: null, phase: null, t: 0, face: 'back', lethal: false, lastDir: new THREE.Vector3(0, 0, 1), air: 0, peakY: null, wasGrounded: true };
+  const S = { rd: null, phase: null, t: 0, calm: 0, hold: 0.8, face: 'back', lethal: false, lastDir: new THREE.Vector3(0, 0, 1), air: 0, peakY: null, wasGrounded: true };
   const ch = () => game.playerCharacter;
   const groundAt = (x, y, z) => {
     try { const h = W.castRay(new R.Ray({ x, y: y + 1.5, z }, { x: 0, y: -1, z: 0 }), 12, true, R.QueryFilterFlags.EXCLUDE_DYNAMIC | R.QueryFilterFlags.EXCLUDE_KINEMATIC | R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, P.collider); return h ? y + 1.5 - h.timeOfImpact : y; } catch (e) { return y; }
@@ -34,7 +41,7 @@ export async function initV2(game) {
       c.root.updateMatrixWorld(true);
       const rd = sys.start(c, { vel: o.vel || { x: 0, y: 0, z: 0 }, spin: o.spin || 0, hit: o.impulse ? { impulse: o.impulse, point: o.point || null } : null, kind: o.ragKind || kind, strength: o.strength ?? 0.6, lethal, balance: false });
       if (!rd) return false;
-      S.rd = rd; S.phase = 'rag'; S.t = 0; S.lethal = lethal; S.kind = kind;
+      S.rd = rd; S.phase = 'rag'; S.t = 0; S.calm = 0; S.hold = 0.6 + Math.random() * 0.5; S.lethal = lethal; S.kind = kind;
       c.__ragdoll = true;
       try { P.collider?.setEnabled(false); } catch (e) { /* ignore */ }
       // hold the player: no input movement; the main loop still places the root, our fixed hook moves the capsule
@@ -58,8 +65,8 @@ export async function initV2(game) {
     const info = sys.poseInfo(rd);
     if (!info || !c) { sys.remove(rd); release(); return; }
     const hx = info.head.x - info.pelvis.x, hz = info.head.z - info.pelvis.z;
-    const face = info.faceUp ? 'back' : 'fwd';
-    // the get-up clips lie with the head toward local -Z (back) / +Z (front)
+    const face = OLD_GETUP ? (info.faceUp ? 'back' : 'fwd') : (info.faceUp ? 'roll' : 'prone');
+    // the old back get-up lies with the head toward local -Z; the others toward +Z
     const heading = face === 'back' ? Math.atan2(-hx, -hz) : Math.atan2(hx, hz);
     const gy = groundAt(info.pelvis.x, info.pelvis.y, info.pelvis.z);
     P.heading = heading; P.position.set(info.pelvis.x, gy, info.pelvis.z);
@@ -67,8 +74,8 @@ export async function initV2(game) {
     c.root.position.set(info.pelvis.x, gy, info.pelvis.z); c.root.rotation.set(0, heading, 0); c.root.updateMatrixWorld(true);
     sys.handoff(rd);                       // bones re-expressed under the moved root: the snapshot below blends without a pop
     c.__ragdoll = false;
-    c.snapshotPose?.(0.6);
-    S.rd = null; S.phase = 'getup'; S.t = 0; S.face = face;
+    c.snapshotPose?.(OLD_GETUP ? 0.6 : 0.45);
+    S.rd = null; S.phase = 'getup'; S.t = 0; S.face = face; c.__face = face;
     P.script = { lock: true, ragdoll: true, fixed() {}, anim: { speed: 0, grounded: true, getUp: face } };
   }
 
@@ -88,7 +95,14 @@ export async function initV2(game) {
     if (S.phase === 'rag') {
       if (S.lethal) {
         if (P.health > 0) { sys.remove(S.rd); release(); }                 // respawned
-      } else if (S.rd?.recovered || sys.readyToGetUp(S.rd) || S.t > 7) getUp();
+      } else if (OLD_GETUP) { if (S.rd?.recovered || sys.readyToGetUp(S.rd) || S.t > 7) getUp(); }
+      else {
+        // calm = the pelvis and chest have (nearly) stopped; limbs may still settle
+        const rd = S.rd, pv = rd?.byKey?.pelvis?.body, cv = rd?.byKey?.chest?.body;
+        let v = 0; try { if (pv) { const a = pv.linvel(); v = Math.hypot(a.x, a.y, a.z); } if (cv) { const b2 = cv.linvel(); v = Math.max(v, Math.hypot(b2.x, b2.y, b2.z)); } } catch (e) { v = 0; }
+        S.calm = rd?.frozen || v < CALM_V ? S.calm + dt : Math.max(0, S.calm - dt * 2);
+        if (rd?.recovered || (S.calm >= S.hold && S.t > 0.7) || S.t > MAX_DOWN) getUp();
+      }
       return;
     }
     if (S.phase === 'getup') {

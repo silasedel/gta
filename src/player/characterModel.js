@@ -235,7 +235,8 @@ function prepareBase(gltf, restClipName, kind, ref) {
 
 const STY = ['phone', 'talk', 'film', 'cower', 'lie', 'sitGround', 'sitBench', 'lean', 'dance', 'kneel', 'volley', 'swim'];
 const _qa = new THREE.Quaternion();
-const GETUPS = ['getUpBack', 'getUpFwd'], DEADS = ['deadBack', 'deadFwd'], PUNCHES = ['punchR', 'punchL'];
+const GETUP_CLIP = { back: 'getUpBack', fwd: 'getUpFwd', roll: 'getUpRoll', prone: 'getUpProne' };
+const GETUPS = ['getUpBack', 'getUpFwd', 'getUpRoll', 'getUpProne'], DEADS = ['deadBack', 'deadFwd'], PUNCHES = ['punchR', 'punchL'];
 const FULL_STYLES = new Set(['cower', 'lie', 'sitGround', 'sitBench', 'lean', 'dance', 'kneel', 'volley', 'swim']);
 const findClip = (gl, name) => gl?.animations.find((c) => c.name.toLowerCase() === name.toLowerCase());
 function buildClipsFor(B, g, sources, procClips) {
@@ -786,7 +787,9 @@ export function createCharacter(game, opts = {}) {
 
     // locomotion weights by speed
     // get-up (one-shot, overrides everything; started by anim.getUp = 'back' | 'fwd')
-    if (anim.getUp && anim.getUp !== st.getUpPrev && A[anim.getUp === 'fwd' ? 'getUpFwd' : 'getUpBack']) { st.getUpName = anim.getUp === 'fwd' ? 'getUpFwd' : 'getUpBack'; st.getUpT = 0; }
+    // ('roll' | 'prone': the player's slower get-ups through hands and knees, proceduralClips.js)
+    const guN = anim.getUp ? GETUP_CLIP[anim.getUp] || 'getUpBack' : null;
+    if (guN && anim.getUp !== st.getUpPrev && A[guN]) { st.getUpName = guN; st.getUpT = 0; }
     st.getUpPrev = anim.getUp || null;
     let gw = 0;
     if (st.getUpName) { const gd = C[st.getUpName].duration; st.getUpT += dt; gw = st.getUpT < gd - 0.3 ? 1 : Math.max(0, (gd - st.getUpT) / 0.3); if (st.getUpT > gd) st.getUpName = null; }
@@ -946,7 +949,14 @@ export function createCharacter(game, opts = {}) {
     if (st.snap && st.snapT < st.snapDur) {
       st.snapT += opts.lod > 1 ? dt * opts.lod : dt;
       const k = THREE.MathUtils.smoothstep(st.snapT / st.snapDur, 0, 1);
-      for (const e of st.snap) { e.b.quaternion.slerpQuaternions(e.q, e.b.quaternion, k); e.b.position.lerpVectors(e.p, e.b.position, k); }
+      // (Nov 19: slerpQuaternions(e.q, e.b.quaternion, k) copied e.q into e.b.quaternion before reading it, so the blend
+      // was a no-op: the bones held the ragdoll pose for the whole blend, then snapped to the clip: the get-up "glitch")
+      // e.aq / e.ap keep this frame's animated value (before the blend): nicoTripo restores bones to last frame's
+      // animated value before the mixer runs, and must not take the blended value for it (a bone whose clip value did
+      // not change kept the ragdoll pose until it did, then jumped: the get-up "glitch")
+      for (const e of st.snap) { (e.aq ||= new THREE.Quaternion()).copy(e.b.quaternion); (e.ap ||= new THREE.Vector3()).copy(e.b.position);
+        e.b.quaternion.slerpQuaternions(e.q, e.aq, k); e.b.position.lerpVectors(e.p, e.ap, k); }
+      character.__snapPre = st.snap;
       if (st.snapT >= st.snapDur) st.snap = null;
     }
   }

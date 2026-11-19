@@ -234,6 +234,46 @@ export function buildProceduralClips(rig) {
     { t: 1.6, hips: [0, -38, -4], b: { Spine: [['x', 35]], LeftUpLeg: [['x', -90]], RightUpLeg: [['x', -65]], LeftLeg: [['x', 105]], RightLeg: [['x', 90]] } },
     { t: 2.1, hips: [0, -5, 0], b: { Spine: [['x', 8]], LeftUpLeg: [['x', -10]], RightUpLeg: [['x', -8]], LeftLeg: [['x', 14]], RightLeg: [['x', 10]] } },
     { t: 2.5, b: {} }]);
+  // ---- PLAYER GET-UP (Nov 19, user: "lies too long, then glitches up"): a real person's get-up. Both lie with the head
+  // toward local +Z and end standing facing +Z on the root (the root goes under the pelvis, turned so the head lines up):
+  //   getUpProne: face down -> push the chest up -> hands and knees -> one foot forward -> stand   (~3.1 s)
+  //   getUpRoll:  face up -> roll onto the right side and over -> hands and knees -> one foot forward -> stand   (~3.5 s)
+  // The first ~0.3 s holds the lying pose so the ragdoll pose blends into a still target (no pop).
+  // Hips height: lying -92 (pelvis ~10 cm up), hands and knees -50 (thighs vertical); hips z backs off so the knees and
+  // then the forward foot land where the standing feet end (no foot slide at the end).
+  const crawl = { Spine: [['x', 4]], Spine1: [['x', 4]], Head: [['x', -28]],
+    LeftArm: [['z', 14], ['y', -84]], RightArm: [['z', -14], ['y', 84]], LeftForeArm: [['y', -8]], RightForeArm: [['y', 8]], LeftHand: [['z', -50]], RightHand: [['z', 50]],
+    LeftUpLeg: [['x', -84], ['z', -4]], RightUpLeg: [['x', -84], ['z', 4]], LeftLeg: [['x', 94]], RightLeg: [['x', 94]], LeftFoot: [['x', 48]], RightFoot: [['x', 48]] };
+  const footUp = { Spine: [['x', 30]], Spine1: [['x', 8]], Head: [['x', -10]],
+    LeftUpLeg: [['x', -102]], LeftLeg: [['x', 98]], LeftFoot: [['x', 6]], RightUpLeg: [['x', -22]], RightLeg: [['x', 104]], RightFoot: [['x', -38]], RightToeBase: [['x', -30]],
+    LeftArm: [['z', -40], ['y', -62]], LeftForeArm: [['y', -36]], RightArm: [['z', 20], ['y', 70]], RightForeArm: [['y', 24]], RightHand: [['z', 40]] };
+  const rising = { Spine: [['x', 26]], Spine1: [['x', 6]], Head: [['x', -4]],
+    LeftUpLeg: [['x', -62]], LeftLeg: [['x', 66]], LeftFoot: [['x', -2]], RightUpLeg: [['x', -18]], RightLeg: [['x', 56]], RightFoot: [['x', -10]],
+    LeftArm: [['z', -52], ['y', -40]], LeftForeArm: [['y', -30]], RightArm: [['z', 62], ['y', 20]], RightForeArm: [['y', 20]] };
+  const settle = { Spine: [['x', 6]], Head: [['x', 2]], LeftUpLeg: [['x', -10]], RightUpLeg: [['x', -6]], LeftLeg: [['x', 14]], RightLeg: [['x', 10]], LeftFoot: [['x', -4]] };
+  const standUp = (t0) => [
+    { t: t0, hips: [0, -50, -30], hipsRot: [['x', 80]], b: crawl },
+    { t: t0 + 0.55, hips: [0, -52, -22], hipsRot: [['x', 28]], b: footUp },
+    { t: t0 + 1.05, hips: [0, -24, -8], hipsRot: [['x', 12]], b: rising },
+    { t: t0 + 1.5, hips: [0, -4, -1], b: settle },
+    { t: t0 + 1.85, b: {} }];
+  const proneLie = { Spine: [['x', 2]], Head: [['x', -26], ['y', 25]], LeftUpLeg: [['x', 2], ['z', -8]], RightUpLeg: [['x', -4], ['z', 8]], LeftFoot: [['x', 40]], RightFoot: [['x', 40]],
+    LeftArm: [['z', 12], ['y', -62]], RightArm: [['z', -12], ['y', 62]], LeftForeArm: [['y', -95]], RightForeArm: [['y', 95]] };
+  const pushUp = { Spine: [['x', -22]], Spine1: [['x', -6]], Head: [['x', -18]], LeftUpLeg: [['x', -18], ['z', -6]], RightUpLeg: [['x', -22], ['z', 6]], LeftLeg: [['x', 40]], RightLeg: [['x', 46]], LeftFoot: [['x', 40]], RightFoot: [['x', 40]],
+    LeftArm: [['z', 16], ['y', -80]], RightArm: [['z', -16], ['y', 80]], LeftForeArm: [['y', -30]], RightForeArm: [['y', 30]], LeftHand: [['z', -45]], RightHand: [['z', 45]] };
+  clips.getUpProne = makeClip(rig, 'getUpProne', [
+    { t: 0, hips: [0, -92, 0], hipsRot: [['x', 88]], b: proneLie },
+    { t: 0.3, hips: [0, -92, 0], hipsRot: [['x', 88]], b: merge(proneLie, { Head: [['x', -20], ['y', 10]] }) },
+    { t: 0.8, hips: [0, -82, -6], hipsRot: [['x', 84]], b: pushUp },
+    ...standUp(1.3)]);
+  const supLie = { Spine: [['x', -4]], Head: [['x', -6]], LeftUpLeg: [['x', -6], ['z', -10]], RightUpLeg: [['x', -10], ['z', 10]], LeftLeg: [['x', 10]], RightLeg: [['x', 14]], LeftArm: [['z', -40]], RightArm: [['z', 40]] };
+  clips.getUpRoll = makeClip(rig, 'getUpRoll', [
+    { t: 0, hips: [0, -92, 0], hipsRot: [['x', 88], ['z', 180]], b: supLie },
+    { t: 0.3, hips: [0, -92, 0], hipsRot: [['x', 88], ['z', 176]], b: merge(supLie, { Head: [['x', 18], ['y', -20]], LeftUpLeg: [['x', -40], ['z', -4]], LeftLeg: [['x', 70]], LeftArm: [['z', -62], ['y', -22]], LeftForeArm: [['y', -40]] }) },
+    { t: 0.8, hips: [0, -85, 0], hipsRot: [['x', 88], ['z', 95]], b: { Spine: [['x', 10]], Head: [['x', 10], ['y', -30]], LeftUpLeg: [['x', -55], ['z', 8]], LeftLeg: [['x', 80]], RightUpLeg: [['x', -20]], RightLeg: [['x', 30]],
+      LeftArm: [['z', 0], ['y', -105]], LeftForeArm: [['y', -40]], RightArm: [['z', 30], ['y', 70]], RightForeArm: [['y', 60]] } },
+    { t: 1.25, hips: [0, -78, -8], hipsRot: [['x', 84], ['z', 22]], b: merge(pushUp, { Head: [['x', -14], ['y', -12]], LeftUpLeg: [['x', -45], ['z', -4]], LeftLeg: [['x', 80]], RightUpLeg: [['x', -30]], RightLeg: [['x', 60]] }) },
+    ...standUp(1.7)]);
   // ---- HIT REACTION (upper overlay) + LEASH (dog walking, upper overlay) ----
   clips.hitReact = upper(makeClip(rig, 'hitReact', [{ t: 0, b: RELAX },
     { t: 0.09, b: { Spine: [['x', -14], ['y', 12]], Spine1: [['x', -8]], Head: [['x', -22], ['y', -15]], LeftArm: [['z', -40], ['y', -35]], RightArm: [['z', 30], ['y', 45]], LeftForeArm: [['y', -90]], RightForeArm: [['y', 100]] } },

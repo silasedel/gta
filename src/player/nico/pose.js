@@ -81,6 +81,8 @@ export function createRelaxedPose({ model, bone, character = null, proportions =
   }
   const fingers = ['Index', 'Middle', 'Ring', 'Pinky'];
   return {
+    // drop every layer at once (ragdoll: the bodies own the bones; the get-up then starts with no stale stance on top)
+    cut() { w = 0; wArms = 0; wLoco = 0; wPost = 0; },
     update(dt, anim = {}) {
       t += dt;
       // proportions: a thicker neck and a head a touch larger than the base mesh (about 7.5 heads tall)

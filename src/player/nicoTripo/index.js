@@ -130,12 +130,15 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
   // goes back to last frame's animated value first; the mixer then overwrites the ones whose animation moved.
   const allBones = []; model.traverse((o) => { if (o.isBone) allBones.push(o); });
   const preQ = allBones.map((b) => b.quaternion.clone()), preP = allBones.map((b) => b.position.clone());
+  const boneIdx = new Map(allBones.map((b, i) => [b, i]));
   character.update = (dt, anim = {}) => {
-    if (character.__ragdoll) return;         // src/player/ragdoll.v2.js: the ragdoll bodies drive the bones
+    if (character.__ragdoll) { relaxed.cut?.(); return; }         // src/player/ragdoll.v2.js: the ragdoll bodies drive the bones
     if (lookTarget && !anim.lookAt) anim = Object.assign({}, anim, { lookAt: lookTarget });
     for (let i = 0; i < allBones.length; i++) { allBones[i].quaternion.copy(preQ[i]); allBones[i].position.copy(preP[i]); }
     baseUpdate(dt, anim);
     for (let i = 0; i < allBones.length; i++) { preQ[i].copy(allBones[i].quaternion); preP[i].copy(allBones[i].position); }
+    // a pose blend (ragdoll -> get-up) ran this frame: last frame's animated value is the pre-blend one
+    if (character.__snapPre) { for (const e of character.__snapPre) { const i = boneIdx.get(e.b); if (i !== undefined && e.aq) { preQ[i].copy(e.aq); preP[i].copy(e.ap); } } character.__snapPre = null; }
     try { relaxed.update(dt, anim); } catch (e) { /* cosmetic layer */ }
     ik.right.update(dt); ik.left.update(dt);
     try { feet.update(dt, anim); } catch (e) { /* cosmetic layer */ }
