@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { buildYacht } from '../../vehicles/yachts/buildYacht.js';
 import { PARTY_YACHT, MD, FLY } from './partyYacht.def.js';
-import { getHub, blip, help, notify, canAct, getPanelSafe, say, earnCash, payCash, pill, sfx, findShore, local, groundY, fmt, canvasTex, castPed } from '../common.js';
+import { getHub, blip, help, notify, canAct, getPanelSafe, say, earnCash, payCash, pill, sfx, findShore, local, groundY, fmt, canvasTex, castPed, stillOurs } from '../common.js';
 import { standMats } from '../jetski/stand.js';
 import { keepFighting, pedOut } from '../../jobs/kit.js';
 import { YACHT_PARTY } from '../sites.data.js';
@@ -57,8 +57,8 @@ export async function initV2(game) {
     const deck = new THREE.Mesh(deckGeo, M.planks); deck.position.y = PIER_Y - 0.07; deck.castShadow = deck.receiveShadow = true; pier.add(deck);
     const head = new THREE.Mesh(new THREE.BoxGeometry(7, 0.14, 3.4), M.planks); head.position.set(0, PIER_Y - 0.07, G.len / 2 - 1.7); head.castShadow = head.receiveShadow = true; pier.add(head);
     const pileG = new THREE.CylinderGeometry(0.14, 0.16, 4, 8);
-    for (let z = -G.len / 2 + 1; z < G.len / 2; z += 3) for (const x of [-1.3, 1.3]) { const p = new THREE.Mesh(pileG, M.post); p.position.set(x, PIER_Y - 1.6 + 0.35, z); p.castShadow = true; pier.add(p); }
-    for (const x of [-3.4, 3.4]) { const p = new THREE.Mesh(pileG, M.post); p.position.set(x, PIER_Y - 1.6 + 0.35, G.len / 2 - 1.7); pier.add(p); }
+    for (let z = -G.len / 2 + 1; z < G.len / 2; z += 3) for (const x of [-1.3, 1.3]) { const p = new THREE.Mesh(pileG, M.post); p.position.set(x, PIER_Y - 1.75, z); p.castShadow = true; pier.add(p); }
+    for (const x of [-3.4, 3.4]) { const p = new THREE.Mesh(pileG, M.post); p.position.set(x, PIER_Y - 1.75, G.len / 2 - 1.7); pier.add(p); }
     // velvet rope stanchions at the gangway foot and a "PRIVATE EVENT" sign
     const brass = new THREE.MeshStandardMaterial({ color: 0xc9a14a, roughness: 0.3, metalness: 1 }), velvet = new THREE.MeshStandardMaterial({ color: 0x8a1030, roughness: 0.7 });
     for (const x of [-1.6, -0.9, 0.9, 1.6]) { const s = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.95, 8), brass); s.position.set(x, PIER_Y + 0.48, G.len / 2 - 3.6); pier.add(s); const b = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 0.04, 14), brass); b.position.set(x, PIER_Y + 0.02, G.len / 2 - 3.6); pier.add(b); }
@@ -131,7 +131,7 @@ export async function initV2(game) {
   // ---------------------------------------------------------------- lights: string lights, DJ beams, a dance-floor light
   function buildLights() {
     const g = new THREE.Group(); Y.built.group.add(g);
-    const bulbOn = new THREE.MeshBasicMaterial({ color: 0xffd9a0 }), bulbGeo = new THREE.SphereGeometry(0.045, 8, 6);
+    const bulbOn = new THREE.MeshBasicMaterial({ color: 0xffd9a0 }), bulbGeo = new THREE.SphereGeometry(0.022, 8, 6);
     const runs = [[[2.4, FLY + 2.25, -4.3], [2.0, MD + 1.0, -10.3]], [[-2.4, FLY + 2.25, -4.3], [-2.0, MD + 1.0, -10.3]], [[0, FLY + 2.3, -4.3], [0, MD + 1.2, -10.4]], [[2.45, FLY + 1.0, -7.3], [-2.45, FLY + 1.0, -7.3]]];
     const pts = [];
     for (const [a, b] of runs) for (let i = 0; i <= 14; i++) { const t = i / 14; pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - Math.sin(t * Math.PI) * 0.35, a[2] + (b[2] - a[2]) * t]); }
@@ -149,9 +149,9 @@ export async function initV2(game) {
     const L = Y.lights; if (!L) return;
     const h = ((game.timeOfDay ?? 14) % 24 + 24) % 24, night = h > 19 || h < 6.5;
     const t = performance.now() / 1000, beat = Math.max(0, Math.sin(t * Math.PI * 2 * (124 / 60)));
-    L.bulbOn.color.setHex(night ? 0xffd9a0 : 0xb8ab96);
+    L.bulbOn.color.setHex(night ? 0xc9a774 : 0x9a917f);
     L.beams.forEach((b, i) => { b.visible = night; b.rotation.z = Math.sin(t * 0.9 + i * 2) * 0.55; b.rotation.x = Math.cos(t * 0.7 + i) * 0.35; b.children[0].material.opacity = 0.08 + beat * 0.08; });
-    L.light.intensity = night ? 3 + beat * 4 : 0;
+    L.light.intensity = night ? 1.1 + beat * 1.4 : 0;
     if (night) L.light.color.setHSL((t * 0.08) % 1, 0.9, 0.55);
   }
 
@@ -185,11 +185,12 @@ export async function initV2(game) {
     const w = Y.toW(lx, ly, lz);
     let h = null; try { h = game.npc.spawnPosed({ place, pose, pos: { x: w.x, y: w.y, z: w.z }, rot: Y.geo.heading + heading, seed }); } catch (e) { h = null; }
     if (h) { h.home = { lx, ly, lz, pose }; Y.guests.push(h); }
+    else (Y.toStage ||= []).push([place, pose, lx, ly, lz, heading, seed]);   // people still loading: retried from tick()
     return h;
   }
   function pedAt(lx, ly, lz, heading, outfit, worldPos) {
     const w = worldPos || Y.toW(lx, ly, lz);
-    const p = castPed(game, w, outfit);
+    const p = castPed(game, w, outfit, 6, true);
     if (!p) return null;
     p.pinned = 1e9; p.v21 = { venue: 'yacht', y: w.y }; p.nav = null; p.group = null; p.state = 'talk'; p.act = 'talk'; p.stateT = 1e9;
     p.idleStyle = 'cross_arms'; p.heading = heading; p.pos.copy(w); p.groundY = w.y; p.health = 140; p.tough = true;
@@ -198,6 +199,7 @@ export async function initV2(game) {
     return p;
   }
   function spawnPeople() {
+    Y.toStage = [];
     const B = Y.built, G = Y.geo; let seed = 900;
     // dancers on the aft deck, the DJ, the bartender
     const dance = ['dance', 'dance_arms', 'dance_sway'];
@@ -213,11 +215,14 @@ export async function initV2(game) {
     staged('nightlife', 'talk_g', 0.6, FLY, -2.6, 2.4, seed++); staged('nightlife', 'drink', -0.5, FLY, -2.3, -0.8, seed++);
     // security: the bouncer at the gangway foot (faces the shore), one on deck by the stern steps
     const bf = { x: Y.gangFoot.x - G.out.x * 0.7 + G.side.x * 0.85, z: Y.gangFoot.z - G.out.z * 0.7 + G.side.z * 0.85 };
-    Y.peds.bouncer = pedAt(0, 0, 0, G.heading + Math.PI, 'security', new THREE.Vector3(bf.x, PIER_Y, bf.z));
-    Y.peds.guard = pedAt(-1.3, MD, -9.3, G.heading + Math.PI * 0.8, 'security');
+    Y.secSpawn = () => {   // people may still be loading when the site builds: retried from tick()
+      if (!Y.peds.bouncer) Y.peds.bouncer = pedAt(0, 0, 0, G.heading + Math.PI, 'security', new THREE.Vector3(bf.x, PIER_Y, bf.z));
+      if (!Y.peds.guard) Y.peds.guard = pedAt(-1.3, MD, -9.3, G.heading + Math.PI * 0.8, 'security');
+    };
+    Y.secSpawn();
   }
   function clearPeople() {
-    for (const h of Y.guests) { try { h.remove(); } catch (e) { /* */ } } Y.guests = []; Y.barman = null;
+    for (const h of Y.guests) { try { h.remove(); } catch (e) { /* */ } } Y.guests = []; Y.barman = null; Y.toStage = [];
     for (const k of Object.keys(Y.peds)) { const p = Y.peds[k]; if (p?.active) { p.pinned = 0; p.v21 = null; p.despawnNow = true; } } Y.peds = {};
   }
 
@@ -268,7 +273,7 @@ export async function initV2(game) {
   function spot(why) {
     if (Y.spotted || Y.status === 'outside') return;
     Y.spotted = true; Y.suspicion = 1;
-    say(game, GUEST, why === 'pickpocket' ? 'Hey! He took my wallet! SECURITY!' : 'Who is that? He wasn\'t at the gangway... SECURITY!', 2800, '#ff5fa8');
+    say(game, GUEST, why === 'pickpocket' ? 'Hey! He took my wallet! SECURITY!' : 'Who is that? He wasn\'t at the gangway... SECURITY!', 2800, '#ff5fa8', true);
     sfx(game, 'scream', P(), 0.5);
     for (const h of Y.guests) { const d = h.root.position.distanceTo(P()); if (d < 7 && h !== Y.barman) { try { h.setPose(Math.random() < 0.5 ? 'cower' : 'photo'); } catch (e) { /* */ } } }
     const g = Y.peds.guard; if (g && !pedOut(g)) { g.idleStyle = null; g.state = 'fight'; g.stateT = 20; g.hitCd = 99; g.guard = false; }
@@ -281,7 +286,7 @@ export async function initV2(game) {
     game.teleport(w.x, SEA - 0.4, w.z, G.heading);
     sfx(game, 'splash', w, 1);
     notify(game, 'Security threw you overboard. You\'re banned from the Midnight Tide tonight.', 4500);
-    say(game, SECURITY, 'And stay out!', 2000, '#c9a14a');
+    say(game, SECURITY, 'And stay out!', 2000, '#c9a14a', true);
     Y.status = 'banned'; Y.bannedT = 240; Y.spotted = false; Y.suspicion = 0; setGate(true); resetGuard();
     game.emit?.('activity:end', { id: 'yachtParty', outcome: 'thrownOut' });
   }
@@ -303,6 +308,9 @@ export async function initV2(game) {
     if (Y.refusedT > 0) Y.refusedT -= dt;
     if (Y.bannedT > 0 && (Y.bannedT -= dt) <= 0 && Y.status === 'banned') Y.status = 'outside';
     lightsTick(dt); musicTick();
+    for (const k of ['bouncer', 'guard']) if (Y.peds[k] && !stillOurs(Y.peds[k]) && !Y.peds[k].dead && !Y.fight) Y.peds[k] = null;
+    if (Y.toStage?.length && (Y.stageT = (Y.stageT || 0) - dt) <= 0) { Y.stageT = 1.5; const q = Y.toStage.splice(0, 4); for (const a of q) { const h = staged(...a); if (h && a[1] === 'bartend') Y.barman = h; } }
+    if ((!Y.peds.bouncer || !Y.peds.guard) && (Y.secT = (Y.secT || 0) - dt) <= 0) { Y.secT = 2; Y.secSpawn?.(); }
     for (const p of [Y.peds.bouncer, Y.peds.guard]) if (p?.active && p.home) { if (Math.abs(p.pos.y - p.home.y) > 0.01) { p.pos.y = p.home.y; if (p.root) p.root.position.y = p.home.y; } if (p.state === 'talk') p.idleStyle = 'cross_arms'; }
     // staged people: small life (turn the drinkers now and then, someone says a line when you pass)
     const now = performance.now() / 1000;

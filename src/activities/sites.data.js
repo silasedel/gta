@@ -26,7 +26,7 @@ export const SUBWAY_CAST = {
 // ---- yacht party: x, z = a point on the bay shore; the private pier runs from the nearest open water out to depth and
 // the yacht moors stern-to at its end. tracks: CC BY music in public/assets/audio/music (see its index.json / CREDITS)
 export const YACHT_PARTY = {
-  id: 'midnight_tide', name: 'Yacht party · Midnight Tide', x: 2140, z: -760, bribe: 250,
+  id: 'midnight_tide', name: 'Yacht party · Midnight Tide', x: 2090, z: 360, bribe: 250,
   tracks: ['neon/disco_medusae.ogg', 'neon/stringed_disco.ogg', 'neon/hyperfun.ogg', 'lowtide/funkorama.ogg', 'neon/electro_sketch.ogg', 'lowtide/groove_grove.ogg'],
 };
 

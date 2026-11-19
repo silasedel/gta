@@ -32,7 +32,7 @@ export function createCrew(game, o) {
   function fight(line = true) {
     if (C.state === 'fight') return;
     C.state = 'fight'; C.t = 0; help(game, 'crew', null);
-    if (line) say(game, who, pick(L.fight), 2200, '#ff6b5a');
+    if (line) say(game, who, pick(L.fight), 2200, '#ff6b5a', true);
     for (const p of alive()) { p.idleStyle = null; keepFighting(p); }
     try { game.emit?.('activity:crewFight', { name: who, n: peds.length }); } catch (e) { /* */ }
   }
@@ -60,7 +60,7 @@ export function createCrew(game, o) {
       if (dl < 4.5) C.near += dt; else C.near = Math.max(0, C.near - dt * 0.5);
       if (C.near > 1.6 && o.mug !== false) {
         C.state = 'mug'; C.t = 0; C.cash = Math.min(400, Math.max(20, Math.round((game.wallet?.cash ?? game.player.money ?? 0) * 0.35)));
-        say(game, who, pick(L.mug), 2800, '#ff6b5a');
+        say(game, who, pick(L.mug), 2800, '#ff6b5a', true);
         for (const p of alive()) { p.idleStyle = p === lead ? 'talk' : 'cross_arms'; }
       }
       return;

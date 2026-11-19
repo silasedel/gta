@@ -127,7 +127,8 @@ export function unblip(game, b) { if (b && Array.isArray(game.mapBlips)) game.ma
 
 // ---------------------------------------------------------------- subtitles (GTA style: "Name: line", bottom center)
 let subEl = null, subQ = [], subT = 0;
-function subtitle(game, who, text, ms = 3200, color = '#ffd25a') {
+function subtitle(game, who, text, ms = 3200, color = '#ffd25a', now = false) {
+  if (now) { subQ.length = 0; subT = 0; }
   if (!subEl) {
     subEl = document.createElement('div');
     subEl.style.cssText = 'position:fixed;left:50%;bottom:12%;transform:translateX(-50%);max-width:62vw;text-align:center;z-index:40;pointer-events:none;' +
