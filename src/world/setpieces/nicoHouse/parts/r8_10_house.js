@@ -8,7 +8,7 @@
 // standing seam on the NW slope); the user's satellite dish on the stair-head post; the hoop on the middle beam over the under-house
 // passage (backboard facing SE); the cracked concrete pad under the house. Every piece is a closed, beveled solid; faces that would
 // touch are cut or offset (no coplanar faces). Built in H through r4/frame.js.
-import { R8, P4, inR, toS, StoH, HtoB } from '../r4/plan4.js';
+import { R8, P4, inR, toS, StoH, HtoB, BtoH } from '../r4/plan4.js';
 import { frame } from '../r4/frame.js';
 import { makeGeo } from '../r4/geo.js';
 import { glb } from '../r4/glb.js';
@@ -1583,7 +1583,14 @@ export function build(ctx) {
   Fr.anchor('carport', 0, 0.06, -8.5, Math.PI);
   Fr.anchor('front', Bd.x0 - 6, 0, -7, -Math.PI / 2);
   Fr.anchor('truckR4', -3.0, 0, 9.5, -2.76); // G: nose in toward the front walkway corner, right of the B / D sight line
-  Fr.anchor('spawnYard', -17, 0, 2.5, 2.37); // in the drive, facing the front door
+  // the spawn stays where it was in the yard (site frame; turning it with the house put it on the yellow ute's spot), facing
+  // the front door
+  {
+    const sx = -17,
+      sz = 2.5,
+      [dx, dz] = BtoH(Bd.x0 - 0.5, -7);
+    frame(ctx, 'site').anchor('spawnYard', sx, 0, sz, Math.atan2(dx - sx, dz - sz));
+  }
   const camS = new THREE.Vector3();
   ctx.lookIn = (cx, cy, cz) => {
     const [sx, sz] = HtoB(...StoH(...toS(cx, cz)));
