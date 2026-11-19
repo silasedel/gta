@@ -35,6 +35,15 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 1100) }, as
     await camAt(hx, 4.5, hz, tx, 2.5, tz, 65); await shot('inside_hall', 3000); }
   if (want('tower') && DATA.tower) { const t = DATA.tower; await camAt(t.x + 120, 25, t.z + 120, t.x, 40, t.z, 55); await shot('tower', 4000); }
   if (want('fence')) { const p = DATA.airside[5]; await camAt(p[0] + 15, 4, p[1] + 15, p[0], 1.5, p[1], 55); await shot('fence', 3000); }
+  if (o.climb) {   // fence climb frames from the side
+    const r = JSON.parse(await b.eval(`(() => { const A = game.airport.list.find((a) => a.id === '${AP}'), ring = A.ap.airside, k = Math.floor(ring.length / 3), n = A.parts.fence.nearest((ring[k][0] + ring[k + 1][0]) / 2, (ring[k][1] + ring[k + 1][1]) / 2, 30);
+      game.cameraOverride = null; game.teleport(n.x + n.nx * 0.7, undefined, n.z + n.nz * 0.7, Math.atan2(-n.nx, -n.nz)); return JSON.stringify(n); })()`));
+    await b.sleep(3000);
+    await b.eval(`(() => { game.player.heading = Math.atan2(-(${r.nx}), -(${r.nz})); const ok = game.airport.climb.tryClimb(); const n = ${JSON.stringify(r)}; const tx = -n.nz, tz = n.nx; void tz;
+      game.cameraOverride = (dt, cam) => { const p = game.player.position; cam.position.set(n.x + tx * 4.2 + n.nx * 1.2, n.y + 2.0, n.z + tz * 4.2 + n.nz * 1.2); cam.up.set(0, 1, 0); cam.lookAt(n.x, p.y + 1.0, n.z); return true; }; return ok; })()`);
+    for (const [i, w] of [[0, 300], [1, 500], [2, 500], [3, 450], [4, 500]]) { await b.sleep(w); await b.screenshot(`${D}/climb_${i}.jpg`); }
+    console.log('climb shots'); await b.sleep(2000); await b.eval('game.cameraOverride = null; 1');
+  }
   if (o.js) console.log('JS', await b.eval(fs.readFileSync(o.js, 'utf8')));
   if (o.board) {   // walk-in boarding at gate 1: pay, the cut to the take-off, arrival at the other airport, then shots there
     await b.eval(`game.cameraOverride = null; (game.wallet?.earn?.(1000, { memo: 'test' }), 1)`);

@@ -36,6 +36,10 @@ export async function initV2(game) {
   const inAirside = (x, z) => { for (const a of list) if (Math.abs(x - a.cx) < 2500 && Math.abs(z - a.cz) < 2500 && pip(a.airside, x, z) && !a.parts.terminal?.inside(x, z, 0.5)) return a; return null; };
   const isFree = (x, z) => { if (city.isWater?.(x, z)) return true; const zn = city.zoneAt?.(x, z); if (!/airport|park|rural|wilderness/.test(zn || '')) return false; try { const r = city.roadGraph?.nearestEdge?.(x, z, {}, 20); if (r && r.dist < (r.edge.width || 8) / 2 + 2) return false; } catch (e) { /* */ } return true; };
   const frameWait = () => new Promise((r) => requestAnimationFrame(() => r()));
+  // no trees / palms on the curb, the terminal or the aprons (the vegetation streamer also drops plants already placed there)
+  try { for (const ap of DATA.airports) for (const poly of [ap.forecourt, ap.terminal?.ring]) { if (!poly) continue;   // one box each (the airside itself grows no trees: zone airport)
+    let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (const [x, z] of poly) { x0 = Math.min(x0, x); z0 = Math.min(z0, z); x1 = Math.max(x1, x); z1 = Math.max(z1, z); }
+    game.vegetation?.block?.({ x0: x0 - 4, z0: z0 - 4, x1: x1 + 4, z1: z1 + 4 }); } } catch (e) { console.warn('[airport] vegetation block', e); }
 
   async function build(A) {
     A.state = 'building'; const t0 = performance.now(), ap = A.ap;

@@ -24,7 +24,7 @@ export async function buildTerminal(ap, { group, ground, world, RAPIER, game }) 
   const concrete = new THREE.MeshStandardMaterial({ color: 0xd9d6cf, roughness: 0.85 });
   const steel = new THREE.MeshStandardMaterial({ color: 0xb8bcc0, roughness: 0.35, metalness: 0.7 });
   const darkSteel = new THREE.MeshStandardMaterial({ color: 0x3b4046, roughness: 0.4, metalness: 0.6 });
-  const glass = new THREE.MeshStandardMaterial({ color: 0x9fc4cc, roughness: 0.04, metalness: 0.15, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide });
+  const glass = new THREE.MeshStandardMaterial({ color: 0x9fc4cc, roughness: 0.04, metalness: 0.15, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide, emissive: 0xffd9a0, emissiveIntensity: 0 });   // glows warm from the lit hall at night
   const floorMat = new THREE.MeshStandardMaterial({ color: 0xc9c3b8, roughness: 0.25, metalness: 0.05 });   // polished terrazzo
   const carpet = new THREE.MeshStandardMaterial({ color: 0x2c3a52, roughness: 0.95 });
   const roofIn = new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.8 });
@@ -154,8 +154,10 @@ export async function buildTerminal(ap, { group, ground, world, RAPIER, game }) 
     root, gates: gateInfo, inside, toWorld, toLocal, drawBoard, floorY: gy + FLOOR, hallHalf, L, D,
     entrance: (() => { const [x, z] = toWorld(0, -D / 2 - 6); return { x, z }; })(),
     update(dt, pp) {
+      const ni = Math.max(0, Math.min(1, game.env?.nightFactor ?? 0)) * 0.35; if (Math.abs(glass.emissiveIntensity - ni) > 0.01) glass.emissiveIntensity = ni;
       if (!pp) return;
       const [lx, lz] = toLocal(pp.x, pp.z);
+      if (Math.abs(lx) > L / 2 + 120 || Math.abs(lz) > D / 2 + 120) return;   // doors only matter near the building
       doors.forEach((d, i) => {
         let want = Math.abs(lx - d.x) < 5 && Math.abs(lz + D / 2) < 4.5 ? 1 : 0;
         for (const p of game.peds?.list || []) { if (want) break; const q = p.position || p.root?.position; if (!q) continue; const [ax, az] = toLocal(q.x, q.z); if (Math.abs(ax - d.x) < 4 && Math.abs(az + D / 2) < 3.5) want = 1; }

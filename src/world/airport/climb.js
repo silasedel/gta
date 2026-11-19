@@ -52,7 +52,7 @@ export function createClimb(game, fences) {
     try { game.movePlayerTo(x, y, z); } catch (e) { /* */ }
     P.heading = c.heading;
     P.state.grounded = false;
-    if (P.script?.anim) P.script.anim.jumping = k > 0.8 || k < 0.1;
+    if (P.script?.anim) { const a = P.script.anim, up = k >= 0.1 && k < 0.66; a.swimming = up; a.jumping = !up; a.speed = up ? 1.3 : 0; a.grounded = false; }   // hand-over-hand: the crawl clip held upright reads as pulling up the mesh
     if (k >= 1) {
       S.move = null; if (P.script?.climb) P.script = null;
       try { P.collider?.setEnabled(true); } catch (e) { /* */ }
@@ -76,8 +76,7 @@ export function createClimb(game, fences) {
     const cyc = Math.sin(((k - 0.16) / 0.46) * Math.PI * 3), climbing = k >= 0.16 && k < 0.62, over = k >= 0.62 && k < 0.8;
     const la = climbing ? 0.45 + cyc * 0.35 : over ? 0.2 : 0.9, ra = climbing ? 0.45 - cyc * 0.35 : over ? 0.6 : 0.9;
     // raise the arms forward / up (Mixamo arm bones: rotate about local x to lift toward the front)
-    rot(b.LeftArm, -2.2 * la * w, 0, -0.3 * w); rot(b.RightArm, -2.2 * ra * w, 0, 0.3 * w);
-    rot(b.LeftForeArm, -0.6 * w, 0, 0); rot(b.RightForeArm, -0.6 * w, 0, 0);
+    if (!climbing) { rot(b.LeftArm, -1.2 * la * w, 0, -0.2 * w); rot(b.RightArm, -1.2 * ra * w, 0, 0.2 * w); }   // over the top / drop: arms reach for the rail
     const lk = climbing ? 0.7 - cyc * 0.5 : over ? 1.4 : 0.5, rk = climbing ? 0.7 + cyc * 0.5 : over ? 0.3 : 0.5;
     rot(b.LeftUpLeg, -1.0 * lk * w, 0, over ? -0.5 * w : 0); rot(b.RightUpLeg, -1.0 * rk * w, 0, 0);
     rot(b.LeftLeg, 1.4 * lk * w, 0, 0); rot(b.RightLeg, 1.4 * rk * w, 0, 0);

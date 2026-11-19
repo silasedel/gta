@@ -98,7 +98,7 @@ export function buildLights(ap, { ground, group, game, isFree }) {
   for (const a of ap.aprons || []) {
     if (a.kind !== 'terminal') continue;
     const [p0, p1, p2] = a.poly, F = frame(p0, p1), L = F.L, dq = F.q(p2[0], p2[1]), qe = Math.sign(dq) * 6;
-    for (let s = 30; s < L - 20; s += 75) { const [x, z] = F.P(s, qe); fix.push([x, z, 5]); for (const o of [-0.9, 0.9]) { const [hx, hz] = F.P(s + o, qe); add(hx, hz, 22.3, [1, 0.86, 0.62], [1, 0.86, 0.62], 0, 0, 0, 0, 2.2); } pools.push([...F.P(s, qe + Math.sign(dq) * 26), 46]); cnt('flood'); }
+    for (let s = 30; s < L - 20; s += 75) { const [x, z] = F.P(s, qe); fix.push([x, z, 5]); for (const o of [-0.9, 0.9]) { const [hx, hz] = F.P(s + o, qe); add(hx, hz, 22.3, [1, 0.86, 0.62], [1, 0.86, 0.62], 0, 0, 0, 0, 2.2); } pools.push([...F.P(s, qe + Math.sign(dq) * 24), 60]); cnt('flood'); }
   }
   // ---- glow points
   const g = new THREE.BufferGeometry();
@@ -145,7 +145,7 @@ export function buildLights(ap, { ground, group, game, isFree }) {
     const g2 = new THREE.BufferGeometry(); g2.setAttribute('position', new THREE.Float32BufferAttribute(pp, 3)); g2.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g2.setIndex(idx); g2.computeBoundingSphere();
     const pm = new THREE.ShaderMaterial({ uniforms: poolU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -8,
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: 'uniform float uNight; varying vec2 vUv; void main() { float r = length(vUv); float k = smoothstep(1.0, 0.0, r); gl_FragColor = vec4(vec3(1.0, 0.8, 0.55) * k * k * 0.22 * uNight, 1.0); }' });
+      fragmentShader: 'uniform float uNight; varying vec2 vUv; void main() { float r = length(vUv); float k = 1.0 - smoothstep(0.0, 1.0, r); gl_FragColor = vec4(vec3(1.0, 0.82, 0.6) * k * k * k * 0.07 * uNight, 1.0); }' });
     const pm2 = new THREE.Mesh(g2, pm); pm2.name = 'airport-light-pools'; pm2.renderOrder = 2; pm2.userData.noDetailCull = true; group.add(pm2);
   }
   return {
