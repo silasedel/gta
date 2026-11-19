@@ -1,8 +1,103 @@
 {
- "terminal_hall": { "src": "Airport/Terminal Hall 1 - Check-In Counter Hall With Truss Roof/Terminal Hall 1.glb", "tris": 70000, "tex": 1024 },
- "gate_sign": { "src": "Airport/Gate Sign 1 - Boarding Gate Podium Sign/Gate Sign 1.glb", "tris": 0, "tex": 512 },
- "baggage_cart": { "src": "Airport/Baggage Cart 1 - Enclosed Luggage Trolley/Baggage Cart 1.glb", "tris": 0, "tex": 512 },
- "catering_truck": { "src": "Airport/Airport Truck 1 - Animated Catering Lift Truck/Airport Truck 1.glb", "tris": 14000, "tex": 1024, "lod1": 1500, "bake1": false },
- "suitcase": { "src": "Airport/Luggage 1 - Rolling Suitcase/Luggage 1.glb", "tris": 700, "tex": 256 },
- "turboprop": { "src": "Planes/Plane 4 - Twin-Turboprop Regional Airliner/Plane 4.glb", "tris": 16000, "tex": 1024, "lod1": 2500, "bake1": false, "drop": "interior|lav|curtain|seat|cabin" }
+ "terminal_hall": {
+  "src": "Airport/Terminal Hall 1 - Check-In Counter Hall With Truss Roof/Terminal Hall 1.glb",
+  "tris": 70000,
+  "tex": 1024
+ },
+ "gate_sign": {
+  "src": "Airport/Gate Sign 1 - Boarding Gate Podium Sign/Gate Sign 1.glb",
+  "tris": 0,
+  "tex": 512
+ },
+ "baggage_cart": {
+  "src": "Airport/Baggage Cart 1 - Enclosed Luggage Trolley/Baggage Cart 1.glb",
+  "tris": 0,
+  "tex": 512
+ },
+ "catering_truck": {
+  "src": "Airport/Airport Truck 1 - Animated Catering Lift Truck/Airport Truck 1.glb",
+  "tris": 14000,
+  "tex": 1024,
+  "lod1": 1500,
+  "bake1": false
+ },
+ "suitcase": {
+  "src": "Airport/Luggage 1 - Rolling Suitcase/Luggage 1.glb",
+  "tris": 700,
+  "tex": 256
+ },
+ "turboprop": {
+  "src": "Planes/Plane 4 - Twin-Turboprop Regional Airliner/Plane 4.glb",
+  "tris": 16000,
+  "tex": 1024,
+  "lod1": 2500,
+  "bake1": false,
+  "drop": "interior|lav|curtain|seat|cabin"
+ },
+ "sec_cam": {
+  "src": "Security Cameras/Security Camera 1 - Rounded Pan-Tilt Camera/Security Camera 1.glb",
+  "tris": 1600,
+  "tex": 256,
+  "scale": 0.25,
+  "col": 0
+ },
+ "guard_booth": {
+  "src": "Booths/Booth 3 - Old Green-Roof Guard Booth/Booth 3.fbx",
+  "tris": 0,
+  "tex": 512,
+  "lod1": 400,
+  "bake1": false
+ },
+ "barbed_barrier": {
+  "src": "Barriers/Barrier 1 - Wooden Spiked Barbed-Wire Barrier/Barrier 1.fbx",
+  "tris": 0,
+  "tex": 512,
+  "col": 0
+ },
+ "jersey_barrier": {
+  "src": "Barriers/Barrier 2 - Twelve Jersey Concrete Road Barriers/Barrier 2.glb",
+  "keep": "^Cube\\.019$",
+  "tris": 0,
+  "tex": 512
+ },
+ "mil_outpost": {
+  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "keep": "^Military_Outpost_1$",
+  "tris": 6000,
+  "tex": 1024,
+  "lod1": 600,
+  "bake1": false,
+  "_from": "game-ready-military-base-asset-pack.zip"
+ },
+ "mil_watchtower": {
+  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "keep": "^Watchtower_1$",
+  "tris": 0,
+  "tex": 1024,
+  "lod1": 300,
+  "bake1": false,
+  "_from": "game-ready-military-base-asset-pack.zip"
+ },
+ "mil_garage": {
+  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "keep": "^Garage$",
+  "tris": 0,
+  "tex": 1024,
+  "_from": "game-ready-military-base-asset-pack.zip"
+ },
+ "mil_tank": {
+  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "keep": "^Tank$",
+  "tris": 0,
+  "tex": 512,
+  "_from": "game-ready-military-base-asset-pack.zip"
+ },
+ "mil_barrels": {
+  "src": "/private/tmp/claude-501/sl/dl/game-ready-military-base-asset-pack/source/x/Military_Post.glb",
+  "keep": "^Metal_Barrel_",
+  "tris": 0,
+  "tex": 512,
+  "col": 0,
+  "_from": "game-ready-military-base-asset-pack.zip"
+ }
 }

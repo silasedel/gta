@@ -8,13 +8,62 @@
 // last known spot and the armed ones open fire. Guards can be shot (listens to the player's 'shot' events).
 // Cheap: all guards draw as 3 instanced meshes; observers only think while the player is within cfg.thinkR (400 m) of
 // one; nothing at all runs beyond cfg.sleepR of the zone.
+// Nov 19 (models pass): cfg.person = { id, retint } puts the user's rigged person (src/npc/people library, e.g. p123 the
+// security guard, p12 the tactical officer retinted olive at the base) on the nearest guards: a pool of POOL skinned
+// figures (LOD1 body, ~5k tris, shared idle / walk / run / death clips, rifle in the right hand) for guards within
+// SKIN_R of the camera; the instanced figures stay for the far ones. cfg.camModel = a GLB path (models.js) for the
+// camera heads (the user's library camera hangs from an arm on the pole). ?guardskin=0 = the old figures only.
 //   createZone(game, cfg) -> { update(dt), guards, cams, state, alert(pos, why), tp(name) }
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { meter } from './hud.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { loadPerson, personMaterial } from '../../npc/people/lib.js';
+import { loadModel } from '../../world/airport/models.js';
 
 const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+
+const SKIN = !(typeof location !== 'undefined' && /[?&]guardskin=0\b/.test(location.search));
+const POOL = 6;
+const SKIN_R = 120;
+
+// A low-poly rifle held in the right hand of the skinned guards.
+const RIFLE_G = (() => {
+  const parts = [
+    [0.05, 0.08, 0.78, 0, 0, 0.12], // receiver + barrel
+    [0.04, 0.15, 0.06, 0, -0.08, 0.02], // magazine
+    [0.045, 0.05, 0.2, 0, 0.01, 0.6], // muzzle
+    [0.04, 0.07, 0.22, 0, -0.01, -0.3], // stock
+  ];
+  const boxes = parts.map(([w, h, d, x, y, z]) => new THREE.BoxGeometry(w, h, d).translate(x, y, z));
+  return mergeGeometries(boxes);
+})();
+
+// Dark, low-saturation gear -> olive drab (skin and light parts kept): the tactical officer as a
+// base guard.
+function retinted(base, rgb) {
+  const m = base.clone();
+  m.userData = { ...base.userData, shared: false };
+  const prev = base.onBeforeCompile;
+  const olive = rgb.map((v) => v.toFixed(3)).join(', ');
+  m.onBeforeCompile = (shader, renderer) => {
+    prev?.call(base, shader, renderer);
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <map_fragment>',
+      `#include <map_fragment>
+      {
+        vec3 c = diffuseColor.rgb;
+        float l = dot(c, vec3(0.3, 0.59, 0.11));
+        float sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+        float k = smoothstep(0.1, 0.03, sat) * smoothstep(0.45, 0.2, l);
+        diffuseColor.rgb = mix(c, vec3(${olive}) * (0.45 + l * 2.2), k);
+      }`,
+    );
+  };
+  m.customProgramCacheKey = () => 'personBodyRetint' + rgb.join(',');
+  return m;
+}
 
 // ---------------------------------------------------------------- guard figure (low poly, vertex colored, ~600 tris)
 function colored(geo, hex) { const c = new THREE.Color(hex), n = geo.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; } geo.setAttribute('color', new THREE.BufferAttribute(a, 3)); geo.deleteAttribute('uv'); return geo; }
@@ -57,11 +106,11 @@ export function createZone(game, cfg) {
   const N = Math.max(1, guards.length);
   const imBody = new THREE.InstancedMesh(geos.body, mat, N), imL = new THREE.InstancedMesh(geos.leg, mat, N), imR = new THREE.InstancedMesh(geos.leg, mat, N);
   for (const im of [imBody, imL, imR]) { im.castShadow = true; im.frustumCulled = false; im.count = guards.length; root.add(im); }
-  const M = new THREE.Matrix4(), M2 = new THREE.Matrix4(), Qt = new THREE.Quaternion(), E = new THREE.Euler(), V = new THREE.Vector3(), S1 = new THREE.Vector3(1, 1, 1);
+  const M = new THREE.Matrix4(), M2 = new THREE.Matrix4(), Qt = new THREE.Quaternion(), E = new THREE.Euler(), V = new THREE.Vector3(), S1 = new THREE.Vector3(1, 1, 1), S0 = new THREE.Vector3(0, 0, 0);
   function drawGuard(g) {
     const walk = g.mode === 'walk' || g.mode === 'run', sw = walk ? Math.sin(g.phase) * (g.mode === 'run' ? 0.75 : 0.42) : 0;
     E.set(g.dead ? -Math.PI / 2 * Math.min(1, g.deadT * 2.5) : 0, g.h, 0, 'YXZ'); Qt.setFromEuler(E);
-    M.compose(V.set(g.x, g.y + (g.dead ? 0.15 : 0), g.z), Qt, S1); imBody.setMatrixAt(g.i, M);
+    M.compose(V.set(g.x, g.y + (g.dead ? 0.15 : 0), g.z), Qt, g.slot ? S0 : S1); imBody.setMatrixAt(g.i, M);
     for (const [im, s, side] of [[imL, sw, 0.1], [imR, -sw, -0.1]]) {
       M2.makeRotationX(g.dead ? 0 : s); M2.setPosition(side, 0.92, 0); im.setMatrixAt(g.i, M2.premultiply(M));
     }
@@ -86,9 +135,148 @@ export function createZone(game, cfg) {
     m.tex.needsUpdate = true;
   }
 
+  // skinned guards (the user's person model on the nearest guards) ----
+  const slots = [];
+  const _cp = new THREE.Vector3();
+  if (SKIN && cfg.person?.id) {
+    loadPerson(cfg.person.id)
+      .then(buildSlots)
+      .catch((e) => console.warn('[stealth] guard person', e));
+  }
+
+  function pickClip(base, ...names) {
+    for (const n of names) if (base.clips[n]) return base.clips[n];
+    return null;
+  }
+
+  function buildSlots(base) {
+    if (!base) return;
+    let bodyMat = personMaterial(base);
+    if (cfg.person.retint) bodyMat = retinted(bodyMat, cfg.person.retint);
+    const rifleMat = new THREE.MeshStandardMaterial({ color: 0x1c1e20, roughness: 0.55, metalness: 0.4 });
+    const clips = {
+      idle: pickClip(base, 'idle'),
+      walk: pickClip(base, 'walk_m', 'walk'),
+      run: pickClip(base, 'run', 'jog'),
+      dead: pickClip(base, 'deadBack', 'deadFwd'),
+    };
+    const n = Math.min(POOL, guards.length);
+    for (let i = 0; i < n; i++) slots.push(makeSlot(base, bodyMat, rifleMat, clips));
+  }
+
+  // one pooled figure: the LOD1 body only, a rifle on the right hand, its own mixer
+  function makeSlot(base, bodyMat, rifleMat, clips) {
+    const o = SkeletonUtils.clone(base.scene);
+    o.visible = false;
+    root.add(o);
+    let hand = null;
+    o.traverse((m) => {
+      if (m.isBone && /RightHand$/.test(m.name)) hand = m;
+      if (!m.isMesh) return;
+      m.frustumCulled = false;
+      m.visible = /LOD1/.test(m.name) || !/LOD\d/.test(m.name);
+      if (m.visible) {
+        m.material = bodyMat;
+        m.castShadow = true;
+      }
+    });
+    if (hand) {
+      const rifle = new THREE.Mesh(RIFLE_G, rifleMat);
+      rifle.position.set(-0.02, -0.04, 0.06);
+      hand.add(rifle);
+    }
+    const mixer = new THREE.AnimationMixer(o);
+    const acts = {};
+    for (const k in clips) {
+      if (!clips[k]) continue;
+      acts[k] = mixer.clipAction(clips[k]);
+      if (k === 'dead') {
+        acts[k].setLoop(THREE.LoopOnce, 1);
+        acts[k].clampWhenFinished = true;
+      }
+    }
+    return { o, mixer, acts, g: null, cur: null };
+  }
+
+  // the guards nearest the camera (within SKIN_R) get a pooled figure; the rest stay instanced
+  function nearestGuards() {
+    const cam = game.camera?.position || P.position;
+    _cp.copy(cam);
+    return guards
+      .filter((g) => !(g.dead && g.deadT > 30))
+      .map((g) => ({ g, d: Math.hypot(g.x - _cp.x, g.z - _cp.z) }))
+      .filter((e) => e.d < SKIN_R)
+      .sort((p, q) => p.d - q.d)
+      .slice(0, slots.length)
+      .map((e) => e.g);
+  }
+
+  function release(slot) {
+    slot.g.slot = null;
+    slot.g = null;
+    slot.o.visible = false;
+    slot.cur = null;
+  }
+
+  function animate(slot, dt) {
+    const g = slot.g;
+    const look = g.mode === 'idle' ? (g.lookA || 0) * 0.3 : 0;
+    slot.o.position.set(g.x, g.y, g.z);
+    slot.o.rotation.set(0, g.h + look, 0);
+    let k = 'idle';
+    if (g.dead) k = 'dead';
+    else if (g.mode === 'run') k = 'run';
+    else if (g.mode === 'walk') k = 'walk';
+    const act = slot.acts[k] || slot.acts.idle;
+    if (slot.cur !== k && act) {
+      const prev = slot.cur && slot.acts[slot.cur];
+      act.reset();
+      act.setEffectiveWeight(1);
+      act.play();
+      if (prev && prev !== act) prev.crossFadeTo(act, k === 'dead' ? 0.15 : 0.3, false);
+      if (k === 'walk') act.timeScale = clamp(g.speed / 1.35, 0.7, 1.3);
+      slot.cur = k;
+    }
+    slot.mixer.update(dt);
+  }
+
+  function skinPass(dt) {
+    if (!slots.length) return;
+    const want = nearestGuards();
+    for (const slot of slots) {
+      if (slot.g && !want.includes(slot.g)) release(slot);
+    }
+    for (const g of want) {
+      if (g.slot) continue;
+      const slot = slots.find((x) => !x.g);
+      if (!slot) break;
+      slot.g = g;
+      g.slot = slot;
+      slot.o.visible = true;
+      drawGuard(g);
+    }
+    for (const slot of slots) if (slot.g) animate(slot, dt);
+  }
+
   // cameras -----------------------------------------------------------
   const camMat = new THREE.MeshStandardMaterial({ color: 0xd9dbd6, roughness: 0.5, metalness: 0.3 }), camDark = new THREE.MeshStandardMaterial({ color: 0x1d2024, roughness: 0.4 });
   const poleG = new THREE.CylinderGeometry(0.07, 0.09, 1, 8).translate(0, 0.5, 0), headG = new THREE.BoxGeometry(0.22, 0.2, 0.5).translate(0, 0, 0.15), lensG = new THREE.CylinderGeometry(0.07, 0.07, 0.06, 10).rotateX(Math.PI / 2).translate(0, 0, 0.42);
+  const armG = new THREE.BoxGeometry(0.08, 0.08, 0.5).translate(0, 0, 0.18);
+  // the library camera hangs under a short arm on the pole; the box head goes
+  function useCamModel(src, pole, head, h) {
+    if (!src) return;
+    for (const ch of head.children.slice()) {
+      if (ch.geometry === headG || ch.geometry === lensG) head.remove(ch);
+    }
+    const arm = new THREE.Mesh(armG, camMat);
+    arm.position.y = h + 0.12;
+    pole.add(arm);
+    const model = src.clone(true);
+    model.scale.setScalar(1.15);
+    model.position.set(0, -0.64, 0);
+    head.add(model);
+    head.position.y = h + 0.08;
+  }
   const cams = (cfg.cams || []).map((c, i) => {
     const y0 = ground(c.x, c.z), h = c.h || 5.5, g = new THREE.Group(); g.position.set(c.x, y0, c.z); root.add(g);
     const pole = new THREE.Mesh(poleG, camMat); pole.scale.y = h; g.add(pole);
@@ -99,6 +287,7 @@ export function createZone(game, cfg) {
     const cone = new THREE.Mesh(new THREE.ConeGeometry(rad, len, 20, 1, true).translate(0, -len / 2, 0).rotateX(-Math.PI / 2), coneM); cone.renderOrder = 3; head.add(cone);
     const led = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), new THREE.MeshBasicMaterial({ color: 0xff2a1a })); led.position.set(0.08, 0.08, 0.38); head.add(led);
     const pitch = Math.atan2(h - 1, range * 0.55);
+    if (cfg.camModel) loadModel(cfg.camModel).then((src) => useCamModel(src, g, head, h));
     return { i, x: c.x, z: c.z, y: y0 + h, yaw0: c.yaw, sweep: c.sweep ?? 0.9, period: c.period || 9, t: Math.random() * 10, yaw: c.yaw, range, fov, pitch, sus: 0, head, cone, coneM, led, dead: false };
   });
 
@@ -264,6 +453,7 @@ export function createZone(game, cfg) {
       drawGuard(g); drawMarker(g, d);
       if (g.sus > maxSus) maxSus = g.sus;
     }
+    skinPass(dt);
     imBody.instanceMatrix.needsUpdate = imL.instanceMatrix.needsUpdate = imR.instanceMatrix.needsUpdate = true;
     // cameras
     for (const c of cams) {

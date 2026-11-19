@@ -1,0 +1,257 @@
+{
+ "airliner_wide": {
+  "tris": 16347,
+  "size_xyz_gltf": [
+   59.71,
+   17.17,
+   56.44
+  ],
+  "nodes": {},
+  "bytes": 904824,
+  "src": "Planes/Plane 5 - Twin-Engine Widebody Airliner/Plane 5.glb",
+  "lod1": {
+   "tris": 2498,
+   "bytes": 215868
+  },
+  "col": {
+   "tris": 586,
+   "bytes": 49008
+  }
+ },
+ "c130": {
+  "tris": 25454,
+  "size_xyz_gltf": [
+   40.44,
+   12.0,
+   30.18
+  ],
+  "nodes": {},
+  "bytes": 2086556,
+  "src": "dl:lockheed-martin-c130jsuper-hercules-reupload/source/x/Lockheed Martin C-130J _Super Hercules_/C130J.fbx",
+  "contacts": [
+   [
+    -0.0,
+    11.45,
+    4
+   ]
+  ],
+  "zrange": [
+   -15.09,
+   15.09
+  ],
+  "lod1": {
+   "tris": 2368,
+   "bytes": 219376
+  },
+  "col": {
+   "tris": 2088,
+   "bytes": 107212
+  }
+ },
+ "cargo_jet": {
+  "tris": 27177,
+  "size_xyz_gltf": [
+   52.79,
+   17.14,
+   54.55
+  ],
+  "nodes": {},
+  "bytes": 3539404,
+  "src": "Planes/Plane 8 - Weathered Four-Engine Military Cargo Jet/Plane 8.glb",
+  "lod1": {
+   "tris": 4019,
+   "bytes": 637176
+  },
+  "col": {
+   "tris": 3599,
+   "bytes": 475984
+  }
+ },
+ "heli_blackhawk": {
+  "tris": 9638,
+  "size_xyz_gltf": [
+   12.21,
+   4.85,
+   17.02
+  ],
+  "nodes": {
+   "PROP0": [
+    0.0,
+    3.447,
+    2.402
+   ],
+   "PROP1": [
+    -0.398,
+    3.824,
+    -7.482
+   ]
+  },
+  "bytes": 468708,
+  "src": "dl:us-army-uh-60m-black-hawk-low-poly-model/source/x/UH60M_upload/UH60M.blend",
+  "contacts": [
+   [
+    1.37,
+    3.42,
+    8
+   ],
+   [
+    -1.37,
+    3.42,
+    8
+   ]
+  ],
+  "zrange": [
+   -8.51,
+   8.51
+  ],
+  "lod1": {
+   "tris": 1792,
+   "bytes": 107476
+  }
+ },
+ "heli_tour": {
+  "tris": 17094,
+  "size_xyz_gltf": [
+   2.04,
+   3.07,
+   11.86
+  ],
+  "nodes": {
+   "PROP0": [
+    -0.033,
+    2.649,
+    0.85
+   ],
+   "PROP1": [
+    0.202,
+    1.672,
+    -5.119
+   ]
+  },
+  "bytes": 694900,
+  "src": "dl:bell-206-jet-ranger/source/x/bell206.obj",
+  "contacts": [
+   [
+    0.9,
+    2.06,
+    20
+   ],
+   [
+    -0.97,
+    2.06,
+    20
+   ],
+   [
+    -0.97,
+    0.33,
+    30
+   ],
+   [
+    0.9,
+    0.33,
+    31
+   ]
+  ],
+  "zrange": [
+   -5.93,
+   5.93
+  ],
+  "lod1": {
+   "tris": 1771,
+   "bytes": 108004
+  }
+ },
+ "jet_f16": {
+  "tris": 17981,
+  "size_xyz_gltf": [
+   9.39,
+   5.18,
+   15.09
+  ],
+  "nodes": {},
+  "bytes": 1315852,
+  "src": "dl:f-16-fighting-falcon-fighter-jet-free/source/F-16.blend",
+  "contacts": [
+   [
+    -1.08,
+    -1.86,
+    12
+   ],
+   [
+    -0.0,
+    2.18,
+    14
+   ],
+   [
+    1.08,
+    -1.86,
+    12
+   ]
+  ],
+  "zrange": [
+   -7.55,
+   7.55
+  ],
+  "lod1": {
+   "tris": 2433,
+   "bytes": 160776
+  }
+ },
+ "jet_f22": {
+  "tris": 19994,
+  "size_xyz_gltf": [
+   13.56,
+   5.19,
+   19.0
+  ],
+  "nodes": {},
+  "bytes": 1372576,
+  "src": "dl:f-22-raptor-fighter-jet-free/source/F22Raptor.blend",
+  "contacts": [
+   [
+    -1.59,
+    -2.21,
+    7
+   ],
+   [
+    1.59,
+    -2.21,
+    7
+   ]
+  ],
+  "zrange": [
+   -9.5,
+   9.5
+  ],
+  "lod1": {
+   "tris": 2743,
+   "bytes": 177740
+  }
+ },
+ "jet_f35": {
+  "tris": 17952,
+  "size_xyz_gltf": [
+   13.16,
+   5.32,
+   15.73
+  ],
+  "nodes": {},
+  "bytes": 1505832,
+  "src": "dl:f-35-lightning-ii-fighter-jet-free/source/F-35.blend",
+  "contacts": [
+   [
+    0.0,
+    3.8,
+    14
+   ]
+  ],
+  "zrange": [
+   -7.86,
+   7.87
+  ],
+  "lod1": {
+   "tris": 3631,
+   "bytes": 218248
+  }
+ }
+}

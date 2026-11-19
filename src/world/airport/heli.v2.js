@@ -1,17 +1,143 @@
 // W6 helicopter route (airports agent, Nov 19): a small helipad on Key Largo near Nico's house (Overseas Highway corridor)
 // with a stealable light helicopter, and a flyable helicopter kind (game.vehicles.registerKind('helicopter')) so it can be
 // flown to the military air base (src/world/airport/base.js), landed on its pad and walked away from (stealth there).
-// The model is the police track's procedural light twin (src/gameplay/police/modelsAir.js) in a civilian tour livery.
+// Models: the user's downloaded Bell 206 JetRanger (the Keys tour helicopter, blue repainted to the tour teal) and UH-60M
+// Black Hawk (the base helipad; spawn(pos, heading, { model: 'blackhawk' })), converted by tools/v2/airport/convert_w6.py
+// to public/assets/vehicles/air/heli_tour.glb / heli_blackhawk.glb (main rotor PROP0 and tail rotor PROP1 spin, far LOD
+// <glb>_lod1.glb past 160 m). ?heli=old (or a failed load) = the police track's procedural light twin
+// (src/gameplay/police/modelsAir.js) in the tour livery.
 // Arcade flight: W / S collective (climb / descend, hover hands-off), A / D yaw, the MOUSE is the cyclic like the planes
 // (down = nose down, fly forward; up = nose up, back; sideways = bank), or I / K / J / L, arrows, numpad 8 / 5 / 4 / 6. V camera.
 // F exits once landed. Hard landings (> 9 m/s down) or flying into things at speed damage it; a wreck explodes.
-// game.heli = { list, pad, spawn(pos, heading), tp() }   ?heli=0 turns it off.
+// game.heli = { list, pad, spawn(pos, heading, { model: 'tour' | 'blackhawk' }), tp() }   ?heli=0 turns it off.
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { buildPoliceHeli } from '../../gameplay/police/modelsAir.js';
 
 export const order = 187;
 const Q = typeof location !== 'undefined' ? location.search : '';
 const OFF = /[?&]heli=0\b/.test(Q);
+const OLD = /[?&]heli=old\b/.test(Q);
+const BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL) || '/';
+const AIRB = BASE_URL + 'assets/vehicles/air/';
+
+// Per model: GLB, rotor disc radius, colliders [hx, hy, hz, x, y, z] (nose +z, origin under the
+// skids / wheels), pilot seat, invented brand / name.
+const HELI = {
+  tour: {
+    glb: 'heli_tour',
+    disc: 5.8,
+    cols: [
+      [0.75, 0.95, 2.6, 0, 1.35, 1.0], // cabin
+      [0.2, 0.32, 2.0, 0, 1.5, -3.6], // tail boom
+    ],
+    seat: [-0.32, 1.0, 2.0],
+    brand: 'Okeelanta',
+    name: 'Anhinga 5T',
+  },
+  blackhawk: {
+    glb: 'heli_blackhawk',
+    disc: 6.0,
+    cols: [
+      [1.2, 1.05, 3.4, 0, 1.75, 2.4], // cabin
+      [0.35, 0.6, 3.2, 0, 2.3, -4.8], // tail boom
+    ],
+    seat: [-0.55, 1.7, 5.0],
+    brand: 'Sikorsky-Marquesas',
+    name: 'SH-6 Pelican',
+    military: true,
+  },
+};
+
+function prepareHeliMaterials(scene) {
+  scene.traverse((o) => {
+    if (!o.isMesh) return;
+    o.castShadow = true;
+    o.receiveShadow = true;
+    for (const m of [].concat(o.material)) {
+      if (m.map) m.map.anisotropy = 4;
+      if (m.metalness > 0.6) m.metalness = 0.6;
+      if (/glass|window/i.test(m.name || '')) {
+        m.transparent = true;
+        m.opacity = 0.5;
+        m.depthWrite = false;
+      }
+    }
+  });
+}
+
+// { near, far } scenes of a helicopter model (null if missing), loaded once per kind.
+const glbPromises = {};
+function loadHeli(kind) {
+  if (glbPromises[kind]) return glbPromises[kind];
+  const loader = new GLTFLoader();
+  const url = AIRB + HELI[kind].glb;
+  const near = loader.loadAsync(url + '.glb');
+  const far = loader.loadAsync(url + '_lod1.glb').catch(() => null);
+  glbPromises[kind] = Promise.all([near, far])
+    .then(([a, b]) => {
+      prepareHeliMaterials(a.scene);
+      if (b) prepareHeliMaterials(b.scene);
+      return { near: a.scene, far: b?.scene || null };
+    })
+    .catch((e) => {
+      console.warn('[heli] model missing', kind, e?.message || e);
+      return null;
+    });
+  return glbPromises[kind];
+}
+
+// Parts for a library model: spins the rotors (blur disc at speed), swaps to the far LOD.
+function tourParts(THREE_, src, group, discR = 3.85) {
+  const lod = new THREE_.LOD();
+  const near = src.near.clone(true);
+  lod.addLevel(near, 0);
+  if (src.far) {
+    const far = src.far.clone(true);
+    far.traverse((o) => {
+      if (o.isMesh) o.castShadow = false;
+    });
+    lod.addLevel(far, 160);
+  }
+  group.add(lod);
+
+  let main = null;
+  let tail = null;
+  near.traverse((o) => {
+    if (o.name === 'PROP0') main = o;
+    else if (o.name === 'PROP1') tail = o;
+  });
+
+  const discMat = new THREE_.MeshBasicMaterial({
+    color: 0x1a1d20,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    side: THREE_.DoubleSide,
+  });
+  const disc = new THREE_.Mesh(new THREE_.CircleGeometry(discR, 40).rotateX(-Math.PI / 2), discMat);
+  disc.renderOrder = 2;
+  if (main) {
+    disc.position.copy(main.position);
+    disc.position.y += 0.05;
+    near.add(disc);
+  }
+
+  let spin = 0;
+  return {
+    group: lod,
+    rotorRadius: discR,
+    update(dt, s = {}) {
+      const rotorSpeed = s.rotorSpeed ?? 0;
+      spin += dt * rotorSpeed * 38;
+      if (main) main.rotation.y = spin;
+      if (tail) tail.rotation.x = spin * 2.6;
+      disc.visible = rotorSpeed > 0.45;
+      discMat.opacity = disc.visible ? 0.16 * rotorSpeed : 0;
+    },
+  };
+}
+
 const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const NICO = { x: -1007.7, z: 5174.4 };
@@ -67,18 +193,32 @@ export async function initV2(game) {
     if (city.isWater?.(x, z)) f = Math.max(f, sea() - 0.4);
     return f;
   }
-  function spawn(pos, heading = 0, opts = {}) {
+  function oldModel() {
     const m = buildPoliceHeli(THREE, { seed: 77 + list.length });
     if (m.spot) { m.spot.parent?.remove(m.spot); m.spot.intensity = 0; }
     m.beam?.parent?.remove(m.beam);
     m.group.traverse((o) => { if (!o.isMesh) return; const mt = o.material;
       if (mt?.map?.image?.width === 1024 && mt.map.image.height === 512) { o.material = mt.clone(); o.material.map = livery; }
       else if (mt?.color && Math.abs(mt.color.getHex() - 0x0b1a33) < 0x30000 && mt.color.r < 0.08 && mt.color.b > 0.03) o.material = teal; });
-    const mesh = new THREE.Group(); mesh.name = 'heli'; mesh.add(m.group); scene.add(mesh);
+    return m;
+  }
+  function spawn(pos, heading = 0, opts = {}) {
+    const kind = HELI[opts.model] ? opts.model : 'tour';
+    const HM = HELI[kind];
+    const mesh = new THREE.Group(); mesh.name = 'heli'; scene.add(mesh);
+    let m = { update() {} };   // the library model streams in; the old procedural one only if it fails (or ?heli=old)
+    if (OLD) { m = oldModel(); mesh.add(m.group); }
     const y0 = opts.y ?? floorAt(pos.x, pos.z, (pos.y ?? 0) + 3);
     const body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(pos.x, y0 + SKID, pos.z));
-    world.createCollider(RAPIER.ColliderDesc.cuboid(0.9, 0.85, 2.4).setTranslation(0, 1.45, 0.1).setFriction(0.6), body);
-    world.createCollider(RAPIER.ColliderDesc.cuboid(0.25, 0.3, 2.3).setTranslation(0, 2.0, -4.6), body);
+    if (OLD) {
+      world.createCollider(RAPIER.ColliderDesc.cuboid(0.9, 0.85, 2.4).setTranslation(0, 1.45, 0.1).setFriction(0.6), body);
+      world.createCollider(RAPIER.ColliderDesc.cuboid(0.25, 0.3, 2.3).setTranslation(0, 2.0, -4.6), body);
+    } else {
+      for (const [hx, hy, hz, x, y, z] of HM.cols) {
+        const desc = RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z).setFriction(0.6);
+        world.createCollider(desc, body);
+      }
+    }
     const H = {
       kind: 'helicopter', heli: true, typeKey: 'heli_light', name: 'Okeelanta Anhinga 5T', mesh, body, model: { key: 'heli_light', brand: 'Okeelanta', name: 'Anhinga 5T', class: 'heli', engine: 'electric', idleRpm: 2000, maxRpm: 9000, gears: 1, sound: 'electric' },
       spec: { brand: 'Okeelanta', model: 'Anhinga 5T', label: 'Okeelanta Anhinga 5T', heli: true },
@@ -87,10 +227,35 @@ export async function initV2(game) {
       engineOn: false, camMode: 0, parts: m, home: opts.home || null, stick: { x: 0, y: 0, idle: 0 },
       setControls(c) { this._mainCtl = c; }, horn() {},
       exitPosition() { const s = Math.cos(this.heading), c = Math.sin(this.heading); const p = new THREE.Vector3(this.pos.x - s * 2.3, 0, this.pos.z + c * 2.3); p.y = floorAt(p.x, p.z, this.pos.y + 1); return p; },
-      seatPosition() { return _v.set(-0.36, 1.0, 1.1).applyQuaternion(_q.setFromEuler(_e.set(this.pitch, this.heading, this.roll, 'YXZ'))).add(this.pos).clone(); },
+      seatPosition() { return _v.set(...(OLD ? [-0.36, 1.0, 1.1] : HM.seat)).applyQuaternion(_q.setFromEuler(_e.set(this.pitch, this.heading, this.roll, 'YXZ'))).add(this.pos).clone(); },
     };
+    if (!OLD) {
+      applyIdentity(H, kind);
+      loadHeli(kind).then((src) => attachModel(H, src, mesh, HM));
+    }
     sync(H, 0); list.push(H); game.emit?.('aircraft:spawned', { vehicle: H });
     return H;
+  }
+  function applyIdentity(H, kind) {
+    const HM = HELI[kind];
+    H.typeKey = 'heli_' + kind;
+    H.model.key = H.typeKey;
+    H.name = `${HM.brand} ${HM.name}`;
+    H.spec.label = H.name;
+    H.model.brand = H.spec.brand = HM.brand;
+    H.model.name = H.spec.model = HM.name;
+    H.military = !!HM.military;
+  }
+  // the library model once loaded; the old procedural one if it failed
+  function attachModel(H, src, mesh, HM) {
+    if (H.disposed) return;
+    if (src) {
+      H.parts = tourParts(THREE, src, mesh, HM.disc);
+    } else {
+      H.parts = oldModel();
+      mesh.add(H.parts.group);
+    }
+    sync(H, 0);
   }
   function remove(H) { const i = list.indexOf(H); if (i >= 0) list.splice(i, 1); scene.remove(H.mesh); try { world.removeRigidBody(H.body); } catch (e) { /* */ } H.disposed = true; }
   function sync(H, dt) {
@@ -262,5 +427,5 @@ export async function initV2(game) {
     const pp = P?.position; if (!pp || pad.state !== 'idle') return;
     if (Math.hypot(pp.x - NICO.x, pp.z - NICO.z) < 1800) placePad().catch((e) => { console.warn('[heli] pad', e); pad.state = 'failed'; });
   });
-  game.heli = { list, pad, spawn: (pos, heading) => spawn(pos || P.position, heading || 0), tp: () => pad.x != null && game.dev?.teleportTo ? game.dev.teleportTo(pad.x + 16, pad.z) : game.teleport?.(pad.x + 16, undefined, pad.z, 0) };
+  game.heli = { list, pad, spawn: (pos, heading, opts) => spawn(pos || P.position, heading || 0, opts || {}), tp: () => pad.x != null && game.dev?.teleportTo ? game.dev.teleportTo(pad.x + 16, pad.z) : game.teleport?.(pad.x + 16, undefined, pad.z, 0) };
 }

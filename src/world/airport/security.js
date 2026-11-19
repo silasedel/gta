@@ -1,6 +1,7 @@
 // W6 Miami International security (airports agent, Nov 19): guards at the vehicle gates, patrols on the GA and terminal
 // aprons and cameras at the gates and over the aprons. Harder to get into than open ground, easier than the base:
 // shorter view ranges, slower noticing, two stars (three if seen again on the alert). Config for src/gameplay/stealth/zone.js.
+// Guards: the user's Security Guard In Black Uniform (people library p123); cameras: Security Camera 1 heads.
 import { pip } from './geom.js';
 
 export function airportZoneConfig(ap, F) {
@@ -19,5 +20,7 @@ export function airportZoneConfig(ap, F) {
     if (r.length >= 3) { guards.push({ route: r, range: 34, speed: 1.3 }); if (a.kind === 'terminal') guards.push({ route: r.slice(2).concat(r.slice(0, 2)), range: 34, speed: 1.3 }); }
     for (const k of [0, 2]) { const [x, z] = a.poly[k], px = x + (c[0] - x) * 0.08, pz = z + (c[1] - z) * 0.08; if (inside(px, pz)) cams.push({ x: px, z: pz, yaw: Math.atan2(c[0] - px, c[1] - pz), sweep: 0.9, period: 14, range: 36, fov: 0.8 }); }
   }
-  return { guards, cams };
+  // the user's security guard (p123, black uniform) on the near guards; instanced far figures in the same black
+  const look = { uniform: 0x1d1f22, dark: 0x111214, skin: 0x8a6448, vest: 0x24262a, helmet: 0x1a1b1d };
+  return { guards, cams, person: { id: 'p123' }, camModel: 'airport/sec_cam', look };
 }

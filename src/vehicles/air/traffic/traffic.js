@@ -13,6 +13,21 @@ import { applyLivery } from './livery.js';
 
 const TYPES = {
   jet: { model: 'buildings/airliner', far: 'buildings/airliner_lod1', len: 37.6, span: 34.4, tail: 11.8, yaw: 0, vr: 72, acc: 2.9, vApp: 70, climb: 0.13, ops: ['Transcoastal', 'Zest Air', 'Southline Air'] },
+  // Plane 5 widebody (tools/v2/airport/convert_w6.py: tail logo / type number painted out, Southline Air colors baked in)
+  wide: {
+    model: 'airport/airliner_wide',
+    far: 'airport/airliner_wide_lod1',
+    len: 56.4,
+    span: 59.7,
+    tail: 17.2,
+    yaw: 0,
+    vr: 78,
+    acc: 2.5,
+    vApp: 74,
+    climb: 0.11,
+    ops: ['Southline Air'],
+    baked: true,
+  },
   turboprop: { model: 'airport/turboprop', far: 'airport/turboprop_lod1', len: 27.2, span: 27.2, tail: 7.7, yaw: 0, vr: 52, acc: 2.4, vApp: 55, climb: 0.11, ops: ['Conch Coast Air', 'Keys Island Link'] },
 };
 const DEST = { mia: ['Key West', 'Atlanta', 'New York', 'Chicago', 'Havana', 'Nassau', 'Bogota', 'Dallas', 'Orlando', 'Houston'], eyw: ['Miami', 'Tampa', 'Fort Myers', 'Orlando', 'Nassau'] };
@@ -65,6 +80,11 @@ export function createTraffic(game, airports) {
     const conns = ap.taxiways.filter((t) => /^A\d/.test(t.id)).map((t) => { const a = t.pts[0], b = t.pts[t.pts.length - 1]; const onRw = Math.abs(F.q(...a)) < Math.abs(F.q(...b)) ? 0 : 1; const pts = onRw === 0 ? t.pts.slice().reverse() : t.pts.slice(); // pts: parallel -> runway
       return { id: t.id, pts, sPar: F.s(...pts[0]), sRw: F.s(...pts[pts.length - 1]) }; });
     const stands = (ap.stands || []).filter((s) => s.kind === 'gate' || s.kind === 'remote').map((s) => ({ ...s, busy: null, type: ap.id === 'eyw' || s.kind === 'remote' ? 'turboprop' : 'jet' }));
+    // every fourth contact gate takes the widebody (span 60 m fits the ~54 m gate pitch next to the 34 m narrowbodies)
+    const gates = stands.filter((s) => s.type === 'jet' && s.kind === 'gate');
+    gates.forEach((s, i) => {
+      if (i % 4 === 2) s.type = 'wide';
+    });
     const A = { ap, rw, F, TA, parS, conns, stands, busyUntil: 0, nextArr: 8 + Math.random() * 20, nextDep: 25 + Math.random() * 30, dir: 1, live: false, cx: ap.center[0], cz: ap.center[1], board: [] };
     return A;
   }
@@ -75,7 +95,7 @@ export function createTraffic(game, airports) {
   async function makeAircraft(type, op) {
     const T = TYPES[type], src = await loadModel(T.model); if (!src) return null;
     const g = new THREE.Group(); g.name = 'ai-' + type;
-    const near = src.clone(true); near.rotation.y = T.yaw; g.add(near); try { applyLivery(near, type, op); } catch (e) { /* plain livery */ }
+    const near = src.clone(true); near.rotation.y = T.yaw; g.add(near); try { if (!T.baked) applyLivery(near, type, op); /* wide: livery baked in */ } catch (e) { /* plain livery */ }
     let far = null; const fs = await loadModel(T.far); if (fs) { far = fs.clone(true); far.rotation.y = T.yaw; far.visible = false; g.add(far); far.traverse((o) => { if (o.isMesh) o.castShadow = false; }); }
     // nav / beacon / strobe / landing lights (model frame: +z nose, +x left wing)
     const hs = T.span / 2 - 0.3, L2 = T.len / 2;
