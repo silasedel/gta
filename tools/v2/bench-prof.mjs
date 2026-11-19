@@ -71,7 +71,8 @@ for (const s of segs) {
   for (;;) { const cur = await ev('game?.bench?.seg?.id || (game?.bench?.done ? "DONE" : "")'); if (cur === s || cur === 'DONE') break; await sleep(200); }
   const t0 = Date.now();
   await send('Profiler.enable'); await send('Profiler.setSamplingInterval', { interval: 250 }); await send('Profiler.start');
-  if (o.heap && !o.live) { await send('HeapProfiler.enable'); await send('HeapProfiler.startSampling', { samplingInterval: 65536, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true }); }
+  // --promoted 1: only objects that survived the young generation (old-space garbage: what drives the full mark-compacts)
+  if (o.heap && !o.live) { await send('HeapProfiler.enable'); await send('HeapProfiler.startSampling', { samplingInterval: 65536, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: !o.promoted }); }
   for (;;) { const cur = await ev('game?.bench?.seg?.id || ""'); if (cur !== s) break; await sleep(200); }
   const secs = (Date.now() - t0) / 1000;
   rep.segs[s] = { cpu: cpuAgg((await send('Profiler.stop')).result.profile) };

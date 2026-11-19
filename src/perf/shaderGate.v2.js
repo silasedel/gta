@@ -42,6 +42,17 @@ export function initV2(game) {
     }
     return orig.call(this, camera, scene, geometry, material, object, group);
   };
+  // Transparent double-sided materials: three.js draws them twice per frame, flipping material.side and setting
+  // needsUpdate before each pass, so every such material re-ran getProgram (program parameters + cache-key string) twice a
+  // frame (glass, decals: ~15 a frame measured), CPU time plus old-space garbage. Drawn in one pass instead (thin glass and
+  // decals look the same). ?singlepass=0 = old.
+  if (!/[?&]singlepass=0\b/.test(location.search)) {
+    const MP = THREE.Material.prototype, obr = MP.onBeforeRender;
+    MP.onBeforeRender = function (...a) {
+      if (this.transparent && this.side === THREE.DoubleSide && !this.forceSinglePass) this.forceSinglePass = true;
+      return obr.apply(this, a);
+    };
+  }
   // the queued objects' programs, created between frames in one compile call (one light traversal for all of them)
   const batch = [];
   const fake = {
