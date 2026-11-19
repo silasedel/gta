@@ -1,0 +1,453 @@
+{
+  "props": {
+    "crate_wood": {
+      "id": "crate_wood",
+      "file": "crate_wood.glb",
+      "size": [
+        0.487,
+        0.376,
+        0.379
+      ],
+      "tris": 364,
+      "description": "Long wooden shipping crate, clean planks.",
+      "use": "Drug cargo crate on the smuggler's boat, the plane drop and the stash house.",
+      "bytes": 365232
+    },
+    "crate_wood_small": {
+      "id": "crate_wood_small",
+      "file": "crate_wood_small.glb",
+      "size": [
+        0.553,
+        0.25,
+        0.418
+      ],
+      "tris": 284,
+      "description": "Small wooden crate, clean planks.",
+      "use": "Stackable cargo next to crate_wood; a carry-able crate.",
+      "bytes": 359768
+    },
+    "crate_mossy": {
+      "id": "crate_mossy",
+      "file": "crate_mossy.glb",
+      "size": [
+        0.635,
+        0.635,
+        0.635
+      ],
+      "tris": 108,
+      "description": "Weathered, mossy wooden crate (closed).",
+      "use": "Swamp shack and dock stash dressing; old cargo at the shipwreck.",
+      "bytes": 1012172
+    },
+    "crate_mossy_open": {
+      "id": "crate_mossy_open",
+      "file": "crate_mossy_open.glb",
+      "size": [
+        0.635,
+        0.635,
+        0.635
+      ],
+      "tris": 124,
+      "description": "Weathered wooden crate with the lid off.",
+      "use": "Opened stash crate (put packages inside); diving-job cargo pickup.",
+      "bytes": 1013304
+    },
+    "crate_mossy_boarded": {
+      "id": "crate_mossy_boarded",
+      "file": "crate_mossy_boarded.glb",
+      "size": [
+        0.635,
+        0.635,
+        0.635
+      ],
+      "tris": 124,
+      "description": "Weathered wooden crate, boarded shut.",
+      "use": "Sealed cargo at the swamp shack and on the wreck.",
+      "bytes": 1013184
+    },
+    "crate_cargo": {
+      "id": "crate_cargo",
+      "file": "crate_cargo.glb",
+      "size": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "tris": 264,
+      "description": "Framed cargo crate, 0.8 m cube.",
+      "use": "Pallet cargo on the marina dock and in the boat hold.",
+      "bytes": 548200
+    },
+    "package_waterproof": {
+      "id": "package_waterproof",
+      "file": "package_waterproof.glb",
+      "size": [
+        0.472,
+        0.212,
+        0.332
+      ],
+      "tris": 620,
+      "description": "Tape-wrapped waterproof brick bundle (black plastic, tan tape), 46 x 32 x 20 cm.",
+      "use": "The floating packages of the ocean drop (buoyant pickup); also stash loot.",
+      "bytes": 43284
+    },
+    "scuba_mask": {
+      "id": "scuba_mask",
+      "file": "scuba_mask.glb",
+      "size": [
+        0.286,
+        0.274,
+        0.251
+      ],
+      "tris": 6007,
+      "description": "Dive mask with snorkel.",
+      "use": "Worn by the player during the dive (head attachment); boat-deck pickup.",
+      "bytes": 379144
+    },
+    "dive_tank": {
+      "id": "dive_tank",
+      "file": "dive_tank.glb",
+      "size": [
+        0.196,
+        0.755,
+        0.196
+      ],
+      "tris": 1980,
+      "description": "Plain yellow aluminium scuba cylinder with valve, 0.76 m.",
+      "use": "Back attachment during the dive; on the dive boat deck.",
+      "bytes": 136044
+    },
+    "dive_fins": {
+      "id": "dive_fins",
+      "file": "dive_fins.glb",
+      "size": [
+        0.495,
+        0.037,
+        0.62
+      ],
+      "tris": 1698,
+      "description": "Pair of dive fins.",
+      "use": "Feet attachment during the dive; dive boat deck dressing.",
+      "bytes": 94372
+    },
+    "shipwreck": {
+      "id": "shipwreck",
+      "file": "shipwreck.glb",
+      "size": [
+        26.669,
+        4.411,
+        14.652
+      ],
+      "tris": 14999,
+      "description": "Scanned sunken wooden wreck (hull and ribs), 27 m.",
+      "use": "The Diving Job wreck on the sea floor; cargo crates go in and around the hull.",
+      "lod1": {
+        "file": "shipwreck_lod1.glb",
+        "tris": 1999,
+        "distance": 120
+      },
+      "bytes": 1687456
+    },
+    "navy_destroyer": {
+      "id": "navy_destroyer",
+      "file": "navy_destroyer.glb",
+      "size": [
+        97.107,
+        49.302,
+        156.318
+      ],
+      "tris": 12913,
+      "description": "Guided-missile destroyer (hull numbers, name, crest and deck helicopters removed), 155 m.",
+      "use": "Static ship at the naval pier.",
+      "lod1": {
+        "file": "navy_destroyer_lod1.glb",
+        "tris": 5811,
+        "distance": 400
+      },
+      "bytes": 2427832,
+      "placement": "Naval pier near the air station; moor bow out, keep 60 m clear water around it."
+    },
+    "navy_patrol": {
+      "id": "navy_patrol",
+      "file": "navy_patrol.glb",
+      "size": [
+        8.344,
+        18.754,
+        54.973
+      ],
+      "tris": 11140,
+      "description": "Coastal patrol ship (flag removed), 55 m.",
+      "use": "Static ship at the naval pier; could patrol the bay later.",
+      "lod1": {
+        "file": "navy_patrol_lod1.glb",
+        "tris": 4113,
+        "distance": 250
+      },
+      "bytes": 2382352,
+      "placement": "Naval pier near the air station, alongside navy_destroyer."
+    },
+    "grenade_frag": {
+      "id": "grenade_frag",
+      "file": "grenade_frag.glb",
+      "size": [
+        0.057,
+        0.114,
+        0.065
+      ],
+      "tris": 2998,
+      "description": "Pineapple fragmentation grenade.",
+      "use": "Mesh for a later throwable (frag grenade).",
+      "bytes": 339188
+    },
+    "grenade_flash": {
+      "id": "grenade_flash",
+      "file": "grenade_flash.glb",
+      "size": [
+        0.065,
+        0.134,
+        0.059
+      ],
+      "tris": 3990,
+      "description": "Stun grenade (flashbang).",
+      "use": "Mesh for a later throwable (flashbang).",
+      "bytes": 370612
+    },
+    "smoke_canister": {
+      "id": "smoke_canister",
+      "file": "smoke_canister.glb",
+      "size": [
+        0.034,
+        0.2,
+        0.043
+      ],
+      "tris": 2998,
+      "description": "Green smoke canister (one of the five in the source).",
+      "use": "Smoke throwable / signal smoke at the drop zone (pair with a particle plume).",
+      "bytes": 127612
+    },
+    "flare_gun": {
+      "id": "flare_gun",
+      "file": "flare_gun.glb",
+      "size": [
+        0.039,
+        0.131,
+        0.25
+      ],
+      "tris": 4998,
+      "description": "Orange signal flare pistol.",
+      "use": "The pilot's / player's flare gun that marks the drop zone.",
+      "bytes": 290620
+    },
+    "flare_cartridge": {
+      "id": "flare_cartridge",
+      "file": "flare_cartridge.glb",
+      "size": [
+        0.028,
+        0.12,
+        0.028
+      ],
+      "tris": 516,
+      "description": "Flare gun cartridge.",
+      "use": "Ammo pickup / loading close-up for the flare gun.",
+      "bytes": 73032
+    },
+    "flare_marine": {
+      "id": "flare_marine",
+      "file": "flare_marine.glb",
+      "size": [
+        0.034,
+        0.3,
+        0.034
+      ],
+      "tris": 216,
+      "description": "Handheld marine signal flare.",
+      "use": "Lit and dropped at the drop zone (add a red point light + smoke particles).",
+      "bytes": 151620
+    },
+    "road_flare": {
+      "id": "road_flare",
+      "file": "road_flare.glb",
+      "size": [
+        0.028,
+        0.3,
+        0.024
+      ],
+      "tris": 656,
+      "description": "Red road flare (fusee).",
+      "use": "Drop-zone marker on the water / beach; roadside props.",
+      "bytes": 239452
+    },
+    "zip_tie": {
+      "id": "zip_tie",
+      "file": "zip_tie.glb",
+      "size": [
+        0.2,
+        0.128,
+        0.027
+      ],
+      "tris": 2499,
+      "description": "Black nylon zip tie.",
+      "use": "The captured associate's wrist bindings (hand attachment).",
+      "bytes": 195980
+    },
+    "rope_coil": {
+      "id": "rope_coil",
+      "file": "rope_coil.glb",
+      "size": [
+        0.275,
+        0.45,
+        0.145
+      ],
+      "tris": 7999,
+      "description": "Hemp rope.",
+      "use": "The associate's bindings (chair / post); shack dressing.",
+      "bytes": 756040
+    },
+    "rope_fence": {
+      "id": "rope_fence",
+      "file": "rope_fence.glb",
+      "size": [
+        2.311,
+        1.0,
+        0.177
+      ],
+      "tris": 320,
+      "description": "Two wooden posts with a sagging rope (one fence span).",
+      "use": "Swamp shack yard and dock edges; repeat along a path.",
+      "lod1": {
+        "file": "rope_fence_lod1.glb",
+        "tris": 300,
+        "distance": 60
+      },
+      "bytes": 647820
+    },
+    "rope_bridge": {
+      "id": "rope_bridge",
+      "file": "rope_bridge.glb",
+      "size": [
+        1.859,
+        1.095,
+        6.002
+      ],
+      "tris": 8922,
+      "description": "Rope-and-plank footbridge.",
+      "use": "Swamp shack walkway over a creek.",
+      "lod1": {
+        "file": "rope_bridge_lod1.glb",
+        "tris": 1106,
+        "distance": 60
+      },
+      "bytes": 448480
+    },
+    "rope_ladder": {
+      "id": "rope_ladder",
+      "file": "rope_ladder.glb",
+      "size": [
+        0.5,
+        3.511,
+        0.187
+      ],
+      "tris": 5000,
+      "description": "Rope ladder with wooden rungs, 3.5 m.",
+      "use": "Shack stilts / boat side ladder; climbing onto the wreck boat.",
+      "lod1": {
+        "file": "rope_ladder_lod1.glb",
+        "tris": 622,
+        "distance": 60
+      },
+      "bytes": 707640
+    },
+    "phone": {
+      "id": "phone",
+      "file": "phone.glb",
+      "size": [
+        0.073,
+        0.15,
+        0.012
+      ],
+      "tris": 8034,
+      "description": "Generic smartphone (logo removed), 15 cm.",
+      "use": "In-hand phone for the phone-call cutscenes.",
+      "bytes": 637000
+    },
+    "briefcase": {
+      "id": "briefcase",
+      "file": "briefcase.glb",
+      "size": [
+        0.46,
+        0.378,
+        0.106
+      ],
+      "tris": 7992,
+      "description": "Black leather briefcase with gold hardware (closed).",
+      "use": "Carried payment case; the employer's desk.",
+      "bytes": 455124
+    },
+    "cash_case_open": {
+      "id": "cash_case_open",
+      "file": "cash_case_open.glb",
+      "size": [
+        0.46,
+        0.411,
+        0.384
+      ],
+      "tris": 2226,
+      "description": "Open case full of cash.",
+      "use": "The payment cutscene.",
+      "bytes": 178260
+    },
+    "case_closed": {
+      "id": "case_closed",
+      "file": "case_closed.glb",
+      "size": [
+        0.46,
+        0.403,
+        0.094
+      ],
+      "tris": 2222,
+      "description": "Closed aluminium-style case.",
+      "use": "Hand-off case before the payment cutscene opens it.",
+      "bytes": 177100
+    },
+    "money_stack_20": {
+      "id": "money_stack_20",
+      "file": "money_stack_20.glb",
+      "size": [
+        0.321,
+        0.036,
+        0.144
+      ],
+      "tris": 264,
+      "description": "Eleven banded bundles of 20 dollar bills on three layers, 32 x 14 x 3.5 cm.",
+      "use": "Table cash at the stash; pickup loot; payment close-ups.",
+      "bytes": 72628
+    },
+    "cash_100": {
+      "id": "cash_100",
+      "file": "cash_100.glb",
+      "size": [
+        0.17,
+        0.023,
+        0.092
+      ],
+      "tris": 56364,
+      "description": "100 dollar bill bundles.",
+      "use": "Payment close-ups; pickup loot.",
+      "bytes": 2487864
+    },
+    "cash_pile": {
+      "id": "cash_pile",
+      "file": "cash_pile.glb",
+      "size": [
+        0.6,
+        0.143,
+        0.496
+      ],
+      "tris": 1624,
+      "description": "Loose pile of cash with stacks.",
+      "use": "Stash-house table, count-room dressing.",
+      "bytes": 253200
+    }
+  },
+  "note": "Built by tools/v2/mission/convert_props.py; load through src/story/props.js."
+}
