@@ -45,14 +45,14 @@ function makeProp(kind) {
   if (kind === 'phone') { add(new THREE.BoxGeometry(0.072, 0.152, 0.009), pm('phone', 0x101114, 0.3, 0.4)); add(new THREE.PlaneGeometry(0.064, 0.14), new THREE.MeshBasicMaterial({ color: 0x8fb4d8 }), 0, 0, 0.0047); }
   else if (kind === 'cup') { add(new THREE.CylinderGeometry(0.034, 0.028, 0.11, 14, 1, true), pm('glass', 0xd8e8ee, 0.08, 0.0)).material.side = THREE.DoubleSide; add(new THREE.CylinderGeometry(0.03, 0.027, 0.06, 14), pm('drink', 0xb5541f, 0.2), 0, -0.022); }
   else if (kind === 'bottle') { add(new THREE.CylinderGeometry(0.035, 0.035, 0.2, 12), pm('bottle', 0x2f4a2a, 0.15, 0.1), 0, -0.04); add(new THREE.CylinderGeometry(0.012, 0.03, 0.08, 10), pm('bottle', 0x2f4a2a), 0, 0.1); }
-  else if (kind === 'cig') { add(new THREE.CylinderGeometry(0.0042, 0.0042, 0.075, 8), pm('cig', 0xf2efe8, 0.8), 0, 0, 0, 0, 0, Math.PI / 2); add(new THREE.CylinderGeometry(0.0044, 0.0044, 0.006, 8), new THREE.MeshBasicMaterial({ color: 0xff6a1a }), -0.039, 0, 0, 0, 0, Math.PI / 2); }
+  else if (kind === 'cig') { add(new THREE.CylinderGeometry(0.0045, 0.0045, 0.08, 8), pm('cig', 0xf2efe8, 0.8), 0, 0, 0.03, Math.PI / 2, 0, 0); add(new THREE.CylinderGeometry(0.0047, 0.0047, 0.022, 8), pm('cigF', 0xc98a4b, 0.8), 0, 0, -0.005, Math.PI / 2, 0, 0); add(new THREE.CylinderGeometry(0.0047, 0.0047, 0.006, 8), new THREE.MeshBasicMaterial({ color: 0xff6a1a }), 0, 0, 0.071, Math.PI / 2, 0, 0); }   // across the fingers, lit end out
   else if (kind === 'shaker') { add(new THREE.CylinderGeometry(0.04, 0.034, 0.2, 14), pm('steel', 0xc8ccd0, 0.25, 1.0)); }
   else if (kind === 'rag') { add(new THREE.BoxGeometry(0.16, 0.012, 0.12), pm('rag', 0xe9e4d8, 0.95), 0, -0.03, 0.02); }
   else if (kind === 'tray') { add(new THREE.CylinderGeometry(0.19, 0.19, 0.012, 24), pm('tray', 0x2a2a2c, 0.35, 0.6)); for (let i = 0; i < 3; i++) add(new THREE.CylinderGeometry(0.03, 0.025, 0.12, 10), pm('glass', 0xd8e8ee, 0.08), -0.07 + i * 0.07, 0.066, (i % 2) * 0.05); }
   return g;
 }
 // hand-local offsets (canonical: the right hand points -X, palm -Y in T-pose)
-const PROP_AT = { cig: [-0.075, -0.012, 0.03, 0, 0.3, 0], phone: [-0.085, -0.025, 0.02, 0, 0, Math.PI / 2], cup: [-0.07, -0.04, 0.0, 0, 0, 0], bottle: [-0.08, -0.04, 0, 0, 0, Math.PI / 2], shaker: [-0.07, -0.04, 0, 0, 0, Math.PI / 2], rag: [-0.08, -0.03, 0, 0, 0, 0], tray: [-0.1, 0.03, 0, 0, 0, 0] };
+const PROP_AT = { cig: [-0.05, -0.022, -0.012, 0, 0, 0], phone: [-0.085, -0.025, 0.02, 0, 0, Math.PI / 2], cup: [-0.07, -0.04, 0.0, 0, 0, 0], bottle: [-0.08, -0.04, 0, 0, 0, Math.PI / 2], shaker: [-0.07, -0.04, 0, 0, 0, Math.PI / 2], rag: [-0.08, -0.03, 0, 0, 0, 0], tray: [-0.1, 0.03, 0, 0, 0, 0] };
 
 // ------------------------------------------------------------------ variants
 const HAIR_SHADES = { dark: ['#0e0b09', '#16100c', '#1c130e', '#24170f'], brown: ['#3a2414', '#4f3622', '#5a3f28', '#6b4a2e'], fair: ['#7a5a36', '#8a6a3e', '#a8854f'], grey: ['#8f8a80', '#a8a49b', '#bab4aa', '#cfcac0'] };
