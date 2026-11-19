@@ -399,7 +399,7 @@ gl_Position = projectionMatrix * mvPosition;
   palm({ id: 'west', x: -17.0, z: -2.0, H: 10.4, az: az2(0.9, 0.38), lean: 0.4, fronds: 22, L: 5.0, seed: 16 });
   palm({ id: 'young', x: 6.5, z: 21.0, H: 2.7, az: az2(-0.3, 0.9), lean: 0.1, fronds: 13, L: 3.3, seed: 17, young: true, dead: 1, rad: 0.17, nL: 30, litter: 10, husks: 0 });
   // hammock palms: attachment points on the two trunks at y = 1.5
-  { const a = palms.hamA.at(1.5), b = palms.hamB.at(1.5);
+  if (palms.hamA && palms.hamB) { const a = palms.hamA.at(1.5), b = palms.hamB.at(1.5);   // r7d: either palm may be kept out (bigger west deck, the north-view corridor)
     ctx.anchors.hammockA = { pos: a, heading: Math.atan2(b.x - a.x, b.z - a.z), radius: palms.hamA.radAt(0, 1.8) };
     ctx.anchors.hammockB = { pos: b, heading: Math.atan2(a.x - b.x, a.z - b.z), radius: palms.hamB.radAt(0, 1.8) }; }
   // fallen dry fronds
