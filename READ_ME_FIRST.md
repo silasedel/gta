@@ -36,6 +36,9 @@ The user can change your model and effort setting at any time, and you cannot. S
 - Keep it short: one line like "Next: balance the shadow cascades. Switch to the strongest model, high effort (hard, subtle problem)." The user will change the setting and say "done". If they do not change it, carry on with what you have and do not ask again.
 - Also tell the user once, early, how fast the usage meter is moving relative to your budget, and warn them if the pace means you will run out before your job list is done.
 
+## Using downloaded models (the user's rule)
+Never just drop a model in. Treat every download like a starting point you model from: resize, cut up, warp, combine parts from several models, retexture, recolor (e.g. darker wood), add wear and dirt, paint your own fabric prints, and erase real brand labels and paint a made-up name over them (do not reject a pack because of labels: fix the labels). If a model is the right style but too new, age it. If no model exists (string lights, ceiling fans, special lamps), build it well yourself. Common junk (oil drums, steel drums, crates) is easy for the user to get in bulk: just ask.
+
 ## The goal: as close to GTA as we can get
 We are not making "a crime game". We are making the closest thing to a **GTA 5 / GTA 6 style game** that we legally and technically can. Broadly copy everything about how GTA feels and plays; do not copy its names, logos, characters, story, music, maps or any of its actual assets (use made-up brands, original characters and the given models). When a decision is open, ask: "What does GTA do here?" and do that, in your own original wording and art.
 Match, as closely as is possible:
