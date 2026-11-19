@@ -131,7 +131,7 @@ export function build(ctx) {
     for (let y = sea - 0.8; y < top; y += 0.3) D.cyl(ST, 0.016, 0.016, 0.44, M(lx, y, Wz - 0.1, 0, 0, Math.PI / 2), { color: 0xb9bab6, seg: 10 }); }
 
   // ---------- the dock (A): angled gangway off the wall, the straight walk along the wall, the platform ----------
-  const y = Math.min(-0.15, sea + 0.6), pl = P.plat, zA = dk.z - dk.w / 2, zB = dk.z + dk.w / 2, pilesAt = [];
+  const y = Math.min(-0.15, sea + 0.4), pl = P.plat, zA = dk.z - dk.w / 2, zB = dk.z + dk.w / 2, pilesAt = [];
   const pile = (x, z, top) => { const rr = 0.12 + r() * 0.03, h = top - bed, lean = (r() - 0.5) * 0.03;
     B.cyl(W, rr * 0.92, rr, h, M(x, top - h / 2, z, lean, r() * 6, lean * 0.7), { seg: 14, hseg: 6, color: kit.vary(0x847a6c, r, 0.12), wear: 1 });
     lathe(B, W, [[0.001, 0], [rr * 0.92, 0], [rr * 0.85, 0.03], [rr * 0.5, 0.07], [0.001, 0.08]], M(x, top, z), { color: kit.vary(0x9a9083, r, 0.1), seg: 14 });

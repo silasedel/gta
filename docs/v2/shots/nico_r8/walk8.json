@@ -1,0 +1,126 @@
+{
+ "when": "2026-11-19T09:28:32.975Z",
+ "res": [
+  {
+   "id": "main_stair_up",
+   "end": {
+    "x": -7.5,
+    "y": 3.6,
+    "z": -2.78
+   },
+   "expect": "y > 3.4",
+   "ok": true
+  },
+  {
+   "id": "main_stair_down",
+   "end": {
+    "x": 6.7,
+    "y": 0,
+    "z": -2.62
+   },
+   "expect": "y < 1.6",
+   "ok": true
+  },
+  {
+   "id": "lower_deck_stair_up",
+   "end": {
+    "x": 12.04,
+    "y": 2.75,
+    "z": -1.81
+   },
+   "expect": "y > 2.6",
+   "ok": true
+  },
+  {
+   "id": "front_door_in",
+   "end": {
+    "x": -4.31,
+    "y": 3.6,
+    "z": -6.92
+   },
+   "expect": "x > -5.5",
+   "ok": true
+  },
+  {
+   "id": "hall_to_living",
+   "end": {
+    "x": 0.72,
+    "y": 3.6,
+    "z": -6.92
+   },
+   "expect": "x > -1.5",
+   "ok": true
+  },
+  {
+   "id": "bath_door",
+   "end": {
+    "x": -4.7,
+    "y": 3.6,
+    "z": -9.92
+   },
+   "expect": "z < -8.3",
+   "ok": true
+  },
+  {
+   "id": "bed_door",
+   "end": {
+    "x": -3.99,
+    "y": 3.6,
+    "z": -5.5
+   },
+   "expect": "z > -5.6",
+   "ok": true
+  },
+  {
+   "id": "wall_nw_living",
+   "end": {
+    "x": 2.92,
+    "y": 3.6,
+    "z": -9.14
+   },
+   "expect": "z > -10.45",
+   "ok": true
+  },
+  {
+   "id": "wall_se_bed",
+   "end": {
+    "x": -5.09,
+    "y": 3.6,
+    "z": -4.08
+   },
+   "expect": "z < -3.5",
+   "ok": true
+  },
+  {
+   "id": "wall_sw_front_window",
+   "end": {
+    "x": -6.02,
+    "y": 4,
+    "z": -4.88
+   },
+   "expect": "x > -6.6",
+   "ok": true
+  },
+  {
+   "id": "slider_out",
+   "end": {
+    "x": 8.1,
+    "y": 3.6,
+    "z": -5.45
+   },
+   "expect": "x > 6.9",
+   "ok": true
+  },
+  {
+   "id": "upper_to_lower_steps",
+   "end": {
+    "x": 11.28,
+    "y": 2.75,
+    "z": -9.66
+   },
+   "expect": "y < 4.1",
+   "ok": true
+  }
+ ],
+ "errors": []
+}
