@@ -1,15 +1,33 @@
-// Miami International flight crews (people intake, Nov 19): the user's pilots walk short beats on the aprons.
-// The airline captain (p184) walks the terminal face between two gates; the rural pilot (p183), the seaplane pilot
-// (p182) and the woman pilot (p174) walk between the GA stands and the hangars. They are staged people
-// (game.npc.spawnPosed) that exist only while the player is within CREW_R of the airport, so elsewhere they cost
+// Airport and base crews (people intake, Nov 19): the user's people walk short beats or stand at a post.
+// Miami: the airline captain (p184) walks the terminal face between two gates, the flight-line crewman (p193) stands
+// by a parked airliner; the rural pilot (p183), the seaplane pilot (p182) and the woman pilot (p174) walk between the
+// GA stands and the hangars. The base: the mechanic (p192) between the hangar and the C-130, the off-duty soldier
+// (p191) from the tent camp to the huts, the flight-line crewman by the jets. They are staged people
+// (game.npc.spawnPosed) that exist only while the player is within CREW_R of their beat, so elsewhere they cost
 // nothing; close up they are ordinary people (same LODs and clips as the crowd).
-//   createCrew(game, ap) -> { update(dt, pp), remove(), walkers }
+//   createCrew(game, beats, cx, cz) -> { update(dt, pp), remove(), walkers }
+//   miamiBeats(ap), baseBeats(built) -> beats: [person id, from, to] (from === to: stands, facing `to.face`)
 const CREW_R = 400; // m from the airport centre; beyond it the walkers are removed
 const SPEED = 1.25; // m/s, an unhurried walk
 const PAUSE = 4; // s standing at each end of the beat
 
-// Walk lines for the walkers: [person id, from, to] in world meters.
-function beats(ap) {
+// a point `d` meters from `p` toward `q`
+function toward(p, q, d) {
+  const dx = q.x - p.x;
+  const dz = q.z - p.z;
+  const l = Math.hypot(dx, dz) || 1;
+  const k = Math.min(d, l) / l;
+  return { x: p.x + dx * k, z: p.z + dz * k };
+}
+
+// a standing post: [id, spot, spot] with the spot facing `face`
+function post(id, spot, face) {
+  const s = { x: spot.x, z: spot.z, face };
+  return [id, s, s];
+}
+
+/** Miami International: walk lines and posts in world meters */
+export function miamiBeats(ap) {
   const out = [];
   const gates = (ap.stands || []).filter((s) => s.kind === 'gate' && s.door);
   if (gates.length >= 2) {
@@ -21,6 +39,10 @@ function beats(ap) {
       return { x: s.door[0] + (dx / d) * 8, z: s.door[1] + (dz / d) * 8 };
     };
     out.push(['p184', out8(gates[0]), out8(gates[1])]);
+    // the flight-line crewman 14 m in front of the second gate's parked airliner, facing its nose
+    const g = gates[1];
+    const nose = { x: g.x, z: g.z };
+    out.push(post('p193', toward(nose, { x: g.door[0], z: g.door[1] }, -14), nose));
   }
   const ga = ap.gaStands || [];
   const hangars = ap.hangars || [];
@@ -38,6 +60,27 @@ function beats(ap) {
   return out;
 }
 
+/** the military base (built = base.js output): mechanic, off-duty soldier, flight-line crewman */
+export function baseBeats(built) {
+  const out = [];
+  const hangar = built.hangars?.quonset || built.hangars?.long;
+  if (hangar && built.c130) {
+    // out of the hangar door toward the C-130 and back
+    const a = toward(hangar, built.c130, 14);
+    out.push(['p192', a, toward(a, built.c130, 28)]);
+  }
+  const camp = built.dressing?.camp;
+  const hut = built.dressing?.huts?.[0];
+  if (camp && hut) out.push(['p191', toward(camp, hut, 6), toward(camp, hut, 40)]);
+  const jet = (built.jets || []).find((j) => j.key === 'jet_f16') || built.jets?.[0];
+  if (jet) {
+    // 12 m off the jet's nose, facing it
+    const ahead = { x: jet.x + Math.sin(jet.heading) * 12, z: jet.z + Math.cos(jet.heading) * 12 };
+    out.push(post('p193', ahead, { x: jet.x, z: jet.z }));
+  }
+  return out;
+}
+
 function nearest(list, p) {
   let best = null;
   let bd = Infinity;
@@ -51,9 +94,9 @@ function nearest(list, p) {
   return best;
 }
 
-export function createCrew(game, ap, cx, cz) {
+export function createCrew(game, beats, cx, cz) {
   const ground = (x, z) => game.city?.groundHeightAt?.(x, z) ?? 0;
-  const walkers = beats(ap).map(([id, a, b], i) => ({
+  const walkers = beats.map(([id, a, b], i) => ({
     id,
     a,
     b,
@@ -81,6 +124,14 @@ export function createCrew(game, ap, cx, cz) {
 
   function step(w, dt) {
     const h = w.h;
+    if (w.a === w.b) {
+      // a post: stand on the spot, facing the plane
+      const f = w.a.face || w.a;
+      h.root.position.set(w.a.x, ground(w.a.x, w.a.z), w.a.z);
+      h.root.rotation.y = Math.atan2(f.x - w.a.x, f.z - w.a.z);
+      h.speed = 0;
+      return;
+    }
     if (w.wait > 0) {
       w.wait -= dt;
       h.speed = 0;

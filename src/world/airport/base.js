@@ -9,7 +9,7 @@
 // Plane 8 cargo jet (airport/cargo_jet); from the user's downloads: C-130J (airport/c130), F-22 / F-16 / F-35 (game.air
 // types jet_f22 / jet_f16 / jet_f35, far LOD swapped in here), UH-60M Black Hawk on the pad (game.heli model 'blackhawk'), Booth 3 (airport/guard_booth), the downloaded military base asset pack (airport/mil_outpost, mil_watchtower,
 // mil_garage, mil_tank, mil_barrels), Barrier 1 / 2 (airport/barbed_barrier, jersey_barrier), Security Camera 1
-// heads (airport/sec_cam), guards p185 / p173 / p172 (the user's soldiers and officer). Converters: tools/v2/airport/convert_w6.py, convert.sh.
+// heads (airport/sec_cam), guards p185 / p173 / p186 / p189 / p190 / p172 (the user's soldiers, gate guard and officer). Converters: tools/v2/airport/convert_w6.py, convert.sh.
 // The fence (fence.js) is 3.4 m with a concertina coil, climbable only at the climb spots (crates stacked outside; a
 // sweeping camera and a patrol cover each one, so it can be done but needs timing). No real-world insignia anywhere.
 // W7 (Nov 19): fighters park facing open pavement (F-22 on connector A3, nose to runway 17/35; F-16 / F-35 on the GA
@@ -307,6 +307,7 @@ export async function buildBase(ap, ctx, plan, F) {
   // facing the C-130 on G1, and drove into it when taken). Their spots and the first 40 m ahead of each nose are
   // reserved before anything else is placed.
   const jetSpots = planJetSpots();
+  out.jets = jetSpots; // where the fighters park (crew.js puts the flight-line crewman by one)
   for (const j of jetSpots) {
     const ux = Math.sin(j.heading);
     const uz = Math.cos(j.heading);
@@ -802,17 +803,20 @@ export function zoneConfig(ap, plan, built, F) {
   const G = built.gate;
   if (G) {
     // two at the booth outside (watching the road), one inside the gate
+    // the gate guard in navy (p190, who 5) mans the booth
     guards.push({
       x: G.x + G.ox * 5 + G.ux * 4,
       z: G.z + G.oz * 5 + G.uz * 4,
       heading: Math.atan2(G.ox, G.oz),
       range: 40,
+      who: 5,
     });
     guards.push({
       x: G.x + G.ox * 5 - G.ux * 4,
       z: G.z + G.oz * 5 - G.uz * 4,
       heading: Math.atan2(G.ox, G.oz),
       range: 40,
+      who: 5,
     });
     guards.push({
       x: G.x - G.ox * 9 - G.ux * 3,
@@ -894,11 +898,21 @@ export function zoneConfig(ap, plan, built, F) {
   const tA = at(45, 0);
   if (inside(mid[0] + 60, mid[1]) && inside(tA[0], tA[1]))
     guards.push({ route: [tA, [mid[0] + 60, mid[1]]], speed: 1.5 });
-  // the user's soldiers (Nov 19 people): the woodland-camo guard (p185) and the desert-tan soldier (p173) take
-  // turns on the patrols and gates; the olive-uniform officer (p172, no rifle) holds the tower and helipad posts
+  // the user's soldiers (Nov 19 people): the woodland guard (p185), the desert-tan soldier (p173), the helmeted
+  // woodland soldier (p186) and the stocky desert guard (p189) take turns on the patrols and the inner gate post;
+  // the olive-uniform officer (p172, no rifle) holds the tower and helipad posts; the navy gate guard (p190) the booth.
+  // POOL skinned figures split 1 per person (zone.js), the same frame cost as before.
+  const SOLDIERS = [0, 1, 3, 4];
   guards.forEach((g, i) => {
-    g.who ??= i % 2;
+    g.who ??= SOLDIERS[i % SOLDIERS.length];
   });
-  const people = [{ id: 'p185' }, { id: 'p173' }, { id: 'p172', rifle: false }];
+  const people = [
+    { id: 'p185' },
+    { id: 'p173' },
+    { id: 'p172', rifle: false },
+    { id: 'p186' },
+    { id: 'p189' },
+    { id: 'p190' },
+  ];
   return { guards, cams, people, camModel: 'airport/sec_cam' };
 }

@@ -50,6 +50,33 @@ await withBrowser({ width: 1400, height: 800, maxSeconds: 290 }, async (b) => {
   console.log('base skinned guards (who)', skinned);
   await b.screenshot(`${D}/game_base_guards.png`);
 
+  // the base gate booth (navy gate guard, who 5) and the base crew (mechanic, off-duty soldier, flight-line crewman)
+  const gate = JSON.parse(
+    await b.eval(
+      'JSON.stringify((() => { const q = game.base.zone.guards.find((x) => x.who === 5); return q && { x: q.x, z: q.z }; })())',
+    ),
+  );
+  if (gate) {
+    await b.eval(faceExpr(gate.x, gate.z, 6));
+    await b.sleep(8000);
+    await b.screenshot(`${D}/game_base_gate.png`);
+  }
+  const bw = JSON.parse(
+    await b.eval(`JSON.stringify((() => {
+      const A = game.airport.list.find((a) => a.military);
+      return (A.parts.crew?.walkers || []).map((q) => ({ id: q.id, a: q.a, b: q.b }));
+    })())`),
+  );
+  for (const q of bw) {
+    await b.eval(faceExpr((q.a.x + q.b.x) / 2, (q.a.z + q.b.z) / 2, 7));
+    await b.sleep(8000);
+    const st =
+      await b.eval(`JSON.stringify(game.airport.list.find((a) => a.military).parts.crew.walkers
+      .map((w) => w.id + ':' + (w.h ? w.h.id : '-')))`);
+    console.log('base crew', st);
+    await b.screenshot(`${D}/game_base_${q.id}.png`);
+  }
+
   // Miami: the GA apron pilots and the airline captain
   const crew = JSON.parse(
     await b.eval(`JSON.stringify((() => {
@@ -67,7 +94,7 @@ await withBrowser({ width: 1400, height: 800, maxSeconds: 290 }, async (b) => {
       await b.eval(`JSON.stringify(game.airport.list.find((a) => a.ap.id === 'mia').parts.crew.walkers
         .map((q) => ({ id: q.id, a: q.a, b: q.b })))`),
     );
-    for (const k of [1, 0]) {
+    for (const k of [2, 1]) {
       const q = w[k];
       if (!q) continue;
       const mx = (q.a.x + q.b.x) / 2;

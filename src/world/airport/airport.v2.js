@@ -18,7 +18,7 @@ import { buildFence } from './fence.js';
 import { createClimb } from './climb.js';
 import { planBase, buildBase, zoneConfig, fenceOpts, BASE_NAME } from './base.js';
 import { airportZoneConfig } from './security.js';
-import { createCrew } from './crew.js';
+import { createCrew, miamiBeats, baseBeats } from './crew.js';
 import { createZone } from '../../gameplay/stealth/zone.js';
 import { createTraffic } from '../../vehicles/air/traffic/traffic.js';
 import { help } from '../../jobs/kit.js';
@@ -168,8 +168,10 @@ export async function initV2(game) {
       );
     }
     if (!STEALTH_OFF) await step('zone', () => makeZone(A));
-    // the user's pilots walking the Miami aprons (crew.js)
-    if (ap.id === 'mia') A.parts.crew = createCrew(game, ap, A.cx, A.cz);
+    // the user's pilots and ground crew on the Miami aprons, the base's mechanic / off-duty soldier (crew.js)
+    if (ap.id === 'mia') await step('crew', () => createCrew(game, miamiBeats(ap), A.cx, A.cz));
+    if (A.military && A.parts.base)
+      await step('crew', () => createCrew(game, baseBeats(A.parts.base), A.cx, A.cz));
     if (A.parts.terminal && traffic) {
       const tA = traffic.AP.find((x) => x.ap.id === ap.id);
       if (tA) tA.onBoard = (rows) => A.parts.terminal.drawBoard(rows);

@@ -197,11 +197,11 @@ The intro cast is `CAST` in `missions/lib/intro.js` (Vale, Dex, Lou, Cisco, the 
 bodyguards, the seaplane and drop pilots). A mission's `setup` calls `loadCast(ids)` so `spawnActor` and cutscene actors
 get the real person instead of a stand-in from the street crowd. People ready for Phase C:
 
-| Mission               | Person                                                           | Place (`game.npc.spawnPosed({ place })`) |
-| --------------------- | ---------------------------------------------------------------- | ---------------------------------------- |
-| C1 Weapon Purchase    | the gun store clerk, NPC 180 (`p180`): beard, tattoos, holster   | `gun_store`                              |
-| C2 Collecting Money   | the nervous shop owner, NPC 181 (`p181`): apron, 60s             | `shop_owner` (also in `shop_staff`)      |
-| C1 ambush / any fight | the swamp poachers `p177`, `p178`; the gang people `p150`-`p157` | `poacher`, `gang`                        |
+| Mission               | Person                                                                   | Place (`game.npc.spawnPosed({ place })`) |
+| --------------------- | ------------------------------------------------------------------------ | ---------------------------------------- |
+| C1 Weapon Purchase    | the gun store clerk, NPC 180 (`p180`): beard, tattoos, holster           | `gun_store`                              |
+| C2 Collecting Money   | the nervous shop owner, NPC 181 (`p181`): apron, 60s                     | `shop_owner` (also in `shop_staff`)      |
+| C1 ambush / any fight | the swamp poachers `p177`, `p178`, `p188`; the gang people `p150`-`p157` | `poacher`, `gang`                        |
 
 ## Story state and menu flows
 

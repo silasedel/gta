@@ -32,9 +32,9 @@ export const CAST = {
   sawgrass: ['p151', 'p152', 'p153', 'p154', 'p156', 'p157'],
   // Nov 19 people (Models/NPCs/NPC 172-185)
   guards: ['p175', 'p176'], // Vale's bodyguards: black polo, charcoal suit
-  poachers: ['p177', 'p178'], // swamp poachers who ride with the Sawgrass Boys
+  poachers: ['p177', 'p178', 'p188'], // swamp poachers who ride with the Sawgrass Boys
   seaplanePilot: 'p174', // Vale's floatplane pilot at the far dock
-  dropPilot: 'p183', // flies the drop plane (the rural pilot until the bush pilot, prompt 4, exists)
+  dropPilot: 'p187', // the bush pilot: flies the drop plane
 };
 
 // Load the people a mission stages (under the black of its start), so spawnPosed gets the real person and not a
