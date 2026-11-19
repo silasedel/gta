@@ -358,3 +358,49 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
   });
   return character;
 }
+
+// Another hero built by the same pipeline (Mari: tools/v2/player/build_mari.sh): Nico's decoration with her own
+// textures, hit-zone fit and slimmer ragdoll capsules. `isNico` stays true: it means "hero rig" to the seat solver,
+// the wardrobe and the hand / foot IK. `hero` names who it is.
+export function decorateHero(character, ctx) {
+  decorateNicoTripo(character, ctx);
+  const meta = ctx.assets.meta || {};
+  const k = (meta.height || 1.83) / 1.83;
+  const radii = {};
+  for (const [part, r] of Object.entries(character.ragdollRadii))
+    radii[part] = +(r * k * 0.95).toFixed(3);
+  Object.assign(character, {
+    hero: meta.id || 'hero',
+    ragdollRadii: radii,
+  });
+  if (ctx.assets.jiggle) attachJiggle(character, ctx);
+  return character;
+}
+
+// Secondary motion (src/player/mari/jiggle.js): runs after the character's own update, only on the full-detail mesh
+// near the camera.
+async function attachJiggle(character, { game, model, assets }) {
+  let lod0 = null;
+  model.traverse((o) => {
+    if (!lod0 && o.isSkinnedMesh && /LOD0/.test(o.name + ' ' + (o.parent?.name || ''))) lod0 = o;
+  });
+  const J = await assets.jiggle.add(character, {
+    material: character.material,
+    mesh: lod0,
+    albedoUrl: assets.jiggle.albedoUrl,
+  });
+  if (!J) return;
+  character.jiggle = J;
+  const inner = character.update;
+  const cam = new THREE.Vector3();
+  const at = new THREE.Vector3();
+  character.update = (dt, anim) => {
+    inner(dt, anim);
+    let near = character.meshLOD === 0 && lod0.visible !== false && !character.__ragdoll;
+    if (near && game?.camera) {
+      const d = game.camera.getWorldPosition(cam).distanceTo(character.root.getWorldPosition(at));
+      near = d < assets.jiggle.dist;
+    }
+    J.update(dt, near);
+  };
+}

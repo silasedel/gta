@@ -2,6 +2,7 @@
 // call screen. Calls are short: family and friends pick up with a line, others go to voicemail. The Hush Line makes the
 // same offer as a street payphone while you are wanted: pay from the bank and one star goes away.
 import './apps.css';
+import { callScript, lineMs } from '../storyCalls.js';
 
 const LINES = {
   rafa: ['Mijo! I am on the boat, call you back.', 'The skiff better be where I left it.'],
@@ -103,7 +104,7 @@ export default function phoneApp(os) {
       const L = (c.name.replace(/^[^\p{L}]+/u, '')[0] || '#').toUpperCase();
       (groups[L] ||= []).push(c);
     }
-    return `<div class="ph-me"><span class="kp-av" style="--s:58px;--h:28">N</span><span><b>Nico</b><small>My card · (305) 555-0100</small></span></div>
+    return `<div class="ph-me"><span class="kp-av" style="--s:58px;--h:28">N</span><span><b>${esc(game.characters?.active?.name || 'Nico')}</b><small>My card · (305) 555-0100</small></span></div>
       ${fav.length ? `<div class="ph-favs">${fav.map((c) => `<button class="bk-rec" data-act="c" data-id="${esc(c.id)}" data-f>${os.contactAvatar(c, 56)}<span>${esc(c.name.split(' ')[c.name.split(' ').length > 1 && /^(Tío|Abuela|Dr\.)$/.test(c.name.split(' ')[0]) ? 1 : 0])}</span></button>`).join('')}</div>` : ''}
       ${Object.keys(groups)
         .sort((a, b) => a.localeCompare(b))
@@ -246,6 +247,14 @@ export default function phoneApp(os) {
   function call(app, id) {
     const c = data.contact(id);
     if (!c) return;
+    // story cast and the other protagonist: a short subtitled call (src/ui/phone/storyCalls.js)
+    const script = callScript(game, id);
+    if (script) {
+      data.S.calls.push({ id, t: data.now(), answered: true });
+      if (data.S.calls.length > 30) data.S.calls.shift();
+      callScreen(app, c, script.lines, null, null, script);
+      return;
+    }
     const answers = ANSWERS.has(id) || c.kind === 'staff' || c.kind === 'client';
     let line = null,
       offer = null;
@@ -280,7 +289,7 @@ export default function phoneApp(os) {
       offer,
     );
   }
-  function callScreen(app, c, line, voicemail, offer) {
+  function callScreen(app, c, line, voicemail, offer, script = null) {
     const el = os.h(`<div class="ph-call"><div class="ph-call-bg"></div>
       <div class="ph-call-h">${os.contactAvatar(c, 104)}<b>${esc(c.name)}</b><small class="ph-call-st">calling…</small></div>
       <div class="ph-line"></div>
@@ -342,8 +351,12 @@ export default function phoneApp(os) {
         const s = Math.floor((performance.now() - t0) / 1000);
         st.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
       }, 250);
-      ln.innerHTML = `<span>${esc(line || voicemail)}</span>`;
       ln.classList.add('on');
+      if (Array.isArray(line)) {
+        playLines(line, 0);
+        return;
+      }
+      ln.innerHTML = `<span>${esc(line || voicemail)}</span>`;
       if (offer === 'pay') {
         const p = Math.max(1, os.wire.hushPrice() - data.S.hushCredit);
         ln.insertAdjacentHTML(
@@ -366,6 +379,24 @@ export default function phoneApp(os) {
         setTimeout(end, 3000);
       } else setTimeout(end, Math.max(3200, (line || voicemail).length * 70));
     }, 1700);
+
+    // a scripted call: one subtitled line after the other (voice hook: 'call:line'), then the call's effect
+    function playLines(lines, i) {
+      if (ended) return;
+      if (i >= lines.length) {
+        end();
+        try {
+          script?.onEnd?.();
+        } catch (e) {
+          console.warn('[phone] call effect', e);
+        }
+        return;
+      }
+      const l = lines[i];
+      ln.innerHTML = `<span><b>${esc(l.who)}:</b> ${esc(l.text)}</span>`;
+      game.emit?.('call:line', { contact: c.id, who: l.who, text: l.text, index: i });
+      setTimeout(() => playLines(lines, i + 1), lineMs(l.text));
+    }
   }
 
   return {

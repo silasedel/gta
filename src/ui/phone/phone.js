@@ -20,6 +20,7 @@ import weatherApp from './apps/weather.js';
 import workApp from './apps/work.js';
 import wavvyApp from './apps/wavvy.js';
 import settingsApp from './apps/settings.js';
+import switchApp from './apps/switchapp.js';
 
 export const OS_NAME = 'Kestrel OS';
 export const OS_VERSION = '6.2';
@@ -435,6 +436,7 @@ export function createPhone(game, hooks = {}) {
     workApp,
     wavvyApp,
     settingsApp,
+    switchApp,
   ];
   for (const mk of APP_LIST) {
     try {
@@ -446,7 +448,7 @@ export function createPhone(game, hooks = {}) {
   }
   const DOCK = ['phone', 'messages', 'maps', 'bank'];
   const GRID1 = ['camera', 'weather', 'work', 'settings'],
-    GRID2 = ['wavvy'];
+    GRID2 = ['wavvy', 'switch'];
   function iconHTML(id, o = {}) {
     const def = APPS[id];
     if (!def) return '';

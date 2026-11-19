@@ -2,6 +2,8 @@
 // Contacts come from the game's real systems where they exist (story cast seed, side-job clients, business staff) plus
 // a small fixed in-world cast. Phone numbers use the 555-01xx block that is reserved for fiction.
 
+import { STORY_CONTACTS, heroContacts } from './storyCalls.js';
+
 export const PHONE_SAVE_KEY = 'phone';
 const THREAD_KEEP = 60,
   THREADS_MAX = 40;
@@ -134,9 +136,13 @@ export function createPhoneData(game) {
   // ---------------------------------------------------------------- contacts
   let cache = null,
     cacheAt = -1;
+  let cacheWho = null;
   function contacts() {
     const t = Math.floor(now() / 30);
-    if (cache && cacheAt === t) return cache;
+    // the other protagonist is a contact: who that is changes on a character switch
+    const who = game.characters?.active?.id || null;
+    if (cache && cacheAt === t && cacheWho === who) return cache;
+    cacheWho = who;
     const out = [],
       seen = new Set();
     const add = (c) => {
@@ -152,6 +158,8 @@ export function createPhoneData(game) {
         ...c,
       });
     };
+    heroContacts(game).forEach(add);
+    STORY_CONTACTS.forEach(add);
     CAST.forEach(add);
     for (const c of Array.isArray(game.contactsSeed) ? game.contactsSeed : [])
       add({

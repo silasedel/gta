@@ -208,3 +208,21 @@ Hooks for later assets:
 `?storytest=1` loads `missions/_test.js` (Test Errand: a phone-call cutscene, reach the dock, pick up a package). Its
 pink marker is on Nico's carport. From a console: `game.story.startMission('test.errand')`,
 `game.story.skipMission('test.errand')`, `game.story.state.toJSON()`.
+
+## Two protagonists: `game.characters` (Phase F, player track)
+
+Nico and Mari (`src/player/characters.v2.js`; her name is `MARI.name` in `src/player/mari/index.js`). The one you are
+not playing stays in the world (idle, in their car, or following you). Each keeps their own position, car, cash, weapons,
+outfit, health and wanted level (the bank account is shared).
+
+- `game.characters.list` -> `[{ id: 'nico' | 'mari', name, active, follow, place, pos }]`, `game.characters.active`.
+- `await game.characters.switchTo('mari')` (sky cut; `{ instant: true }` skips the camera). Returns false while locked,
+  dead or busted. A mission that must be played as one of them: `switchTo` in its start step, then
+  `game.characters.locked = true` (no wheel / Switch app) and `false` again when it ends.
+- `await game.characters.call(id)`: a subtitled phone call (story cast `vale`, `dex`, `lou`, `cisco`, or the other
+  protagonist). Calling the other protagonist toggles "come help": they come and follow you, ride along as passenger
+  and shoot at whoever fights you. Direct: `game.characters.summon('mari')` / `dismiss('mari')`.
+- Events: `character:switch { from, to }`, `character:follow { id, on }`, `call:line { contact, who, text, index }`
+  (voice hook). Call lines: `src/ui/phone/storyCalls.js`.
+- Mari's start: the sidewalk in front of the dive shop on the Overseas Highway, Key Largo (-1164, 5473), her apartment
+  is above the shop.

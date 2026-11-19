@@ -20,7 +20,12 @@ import {
 } from './humans.js';
 import { PERSONAS } from '../npc/personality.js';
 import { preloadNico, decorateNico } from './nico/index.js';
-import { NICO_MODEL, preloadNicoTripo, decorateNicoTripo } from './nicoTripo/index.js';
+import {
+  NICO_MODEL,
+  preloadNicoTripo,
+  decorateNicoTripo,
+  decorateHero,
+} from './nicoTripo/index.js';
 import {
   rng,
   pick,
@@ -978,6 +983,46 @@ export async function preloadCharacters(game) {
   return LIB;
 }
 
+// Another hero on the Nico rig (Mari, src/player/mari): loaded on demand after boot, the same way as the Tripo Nico
+// above (rest aligned to the clip source, every clip retargeted). preload() returns { gltf, meta, tex }.
+// createCharacter(game, { variant: 'player', hero: id }) then builds that hero.
+export async function loadHeroBase(id, preload) {
+  if (!LIB || LIB.failed || !LIB.sources?.xbot) return null;
+  LIB.heroes ||= {};
+  if (LIB.heroes[id]) return LIB.heroes[id];
+  const A = await preload();
+  const scene = A.gltf.scene;
+  const rig = makeRig(scene, null);
+  if (!rig.bones.Hips) return null;
+  alignRestTo(rig, LIB.sources.xbot);
+  setRest(rig);
+  scene.updateMatrixWorld(true);
+  const B = {
+    kind: 'nico',
+    tripo: true,
+    hero: id,
+    assets: A,
+    scene,
+    rig,
+    yaw: facingYaw(rig),
+    height: A.meta.height,
+    targetH: A.meta.height,
+    minY: 0,
+    clips: {},
+    headTop: null,
+  };
+  buildClipsFor(B, LIB.srcG, LIB.sources, LIB.procClips);
+  try {
+    for (const n of ['walk', 'walk2', 'run', 'sprint'])
+      if (B.clips[n]) measureGait(rig, B.clips[n]);
+  } catch (e) {
+    console.warn('[hero] gait measure', id, e);
+  }
+  if (!B.clips.idle || !B.clips.walk) return null;
+  LIB.heroes[id] = B;
+  return B;
+}
+
 // ---------- seeded variation (palettes in pedStyle.js) ----------
 function getMaterials(base, variant, seed) {
   const cache = LIB.matCache;
@@ -1225,6 +1270,7 @@ export function createCharacter(game, opts = {}) {
   let persona = personaName ? PERSONAS[personaName] || PERSONAS.calm : null;
   let base = opts.noHuman ? null : pickHuman(variant, seed, opts);
   if (variant === 'player' && LIB.nico && !opts.legacy) base = LIB.nico;
+  if (opts.hero && LIB.heroes?.[opts.hero]) base = LIB.heroes[opts.hero];
   const isNico = base?.kind === 'nico';
   const isHuman = !!base && !isNico;
   if (!base) {
@@ -2009,7 +2055,8 @@ export function createCharacter(game, opts = {}) {
   update(0, { speed: 0, grounded: true });
   if (isNico) {
     try {
-      (base.tripo ? decorateNicoTripo : decorateNico)(character, {
+      const decorate = base.hero ? decorateHero : base.tripo ? decorateNicoTripo : decorateNico;
+      decorate(character, {
         game,
         model,
         assets: base.assets,
