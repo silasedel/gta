@@ -1,0 +1,22 @@
+{
+ "padTabs": [
+  "SETTINGS",
+  "CONTROLS"
+ ],
+ "padResumed": true,
+ "off": false,
+ "on": true,
+ "tabs": [
+  "WARDROBE",
+  "SETTINGS",
+  "CONTROLS",
+  "STATS"
+ ],
+ "f0": "gfxPreset",
+ "f1": "resolutionScale",
+ "stillPausedAfterPanelEsc": true,
+ "panelOpenAfterEsc": false,
+ "resumed": true,
+ "modeAfter": "game",
+ "errors": []
+}

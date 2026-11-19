@@ -105,6 +105,8 @@ export const SCHEMA = [
       { key: 'minimapMode', label: 'Minimap', type: 'choice', default: 'rotate', owner: 'ui', options: [C('rotate', 'Rotates'), C('north', 'North up')] },
       { key: 'minimapSize', label: 'Minimap size', type: 'choice', default: 'medium', owner: 'ui', options: [C('small', 'Small'), C('medium', 'Medium'), C('large', 'Large')] },
       { key: 'mapTheme', label: 'Map style', type: 'choice', default: 'dusk', owner: 'ui', options: [C('dusk', 'Dusk chart'), C('day', 'Daylight')] },
+      { key: 'mapSubway', label: 'Subway lines on the map', type: 'toggle', default: true, owner: 'ui', desc: 'Southline Metro route and stations on the pause map. U toggles it while the map is open.' },
+      { key: 'mapSubwayMini', label: 'Subway lines on the minimap', type: 'toggle', default: false, owner: 'ui' },
     ] },
     { title: 'Elements', items: [
       { key: 'hudMode', label: 'HUD', type: 'choice', default: 'full', owner: 'ui', options: [C('full', 'Full'), C('minimal', 'Minimal'), C('off', 'Off')], desc: 'Minimal hides everything except warnings, prompts and the minimap.' },

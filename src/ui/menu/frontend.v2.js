@@ -58,7 +58,6 @@ export async function initV2(game) {
   };
   fe.openSettings = (o = {}) => overPause(o, (x) => openSettingsScreen(game, ctx, x));
   fe.openWardrobe = (o = {}) => overPause(o, (x) => openWardrobeStage(game, ctx, cin, x));
-  hookPauseMenu(game, fe);
   if (enabled) startTitle(game, ctx, cin, fe, params);
 }
 
@@ -74,20 +73,9 @@ function registerWardrobeSlice(game) {
   } catch (e) { console.warn('[frontend] wardrobe save slice', e); }
 }
 
-// ---- pause menu: Wardrobe and full Settings buttons next to Resume
-function hookPauseMenu(game, fe) {
-  const tryHook = () => {
-    const foot = document.querySelector('#ps-hud .ps-pause-foot'); if (!foot) return false;
-    if (foot.querySelector('.pm-pause-btn')) return true;
-    const mk = (label, fn) => { const b = el('button', { class: 'ps-resume pm-pause-btn', text: label }); b.addEventListener('click', (e) => { e.stopPropagation(); fn(); }); return b; };
-    const res = foot.querySelector('.ps-resume');
-    const wrap = el('div', 'pm-pause-btns');
-    wrap.append(mk('WARDROBE', () => fe.openWardrobe({ from: 'pause' })), mk('ALL SETTINGS', () => fe.openSettings({ from: 'pause' })));
-    res?.after(wrap);
-    return true;
-  };
-  if (!tryHook()) { let n = 0; const t = setInterval(() => { if (tryHook() || ++n > 60) clearInterval(t); }, 500); }
-}
+// ---- pause menu: Wardrobe and Settings are tabs of the pause menu itself (src/ui/hud.js, user Nov 19); the extra
+// WARDROBE / ALL SETTINGS buttons that used to sit next to Resume are gone. The Wardrobe tab calls
+// fe.openWardrobe({ from: 'pause' }); fe.openSettings stays for the title menu.
 
 function startTitle(game, ctx, cin, fe, params) {
   const P = game.player, layer = ctx.layer('screen');

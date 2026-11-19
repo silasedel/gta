@@ -9,6 +9,7 @@ const BASE_TILE_M = 250;          // level 0 tile size in metres (2.05 px/m)
 const LEVELS = 7;                 // 250 m .. 16 km per tile
 const MAX_TILES = 110;            // LRU cap (~1 MB each); on-screen + overview tiles are never evicted
 const CELL = 250;                 // spatial index cell (m)
+const cellKey = (i, j) => (i + 32768) * 65536 + (j + 32768);   // numeric grid key (cells span +-8000 km)
 
 // V2 palette follows the world layout preview (deep navy sea, turquoise shallows, gold sand, natural greens,
 // grey urban, pale roads). setMapPalette() takes layout.json's palette so the map follows the world data.
@@ -208,7 +209,7 @@ export function createMapRenderer(game) {
       const rec = { layer, item, bb };
       if ((cx1 - cx0 + 1) * (cz1 - cz0 + 1) > 64) { big.push(rec); return; }
       for (let i = cx0; i <= cx1; i++) for (let j = cz0; j <= cz1; j++) {
-        const k = i + ',' + j; let a = grid.get(k); if (!a) grid.set(k, (a = [])); a.push(rec);
+        const k = cellKey(i, j); let a = grid.get(k); if (!a) grid.set(k, (a = [])); a.push(rec);
       }
     };
     for (const layer of ['land', 'beach', 'park', 'water']) {
@@ -278,18 +279,24 @@ export function createMapRenderer(game) {
     builtFor = c; cache.clear(); districtCache = null; lastLevel.clear();
     return built;
   }
-  function query(x0, z0, x1, z1, layerFilter) {
-    const B = build(), out = [], seen = new Set();
+  // records found by a spatial query; a per-query stamp on each record replaces a Set (no allocation per call), numeric
+  // cell keys replace 'i,j' strings. `out` may be a reused array (street labels pass one).
+  let qStamp = 0;
+  const Q = { x0: 0, z0: 0, x1: 0, z1: 0, layer: null, out: null, st: 0 };
+  function qTake(rec) {
+    if (rec._qs === Q.st) return; rec._qs = Q.st;
+    if (Q.layer && rec.layer !== Q.layer) return;
+    const bb = rec.bb; if (bb[2] < Q.x0 || bb[0] > Q.x1 || bb[3] < Q.z0 || bb[1] > Q.z1) return;
+    Q.out.push(rec);
+  }
+  function query(x0, z0, x1, z1, layer = null, out = []) {
+    const B = build(); out.length = 0;
+    Q.x0 = x0; Q.z0 = z0; Q.x1 = x1; Q.z1 = z1; Q.layer = typeof layer === 'string' ? layer : null; Q.out = out; Q.st = ++qStamp;
     const cx0 = Math.floor(x0 / CELL), cz0 = Math.floor(z0 / CELL), cx1 = Math.floor(x1 / CELL), cz1 = Math.floor(z1 / CELL);
-    const take = (rec) => {
-      if (seen.has(rec)) return; seen.add(rec);
-      if (layerFilter && !layerFilter(rec.layer)) return;
-      const bb = rec.bb; if (bb[2] < x0 || bb[0] > x1 || bb[3] < z0 || bb[1] > z1) return;
-      out.push(rec);
-    };
-    for (const rec of B.big) take(rec);
-    if ((cx1 - cx0 + 1) * (cz1 - cz0 + 1) > 6000) { for (const a of B.grid.values()) for (const rec of a) take(rec); return out; }
-    for (let i = cx0; i <= cx1; i++) for (let j = cz0; j <= cz1; j++) { const a = B.grid.get(i + ',' + j); if (a) for (const rec of a) take(rec); }
+    for (const rec of B.big) qTake(rec);
+    if ((cx1 - cx0 + 1) * (cz1 - cz0 + 1) > 6000) { for (const a of B.grid.values()) for (const rec of a) qTake(rec); }
+    else for (let i = cx0; i <= cx1; i++) for (let j = cz0; j <= cz1; j++) { const a = B.grid.get(cellKey(i, j)); if (a) for (const rec of a) qTake(rec); }
+    Q.out = null;
     return out;
   }
 
@@ -553,10 +560,13 @@ export function createMapRenderer(game) {
     }
     return c;
   }
+  let ovCache = null, ovFor = null;
   function overviewTiles() {
-    const B = build().bounds, S = tileSize(OVERVIEW), out = [];
+    const B = build().bounds; if (ovFor === B && ovCache) return ovCache;
+    const S = tileSize(OVERVIEW), out = [];
+    ovFor = B; ovCache = out;
     for (let tx = Math.floor((B.minX - 200) / S); tx <= Math.floor((B.maxX + 200) / S); tx++)
-      for (let tz = Math.floor((B.minZ - 200) / S); tz <= Math.floor((B.maxZ + 200) / S); tz++) out.push([tx, tz]);
+      for (let tz = Math.floor((B.minZ - 200) / S); tz <= Math.floor((B.maxZ + 200) / S); tz++) out.push([tx, tz, OVERVIEW + ':' + tx + ':' + tz]);   // [tx, tz, cache key]
     return out;
   }
   let lastPending = 0;
@@ -568,7 +578,7 @@ export function createMapRenderer(game) {
   function prewarm() {
     if (idleQueued || typeof requestIdleCallback !== 'function') return;
     const B = build();
-    const missing = overviewTiles().some(([tx, tz]) => !cache.has(OVERVIEW + ':' + tx + ':' + tz));
+    let missing = false; for (const ot of overviewTiles()) if (!cache.has(ot[2])) { missing = true; break; }
     if (B.shore !== undefined && !missing) return;
     idleQueued = true;
     requestIdleCallback((dl) => {
@@ -577,7 +587,7 @@ export function createMapRenderer(game) {
         while (dl.timeRemaining() > 12) {
           const B2 = build();
           if (B2.hasLand && B2.shore === undefined) { shoreStep(Math.min(8, dl.timeRemaining() - 2)); continue; }
-          const t = overviewTiles().find(([tx, tz]) => !cache.has(OVERVIEW + ':' + tx + ':' + tz));
+          const t = overviewTiles().find((ot) => !cache.has(ot[2]));
           if (!t) break;
           const key = OVERVIEW + ':' + t[0] + ':' + t[1];
           let c = null; try { c = renderTile(OVERVIEW, t[0], t[1]); } catch (e) { c = document.createElement('canvas'); c.width = c.height = 2; }
@@ -588,6 +598,7 @@ export function createMapRenderer(game) {
     }, { timeout: 4000 });
   }
   // Draw into a ctx already transformed to world units. ppmDevice: device px per metre.
+  const tileOrder = [], tilePool = [], byDist = (a, b) => a[2] - b[2];
   function draw(g, x0, z0, x1, z1, ppmDevice, opts = {}) {
     if (!ok()) return false;
     build();
@@ -599,8 +610,9 @@ export function createMapRenderer(game) {
     // 1) overview underlay: always present, rendered once (one per call until complete, even over budget)
     const S4 = tileSize(OVERVIEW);
     let forcedOne = false;
-    for (const [tx, tz] of overviewTiles()) {
-      const k = OVERVIEW + ':' + tx + ':' + tz, hit = cache.get(k);
+    for (const ot of overviewTiles()) {
+      const tx = ot[0], tz = ot[1];
+      const k = ot[2], hit = cache.get(k);
       let c = hit ? hit.c : null;
       if (hit) hit.used = drawSeq;
       // over-budget (forced) overview renders only behind the loading / title screen; in play they share the frame budget
@@ -624,10 +636,14 @@ export function createMapRenderer(game) {
     const tx0 = Math.floor(x0 / S), tz0 = Math.floor(z0 / S), tx1 = Math.floor(x1 / S), tz1 = Math.floor(z1 / S);
     const seam = 1.25 / Math.max(1e-4, ppmDevice);
     // nearest-to-centre first so the middle of the view sharpens first
-    const cxm = (x0 + x1) / 2, czm = (z0 + z1) / 2, order = [];
-    for (let tx = tx0; tx <= tx1; tx++) for (let tz = tz0; tz <= tz1; tz++) order.push([tx, tz, Math.hypot((tx + 0.5) * S - cxm, (tz + 0.5) * S - czm)]);
-    order.sort((a, b) => a[2] - b[2]);
-    for (const [tx, tz] of order) {
+    // reused entries (the minimap draws this ~30 times a second)
+    const cxm = (x0 + x1) / 2, czm = (z0 + z1) / 2, order = tileOrder;
+    let no = 0;
+    for (let tx = tx0; tx <= tx1; tx++) for (let tz = tz0; tz <= tz1; tz++) { let o = tilePool[no]; if (!o) tilePool.push((o = [0, 0, 0])); o[0] = tx; o[1] = tz; o[2] = Math.hypot((tx + 0.5) * S - cxm, (tz + 0.5) * S - czm); order[no++] = o; }
+    order.length = no;
+    order.sort(byDist);
+    for (let oi = 0; oi < no; oi++) {
+      const tx = order[oi][0], tz = order[oi][1];
       if (build().ring) { const rb = build().bounds; if (tx * S > rb.maxX + 300 || (tx + 1) * S < rb.minX - 300 || tz * S > rb.maxZ + 300 || (tz + 1) * S < rb.minZ - 300) continue; }
       const c = getTile(level, tx, tz, opts.render !== false);
       if (c) { g.drawImage(c, tx * S, tz * S, S + seam, S + seam); continue; }
@@ -664,48 +680,70 @@ export function createMapRenderer(game) {
     return districtCache;
   }
   // street labels along graph edges, screen-space; xf = { k, ox, oz } world->screen
+  const lblRecs = [], lblCands = [], lblPlaced = [], lblAt = new Float64Array(6), twCache = new Map();
+  let lblSx = new Float64Array(64), lblSy = new Float64Array(64), lblCum = new Float64Array(64);
+  // point at arc length sArc along the projected chain (lblSx / lblSy / lblCum, m points) -> lblAt[o], lblAt[o + 1]
+  function lblAtArc(m, sArc, o) {
+    const cum = lblCum, sx = lblSx, sy = lblSy;
+    let i = 1; while (i < m - 1 && cum[i] < sArc) i++;
+    const t = (sArc - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]);
+    lblAt[o] = sx[i - 1] + (sx[i] - sx[i - 1]) * t; lblAt[o + 1] = sy[i - 1] + (sy[i] - sy[i - 1]) * t;
+  }
+  function textWidth(g, font, txt) {
+    let m = twCache.get(font); if (!m) twCache.set(font, (m = new Map()));
+    let w = m.get(txt); if (w === undefined) { w = g.measureText(txt).width; m.set(txt, w); }
+    return w;
+  }
   function drawStreetLabels(g, xf, W, H) {
     if (!ok() || xf.k < 0.35) return;
     const x0 = -xf.ox / xf.k, z0 = -xf.oz / xf.k, x1 = (W - xf.ox) / xf.k, z1 = (H - xf.oz) / xf.k;
-    const recs = query(x0, z0, x1, z1, (l) => l === 'chain');
+    const recs = query(x0, z0, x1, z1, 'chain', lblRecs);
     const minKind = xf.k > 1.4 ? 0 : xf.k > 0.8 ? KIND_ORDER.indexOf('residential') : xf.k > 0.5 ? KIND_ORDER.indexOf('tertiary') : KIND_ORDER.indexOf('primary');
-    const placed = [];
+    let np = 0;   // placed labels: (x, y, width) triples in lblPlaced
     const fs = xf.k > 1.4 ? 12 : 11;
-    g.font = `600 ${fs}px Inter, system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-    const cands = recs.map((r) => r.item).filter((e) => KIND_ORDER.indexOf(e.kind) >= minKind && e.inside !== false);
+    const font = `600 ${fs}px Inter, system-ui, sans-serif`;
+    g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+    // candidates and their projected points go into reused buffers (the pause map redraws while it is dragged / zoomed)
+    const cands = lblCands; cands.length = 0;
+    for (const r of recs) { const e = r.item; if (KIND_ORDER.indexOf(e.kind) >= minKind && e.inside !== false) cands.push(e); }
     cands.sort((a, b) => KIND_ORDER.indexOf(b.kind) - KIND_ORDER.indexOf(a.kind));
     let count = 0;
     for (const ch of cands) {
       if (count > 90) break;
-      const sp = ch.pts.map((q) => [xf.ox + q[0] * xf.k, xf.oz + q[1] * xf.k]);
-      const cum = [0];
-      for (let i = 1; i < sp.length; i++) cum.push(cum[i - 1] + Math.hypot(sp[i][0] - sp[i - 1][0], sp[i][1] - sp[i - 1][1]));
-      const total = cum[cum.length - 1];
-      const tw = g.measureText(ch.name).width;
+      const m = ch.pts.length;
+      if (lblSx.length < m) { lblSx = new Float64Array(m * 2); lblSy = new Float64Array(m * 2); lblCum = new Float64Array(m * 2); }
+      const sx = lblSx, sy = lblSy, cum = lblCum;
+      for (let i = 0; i < m; i++) { sx[i] = xf.ox + ch.pts[i][0] * xf.k; sy[i] = xf.oz + ch.pts[i][1] * xf.k; }
+      cum[0] = 0;
+      for (let i = 1; i < m; i++) cum[i] = cum[i - 1] + Math.hypot(sx[i] - sx[i - 1], sy[i] - sy[i - 1]);
+      const total = cum[m - 1];
+      const tw = textWidth(g, font, ch.name);
       if (total < tw + 24) continue;
-      const at = (sArc) => { let i = 1; while (i < cum.length - 1 && cum[i] < sArc) i++; const t = (sArc - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]); return [sp[i - 1][0] + (sp[i][0] - sp[i - 1][0]) * t, sp[i - 1][1] + (sp[i][1] - sp[i - 1][1]) * t]; };
       const spacing = Math.max(tw + 260, 380), n = Math.max(1, Math.floor(total / spacing));
       for (let li = 0; li < n; li++) {
         const sMid = total * (li + 0.5) / n;
-        const [mx, mz] = at(sMid);
+        lblAtArc(m, sMid, 0); const mx = lblAt[0], mz = lblAt[1];
         if (mx < 20 || mz < 14 || mx > W - 20 || mz > H - 14) continue;
         if (!insideB((mx - xf.ox) / xf.k, (mz - xf.oz) / xf.k)) continue;
-        const A = at(Math.max(0, sMid - tw / 2)), Bp = at(Math.min(total, sMid + tw / 2));
+        lblAtArc(m, Math.max(0, sMid - tw / 2), 2); lblAtArc(m, Math.min(total, sMid + tw / 2), 4);
+        const ax = lblAt[2], az = lblAt[3], bx = lblAt[4], bz = lblAt[5];
         // skip sharply bent spots
-        if (Math.hypot(Bp[0] - A[0], Bp[1] - A[1]) < tw * 0.85) continue;
-        if (placed.some((p) => Math.abs(p[0] - mx) < (p[2] + tw) / 2 + 6 && Math.abs(p[1] - mz) < 16)) continue;
-        let ang = Math.atan2(Bp[1] - A[1], Bp[0] - A[0]);
+        if (Math.hypot(bx - ax, bz - az) < tw * 0.85) continue;
+        let hit = false;
+        for (let j = 0; j < np; j += 3) if (Math.abs(lblPlaced[j] - mx) < (lblPlaced[j + 2] + tw) / 2 + 6 && Math.abs(lblPlaced[j + 1] - mz) < 16) { hit = true; break; }
+        if (hit) continue;
+        let ang = Math.atan2(bz - az, bx - ax);
         if (ang > Math.PI / 2) ang -= Math.PI; else if (ang < -Math.PI / 2) ang += Math.PI;
         g.save(); g.translate(mx, mz); g.rotate(ang);
         g.lineWidth = 3; g.strokeStyle = 'rgba(10,13,20,.85)'; g.lineJoin = 'round'; g.strokeText(ch.name, 0, 0.5);
         g.fillStyle = ch.kind === 'motorway' || ch.kind === 'trunk' ? '#ffd9a0' : 'rgba(255,255,255,.92)'; g.fillText(ch.name, 0, 0.5);
         g.restore();
-        placed.push([mx, mz, tw]); count++;
+        lblPlaced[np++] = mx; lblPlaced[np++] = mz; lblPlaced[np++] = tw; count++;
       }
     }
   }
   function bounds() { return ok() ? build().bounds : null; }
   function boundary() { return ok() ? build().ring : null; }
-  function invalidate() { built = null; builtFor = null; cache.clear(); districtCache = null; }
+  function invalidate() { built = null; builtFor = null; cache.clear(); districtCache = null; ovCache = null; ovFor = null; }
   return { ok, draw, districts, drawStreetLabels, bounds, boundary, inside: insideB, invalidate, query, get pending() { return lastPending; }, get stats() { return tileStats; } };
 }

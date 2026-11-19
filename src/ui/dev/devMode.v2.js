@@ -1,5 +1,5 @@
 // SOUTHLINE dev mode (r2-mapui). Unlocked with a code, off by default, remembered in localStorage.
-//  - Pause menu: a CODES button opens a numeric code panel (keypad or keyboard). Code 6969 toggles dev mode; a wrong code
+//  - Pause menu → Settings → Codes opens a numeric code panel (keypad or keyboard). Code 6969 toggles dev mode; a wrong code
 //    shakes the field. The panel also has the dev switches (police lock, turn dev mode off) and the dev key list.
 //  - DEV badge at the bottom right (above the speedometer while driving, hidden behind the phone).
 //  - Pause map: with a waypoint set, a TELEPORT button sits beside the pin (or press T). The player (and their car, landed
@@ -45,11 +45,12 @@ export async function initV2(game) {
   const bigmap = hud?.querySelector('.ps-bigmap');
 
   const badge = el('div', 'ps-dev-badge', '<i></i>DEV');
-  badge.title = 'Dev mode is on (pause menu → CODES)';
+  badge.title = 'Dev mode is on (pause menu → Settings → Codes)';
   hud?.appendChild(badge);
 
+  // the code panel opens from the bottom of the pause menu's Settings tab (Codes section, src/ui/menu/pauseSettings.js);
+  // this button is no longer placed in the pause menu (user, Nov 19: no separate CODES button)
   const codesBtn = el('button', 'ps-dev-codes', 'CODES');
-  pause?.querySelector('.ps-pause-foot')?.appendChild(codesBtn);
 
   const panel = el('div', 'ps-dev-panel', `<div class="ps-dev-card" role="dialog" aria-label="Enter code">
     <h3>ENTER CODE</h3>

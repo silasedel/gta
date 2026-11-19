@@ -139,6 +139,8 @@ export function createFocusNav(bindings, opts = {}) {
       return h;
     },
     get depth() { return stack.length; },
+    /** Feed one navigation step to the top scope from outside the bindings layer (the pause menu reads raw keys). */
+    send(dir, src = 'kbm', repeat = false) { const d = { dir, src, repeat, shift: false, handled: false, raw: null }; onNav(d); return d.handled; },
     get lastSource() { return lastSrc; },
     top,
     clampIndex: (i, n) => clamp(i, 0, Math.max(0, n - 1)),

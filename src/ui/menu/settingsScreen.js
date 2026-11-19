@@ -7,6 +7,41 @@ import { icon } from '../core/icons.js';
 const TAB_LABEL = { graphics: 'Graphics', audio: 'Audio', controls: 'Controls', display: 'Display', access: 'Accessibility', game: 'Game' };
 const SKIP = new Set(['padDiagram', 'palettePreview', 'accessNote', 'saveTools', 'externalSettings']);
 
+/** One settings row as HTML (shared by this screen and the pause menu's Settings tab, src/ui/menu/pauseSettings.js). */
+export function settingRowHTML(game, S, B, t, it) {
+  const v = S.get(it.key);
+  const lab = `<span class="pm-row-l">${esc(t(it.label || ''))}</span>`;
+  if (it.type === 'range') {
+    const p = ((v - it.min) / (it.max - it.min)) * 100;
+    return `<div class="pm-row" data-nav="range" data-key="${it.key}">${lab}<span class="pm-range" style="--p:${p.toFixed(1)}%"><input type="range" min="${it.min}" max="${it.max}" step="${it.step}" value="${v}" tabindex="-1"><output>${esc(S.formatValue(it.key))}</output></span></div>`;
+  }
+  if (it.type === 'toggle') return `<div class="pm-row" data-nav data-key="${it.key}" data-kind="toggle">${lab}<span class="pm-tog${v ? ' on' : ''}"><i></i></span><span class="pm-row-v">${v ? t('On') : t('Off')}</span></div>`;
+  if (it.type === 'choice') {
+    if (it.options.length <= 5) return `<div class="pm-row" data-nav="select" data-key="${it.key}">${lab}<span class="pm-segs">${it.options.map((op) => `<button class="pm-seg${op.value === v ? ' on' : ''}" data-val="${esc(String(op.value))}" tabindex="-1">${esc(t(op.label))}</button>`).join('')}</span></div>`;
+    return `<div class="pm-row" data-nav="select" data-key="${it.key}">${lab}<span class="pm-pick"><i>${icon('back')}</i><b>${esc(t(S.formatValue(it.key)))}</b><i>${icon('forward')}</i></span></div>`;
+  }
+  if (it.type === 'action' && it.action === 'devCode') { const on = !!game?.dev?.on; return `<div class="pm-row" data-nav data-key="${it.key}" data-kind="action">${lab}<span class="pm-row-v">${on ? t('On') : t('Off')}</span><span class="ps-btn${on ? ' danger' : ''}">${esc(t(on ? 'Turn off' : (it.button || 'Enter code')))}</span></div>`; }
+  if (it.type === 'action') return `<div class="pm-row" data-nav data-key="${it.key}" data-kind="action">${lab}<span class="ps-btn${it.danger ? ' danger' : ''}">${esc(t(it.button || 'Apply'))}</span></div>`;
+  if (it.type === 'custom' && it.widget === 'bindings') return bindingsHTML(B);
+  if (it.type === 'custom' && it.widget === 'subtitlePreview') return `<div class="pm-subprev" data-size="${S.get('subtitleSize')}" data-bg="${S.get('subtitleBackground')}"><span>${S.get('subtitleSpeaker') ? '<b>MARISOL:</b> ' : ''}Pier 7. After sunset. Don't be late.</span></div>`;
+  return '';
+}
+/** The rebindable key list (every action group, two key slots each). */
+export function bindingsHTML(B) {
+  let h = '<div class="pm-binds">';
+  for (const [g, list] of B.groups()) {
+    h += `<div class="pm-bind-grp"><div class="pm-bind-g">${esc(g)}</div>`;
+    for (const a of list) {
+      const ks = B.keysOf(a.id);
+      h += `<div class="pm-bind${B.isCustom(a.id) ? ' custom' : ''}"><span class="pm-row-l">${esc(a.label)}</span>
+        <button class="pm-key" data-nav data-bind="${a.id}" data-slot="0"${a.fixed ? ' disabled' : ''}>${B.codeGlyph(ks[0])}</button>
+        <button class="pm-key" data-nav data-bind="${a.id}" data-slot="1"${a.fixed ? ' disabled' : ''}>${ks[1] ? B.codeGlyph(ks[1]) : '<span class="pm-key-empty">+</span>'}</button></div>`;
+    }
+    h += '</div>';
+  }
+  return h + '</div>';
+}
+
 export function openSettingsScreen(game, ctx, o = {}) {
   const S = ctx.settings, B = ctx.bindings, t = ctx.t;
   const fromPause = o.from === 'pause';
@@ -30,37 +65,7 @@ export function openSettingsScreen(game, ctx, o = {}) {
   const foot = root.querySelector('.pm-set-foot');
   foot.innerHTML = `<button class="ps-btn ghost pm-set-reset" data-nav>${esc(t('Restore defaults'))}</button>`;
 
-  function row(it) {
-    const v = S.get(it.key);
-    const lab = `<span class="pm-row-l">${esc(t(it.label || ''))}</span>`;
-    if (it.type === 'range') {
-      const p = ((v - it.min) / (it.max - it.min)) * 100;
-      return `<div class="pm-row" data-nav="range" data-key="${it.key}">${lab}<span class="pm-range" style="--p:${p.toFixed(1)}%"><input type="range" min="${it.min}" max="${it.max}" step="${it.step}" value="${v}" tabindex="-1"><output>${esc(S.formatValue(it.key))}</output></span></div>`;
-    }
-    if (it.type === 'toggle') return `<div class="pm-row" data-nav data-key="${it.key}" data-kind="toggle">${lab}<span class="pm-tog${v ? ' on' : ''}"><i></i></span><span class="pm-row-v">${v ? t('On') : t('Off')}</span></div>`;
-    if (it.type === 'choice') {
-      if (it.options.length <= 5) return `<div class="pm-row" data-nav="select" data-key="${it.key}">${lab}<span class="pm-segs">${it.options.map((op) => `<button class="pm-seg${op.value === v ? ' on' : ''}" data-val="${esc(String(op.value))}" tabindex="-1">${esc(t(op.label))}</button>`).join('')}</span></div>`;
-      return `<div class="pm-row" data-nav="select" data-key="${it.key}">${lab}<span class="pm-pick"><i>${icon('back')}</i><b>${esc(t(S.formatValue(it.key)))}</b><i>${icon('forward')}</i></span></div>`;
-    }
-    if (it.type === 'action' && it.action === 'devCode') { const on = !!game?.dev?.on; return `<div class="pm-row" data-nav data-key="${it.key}" data-kind="action">${lab}<span class="pm-row-v">${on ? t('On') : t('Off')}</span><span class="ps-btn${on ? ' danger' : ''}">${esc(t(on ? 'Turn off' : (it.button || 'Enter code')))}</span></div>`; }
-    if (it.type === 'action') return `<div class="pm-row" data-nav data-key="${it.key}" data-kind="action">${lab}<span class="ps-btn${it.danger ? ' danger' : ''}">${esc(t(it.button || 'Apply'))}</span></div>`;
-    if (it.type === 'custom' && it.widget === 'bindings') return bindingsHTML();
-    if (it.type === 'custom' && it.widget === 'subtitlePreview') return `<div class="pm-subprev" data-size="${S.get('subtitleSize')}" data-bg="${S.get('subtitleBackground')}"><span>${S.get('subtitleSpeaker') ? '<b>MARISOL:</b> ' : ''}Pier 7. After sunset. Don't be late.</span></div>`;
-    return '';
-  }
-  function bindingsHTML() {
-    let h = '<div class="pm-binds">';
-    for (const [g, list] of B.groups()) {
-      h += `<div class="pm-bind-g">${esc(g)}</div>`;
-      for (const a of list) {
-        const ks = B.keysOf(a.id);
-        h += `<div class="pm-bind${B.isCustom(a.id) ? ' custom' : ''}"><span class="pm-row-l">${esc(a.label)}</span>
-          <button class="pm-key" data-nav data-bind="${a.id}" data-slot="0"${a.fixed ? ' disabled' : ''}>${B.codeGlyph(ks[0])}</button>
-          <button class="pm-key" data-nav data-bind="${a.id}" data-slot="1"${a.fixed ? ' disabled' : ''}>${ks[1] ? B.codeGlyph(ks[1]) : '<span class="pm-key-empty">+</span>'}</button></div>`;
-      }
-    }
-    return h + '</div>';
-  }
+  const row = (it) => settingRowHTML(game, S, B, t, it);
   function render(keepKey) {
     root.querySelectorAll('.pm-set-tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
     const T = S.schema.find((x) => x.id === tab);

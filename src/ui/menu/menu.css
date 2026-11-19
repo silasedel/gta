@@ -100,8 +100,6 @@ body.pm-over-pause #ps-hud .ps-pause { opacity: 0 !important; pointer-events: no
 .pm-credits-body code { font: 500 .92em var(--ps-mono); color: var(--ps-lagoon-2); }
 .pm-url { color: var(--ps-faint); word-break: break-all; }
 
-/* pause-menu extra buttons (legacy HUD) */
-.pm-pause-btns { display: inline-flex; gap: 8px; margin-left: 10px; }
 
 /* ---------------------------------------------------------------- settings */
 .pm-set { position: absolute; inset: 0; pointer-events: auto; opacity: 0; transition: opacity .3s; }
@@ -271,7 +269,7 @@ body.pm-intro #ps-hud { opacity: 0 !important; transition: opacity .4s; }
 .ps-ui .pm-seg.on { background: #fff4e3 !important; color: #3b0f46 !important; }
 .pm-tog.on, .pm-ward-cat.on { background: #ff2e8a !important; }
 .pm-row.is-focus::before, .pm-set-tab::after { background: #ff2e8a !important; box-shadow: 0 0 10px #ff2e8a !important; }
-.pm-range input::-webkit-slider-runnable-track { background: linear-gradient(90deg, #ff2e8a, #ffd23f var(--p), rgba(243, 237, 226, .16) var(--p)) !important; }
+.pm-range input::-webkit-slider-runnable-track { background: linear-gradient(90deg, #8a3cff, #f107a3 var(--p), rgba(243, 237, 226, .16) var(--p)) !important; }   /* purple -> pink, same as the pause menu */
 .pm-set-panel { width: min(94vw, calc(1240 * var(--u))) !important; top: calc(var(--safe-y) + 1vh) !important; bottom: calc(var(--safe-y) + 1vh) !important; }
 .pm-set-note { background: rgba(138, 77, 255, .14) !important; box-shadow: inset 2px 0 0 #8a4dff !important; }
 .pm-set-note svg { color: #b48bff !important; }

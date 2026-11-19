@@ -8,6 +8,7 @@ import { createCorner } from './hud/corner.js';
 import { createMapRenderer, MAP_COLORS, setMapPalette } from './mapRender.js';
 import { createGPS } from './gps.js';
 import { createPhone } from './phone/phone.js';
+import { mountPauseSettings, mountPauseControls } from './menu/pauseSettings.js';
 
 const TAU = Math.PI * 2;
 const MAP_X0 = -580, MAP_X1 = 760, MAP_Z0 = -580, MAP_Z1 = 580; // baked world rect (m)
@@ -228,7 +229,7 @@ export function createHUD(game) {
   const phone = createPhone(game, {
     root,
     drawMap: (c, o) => drawPhoneMap(c, o),
-    openPauseMap: () => { setPaused(true, false); setTab(0); },
+    openPauseMap: () => { setPaused(true, false); setTab(T_MAP); },
     setPhoto: (on) => setPhoto(!!on),
     onOpenChange: (o) => {
       ui.phoneOpen = o;
@@ -254,21 +255,30 @@ export function createHUD(game) {
   });
 
   // ---------- Pause menu ----------
+  // Tabs (user, Nov 19): Map, Wardrobe, Settings, Controls, Stats. Settings is the one settings menu (src/ui/menu/
+  // pauseSettings.js, the old "All settings" screen merged in, Codes at its bottom); Wardrobe opens the wardrobe stage.
+  // Navigation: mouse; keyboard (Q / E tabs, arrows or WASD + Enter on the Settings / Controls pages, map keys on the
+  // map, Esc resumes); controller (the bindings run in 'pause' mode: LB / RB tabs, D-pad + A, B or START resumes,
+  // sticks pan / zoom the map).
+  const T_MAP = 0, T_WARD = 1, T_SET = 2, T_CTL = 3, T_STATS = 4;
+  const TAB_NAMES = ['MAP', 'WARDROBE', 'SETTINGS', 'CONTROLS', 'STATS'];
   const pause = el('div', 'ps-pause');
   pause.innerHTML = `
     <div class="ps-pause-top">
       <div class="ps-pause-brand"><span class="ps-pb-sol">${BRAND.name.toUpperCase()}</span></div>
-      <div class="ps-tabs">${['MAP', 'STATS', 'SETTINGS', 'CONTROLS'].map((t, i) => `<button class="ps-tab${i ? '' : ' on'}" data-tab="${i}">${t}</button>`).join('')}</div>
+      <div class="ps-tabs">${TAB_NAMES.map((t, i) => `<button class="ps-tab${i ? '' : ' on'}" data-tab="${i}" data-nav>${t}</button>`).join('')}</div>
       <div class="ps-pause-meta"><span class="ps-pm-clock">18:00</span><span class="ps-pm-money">$0</span></div>
     </div>
     <div class="ps-pages">
       <div class="ps-page ps-page-map on"><canvas class="ps-bigmap"></canvas><div class="ps-map-frame"></div><div class="ps-map-zoom"><button data-z="in" title="Zoom in (+)">+</button><button data-z="out" title="Zoom out (−)">−</button><button data-z="fit" title="Whole map (F)">⤢</button><button data-z="me" title="Centre on me (C)">◎</button></div>
+        <div class="ps-map-layers"><button class="ps-map-layer" data-layer="subway" title="Subway lines (U)"><i class="ps-ml-ico"></i><span>SUBWAY</span><kbd>U</kbd></button></div>
         <div class="ps-map-loc"></div></div>
-      <div class="ps-page ps-page-stats"><div class="ps-stats-grid"></div></div>
-      <div class="ps-page ps-page-settings"><div class="ps-settings"></div></div>
-      <div class="ps-page ps-page-controls"><div class="ps-controls"></div></div>
+      <div class="ps-page ps-page-ward is-inert"><div class="ps-ward-card"><small>WARDROBE</small><h2>Dress Nico</h2><p class="ps-ward-now"></p><button class="ps-ward-open" data-nav>OPEN WARDROBE</button></div></div>
+      <div class="ps-page ps-page-settings is-inert"><div class="ps-settings"></div></div>
+      <div class="ps-page ps-page-controls is-inert"><div class="ps-controls"></div></div>
+      <div class="ps-page ps-page-stats is-inert"><div class="ps-stats-grid"></div></div>
     </div>
-    <div class="ps-pause-foot"><button class="ps-resume">RESUME <kbd>ESC</kbd></button><span class="ps-foot-tag">v${VERSION} · ${BRAND.name.toUpperCase()}</span></div>`;
+    <div class="ps-pause-foot"><button class="ps-resume" data-nav data-nav-key="start">RESUME</button><span class="ps-pause-hint"><b>Q</b><b>E</b> tabs</span><span class="ps-foot-tag">v${VERSION} · ${BRAND.name.toUpperCase()}</span></div>`;
   root.appendChild(pause);
   const tabs = [...pause.querySelectorAll('.ps-tab')], pages = [...pause.querySelectorAll('.ps-page')];
   const bigmap = pause.querySelector('.ps-bigmap'), bctx = bigmap.getContext('2d');
@@ -277,13 +287,102 @@ export function createHUD(game) {
     const r = bigmap.getBoundingClientRect(), z = b.dataset.z;
     if (z === 'in') zoomAt(r.width / 2, r.height / 2, 1.6); else if (z === 'out') zoomAt(r.width / 2, r.height / 2, 1 / 1.6); else if (z === 'fit') fitMap(); else centreOnPlayer();
   }));
+  const subwayBtn = pause.querySelector('.ps-map-layer[data-layer="subway"]');
+  const subwayOn = () => game.settings?.mapSubway !== false;
+  function setSubway(on) {
+    const S = game.uiSettings;
+    if (S?.set) S.set('mapSubway', !!on); else { game.settings.mapSubway = !!on; saveSettings(); }
+    paintSubwayBtn(); drawBigMap();
+  }
+  function paintSubwayBtn() { subwayBtn.classList.toggle('on', subwayOn()); }
+  subwayBtn.addEventListener('click', () => setSubway(!subwayOn()));
   const statsGrid = pause.querySelector('.ps-stats-grid');
   const pmClock = pause.querySelector('.ps-pm-clock'), pmMoney = pause.querySelector('.ps-pm-money');
+  const wardNow = pause.querySelector('.ps-ward-now');
   let curTab = 0;
-  tabs.forEach((t, i) => t.addEventListener('click', () => setTab(i)));
+  tabs.forEach((t, i) => t.addEventListener('click', () => { setTab(i); if (i === T_WARD) openWardrobe(); }));
   pause.querySelector('.ps-resume').addEventListener('click', () => setPaused(false, true));
-  buildSettings(pause.querySelector('.ps-settings'));
-  buildControls(pause.querySelector('.ps-controls'));
+  pause.querySelector('.ps-ward-open').addEventListener('click', () => openWardrobe());
+  function openWardrobe() {
+    const fe = game.frontEnd;
+    if (!fe?.openWardrobe) { notify('The wardrobe is not available right now', 1800); return; }
+    try { fe.openWardrobe({ from: 'pause', onClose: () => { if (ui.paused) setTab(T_WARD); } }); } catch (e) { console.warn('[hud] wardrobe', e); }
+  }
+  function paintWardrobe() {
+    let name = '';
+    try { const w = game.wardrobe; const n = w?.currentOutfit?.name || w?.outfitName; name = typeof n === 'string' ? n : ''; } catch (e) { /* */ }
+    wardNow.textContent = name ? `Wearing: ${name}` : 'Change Nico\'s outfit. The police remember what you wore.';
+  }
+  // Settings / Controls pages: the settings store and bindings live in the UI context (built by the frontend after the
+  // HUD), so the pages are mounted the first time the menu opens. Test pages without the context keep the short list.
+  let pzMounted = false;
+  function mountPausePages() {
+    if (pzMounted) return;
+    const ctx = game.uiContext;
+    if (!ctx?.settings) { if (!pause.querySelector('.ps-set-row')) { buildSettings(pause.querySelector('.ps-settings')); buildControls(pause.querySelector('.ps-controls')); } return; }
+    pzMounted = true;
+    const hs = pause.querySelector('.ps-settings'), hc = pause.querySelector('.ps-controls');
+    hs.innerHTML = ''; hc.innerHTML = '';
+    hs.classList.add('pz'); hc.classList.add('pz');
+    try { mountPauseSettings(game, ctx, hs); mountPauseControls(game, ctx, hc); } catch (e) { console.error('[hud] pause settings', e); }
+  }
+  // focus scope for the keyboard and the controller while paused
+  let pauseNav = null, leavePauseMode = null, offPadAxes = null;
+  pause.addEventListener('pz:refocus', (e) => { if (!pauseNav) return; const d = e.detail || {}; const t = d.el || (d.sel && pause.querySelector(d.sel)); if (t) pauseNav.focus(t, d.how || 'auto'); });
+  function pauseNavOn() {
+    const ctx = game.uiContext; if (!ctx?.nav || pauseNav) return;
+    const B = ctx.bindings;
+    try { leavePauseMode = B?.pushMode?.('pause') || null; } catch (e) { leavePauseMode = null; }
+    pauseNav = ctx.nav.push({
+      root: pause, wrap: true,
+      initial: '.ps-tab.on',
+      onBack: () => setPaused(false, true),
+      onTab: (d) => setTab((curTab + d + tabs.length) % tabs.length, true),
+      onAction: (name) => { if (name === 'select') setTab(T_MAP, true); },
+      onNav: (d) => {
+        // controller on the map page: the D-pad pans (the sticks are read below); triggers zoom
+        if (curTab === T_MAP && d.src === 'pad') {
+          const r = bigmap.getBoundingClientRect(), st = 160 / mapView.ppm;
+          if (d.dir === 'up') { mapView.cz -= st; clampView(); drawBigMap(); return true; }
+          if (d.dir === 'down') { mapView.cz += st; clampView(); drawBigMap(); return true; }
+          if (d.dir === 'left') { mapView.cx -= st; clampView(); drawBigMap(); return true; }
+          if (d.dir === 'right') { mapView.cx += st; clampView(); drawBigMap(); return true; }
+          if (d.dir === 'pageUp') { zoomAt(r.width / 2, r.height / 2, 1 / 1.5); return true; }
+          if (d.dir === 'pageDown') { zoomAt(r.width / 2, r.height / 2, 1.5); return true; }
+          if (d.dir === 'alt1') { fitMap(); return true; }
+          if (d.dir === 'alt2') { setSubway(!subwayOn()); return true; }
+          if (d.dir === 'accept' && pauseNav?.current?.classList.contains('ps-tab') !== true) { centreOnPlayer(); return true; }
+        }
+        return false;
+      },
+    });
+    offPadAxes = B?.on?.('padaxes', (a) => {
+      if (a.mode !== 'pause' || !ui.paused || curTab !== T_MAP || !pauseNav?.isTop()) return;
+      const sp = 900 / mapView.ppm * a.dt;
+      if (a.lx || a.ly) { mapView.cx += a.lx * sp; mapView.cz += a.ly * sp; clampView(); drawBigMap(); }
+      if (Math.abs(a.ry) > 0.25) { const r = bigmap.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, Math.exp(-a.ry * a.dt * 2.2)); }
+    }) || null;
+  }
+  function pauseNavOff() {
+    try { pauseNav?.pop(); } catch (e) { /* */ }
+    try { leavePauseMode?.(); offPadAxes?.(); } catch (e) { /* */ }
+    pauseNav = null; leavePauseMode = null; offPadAxes = null;
+  }
+  // raw keyboard while paused (the bindings leave the keyboard to the game in 'pause' mode): Q / E switch tabs, and on
+  // the pages with rows the arrows / WASD / Enter move and change them through the same focus scope
+  const PAUSE_KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'accept', NumpadEnter: 'accept', Space: 'accept', Tab: 'next', PageUp: 'pageUp', PageDown: 'pageDown', Home: 'home', End: 'end' };
+  function pauseKey(e) {
+    if (!ui.paused || !pauseNav || !pauseNav.isTop() || e.metaKey || e.ctrlKey) return false;
+    const t = e.target; if (t && (t.tagName === 'INPUT' && !/^(range|checkbox|radio|button)$/i.test(t.type) || t.tagName === 'TEXTAREA')) return false;
+    const k = e.code;
+    if ((k === 'KeyQ' || k === 'KeyE') && !e.repeat) { e.preventDefault(); setTab((curTab + (k === 'KeyE' ? 1 : -1) + tabs.length) % tabs.length, true); game.uiContext?.sfx?.('tab'); return true; }
+    if (curTab === T_MAP) { if (k === 'KeyU' && !e.repeat) { e.preventDefault(); setSubway(!subwayOn()); return true; } return false; }
+    const dir = PAUSE_KEYS[k]; if (!dir) return false;
+    if (dir === 'accept' && e.repeat) return true;
+    e.preventDefault();
+    game.uiContext.nav.send(dir, 'kbm', e.repeat);
+    return true;
+  }
 
   // ---------- Title ----------
   // The only title screen and main menu is the frontend (src/ui/menu/frontend.v2.js). The old "SOUTHLINE / CLICK TO
@@ -344,6 +443,7 @@ export function createHUD(game) {
       if (/^Digit[1-9]$/.test(k)) { const i = +k.slice(5) - 1; if (i < n) { wheelSel = i; paintWheel(); } return; }
       if (k === 'Escape') { closeWheel(false); return; }
     }
+    if (pauseKey(e)) return;
     if (e.repeat) return;
     if (ui.title) return;
     if (k === 'Escape') {
@@ -417,7 +517,8 @@ export function createHUD(game) {
   // keyboard pan / zoom while the map tab is open
   const mapKeys = new Set();
   window.addEventListener('keydown', (e) => {
-    if (!ui.paused || curTab !== 0) return;
+    if (!ui.paused || curTab !== T_MAP) return;
+    if (pauseNav && !pauseNav.isTop()) return;   // the wardrobe or the code panel sits on top
     const k = e.code;
     if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k)) { e.preventDefault(); if (!mapKeys.size) requestAnimationFrame(keyPanStep); mapKeys.add(k); }
     else if (k === 'Equal' || k === 'NumpadAdd') { const r = bigmap.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1.5); }
@@ -492,24 +593,37 @@ export function createHUD(game) {
       const pp = game.player?.position;
       if (pp) { mapView.cx = pp.x; mapView.cz = pp.z; }
       mapView.ppm = mapR.ok() && (mapBounds().maxX - mapBounds().minX) > 2500 ? 0.55 : Math.max(fitPPM() * 1.6, 0.5);
+      mountPausePages();
+      paintSubwayBtn();
       setTab(curTab);
+      pauseNavOn();
       pauseLoop();
-    } else if (relock) requestLock();
+    } else {
+      pauseNavOff();
+      if (relock) requestLock();
+    }
   }
   function pauseLoop() {
     if (!ui.paused) return;
     pmClock.textContent = fmtClock(game.timeOfDay);
     pmMoney.textContent = fmtMoney(num(game.player?.money));
-    if (curTab === 0 && !drag) drawBigMap();
-    if (curTab === 1) renderStats();
+    if (curTab === T_MAP && !drag) drawBigMap();
+    if (curTab === T_STATS) renderStats();
     setTimeout(() => requestAnimationFrame(pauseLoop), 250);
   }
-  function setTab(i) {
+  function setTab(i, focusPage) {
     curTab = i;
     tabs.forEach((t, j) => t.classList.toggle('on', i === j));
-    pages.forEach((p, j) => p.classList.toggle('on', i === j));
-    if (i === 0) requestAnimationFrame(drawBigMap);
-    if (i === 1) renderStats();
+    pages.forEach((p, j) => { p.classList.toggle('on', i === j); p.classList.toggle('is-inert', i !== j); });
+    if (i === T_MAP) requestAnimationFrame(drawBigMap);
+    if (i === T_STATS) renderStats();
+    if (i === T_WARD) paintWardrobe();
+    if (pauseNav) {
+      // keyboard / controller: land on the page's first row (Wardrobe: its button); the map keeps focus on the tab
+      const first = focusPage && i !== T_MAP ? pages[i].querySelector('.pm-row[data-nav], .ps-ward-open, [data-nav]') : null;
+      pauseNav.focus(first || tabs[i], 'auto');
+      if (first) pages[i].querySelector('.ps-scroll')?.scrollTo?.({ top: 0 });
+    }
   }
 
   function setPhoto(on) {
@@ -591,6 +705,20 @@ export function createHUD(game) {
     return [dx * t, dy * t];
   }
   let mmAcc = 0, mmDrawnOnce = false;
+  const HEADINGS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const mmProj = { cs: 1, sn: 0, cx: 0, cy: 0, px: 0, pz: 0, k: 1 }, mmPt = [0, 0], mmReserved = [0, 0, 30];
+  function mmProject(x, z) { const P = mmProj, dx = x - P.px, dz = z - P.pz; mmPt[0] = P.cx + (dx * P.cs - dz * P.sn) * P.k; mmPt[1] = P.cy + (dx * P.sn + dz * P.cs) * P.k; return mmPt; }
+  // static minimap icons: rebuilt when the player moved 10 m, the zoom changed 4 %, the shop / blip lists changed, or
+  // after 0.6 s (shops open and close); sorted once by priority
+  const miniCache = { list: null, t: 0, x: 0, z: 0, ppm: 0, shops: null, blips: null, blipN: 0 };
+  function miniStaticIcons(p, ppm) {
+    const C = miniCache, now = performance.now(), S = shops(), bl = game.mapBlips;
+    if (!C.list || now - C.t > 600 || Math.abs(p.x - C.x) > 10 || Math.abs(p.z - C.z) > 10 || Math.abs(ppm / C.ppm - 1) > 0.04 || C.shops !== S || C.blips !== bl || (bl?.length | 0) !== C.blipN) {
+      C.list = mapIcons(p, ppm, 'mini', null, false); C.list.sort((a, b) => b.prio - a.prio);
+      C.t = now; C.x = p.x; C.z = p.z; C.ppm = ppm; C.shops = S; C.blips = bl; C.blipN = bl?.length | 0;
+    }
+    return C.list;
+  }
   function drawMinimap(dt, speedKmh) {
     const g = mctx, p = game.player?.position;
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -604,7 +732,7 @@ export function createHUD(game) {
     let dA = thT - mmAngle; dA = Math.atan2(Math.sin(dA), Math.cos(dA));
     mmAngle += dA * Math.min(1, dt * 12);
     const th = mmAngle;
-    const hdg = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][((Math.round((camA + Math.PI / 2) / (Math.PI / 4)) % 8) + 8) % 8];
+    const hdg = HEADINGS[((Math.round((camA + Math.PI / 2) / (Math.PI / 4)) % 8) + 8) % 8];
     if (mmHdg.textContent !== hdg) mmHdg.textContent = hdg;
     const cx = MW / 2, cy = MH * 0.6;
     g.save();
@@ -614,6 +742,8 @@ export function createHUD(game) {
       const drawn = mapR.draw(g, p.x - R, p.z - R, p.x + R, p.z + R, mmZoom * dpr, { id: 'mini' });
       if (!drawn && bake) { g.imageSmoothingEnabled = true; g.drawImage(bake, MAP_X0, MAP_Z0, MAP_X1 - MAP_X0, MAP_Z1 - MAP_Z0); }
     }
+    // subway line (optional, off by default; cached path, see subwayData)
+    if (settings.mapSubwayMini) { const sd = subwayData(); if (sd) strokeSubway(g, sd, 1 / mmZoom, 0.7); }
     // GPS route
     if (routeShown && routeShown.length > 1) strokeRoute(g, routeShown, 1 / mmZoom, 5);
     // police search area
@@ -635,10 +765,12 @@ export function createHUD(game) {
     g.restore();
     // icons (upright, decluttered)
     {
-      const cs = Math.cos(th), sn = Math.sin(th);
-      const toScreen = (x, z) => [cx + ((x - p.x) * cs - (z - p.z) * sn) * mmZoom, cy + ((x - p.x) * sn + (z - p.z) * cs) * mmZoom];
-      const reserved = [[cx, cy, 30]];
-      placeIcons(g, mapIcons(p, Math.max(1, mmZoom), 'mini'), toScreen, MW, MH, reserved, 0.9, 6);
+      // allocation-free per frame: the static icons (landmarks, blips, shop clusters) are rebuilt a few times a second at
+      // most (miniIcons), live ones (police, pickups) come from pooled objects, the projection writes into one scratch pair
+      mmProj.cs = Math.cos(th); mmProj.sn = Math.sin(th); mmProj.cx = cx; mmProj.cy = cy; mmProj.px = p.x; mmProj.pz = p.z; mmProj.k = mmZoom;
+      mmReserved[0] = cx; mmReserved[1] = cy; mmReserved[2] = 30;
+      const ppmI = Math.max(1, mmZoom);
+      placeIconsMerged(g, miniStaticIcons(p, ppmI), dynamicIcons(p, ppmI, 'mini', null, dynMini), mmProject, MW, MH, mmReserved, 1, 0.9, 6);
     }
     // waypoint
     const wp = game.waypoint;
@@ -725,17 +857,28 @@ export function createHUD(game) {
   function shops() {
     const L = game.interiors?.list;
     if (!Array.isArray(L) || !L.length) return mapR.ok() ? [] : POIS.map((q) => ({ ...q, cat: 'other', open: true }));
-    if (shopCache && shopCache.src === L && shopCache.n === L.length && performance.now() - shopCache.t < 2000) return shopCache.out;
-    const out = [];
+    const now = performance.now();
+    if (shopCache && shopCache.src === L && shopCache.n === L.length && now - shopCache.t < 2000) return shopCache.out;
+    // every 2 s (open / closed changes): the per-interior category / glyph / name lookups are kept in shopInfo
+    const out = shopCache?.spare || [];
+    out.length = 0;
     for (const it of L) {
       const c = it?.center || it?.pos || it?.position; if (!c || !isFinite(c.x)) continue;
-      const cat = shopCat(it.type || it.kind || it.name);
-      const [glyph, col] = cat === 'other' ? SHOP_GLYPH(it.type || it.name) : CAT_STYLE[cat];
-      out.push({ x: c.x, z: c.z, c: col, glyph, cat, name: String(it.name || it.type || 'Shop'), open: it.open !== false, closed: it.open === false });
+      let o = shopInfo.get(it);
+      if (!o || o.x !== c.x || o.z !== c.z) {
+        const cat = shopCat(it.type || it.kind || it.name);
+        const [glyph, col] = cat === 'other' ? SHOP_GLYPH(it.type || it.name) : CAT_STYLE[cat];
+        o = { x: c.x, z: c.z, c: col, glyph, cat, name: String(it.name || it.type || 'Shop'), open: true, closed: false };
+        shopInfo.set(it, o);
+      }
+      o.open = it.open !== false; o.closed = it.open === false;
+      out.push(o);
     }
-    shopCache = { src: L, n: L.length, t: performance.now(), out };
+    // two arrays alternate so a list handed out earlier is never refilled while the new one is built
+    shopCache = { src: L, n: L.length, t: now, out, spare: shopCache?.out || [] };
     return out;
   }
+  const shopInfo = new WeakMap();
   function policeEntities(p) {
     const out = [], lvl = num(game.wanted?.level, num(game.player?.wanted));
     if (!(lvl > 0) || !p) return out;
@@ -764,7 +907,47 @@ export function createHUD(game) {
     }
     return out;
   }
-  function mapIcons(p, ppm, mode, view) {
+  // live icons (police while wanted, nearby pickups) from a pool: the objects are reused every frame
+  const dynMini = { list: [], pool: [] }, dynBig = { list: [], pool: [] };
+  function drawDynCop(g, x, y) { copBlipScreen(g, x, y, this.foot); }
+  function drawDynPickup(g, x, y, s) { drawPickup(g, x, y, this.mapIcon, s); }
+  function dynIcon(D, x, z, prio, draw) {
+    let o = D.pool[D.list.length]; if (!o) D.pool.push((o = { x: 0, z: 0, prio: 0, foot: false, mapIcon: null, draw: null }));
+    o.x = x; o.z = z; o.prio = prio; o.draw = draw; D.list.push(o); return o;
+  }
+  const copSeen = new Set();
+  function dynamicIcons(p, ppm, mode, view, D) {
+    D.list.length = 0;
+    const lvl = num(game.wanted?.level, num(game.player?.wanted));
+    if (lvl > 0 && p) {
+      const near = (q) => q && Math.hypot(q.x - p.x, q.z - p.z) < 400;
+      for (const u of game.police?.units || []) if (u && u.active !== false && !u.dead && u.pos && near(u.pos)) dynIcon(D, u.pos.x, u.pos.z, 95, drawDynCop).foot = true;
+      copSeen.clear();
+      for (const c of game.police?.cars || []) { const v = c?.v || c; const q = v?.mesh?.position; if (q && near(q)) { copSeen.add(v); dynIcon(D, q.x, q.z, 95, drawDynCop).foot = false; } }
+      for (const v of game.vehicles?.list || []) { if (!v || copSeen.has(v) || v.playerDriven) continue; if (!(v.police || v.typeKey === 'police')) continue; const q = v.mesh?.position; if (near(q)) dynIcon(D, q.x, q.z, 95, drawDynCop).foot = false; }
+      copSeen.clear();
+    }
+    const PL = game.pickups?.list;
+    if (Array.isArray(PL) && p) {
+      let n = 0;
+      const bound = mapR.ok() && mapR.boundary();
+      for (const pk of PL) {
+        if (!pk || !pk.active || !pk.mapIcon || !pk.pos) continue;
+        const d = Math.hypot(pk.pos.x - p.x, pk.pos.z - p.z);
+        const zoomOK = mode === 'big' && ppm >= 1.4 && view && pk.pos.x > view[0] && pk.pos.x < view[2] && pk.pos.z > view[1] && pk.pos.z < view[3];
+        if (d > 250 && !zoomOK) continue;
+        if (++n > 60) break;
+        if (bound && !mapR.inside(pk.pos.x, pk.pos.z)) continue;
+        const pr = PICKUP_PRIO[pk.mapIcon] ?? 40;
+        dynIcon(D, pk.pos.x, pk.pos.z, pr - d / 1000, drawDynPickup).mapIcon = pk.mapIcon;
+      }
+    }
+    if (D.list.length > 1) D.list.sort((a, b) => b.prio - a.prio);
+    return D.list;
+  }
+  const PICKUP_PRIO = { weapon: 70, armor: 56, health: 55, ammo: 50, cash: 45 };
+  // dyn = false: only the static icons (the minimap adds the live ones from dynamicIcons)
+  function mapIcons(p, ppm, mode, view, dyn = true) {
     const icons = [];
     for (const lm of landmarks(p)) icons.push({ x: lm.x, z: lm.z, prio: 88, lm: lm.kind, draw: (g, x, y, s) => drawLandmark(g, x, y, lm.kind, s) });
     // generic blips other systems publish (game.mapBlips: [{ x, z, kind, label, prio, draw(g, x, y, s) }]), e.g. metro stations
@@ -772,8 +955,8 @@ export function createHUD(game) {
       if (!b || !isFinite(b.x) || !isFinite(b.z) || typeof b.draw !== 'function') continue;
       icons.push({ x: b.x, z: b.z, prio: b.prio ?? 80, lm: b.kind, label: b.label, draw: (g, x, y, s) => { try { b.draw(g, x, y, s); } catch (e) { /* a bad blip must not break the map */ } } });
     }
-    for (const c of policeEntities(p)) icons.push({ ...c, prio: 95, draw: (g, x, y) => copBlipScreen(g, x, y, c.kind === 'cop') });
-    const PL = game.pickups?.list;
+    if (dyn) for (const c of policeEntities(p)) icons.push({ ...c, prio: 95, draw: (g, x, y) => copBlipScreen(g, x, y, c.kind === 'cop') });
+    const PL = dyn ? game.pickups?.list : null;
     if (Array.isArray(PL) && p) {
       let n = 0;
       for (const pk of PL) {
@@ -853,6 +1036,25 @@ export function createHUD(game) {
     }
     return { placed, shown };
   }
+  // placeIcons for two lists already sorted by priority (static + live), without allocating: placed boxes go into one
+  // reused flat array (x, y, size triples), the projection returns a scratch pair
+  const placedBuf = [];
+  function placeIconsMerged(g, A, Bl, project, W, H, reserved, nRes, s = 1, pad = 4) {
+    const R = 8 * s + pad;
+    let np = 0;
+    for (let i = 0; i < nRes * 3; i++) placedBuf[np++] = reserved[i];
+    let ia = 0, ib = 0;
+    while (ia < A.length || ib < Bl.length) {
+      const ic = ib < Bl.length && (ia >= A.length || Bl[ib].prio >= A[ia].prio) ? Bl[ib++] : A[ia++];
+      const q = project(ic.x, ic.z), x = q[0], y = q[1];
+      if (x < 8 || y < 8 || x > W - 8 || y > H - 8) continue;
+      let hit = false;
+      for (let j = 0; j < np; j += 3) { const rr = (placedBuf[j + 2] ?? R) / 2 + R / 2; if (Math.abs(placedBuf[j] - x) < rr && Math.abs(placedBuf[j + 1] - y) < rr) { hit = true; break; } }
+      if (hit) continue;
+      placedBuf[np++] = x; placedBuf[np++] = y; placedBuf[np++] = R;
+      ic.draw(g, x, y, s);
+    }
+  }
   function copBlipScreen(g, x, y, foot) {
     const blink = (performance.now() / 220 | 0) % 2, s2 = foot ? 4.2 : 5.2;
     g.save(); g.translate(x, y);
@@ -925,12 +1127,14 @@ export function createHUD(game) {
     const view = [-ox / k, -oz / k, (r.width - ox) / k, (r.height - oz) / k];
     g.save(); g.translate(ox, oz); g.scale(k, k);
     const drawn = mapR.draw(g, view[0], view[1], view[2], view[3], k * d, { budget: 28, quality: 0.75, id: 'big' });
-    if (drawn && mapR.pending > 0 && !bigPendingTimer) bigPendingTimer = setTimeout(() => { bigPendingTimer = 0; if (ui.paused && curTab === 0) drawBigMap(); }, 20);
+    if (drawn && mapR.pending > 0 && !bigPendingTimer) bigPendingTimer = setTimeout(() => { bigPendingTimer = 0; if (ui.paused && curTab === T_MAP) drawBigMap(); }, 20);
     if (!drawn && bake) g.drawImage(bake, MAP_X0, MAP_Z0, MAP_X1 - MAP_X0, MAP_Z1 - MAP_Z0);
     g.restore();
     // paper grain
     g.save(); g.globalAlpha = 0.05; g.globalCompositeOperation = 'overlay'; g.fillStyle = grain(g); g.fillRect(0, 0, r.width, r.height); g.restore();
     g.save(); g.translate(ox, oz); g.scale(k, k);
+    const sub = subwayOn() ? subwayData() : null;
+    if (sub) strokeSubway(g, sub, 1 / k, 1);
     if (routeShown && routeShown.length > 1) strokeRoute(g, routeShown, 1 / k, 4.5);
     g.restore();
     drawSearchBig((g2) => drawSearch(g2, 1 / k));
@@ -941,6 +1145,7 @@ export function createHUD(game) {
     const reserved = [];
     if (p) reserved.push([...toScreen(p.x, p.z), 34]);
     if (wp && isFinite(wp.x)) { const [wx, wy] = toScreen(wp.x, wp.z); reserved.push([wx, wy - 12, 34]); }
+    if (sub) drawSubwayStations(g, sub, toScreen, r.width, r.height, reserved);
     // story set pieces from layout.json (Nico's house, the Keys bar, ...)
     if (Array.isArray(worldLayout?.setpieces)) {
       const SP_NAMES = { nico_house: "NICO'S HOUSE", keys_bar: "LOW TIDE LOLA'S" };
@@ -1023,6 +1228,7 @@ export function createHUD(game) {
       for (const [lk, lt] of [['home', 'Home (spawn)'], ['hospital', 'Hospital (respawn)'], ['station', 'Police station']]) if (shown.some((q) => q.lm === lk)) extra.push(['lm:' + lk, lt]);
       if (shown.some((q) => q.prio >= 95)) extra.push(['cop', 'Police (while wanted)']);
       if (shown.some((q) => q.prio >= 44 && q.prio < 88 && !q.cat && !q.lm)) extra.push(['pickup', 'Pickups nearby']);
+      if (sub) extra.push(['subway', 'Southline Metro']);
       const rows = cats.length + extra.length;
       if (rows) {
         const lw = 176, lh = 14 + rows * 21, lx = r.width - lw - 14, ly = r.height - lh - 40;
@@ -1031,13 +1237,99 @@ export function createHUD(game) {
         let y = ly + 17;
         g.font = '600 12px Inter, system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
         for (const c of cats) { const st = CAT_STYLE[c]; drawPOI(g, lx + 17, y, { c: st[1], glyph: st[0] }, 0.8); g.fillStyle = 'rgba(255,255,255,.9)'; g.fillText(st[2], lx + 32, y + 0.5); y += 21; }
-        for (const [kd, txt] of extra) { if (kd === 'cop') copBlipScreen(g, lx + 17, y, true); else if (kd.startsWith('lm:')) drawLandmark(g, lx + 17, y, kd.slice(3), 0.8); else drawPickup(g, lx + 17, y, 'weapon', 0.9); g.fillStyle = 'rgba(255,255,255,.9)'; g.fillText(txt, lx + 32, y + 0.5); y += 21; }
+        for (const [kd, txt] of extra) { if (kd === 'subway') subwaySwatch(g, lx + 17, y); else if (kd === 'cop') copBlipScreen(g, lx + 17, y, true); else if (kd.startsWith('lm:')) drawLandmark(g, lx + 17, y, kd.slice(3), 0.8); else drawPickup(g, lx + 17, y, 'weapon', 0.9); g.fillStyle = 'rgba(255,255,255,.9)'; g.fillText(txt, lx + 32, y + 0.5); y += 21; }
         g.textAlign = 'center';
       }
     }
     // compass
     g.fillStyle = 'rgba(255,255,255,.75)'; g.font = '700 14px "Archivo Black", sans-serif'; g.textAlign = 'center';
     g.fillText('N', r.width - 30, 26); g.fillRect(r.width - 31, 34, 2, 18);
+  }
+  // ---- subway layer (Southline Metro: game.metro.stations in line order, see src/world/metro/metro.v2.js) ----
+  // The line is drawn in world space from a cached Path2D (no per-frame allocation); its colors follow the in-station line
+  // map (gold -> coral -> pink). Big map: on by default (setting mapSubway, U on the map); minimap: setting mapSubwayMini.
+  const SUBWAY_STOPS = ['#ffd27a', '#ff6b5a', '#ff5fa8'];
+  let subwayCache = null;
+  function subwayData() {
+    const st = game.metro?.stations;
+    if (!Array.isArray(st) || st.length < 2) return null;
+    if (subwayCache && subwayCache.src === st && subwayCache.n === st.length) return subwayCache;
+    const path = new Path2D();
+    st.forEach((s2, i) => (i ? path.lineTo(s2.kx, s2.kz) : path.moveTo(s2.kx, s2.kz)));
+    subwayCache = { src: st, n: st.length, path, grads: new Map() };
+    return subwayCache;
+  }
+  function subwayGrad(g, d) {
+    let gr = d.grads.get(g);
+    if (!gr) {
+      const a = d.src[0], b = d.src[d.n - 1];
+      gr = g.createLinearGradient(a.kx, a.kz, b.kx, b.kz);
+      SUBWAY_STOPS.forEach((c, i) => gr.addColorStop(i / (SUBWAY_STOPS.length - 1), c));
+      d.grads.set(g, gr);
+    }
+    return gr;
+  }
+  // world-space stroke; px = world units per screen pixel
+  function strokeSubway(g, d, px, s = 1) {
+    g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+    g.strokeStyle = 'rgba(14,8,24,.78)'; g.lineWidth = 8.5 * s * px; g.stroke(d.path);
+    g.strokeStyle = subwayGrad(g, d); g.lineWidth = 5 * s * px; g.stroke(d.path);
+    g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1.2 * s * px; g.stroke(d.path);
+    g.restore();
+  }
+  function subwayStop(g, x, y, r, col) {
+    g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = '#fff'; g.fill();
+    g.lineWidth = r * 0.42; g.strokeStyle = '#140c22'; g.stroke();
+    g.beginPath(); g.arc(x, y, r * 0.42, 0, TAU); g.fillStyle = col; g.fill();
+  }
+  // station dots + names; each name tries right, left, above, below of its dot and is dropped (dot kept) when all four
+  // would overlap another station's label or dot; the "METRO · street" line only shows when zoomed in
+  const subBoxes = [];
+  function drawSubwayStations(g, d, toScreen, W, H, reserved) {
+    const n = d.n, k = mapXform?.k || 1, showSub = k >= 0.75;
+    subBoxes.length = 0;
+    const pts = [];
+    for (let i = 0; i < n; i++) { const s2 = d.src[i], q = toScreen(s2.kx, s2.kz); pts.push(q); subBoxes.push([q[0] - 9, q[1] - 9, q[0] + 9, q[1] + 9]); }
+    g.save();
+    g.lineJoin = 'round'; g.textBaseline = 'middle';
+    for (let i = 0; i < n; i++) {
+      const s2 = d.src[i], [x, y] = pts[i];
+      if (x < -60 || y < -30 || x > W + 60 || y > H + 30) continue;
+      subwayStop(g, x, y, 7.5, SUBWAY_STOPS[Math.round(i / Math.max(1, n - 1) * (SUBWAY_STOPS.length - 1))]);
+      reserved.push([x, y, 26]);
+      const txt = String(s2.name || '').toUpperCase(), sub2 = 'METRO' + (s2.sub ? ' · ' + String(s2.sub).toUpperCase() : '');
+      g.font = '600 10px Inter, system-ui, sans-serif'; const sw = showSub ? g.measureText(sub2).width : 0;
+      g.font = '800 13px "Archivo Black", sans-serif'; const tw = g.measureText(txt).width;
+      const bw = Math.max(tw, sw), bh = showSub ? 28 : 15;
+      // candidate boxes [x0, y0] for: right, left, above, below
+      const cands = [[x + 13, y - 7.5, 'left'], [x - 13 - bw, y - 7.5, 'left'], [x - bw / 2, y - 14 - bh, 'left'], [x - bw / 2, y + 13, 'left']];
+      let pick = null;
+      for (const c of cands) {
+        const b = [c[0] - 2, c[1] - 2, c[0] + bw + 2, c[1] + bh + 2];
+        if (b[0] < 4 || b[2] > W - 4 || b[1] < 4 || b[3] > H - 4) continue;
+        if (subBoxes.some((o, j) => j !== i && o[0] < b[2] && o[2] > b[0] && o[1] < b[3] && o[3] > b[1])) continue;
+        pick = c; subBoxes.push(b); break;
+      }
+      if (!pick) continue;
+      const tx = pick[0], ty = pick[1] + 7.5;
+      g.textAlign = 'left';
+      g.lineWidth = 4; g.strokeStyle = 'rgba(14,8,24,.85)'; g.strokeText(txt, tx, ty);
+      g.fillStyle = '#fff'; g.fillText(txt, tx, ty);
+      if (showSub) {
+        g.font = '600 10px Inter, system-ui, sans-serif';
+        g.lineWidth = 3; g.strokeText(sub2, tx, ty + 14); g.fillStyle = '#ffb6dc'; g.fillText(sub2, tx, ty + 14);
+      }
+      reserved.push([tx + bw / 2, pick[1] + bh / 2, Math.max(bw, 60)]);
+    }
+    g.restore();
+  }
+  function subwaySwatch(g, x, y) {
+    g.save(); g.lineCap = 'round';
+    const gr = g.createLinearGradient(x - 9, 0, x + 9, 0); SUBWAY_STOPS.forEach((c, i) => gr.addColorStop(i / 2, c));
+    g.strokeStyle = 'rgba(14,8,24,.9)'; g.lineWidth = 7; g.beginPath(); g.moveTo(x - 9, y); g.lineTo(x + 9, y); g.stroke();
+    g.strokeStyle = gr; g.lineWidth = 4; g.stroke();
+    subwayStop(g, x, y, 4.5, '#ff6b5a');
+    g.restore();
   }
   function drawSetPiece(g, x, y, id, name) {
     g.save();

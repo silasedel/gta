@@ -284,8 +284,11 @@ export function createBindings(game, opts = {}) {
     if (down) setDevice('pad');
     const m = mode();
     if (m === 'capture') { if (down && captureKind !== 'key') { const r = captureResolve; captureResolve = null; modes.pop(); r?.(btn === 'START' ? null : btn); } return; }
-    if (m === 'ui' || (m === 'phone' && ['UP', 'DOWN', 'LEFT', 'RIGHT', 'A', 'B'].includes(btn))) {
+    // 'pause' (the pause menu): the controller navigates like 'ui' while the keyboard still reaches the game's own key
+    // listeners (map pan, dev keys), which the pause menu reads itself
+    if (m === 'ui' || m === 'pause' || (m === 'phone' && ['UP', 'DOWN', 'LEFT', 'RIGHT', 'A', 'B'].includes(btn))) {
       ev.emit('uipad', { btn, down });
+      if (!down) padRelease(btn);   // a game key synthesized before the menu opened (START -> Escape) still gets its keyup
       if (down) { const dir = NAV_PAD[btn]; if (dir) nav(dir, 'pad'); padState.repeat[btn] = performance.now() + 380; } else delete padState.repeat[btn];
       return;
     }
@@ -318,10 +321,10 @@ export function createBindings(game, opts = {}) {
     for (const n of Object.keys(B)) { if (B[n] !== !!padState.buttons[n]) { padState.buttons[n] = B[n]; padButton(n, B[n]); } }
     if (Math.abs(lx) + Math.abs(ly) + Math.abs(rx) + Math.abs(ry) > 0.3) setDevice('pad');
     const m = mode();
-    if (m === 'ui' || m === 'phone') {
+    if (m === 'ui' || m === 'phone' || m === 'pause') {
       for (const n of Object.keys(padState.repeat)) if (now > padState.repeat[n] && B[n]) { const dir = NAV_PAD[n]; if (dir && ['up', 'down', 'left', 'right', 'pageUp', 'pageDown'].includes(dir)) nav(dir, 'pad', { repeat: true }); padState.repeat[n] = now + 110; }
-      if (m === 'ui') ev.emit('padaxes', { lx, ly, rx, ry, lt: gp.buttons[6]?.value || 0, rt: gp.buttons[7]?.value || 0, dt });
-      if (m === 'ui') return;
+      if (m === 'ui' || m === 'pause') ev.emit('padaxes', { lx, ly, rx, ry, lt: gp.buttons[6]?.value || 0, rt: gp.buttons[7]?.value || 0, dt, mode: m });
+      if (m === 'ui' || m === 'pause') return;
     }
     // analog values for systems that want them, plus right-stick camera through the mouse-look path
     if (!inp.padMove) { inp.padMove = { x: 0, y: 0 }; inp.padLook = { x: 0, y: 0 }; inp.padTrigger = { l: 0, r: 0 }; }
@@ -423,7 +426,7 @@ export function createBindings(game, opts = {}) {
     pushMode(kind) {
       const m = { kind };
       // keys held right now would never see their keyup once the mode swallows it: release them for the game first
-      if (kind === 'ui') releaseAll();
+      if (kind === 'ui' || kind === 'pause') releaseAll();
       for (const c of [...held]) { if (isMouseCode(c)) { if (kind === 'ui') synthMouse('mouseup', +c.slice(5)); continue; } if (kind === 'ui' || PHONE_KEYS.has(c) || /^Digit\d$/.test(c)) synthKey('keyup', c); }
       modes.push(m); ev.emit('mode', mode()); return () => { const i = modes.indexOf(m); if (i >= 0) modes.splice(i, 1); ev.emit('mode', mode()); }; },
     get mode() { return mode(); },
