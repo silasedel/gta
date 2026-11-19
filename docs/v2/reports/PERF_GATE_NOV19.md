@@ -55,6 +55,13 @@
 
 | **gate High, round 2** (`bench-gate2-high`, 05:45, + empty-pool skip, 10 point lights) | 8-11 | 33 ms | 108 ms | 175 ms | 3313 ms (1 gap) | 1570 (44%) | 208 | 3541 |
 
+| **final High** (`bench-final-high`, 05:58, + Batch typed staging) | 4-6 | 31 ms | 92 ms | 150 ms | 374 ms | 1607 (39%) | 142 | 4123 |
+
+Final run per segment p50: spawn 17 ms, walk 18 ms, Keys drive 34 ms, downtown drive 42 ms, beach 26 ms, night drive 42 ms,
+Nico's dock 25 ms. Batch staging (`?batchf32=0` = old) verified: screenshots at downtown / Keys / beach / Nico's house
+match the old path (geometry identical; < 0.7% pixels differ from traffic, people, water; downtown's diff is the clock),
+zero console errors; default ON.
+
 Round 2 (05:25-05:45): Rapier `world.step` is 1.6-1.7 ms per step on a quiet machine (target < 3 ms met; putting far
 bodies to sleep by force made AI cars fight it: 33 ms, reverted). Draw submission: about half of the ~400 city prop
 pools are empty each frame and still paid a full draw setup (skipped now: render CPU 14 -> 11.5 ms); 16 -> 10 constant

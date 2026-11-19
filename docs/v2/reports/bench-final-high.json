@@ -1,0 +1,3277 @@
+{
+ "label": "final-high",
+ "map": "miami",
+ "consoleErrors": [],
+ "when": "2026-11-19T13:00:01.659Z",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Southline/2.0.0 Chrome/156.0.8078.75 Electron/45.2.1 Safari/537.36",
+ "display": {
+  "dpr": 2,
+  "css": [
+   1512,
+   949
+  ],
+  "canvas": [
+   3024,
+   1898
+  ],
+  "hz": 43,
+  "pacing": false
+ },
+ "quality": {
+  "preset": "high",
+  "look": {
+   "sharpen": 0.3,
+   "taa": "always",
+   "taaSharpen": 0.3,
+   "scaleMin": 0.67,
+   "scaleMax": 0.75,
+   "msaa": 2,
+   "minPx": 2548224
+  },
+  "pr": 2,
+  "renderScale": 0.75,
+  "shadow": {
+   "size": 4096,
+   "radius": 150,
+   "dynSize": 2048,
+   "dynRadius": 42
+  }
+ },
+ "gpuTimer": true,
+ "bootMs": 48076,
+ "gate": {
+  "frames": 4123,
+  "avgMs": 37.5,
+  "p50": 30.7,
+  "p95": 91.8,
+  "p99": 150.1,
+  "max": 374.1,
+  "over16_7": 3447,
+  "over25": 2621,
+  "over33": 1607,
+  "over50": 660,
+  "over100": 142,
+  "pass": false
+ },
+ "gcCount": 760,
+ "gcMB": 25699,
+ "heapMB": 3016,
+ "segments": [
+  {
+   "id": "load:settle",
+   "settle": true,
+   "programsLive": 880,
+   "programIdMax": 881,
+   "textures": 1314,
+   "geometries": 2406,
+   "secs": 5,
+   "frames": 181,
+   "avgMs": 28.34,
+   "p50": 24.9,
+   "p95": 64.2,
+   "p99": 116.7,
+   "max": 158.3,
+   "over16_7": 128,
+   "over25": 73,
+   "over33": 32,
+   "over50": 15,
+   "over100": 2,
+   "cpuP50": 20.7,
+   "cpuP95": 54.1,
+   "cpuP99": 88.1,
+   "calls": 597,
+   "maxCalls": 2739,
+   "tris": 3722107,
+   "gpuMs": null,
+   "gc": 19,
+   "sys": [
+    [
+     "render",
+     9.69
+    ],
+    [
+     "world.step",
+     3.26
+    ],
+    [
+     "upd:bA",
+     2.15
+    ],
+    [
+     "env",
+     1.91
+    ],
+    [
+     "upd:anon#28",
+     1.29
+    ],
+    [
+     "hud",
+     1.11
+    ],
+    [
+     "peds",
+     0.91
+    ],
+    [
+     "audio",
+     0.79
+    ],
+    [
+     "upd:y",
+     0.74
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.65
+    ],
+    [
+     "upd:anon#51",
+     0.51
+    ],
+    [
+     "fixed:boatsFixed",
+     0.26
+    ],
+    [
+     "fixed:G",
+     0.22
+    ],
+    [
+     "upd:anon#72",
+     0.16
+    ],
+    [
+     "upd:anon#2",
+     0.15
+    ],
+    [
+     "camera",
+     0.15
+    ],
+    [
+     "upd:anon#43",
+     0.14
+    ],
+    [
+     "gameplay",
+     0.12
+    ]
+   ]
+  },
+  {
+   "id": "spawn",
+   "settle": false,
+   "programsLive": 883,
+   "programIdMax": 884,
+   "textures": 1426,
+   "geometries": 2402,
+   "secs": 12.1,
+   "frames": 489,
+   "avgMs": 24.69,
+   "p50": 17.1,
+   "p95": 58.4,
+   "p99": 91.8,
+   "max": 125,
+   "over16_7": 234,
+   "over25": 130,
+   "over33": 65,
+   "over50": 38,
+   "over100": 4,
+   "cpuP50": 17.9,
+   "cpuP95": 36.6,
+   "cpuP99": 64.1,
+   "calls": 491,
+   "maxCalls": 1070,
+   "tris": 2810311,
+   "gpuMs": null,
+   "gc": 39,
+   "sys": [
+    [
+     "render",
+     9.13
+    ],
+    [
+     "world.step",
+     3.86
+    ],
+    [
+     "upd:bA",
+     1.37
+    ],
+    [
+     "upd:anon#28",
+     1.16
+    ],
+    [
+     "peds",
+     1.04
+    ],
+    [
+     "audio",
+     0.67
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.43
+    ],
+    [
+     "fixed:boatsFixed",
+     0.25
+    ],
+    [
+     "upd:anon#51",
+     0.24
+    ],
+    [
+     "fixed:G",
+     0.18
+    ],
+    [
+     "upd:anon#72",
+     0.16
+    ],
+    [
+     "hud",
+     0.16
+    ],
+    [
+     "upd:anon#2",
+     0.14
+    ],
+    [
+     "camera",
+     0.13
+    ],
+    [
+     "upd:anon#43",
+     0.12
+    ],
+    [
+     "env",
+     0.11
+    ],
+    [
+     "upd:anon#71",
+     0.1
+    ]
+   ]
+  },
+  {
+   "id": "walk",
+   "settle": false,
+   "programsLive": 924,
+   "programIdMax": 925,
+   "textures": 1452,
+   "geometries": 2418,
+   "secs": 12.1,
+   "frames": 566,
+   "avgMs": 21.45,
+   "p50": 17.6,
+   "p95": 33.4,
+   "p99": 68.1,
+   "max": 88.8,
+   "over16_7": 284,
+   "over25": 116,
+   "over33": 28,
+   "over50": 15,
+   "over100": 0,
+   "cpuP50": 17.5,
+   "cpuP95": 27.1,
+   "cpuP99": 32.9,
+   "calls": 462,
+   "maxCalls": 1050,
+   "tris": 2404014,
+   "gpuMs": null,
+   "gc": 42,
+   "sys": [
+    [
+     "render",
+     8.78
+    ],
+    [
+     "world.step",
+     3.02
+    ],
+    [
+     "upd:anon#28",
+     1.12
+    ],
+    [
+     "peds",
+     0.94
+    ],
+    [
+     "upd:anon#51",
+     0.64
+    ],
+    [
+     "audio",
+     0.62
+    ],
+    [
+     "upd:bA",
+     0.52
+    ],
+    [
+     "fixed:G",
+     0.34
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.32
+    ],
+    [
+     "fixed:boatsFixed",
+     0.23
+    ],
+    [
+     "upd:anon#2",
+     0.16
+    ],
+    [
+     "hud",
+     0.14
+    ],
+    [
+     "upd:anon#72",
+     0.12
+    ],
+    [
+     "camera",
+     0.12
+    ]
+   ]
+  },
+  {
+   "id": "keys:settle",
+   "settle": true,
+   "programsLive": 1093,
+   "programIdMax": 1094,
+   "textures": 1546,
+   "geometries": 2673,
+   "secs": 5.1,
+   "frames": 151,
+   "avgMs": 33.49,
+   "p50": 25.6,
+   "p95": 76.3,
+   "p99": 98.5,
+   "max": 109,
+   "over16_7": 135,
+   "over25": 82,
+   "over33": 46,
+   "over50": 21,
+   "over100": 1,
+   "cpuP50": 21.9,
+   "cpuP95": 56.7,
+   "cpuP99": 92.3,
+   "calls": 809,
+   "maxCalls": 1493,
+   "tris": 3583595,
+   "gpuMs": null,
+   "gc": 21,
+   "sys": [
+    [
+     "render",
+     12.88
+    ],
+    [
+     "world.step",
+     2.97
+    ],
+    [
+     "peds",
+     1.73
+    ],
+    [
+     "upd:anon#28",
+     1.42
+    ],
+    [
+     "vehicles",
+     1.26
+    ],
+    [
+     "interiors",
+     1.26
+    ],
+    [
+     "audio",
+     0.77
+    ],
+    [
+     "upd:anon#51",
+     0.58
+    ],
+    [
+     "upd:anon#2",
+     0.55
+    ],
+    [
+     "upd:bA",
+     0.51
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.36
+    ],
+    [
+     "fixed:boatsFixed",
+     0.27
+    ],
+    [
+     "fixed:G",
+     0.24
+    ],
+    [
+     "hud",
+     0.23
+    ],
+    [
+     "upd:anon#72",
+     0.2
+    ],
+    [
+     "upd:Ce",
+     0.18
+    ],
+    [
+     "gameplay",
+     0.13
+    ],
+    [
+     "env",
+     0.1
+    ]
+   ]
+  },
+  {
+   "id": "keys",
+   "settle": false,
+   "programsLive": 1211,
+   "programIdMax": 1213,
+   "textures": 2000,
+   "geometries": 3502,
+   "secs": 35.1,
+   "frames": 862,
+   "avgMs": 40.73,
+   "p50": 33.7,
+   "p95": 83.4,
+   "p99": 126.2,
+   "max": 286.3,
+   "over16_7": 793,
+   "over25": 678,
+   "over33": 455,
+   "over50": 180,
+   "over100": 20,
+   "cpuP50": 31,
+   "cpuP95": 63.8,
+   "cpuP99": 94.4,
+   "calls": 983,
+   "maxCalls": 1905,
+   "tris": 5021718,
+   "gpuMs": null,
+   "gc": 113,
+   "sys": [
+    [
+     "render",
+     14.11
+    ],
+    [
+     "world.step",
+     10.4
+    ],
+    [
+     "upd:anon#28",
+     1.68
+    ],
+    [
+     "interiors",
+     1.19
+    ],
+    [
+     "peds",
+     1.18
+    ],
+    [
+     "upd:bA",
+     1.14
+    ],
+    [
+     "audio",
+     0.71
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.63
+    ],
+    [
+     "upd:anon#2",
+     0.62
+    ],
+    [
+     "upd:y",
+     0.53
+    ],
+    [
+     "vehicles",
+     0.4
+    ],
+    [
+     "upd:anon#51",
+     0.31
+    ],
+    [
+     "fixed:boatsFixed",
+     0.27
+    ],
+    [
+     "hud",
+     0.26
+    ],
+    [
+     "upd:L",
+     0.2
+    ],
+    [
+     "upd:anon#72",
+     0.12
+    ],
+    [
+     "gameplay",
+     0.11
+    ],
+    [
+     "fixed:G",
+     0.1
+    ]
+   ]
+  },
+  {
+   "id": "downtown:settle",
+   "settle": true,
+   "programsLive": 1290,
+   "programIdMax": 1300,
+   "textures": 2214,
+   "geometries": 2908,
+   "secs": 33.7,
+   "frames": 604,
+   "avgMs": 55.86,
+   "p50": 32.4,
+   "p95": 188.8,
+   "p99": 289.9,
+   "max": 374.7,
+   "over16_7": 584,
+   "over25": 469,
+   "over33": 265,
+   "over50": 175,
+   "over100": 72,
+   "cpuP50": 29,
+   "cpuP95": 155.7,
+   "cpuP99": 287.7,
+   "calls": 606,
+   "maxCalls": 1427,
+   "tris": 4496254,
+   "gpuMs": null,
+   "gc": 84,
+   "sys": [
+    [
+     "upd:anon#2",
+     24.36
+    ],
+    [
+     "render",
+     12.15
+    ],
+    [
+     "world.step",
+     4.24
+    ],
+    [
+     "peds",
+     1.13
+    ],
+    [
+     "interiors",
+     0.94
+    ],
+    [
+     "upd:anon#28",
+     0.81
+    ],
+    [
+     "audio",
+     0.68
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.67
+    ],
+    [
+     "upd:bA",
+     0.62
+    ],
+    [
+     "upd:anon#11",
+     0.54
+    ],
+    [
+     "hud",
+     0.47
+    ],
+    [
+     "upd:anon#72",
+     0.45
+    ],
+    [
+     "upd:anon#51",
+     0.37
+    ],
+    [
+     "gameplay",
+     0.31
+    ],
+    [
+     "fixed:G",
+     0.25
+    ],
+    [
+     "vehicles",
+     0.25
+    ],
+    [
+     "upd:anon#43",
+     0.13
+    ],
+    [
+     "env",
+     0.11
+    ]
+   ]
+  },
+  {
+   "id": "downtown",
+   "settle": false,
+   "programsLive": 1275,
+   "programIdMax": 1317,
+   "textures": 2412,
+   "geometries": 3174,
+   "secs": 35,
+   "frames": 668,
+   "avgMs": 52.41,
+   "p50": 41.7,
+   "p95": 116.7,
+   "p99": 192.9,
+   "max": 280.8,
+   "over16_7": 666,
+   "over25": 631,
+   "over33": 473,
+   "over50": 186,
+   "over100": 56,
+   "cpuP50": 33.4,
+   "cpuP95": 101,
+   "cpuP99": 191,
+   "calls": 1012,
+   "maxCalls": 1759,
+   "tris": 8762464,
+   "gpuMs": null,
+   "gc": 96,
+   "sys": [
+    [
+     "render",
+     16.27
+    ],
+    [
+     "upd:anon#2",
+     9.43
+    ],
+    [
+     "world.step",
+     7.11
+    ],
+    [
+     "upd:bA",
+     1.79
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.42
+    ],
+    [
+     "peds",
+     1.31
+    ],
+    [
+     "upd:anon#28",
+     0.93
+    ],
+    [
+     "audio",
+     0.87
+    ],
+    [
+     "hud",
+     0.66
+    ],
+    [
+     "upd:anon#51",
+     0.52
+    ],
+    [
+     "interiors",
+     0.35
+    ],
+    [
+     "upd:anon#1",
+     0.18
+    ],
+    [
+     "upd:L",
+     0.18
+    ],
+    [
+     "upd:anon#43",
+     0.17
+    ],
+    [
+     "upd:C",
+     0.16
+    ],
+    [
+     "upd:anon#34",
+     0.16
+    ],
+    [
+     "gameplay",
+     0.15
+    ],
+    [
+     "vehicles",
+     0.12
+    ]
+   ]
+  },
+  {
+   "id": "beach:settle",
+   "settle": true,
+   "programsLive": 1304,
+   "programIdMax": 1363,
+   "textures": 2642,
+   "geometries": 3609,
+   "secs": 23,
+   "frames": 489,
+   "avgMs": 46.99,
+   "p50": 29.2,
+   "p95": 132.2,
+   "p99": 249,
+   "max": 740.8,
+   "over16_7": 479,
+   "over25": 333,
+   "over33": 164,
+   "over50": 94,
+   "over100": 42,
+   "cpuP50": 26,
+   "cpuP95": 109.4,
+   "cpuP99": 244.9,
+   "calls": 647,
+   "maxCalls": 1618,
+   "tris": 5846927,
+   "gpuMs": null,
+   "gc": 73,
+   "sys": [
+    [
+     "upd:anon#2",
+     13.97
+    ],
+    [
+     "render",
+     12.11
+    ],
+    [
+     "world.step",
+     4
+    ],
+    [
+     "upd:bA",
+     2.01
+    ],
+    [
+     "peds",
+     1.95
+    ],
+    [
+     "interiors",
+     1.17
+    ],
+    [
+     "upd:anon#28",
+     0.81
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.74
+    ],
+    [
+     "upd:anon#72",
+     0.62
+    ],
+    [
+     "upd:anon#51",
+     0.47
+    ],
+    [
+     "hud",
+     0.35
+    ],
+    [
+     "audio",
+     0.29
+    ],
+    [
+     "fixed:G",
+     0.23
+    ],
+    [
+     "vehicles",
+     0.23
+    ],
+    [
+     "upd:anon#43",
+     0.16
+    ],
+    [
+     "gameplay",
+     0.13
+    ],
+    [
+     "env",
+     0.1
+    ]
+   ]
+  },
+  {
+   "id": "beach",
+   "settle": false,
+   "programsLive": 1305,
+   "programIdMax": 1364,
+   "textures": 2673,
+   "geometries": 3681,
+   "secs": 15.1,
+   "frames": 520,
+   "avgMs": 29.13,
+   "p50": 25.5,
+   "p95": 47.6,
+   "p99": 98.5,
+   "max": 130.6,
+   "over16_7": 487,
+   "over25": 309,
+   "over33": 75,
+   "over50": 22,
+   "over100": 4,
+   "cpuP50": 23.2,
+   "cpuP95": 38.8,
+   "cpuP99": 88,
+   "calls": 703,
+   "maxCalls": 1080,
+   "tris": 7293585,
+   "gpuMs": null,
+   "gc": 37,
+   "sys": [
+    [
+     "render",
+     13.33
+    ],
+    [
+     "world.step",
+     4.32
+    ],
+    [
+     "peds",
+     2.5
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.6
+    ],
+    [
+     "upd:anon#72",
+     0.48
+    ],
+    [
+     "interiors",
+     0.43
+    ],
+    [
+     "fixed:G",
+     0.42
+    ],
+    [
+     "hud",
+     0.42
+    ],
+    [
+     "upd:anon#51",
+     0.39
+    ],
+    [
+     "upd:bA",
+     0.37
+    ],
+    [
+     "audio",
+     0.27
+    ],
+    [
+     "camera",
+     0.21
+    ],
+    [
+     "upd:anon#2",
+     0.17
+    ],
+    [
+     "upd:anon#28",
+     0.13
+    ],
+    [
+     "upd:R",
+     0.12
+    ]
+   ]
+  },
+  {
+   "id": "night:settle",
+   "settle": true,
+   "programsLive": 1297,
+   "programIdMax": 1387,
+   "textures": 2643,
+   "geometries": 3108,
+   "secs": 24.3,
+   "frames": 519,
+   "avgMs": 46.81,
+   "p50": 27.9,
+   "p95": 133,
+   "p99": 248.7,
+   "max": 406.4,
+   "over16_7": 507,
+   "over25": 359,
+   "over33": 169,
+   "over50": 105,
+   "over100": 47,
+   "cpuP50": 26.6,
+   "cpuP95": 118.7,
+   "cpuP99": 247.8,
+   "calls": 630,
+   "maxCalls": 971,
+   "tris": 4616898,
+   "gpuMs": null,
+   "gc": 79,
+   "sys": [
+    [
+     "upd:anon#2",
+     19.15
+    ],
+    [
+     "render",
+     12.29
+    ],
+    [
+     "world.step",
+     3.7
+    ],
+    [
+     "peds",
+     1.08
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.79
+    ],
+    [
+     "audio",
+     0.73
+    ],
+    [
+     "upd:anon#28",
+     0.68
+    ],
+    [
+     "upd:bA",
+     0.59
+    ],
+    [
+     "upd:anon#72",
+     0.55
+    ],
+    [
+     "interiors",
+     0.54
+    ],
+    [
+     "fixed:G",
+     0.31
+    ],
+    [
+     "upd:anon#11",
+     0.3
+    ],
+    [
+     "hud",
+     0.3
+    ],
+    [
+     "upd:anon#1",
+     0.17
+    ],
+    [
+     "vehicles",
+     0.17
+    ],
+    [
+     "upd:anon#51",
+     0.16
+    ],
+    [
+     "gameplay",
+     0.14
+    ],
+    [
+     "upd:anon#43",
+     0.12
+    ]
+   ]
+  },
+  {
+   "id": "night",
+   "settle": false,
+   "programsLive": 1279,
+   "programIdMax": 1390,
+   "textures": 2709,
+   "geometries": 3201,
+   "secs": 30.1,
+   "frames": 538,
+   "avgMs": 55.82,
+   "p50": 41.7,
+   "p95": 126.5,
+   "p99": 192.6,
+   "max": 374.1,
+   "over16_7": 536,
+   "over25": 505,
+   "over33": 401,
+   "over50": 182,
+   "over100": 53,
+   "cpuP50": 35.4,
+   "cpuP95": 114,
+   "cpuP99": 193.2,
+   "calls": 989,
+   "maxCalls": 1521,
+   "tris": 8422137,
+   "gpuMs": null,
+   "gc": 77,
+   "sys": [
+    [
+     "render",
+     15.9
+    ],
+    [
+     "world.step",
+     12.35
+    ],
+    [
+     "upd:anon#2",
+     11.33
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.38
+    ],
+    [
+     "upd:anon#28",
+     1.05
+    ],
+    [
+     "upd:bA",
+     0.81
+    ],
+    [
+     "audio",
+     0.79
+    ],
+    [
+     "peds",
+     0.76
+    ],
+    [
+     "hud",
+     0.51
+    ],
+    [
+     "upd:anon#51",
+     0.27
+    ],
+    [
+     "interiors",
+     0.23
+    ],
+    [
+     "upd:L",
+     0.22
+    ],
+    [
+     "upd:anon#43",
+     0.16
+    ],
+    [
+     "upd:anon#1",
+     0.14
+    ],
+    [
+     "upd:anon#14",
+     0.13
+    ],
+    [
+     "vehicles",
+     0.12
+    ],
+    [
+     "gameplay",
+     0.12
+    ],
+    [
+     "env",
+     0.12
+    ]
+   ]
+  },
+  {
+   "id": "house:settle",
+   "settle": true,
+   "programsLive": 1279,
+   "programIdMax": 1391,
+   "textures": 2730,
+   "geometries": 3104,
+   "secs": 12,
+   "frames": 309,
+   "avgMs": 39.1,
+   "p50": 25.3,
+   "p95": 100,
+   "p99": 225,
+   "max": 301.6,
+   "over16_7": 298,
+   "over25": 175,
+   "over33": 82,
+   "over50": 39,
+   "over100": 13,
+   "cpuP50": 25.7,
+   "cpuP95": 91.7,
+   "cpuP99": 169.3,
+   "calls": 651,
+   "maxCalls": 1217,
+   "tris": 2617708,
+   "gpuMs": null,
+   "gc": 41,
+   "sys": [
+    [
+     "render",
+     11.41
+    ],
+    [
+     "upd:anon#2",
+     6.57
+    ],
+    [
+     "world.step",
+     4.81
+    ],
+    [
+     "peds",
+     1.66
+    ],
+    [
+     "upd:anon#28",
+     1.33
+    ],
+    [
+     "upd:anon#11",
+     0.91
+    ],
+    [
+     "vehicles",
+     0.91
+    ],
+    [
+     "upd:bA",
+     0.76
+    ],
+    [
+     "audio",
+     0.67
+    ],
+    [
+     "upd:y",
+     0.53
+    ],
+    [
+     "upd:anon#72",
+     0.45
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.44
+    ],
+    [
+     "fixed:boatsFixed",
+     0.42
+    ],
+    [
+     "interiors",
+     0.28
+    ],
+    [
+     "upd:anon#51",
+     0.26
+    ],
+    [
+     "fixed:G",
+     0.21
+    ],
+    [
+     "hud",
+     0.17
+    ],
+    [
+     "camera",
+     0.13
+    ]
+   ]
+  },
+  {
+   "id": "house",
+   "settle": false,
+   "programsLive": 1279,
+   "programIdMax": 1391,
+   "textures": 2816,
+   "geometries": 3114,
+   "secs": 15.1,
+   "frames": 480,
+   "avgMs": 31.48,
+   "p50": 25.2,
+   "p95": 84.1,
+   "p99": 100.4,
+   "max": 124.2,
+   "over16_7": 447,
+   "over25": 252,
+   "over33": 110,
+   "over50": 37,
+   "over100": 5,
+   "cpuP50": 23.7,
+   "cpuP95": 46.4,
+   "cpuP99": 58.3,
+   "calls": 630,
+   "maxCalls": 1118,
+   "tris": 2302494,
+   "gpuMs": null,
+   "gc": 39,
+   "sys": [
+    [
+     "render",
+     11.93
+    ],
+    [
+     "world.step",
+     6.79
+    ],
+    [
+     "upd:anon#28",
+     1.42
+    ],
+    [
+     "peds",
+     1.16
+    ],
+    [
+     "audio",
+     0.63
+    ],
+    [
+     "upd:anon#51",
+     0.53
+    ],
+    [
+     "upd:bA",
+     0.46
+    ],
+    [
+     "fixed:G",
+     0.44
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.4
+    ],
+    [
+     "fixed:boatsFixed",
+     0.36
+    ],
+    [
+     "upd:anon#72",
+     0.31
+    ],
+    [
+     "upd:anon#2",
+     0.16
+    ],
+    [
+     "hud",
+     0.16
+    ],
+    [
+     "upd:anon#43",
+     0.13
+    ],
+    [
+     "camera",
+     0.13
+    ],
+    [
+     "interiors",
+     0.12
+    ],
+    [
+     "env",
+     0.12
+    ]
+   ]
+  }
+ ],
+ "worst": [
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 5.52,
+   "gap": 374.1,
+   "work": 85.8,
+   "top": [
+    [
+     "world.step",
+     52.8
+    ],
+    [
+     "render",
+     11.2
+    ],
+    [
+     "upd:anon#2",
+     6.1
+    ],
+    [
+     "upd:bA",
+     3.5
+    ],
+    [
+     "upd:anon#14",
+     1.9
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.7
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 891,
+   "gcMB": 0,
+   "heapMB": 4768
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 28.89,
+   "gap": 366.9,
+   "work": 28.1,
+   "top": [
+    [
+     "render",
+     13.2
+    ],
+    [
+     "upd:anon#2",
+     4
+    ],
+    [
+     "world.step",
+     3.5
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.5
+    ],
+    [
+     "upd:anon#51",
+     1.5
+    ],
+    [
+     "peds",
+     1.1
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1097,
+   "gcMB": 0,
+   "heapMB": 4745
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 18.63,
+   "gap": 291.6,
+   "work": 31.5,
+   "top": [
+    [
+     "render",
+     13.2
+    ],
+    [
+     "world.step",
+     5.8
+    ],
+    [
+     "upd:anon#2",
+     3.7
+    ],
+    [
+     "upd:bA",
+     2.2
+    ],
+    [
+     "upd:anon#28",
+     1.4
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1221,
+   "gcMB": 0,
+   "heapMB": 4758
+  },
+  {
+   "seg": "keys",
+   "settle": false,
+   "t": 0.53,
+   "gap": 286.3,
+   "work": 36.1,
+   "top": [
+    [
+     "render",
+     15
+    ],
+    [
+     "upd:anon#2",
+     3.9
+    ],
+    [
+     "upd:bA",
+     3.2
+    ],
+    [
+     "world.step",
+     2.8
+    ],
+    [
+     "peds",
+     1.9
+    ],
+    [
+     "hud",
+     1.7
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 898,
+   "gcMB": 0,
+   "heapMB": 2757
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 1.95,
+   "gap": 280.8,
+   "work": 32.7,
+   "top": [
+    [
+     "render",
+     15.4
+    ],
+    [
+     "upd:anon#2",
+     6.4
+    ],
+    [
+     "world.step",
+     3.5
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.7
+    ],
+    [
+     "peds",
+     1.3
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 814,
+   "gcMB": 0,
+   "heapMB": 4532
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 13.38,
+   "gap": 265.6,
+   "work": 40.4,
+   "top": [
+    [
+     "render",
+     15.6
+    ],
+    [
+     "world.step",
+     7.4
+    ],
+    [
+     "upd:anon#2",
+     4.6
+    ],
+    [
+     "env",
+     1.9
+    ],
+    [
+     "upd:anon#14",
+     1.8
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.5
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1016,
+   "gcMB": 0,
+   "heapMB": 4688
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 28.55,
+   "gap": 250,
+   "work": 35.4,
+   "top": [
+    [
+     "render",
+     14.5
+    ],
+    [
+     "world.step",
+     7.4
+    ],
+    [
+     "upd:anon#2",
+     3.2
+    ],
+    [
+     "upd:bA",
+     2.6
+    ],
+    [
+     "upd:anon#28",
+     1.8
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.7
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1092,
+   "gcMB": 0,
+   "heapMB": 4700
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 9.63,
+   "gap": 232.8,
+   "work": 31.8,
+   "top": [
+    [
+     "render",
+     13.8
+    ],
+    [
+     "world.step",
+     6.5
+    ],
+    [
+     "upd:anon#2",
+     3.3
+    ],
+    [
+     "upd:anon#28",
+     1.9
+    ],
+    [
+     "audio",
+     1.6
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 729,
+   "gcMB": 0,
+   "heapMB": 4593
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 3.94,
+   "gap": 232.3,
+   "work": 30,
+   "top": [
+    [
+     "render",
+     13.4
+    ],
+    [
+     "upd:anon#2",
+     4.7
+    ],
+    [
+     "world.step",
+     3.7
+    ],
+    [
+     "peds",
+     2.4
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.6
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 743,
+   "gcMB": 0,
+   "heapMB": 4531
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 18.91,
+   "gap": 225.1,
+   "work": 39.8,
+   "top": [
+    [
+     "render",
+     16.8
+    ],
+    [
+     "world.step",
+     6.9
+    ],
+    [
+     "upd:anon#2",
+     4.4
+    ],
+    [
+     "upd:anon#14",
+     1.9
+    ],
+    [
+     "upd:C",
+     1.5
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.2
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1048,
+   "gcMB": 0,
+   "heapMB": 4774
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 4.94,
+   "gap": 216.8,
+   "work": 63.4,
+   "top": [
+    [
+     "world.step",
+     43.6
+    ],
+    [
+     "render",
+     10.4
+    ],
+    [
+     "upd:anon#2",
+     4.5
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.4
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 747,
+   "gcMB": 0,
+   "heapMB": 4747
+  },
+  {
+   "seg": "keys",
+   "settle": false,
+   "t": 1.6,
+   "gap": 208.4,
+   "work": 48.7,
+   "top": [
+    [
+     "render",
+     16.9
+    ],
+    [
+     "world.step",
+     14.1
+    ],
+    [
+     "upd:anon#2",
+     6.4
+    ],
+    [
+     "peds",
+     2.4
+    ],
+    [
+     "upd:anon#28",
+     1.7
+    ],
+    [
+     "interiors",
+     1.3
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 882,
+   "gcMB": 0,
+   "heapMB": 2772
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 1.63,
+   "gap": 196.7,
+   "work": 35.6,
+   "top": [
+    [
+     "render",
+     14.8
+    ],
+    [
+     "world.step",
+     5.2
+    ],
+    [
+     "upd:anon#2",
+     4.9
+    ],
+    [
+     "upd:anon#28",
+     2.4
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.8
+    ],
+    [
+     "peds",
+     1.3
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 972,
+   "gcMB": 0,
+   "heapMB": 4483
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 10.66,
+   "gap": 192.9,
+   "work": 56.7,
+   "top": [
+    [
+     "render",
+     39.4
+    ],
+    [
+     "upd:anon#2",
+     3.4
+    ],
+    [
+     "upd:anon#28",
+     3.3
+    ],
+    [
+     "world.step",
+     3.2
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.3
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 984,
+   "gcMB": 0,
+   "heapMB": 4637
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 14.18,
+   "gap": 192.6,
+   "work": 30.3,
+   "top": [
+    [
+     "render",
+     14.1
+    ],
+    [
+     "upd:anon#2",
+     5
+    ],
+    [
+     "world.step",
+     4.5
+    ],
+    [
+     "upd:anon#28",
+     1.3
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1021,
+   "gcMB": 0,
+   "heapMB": 4758
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 20.97,
+   "gap": 191.8,
+   "work": 40.4,
+   "top": [
+    [
+     "render",
+     15.4
+    ],
+    [
+     "world.step",
+     13.2
+    ],
+    [
+     "upd:anon#2",
+     5.2
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.6
+    ],
+    [
+     "audio",
+     1.1
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1050,
+   "gcMB": 0,
+   "heapMB": 4834
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 9.51,
+   "gap": 191.7,
+   "work": 43.5,
+   "top": [
+    [
+     "world.step",
+     16.6
+    ],
+    [
+     "render",
+     11.3
+    ],
+    [
+     "upd:anon#2",
+     7.8
+    ],
+    [
+     "upd:anon#28",
+     1.8
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 771,
+   "gcMB": 0,
+   "heapMB": 4688
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 13.05,
+   "gap": 190.9,
+   "work": 62.7,
+   "top": [
+    [
+     "render",
+     43.9
+    ],
+    [
+     "world.step",
+     4.8
+    ],
+    [
+     "upd:anon#2",
+     3.5
+    ],
+    [
+     "upd:anon#14",
+     1.7
+    ],
+    [
+     "upd:C",
+     1.1
+    ],
+    [
+     "peds",
+     1.1
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1021,
+   "gcMB": 0,
+   "heapMB": 4685
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 31.2,
+   "gap": 190.7,
+   "work": 35.8,
+   "top": [
+    [
+     "render",
+     14.9
+    ],
+    [
+     "world.step",
+     6.5
+    ],
+    [
+     "upd:anon#2",
+     5.1
+    ],
+    [
+     "upd:anon#28",
+     2.3
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1178,
+   "gcMB": 0,
+   "heapMB": 4651
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 19.55,
+   "gap": 190.6,
+   "work": 37.2,
+   "top": [
+    [
+     "render",
+     15.4
+    ],
+    [
+     "world.step",
+     9.9
+    ],
+    [
+     "upd:anon#2",
+     4.8
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.7
+    ],
+    [
+     "upd:anon#28",
+     1.2
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1235,
+   "gcMB": 0,
+   "heapMB": 4757
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 21.61,
+   "gap": 183.3,
+   "work": 37.4,
+   "top": [
+    [
+     "render",
+     13.7
+    ],
+    [
+     "world.step",
+     11.5
+    ],
+    [
+     "upd:anon#2",
+     6.1
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.9
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1075,
+   "gcMB": 0,
+   "heapMB": 4870
+  },
+  {
+   "seg": "night",
+   "settle": false,
+   "t": 13.69,
+   "gap": 183.2,
+   "work": 33.7,
+   "top": [
+    [
+     "render",
+     14.7
+    ],
+    [
+     "upd:anon#2",
+     6.3
+    ],
+    [
+     "world.step",
+     6.2
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1029,
+   "gcMB": 0,
+   "heapMB": 4724
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 12.34,
+   "gap": 183,
+   "work": 38.2,
+   "top": [
+    [
+     "render",
+     16.2
+    ],
+    [
+     "world.step",
+     8.2
+    ],
+    [
+     "upd:anon#2",
+     5
+    ],
+    [
+     "upd:anon#28",
+     2.6
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.6
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1190,
+   "gcMB": 0,
+   "heapMB": 4681
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 0.68,
+   "gap": 181.1,
+   "work": 36,
+   "top": [
+    [
+     "render",
+     16
+    ],
+    [
+     "world.step",
+     7.5
+    ],
+    [
+     "upd:anon#2",
+     4.4
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.8
+    ],
+    [
+     "interiors",
+     1.7
+    ],
+    [
+     "peds",
+     1.1
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 766,
+   "gcMB": 0,
+   "heapMB": 4471
+  },
+  {
+   "seg": "downtown",
+   "settle": false,
+   "t": 20.49,
+   "gap": 176.6,
+   "work": 42,
+   "top": [
+    [
+     "render",
+     15.8
+    ],
+    [
+     "world.step",
+     10.7
+    ],
+    [
+     "upd:anon#2",
+     8.1
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.9
+    ],
+    [
+     "audio",
+     1.1
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 1050,
+   "gcMB": 0,
+   "heapMB": 4769
+  }
+ ],
+ "worstSettle": [
+  {
+   "seg": "beach:settle",
+   "settle": true,
+   "t": 2.43,
+   "gap": 740.8,
+   "work": 55.6,
+   "top": [
+    [
+     "upd:anon#11",
+     10
+    ],
+    [
+     "render",
+     9
+    ],
+    [
+     "upd:anon#2",
+     8.8
+    ],
+    [
+     "gameplay",
+     7.8
+    ],
+    [
+     "upd:anon#28",
+     6.3
+    ],
+    [
+     "vehicles",
+     3.6
+    ]
+   ],
+   "newPrograms": 1,
+   "calls": 289,
+   "gcMB": 0,
+   "heapMB": 4643
+  },
+  {
+   "seg": "night:settle",
+   "settle": true,
+   "t": 18.21,
+   "gap": 406.4,
+   "work": 33.5,
+   "top": [
+    [
+     "render",
+     12.1
+    ],
+    [
+     "upd:anon#2",
+     4.2
+    ],
+    [
+     "world.step",
+     3.3
+    ],
+    [
+     "upd:anon#72",
+     2.9
+    ],
+    [
+     "upd:anon#14",
+     2
+    ],
+    [
+     "env",
+     1.2
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 960,
+   "gcMB": 0,
+   "heapMB": 4814
+  },
+  {
+   "seg": "downtown:settle",
+   "settle": true,
+   "t": 23.15,
+   "gap": 374.7,
+   "work": 33.3,
+   "top": [
+    [
+     "render",
+     10.1
+    ],
+    [
+     "upd:anon#2",
+     6.2
+    ],
+    [
+     "world.step",
+     3.8
+    ],
+    [
+     "upd:bA",
+     2.6
+    ],
+    [
+     "upd:anon#72",
+     2.6
+    ],
+    [
+     "peds",
+     1.4
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 629,
+   "gcMB": 102,
+   "heapMB": 4742
+  },
+  {
+   "seg": "downtown:settle",
+   "settle": true,
+   "t": 14.9,
+   "gap": 352,
+   "work": 30.7,
+   "top": [
+    [
+     "render",
+     10.2
+    ],
+    [
+     "upd:anon#2",
+     9.2
+    ],
+    [
+     "world.step",
+     3
+    ],
+    [
+     "peds",
+     1.4
+    ],
+    [
+     "audio",
+     1.2
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 633,
+   "gcMB": 0,
+   "heapMB": 3691
+  },
+  {
+   "seg": "downtown:settle",
+   "settle": true,
+   "t": 22.28,
+   "gap": 350.9,
+   "work": 33.3,
+   "top": [
+    [
+     "render",
+     11.3
+    ],
+    [
+     "upd:anon#2",
+     8.8
+    ],
+    [
+     "upd:bA",
+     3.5
+    ],
+    [
+     "world.step",
+     3.3
+    ],
+    [
+     "peds",
+     1.4
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 640,
+   "gcMB": 0,
+   "heapMB": 4385
+  },
+  {
+   "seg": "downtown:settle",
+   "settle": true,
+   "t": 5.26,
+   "gap": 335.9,
+   "work": 26.5,
+   "top": [
+    [
+     "upd:anon#2",
+     9.2
+    ],
+    [
+     "render",
+     7
+    ],
+    [
+     "world.step",
+     2.2
+    ],
+    [
+     "upd:anon#14",
+     1.5
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 431,
+   "gcMB": 0,
+   "heapMB": 3221
+  },
+  {
+   "seg": "night:settle",
+   "settle": true,
+   "t": 19.9,
+   "gap": 329.2,
+   "work": 29.8,
+   "top": [
+    [
+     "render",
+     11
+    ],
+    [
+     "upd:anon#2",
+     5.9
+    ],
+    [
+     "world.step",
+     3.5
+    ],
+    [
+     "upd:anon#72",
+     2.8
+    ],
+    [
+     "peds",
+     1.1
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 636,
+   "gcMB": 25,
+   "heapMB": 4684
+  },
+  {
+   "seg": "beach:settle",
+   "settle": true,
+   "t": 13.86,
+   "gap": 325.1,
+   "work": 30.2,
+   "top": [
+    [
+     "render",
+     11.9
+    ],
+    [
+     "upd:anon#2",
+     4.3
+    ],
+    [
+     "world.step",
+     3.7
+    ],
+    [
+     "upd:anon#72",
+     3.6
+    ],
+    [
+     "peds",
+     1.4
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 656,
+   "gcMB": 0,
+   "heapMB": 4314
+  },
+  {
+   "seg": "downtown:settle",
+   "settle": true,
+   "t": 26.77,
+   "gap": 308.4,
+   "work": 41.4,
+   "top": [
+    [
+     "world.step",
+     14
+    ],
+    [
+     "render",
+     11.3
+    ],
+    [
+     "upd:anon#2",
+     6.1
+    ],
+    [
+     "upd:anon#72",
+     2.8
+    ],
+    [
+     "peds",
+     1.5
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 951,
+   "gcMB": 0,
+   "heapMB": 4504
+  },
+  {
+   "seg": "house:settle",
+   "settle": true,
+   "t": 1.09,
+   "gap": 301.6,
+   "work": 44.2,
+   "top": [
+    [
+     "render",
+     11.2
+    ],
+    [
+     "interiors",
+     7.9
+    ],
+    [
+     "upd:anon#11",
+     7
+    ],
+    [
+     "upd:anon#2",
+     4.9
+    ],
+    [
+     "world.step",
+     4.1
+    ],
+    [
+     "peds",
+     2.6
+    ]
+   ],
+   "newPrograms": 0,
+   "calls": 735,
+   "gcMB": 0,
+   "heapMB": 4762
+  }
+ ],
+ "longFrames": [
+  {
+   "t": 294653,
+   "dur": 92,
+   "scripts": []
+  },
+  {
+   "t": 294997,
+   "dur": 93,
+   "scripts": []
+  },
+  {
+   "t": 295423,
+   "dur": 93,
+   "scripts": []
+  },
+  {
+   "t": 295862,
+   "dur": 91,
+   "scripts": []
+  },
+  {
+   "t": 296533,
+   "dur": 92,
+   "scripts": []
+  },
+  {
+   "t": 297066,
+   "dur": 57,
+   "scripts": []
+  },
+  {
+   "t": 297492,
+   "dur": 93,
+   "scripts": []
+  },
+  {
+   "t": 298057,
+   "dur": 91,
+   "scripts": []
+  },
+  {
+   "t": 298276,
+   "dur": 93,
+   "scripts": []
+  },
+  {
+   "t": 298607,
+   "dur": 95,
+   "scripts": []
+  },
+  {
+   "t": 299169,
+   "dur": 91,
+   "scripts": []
+  },
+  {
+   "t": 299801,
+   "dur": 92,
+   "scripts": []
+  },
+  {
+   "t": 300041,
+   "dur": 55,
+   "scripts": []
+  },
+  {
+   "t": 300096,
+   "dur": 65,
+   "scripts": []
+  },
+  {
+   "t": 301326,
+   "dur": 92,
+   "scripts": []
+  },
+  {
+   "t": 301603,
+   "dur": 54,
+   "scripts": []
+  },
+  {
+   "t": 302071,
+   "dur": 91,
+   "scripts": []
+  },
+  {
+   "t": 302841,
+   "dur": 91,
+   "scripts": []
+  },
+  {
+   "t": 303104,
+   "dur": 52,
+   "scripts": []
+  },
+  {
+   "t": 303447,
+   "dur": 101,
+   "scripts": []
+  },
+  {
+   "t": 303593,
+   "dur": 92,
+   "scripts": []
+  },
+  {
+   "t": 304246,
+   "dur": 89,
+   "scripts": []
+  },
+  {
+   "t": 304989,
+   "dur": 114,
+   "scripts": []
+  },
+  {
+   "t": 305830,
+   "dur": 108,
+   "scripts": []
+  },
+  {
+   "t": 306063,
+   "dur": 53,
+   "scripts": []
+  },
+  {
+   "t": 306478,
+   "dur": 50,
+   "scripts": []
+  },
+  {
+   "t": 306528,
+   "dur": 54,
+   "scripts": []
+  },
+  {
+   "t": 306582,
+   "dur": 52,
+   "scripts": []
+  },
+  {
+   "t": 306635,
+   "dur": 55,
+   "scripts": []
+  },
+  {
+   "t": 306689,
+   "dur": 54,
+   "scripts": []
+  },
+  {
+   "t": 306744,
+   "dur": 66,
+   "scripts": []
+  },
+  {
+   "t": 306810,
+   "dur": 124,
+   "scripts": []
+  },
+  {
+   "t": 306934,
+   "dur": 50,
+   "scripts": []
+  },
+  {
+   "t": 306984,
+   "dur": 52,
+   "scripts": []
+  },
+  {
+   "t": 307183,
+   "dur": 51,
+   "scripts": []
+  },
+  {
+   "t": 307281,
+   "dur": 51,
+   "scripts": []
+  },
+  {
+   "t": 307331,
+   "dur": 51,
+   "scripts": []
+  },
+  {
+   "t": 307382,
+   "dur": 56,
+   "scripts": []
+  },
+  {
+   "t": 307703,
+   "dur": 105,
+   "scripts": []
+  },
+  {
+   "t": 308474,
+   "dur": 103,
+   "scripts": []
+  }
+ ],
+ "stream": {
+  "maxStep": {
+   "near": 302.69999999552965,
+   "mid": 385.70000000298023,
+   "far": 66.70000000298023,
+   "col": 334.79999999701977
+  },
+  "longSteps": {
+   "near>30": 118,
+   "col>100": 6,
+   "col>30": 31,
+   "mid>30": 93,
+   "mid>100": 59,
+   "near>100": 46,
+   "far>30": 2
+  },
+  "msByKind": {
+   "col": 4878.399999901652,
+   "mid": 30324.800000309944,
+   "near": 19444.699999906123,
+   "far": 2111.399999961257
+  },
+  "idleMs": 21,
+  "longList": [
+   [
+    "near",
+    273044,
+    273118,
+    -1,
+    -3
+   ],
+   [
+    "near",
+    273282,
+    273372,
+    1,
+    -3
+   ],
+   [
+    "mid",
+    279501,
+    279572,
+    -2,
+    -3
+   ],
+   [
+    "mid",
+    279635,
+    279708,
+    -2,
+    -3
+   ],
+   [
+    "col",
+    280381,
+    280716,
+    0,
+    -4
+   ],
+   [
+    "col",
+    281224,
+    281344,
+    -1,
+    -4
+   ],
+   [
+    "col",
+    281381,
+    281466,
+    -1,
+    -4
+   ],
+   [
+    "near",
+    282485,
+    282577,
+    1,
+    -4
+   ],
+   [
+    "near",
+    282583,
+    282721,
+    1,
+    -4
+   ],
+   [
+    "near",
+    282785,
+    283012,
+    1,
+    -4
+   ],
+   [
+    "near",
+    283129,
+    283210,
+    1,
+    -4
+   ],
+   [
+    "mid",
+    284813,
+    284901,
+    -2,
+    6
+   ],
+   [
+    "near",
+    285814,
+    285878,
+    -5,
+    26
+   ],
+   [
+    "near",
+    286823,
+    286891,
+    -6,
+    27
+   ],
+   [
+    "mid",
+    287547,
+    287614,
+    -2,
+    7
+   ],
+   [
+    "mid",
+    287694,
+    287778,
+    -2,
+    7
+   ],
+   [
+    "mid",
+    288910,
+    288978,
+    -2,
+    4
+   ],
+   [
+    "mid",
+    289058,
+    289144,
+    -2,
+    4
+   ],
+   [
+    "mid",
+    289280,
+    289426,
+    -2,
+    4
+   ],
+   [
+    "far",
+    291191,
+    291258,
+    -9,
+    8
+   ]
+  ]
+ },
+ "updaters": [
+  [
+   0,
+   "",
+   "o=>{var c,l;if(s+=o||.016,s<.2)return;s=0;const a=(c=R.camera)==null?void 0:c.position;a&&(t.x=a.x,t.z=a.z);const r=(l=R.player)==null?void "
+  ],
+  [
+   1,
+   "",
+   "function(G){U.update(G,globalThis.game)}"
+  ],
+  [
+   2,
+   "",
+   "ce=>Ye.update(ce)"
+  ],
+  [
+   3,
+   "Ce",
+   "function Ce(){var ne;const Ge=(ne=f.player)==null?void 0:ne.position;if(!Ge||!g.seabedDepthAt)return;const te=Math.round(Ge.x/20)*20,q=Math."
+  ],
+  [
+   4,
+   "X",
+   "function X(t){var a,d,i,h,c,M;for(let e=T.length-1;e>=0;e--){const s=T[e];if(s.t-=t,s.body){if(s.t<=0||!R.getRigidBody(s.body.handle)){try{R"
+  ],
+  [
+   5,
+   "z",
+   "function z(t){if(s.length){t=Math.min(t,.05);for(let r=s.length-1;r>=0;r--){const e=s[r];e.t+=t;const o=e.t>p-6?Math.max(0,(p-e.t)/6):1;e.co"
+  ],
+  [
+   6,
+   "pt",
+   "function pt(t){var d,e,k,w,R,_,v,F,D,yt,ut,ht,rt,xt;if(W.paused)return;Y-=t;const o=performance.now(),n=(d=l.vehicles)==null?void 0:d.list;i"
+  ],
+  [
+   7,
+   "bA",
+   "function bA(W){var ig,gg,rg,Fg,mA,Ae,le,Ne,he,nt,og,mg,Bg,cg,Ug,Eg,hg,Ut,Cg,kg,$g,dg,yg,Ci,Li,wi,pi,Zg,ai,aI,Wi;if((hA+=W)>1.2){hA=0;try{con"
+  ],
+  [
+   8,
+   "",
+   "()=>{var JA;(JA=gI[o.weapon])!=null&&JA.melee&&!o.state.inVehicle&&(o.state.punch=!1)}"
+  ],
+  [
+   9,
+   "",
+   "ZA=>{if(V-=ZA,V<=0){V=.5;try{gA()}catch{}}}"
+  ],
+  [
+   10,
+   "",
+   "ZA=>{var eA,fA;if($-=ZA,!(l.state.inVehicle||$>0||I.ui.dead))for(const GA of((eA=I.vehicles)==null?void 0:eA.list)||[]){let U;try{U=GA.body."
+  ],
+  [
+   11,
+   "",
+   "function(){var eA,fA,GA,U;if(de)try{(fA=(eA=I.city)==null?void 0:eA.update)==null||fA.call(eA,0),(U=(GA=I.city)==null?void 0:GA.update)==nul"
+  ],
+  [
+   12,
+   "",
+   "function(){const t=n.camera;t.getWorldPosition(h),f=(n.renderer.domElement.height||1080)/P.degToRad(t.fov||60),r.stats.main=0,r.stats.shadow"
+  ],
+  [
+   13,
+   "",
+   "function(M){try{u.update(M)}catch(A){console.error(\"[systems] update\",A)}}"
+  ],
+  [
+   14,
+   "",
+   "function(i){if((L-=i)<=0){L=1;try{n()}catch{}}}"
+  ],
+  [
+   15,
+   "C",
+   "function C(_){var f,e,n,r,d,a,h,i;const L=(f=t.vegetation)==null?void 0:f.trunksNear;if(!L)return;const u=(e=t.player)==null?void 0:e.positi"
+  ],
+  [
+   16,
+   "C",
+   "function C(_){var f,e,n;const L=((f=t.vegetation)==null?void 0:f.rocksNear)||((e=t.countryside)==null?void 0:e.rocksNear);if(!L)return;const"
+  ],
+  [
+   17,
+   "",
+   "function(k){var E,P,W;if((T-=k)>0)return;T=.12;const b=(((E=t.vehicles)==null?void 0:E.list)||[]).find($=>$.playerDriven);if(!(b!=null&&b.bo"
+  ],
+  [
+   18,
+   "",
+   "function(k){if(R.t<=0||!t.camera)return;R.t-=k;const b=Math.max(0,R.t/.25),y=R.amp*b*Math.sin((.25-R.t)*70);t.camera.rotateX(y*.6),t.camera."
+  ],
+  [
+   19,
+   "",
+   "function(){var e;if(!C.size)return;const f=((e=t.clock)==null?void 0:e.elapsed)??performance.now()/1e3;for(const n of C){if(!n.checks.length"
+  ],
+  [
+   20,
+   "ee",
+   "function ee(e){var l,o,a,h,r,s;if(!i.on)return;const t=z.camera;if(!t)return;const n=((l=z.player)==null?void 0:l.position)||t.position;i.ce"
+  ],
+  [
+   21,
+   "L",
+   "function L(){var r;const e=performance.now(),a=e-b;if(b=e,s.tierLocked){h=!1,i.auto=!1;return}if(!(!h||!t.ready||(r=t.ui)!=null&&r.paused||d"
+  ],
+  [
+   22,
+   "",
+   "function(){var c;const t=Math.max(.5,Math.min(1,((c=n.post)==null?void 0:c.renderScale)??1));s.k=Math.round(s.preset/t*20)/20,y()}"
+  ],
+  [
+   23,
+   "",
+   "function(t){try{ae(t)}catch(r){G._err2||(G._err2=!0,console.error(\"[weather] tick\",r))}}"
+  ],
+  [
+   24,
+   "",
+   "function(t){d+=t}"
+  ],
+  [
+   25,
+   "",
+   "function(t){if(f&&(m+=t||0)>2){m=0;try{for(const n of c){if(v(n))continue;c.delete(n);const r=s.get(n);if(s.delete(n),r&&n.geometry!==r&&i.h"
+  ],
+  [
+   26,
+   "",
+   "function(t){var i,o,a,p;try{d.update(t)}catch(c){console.warn(\"[playerRagdoll] update\",c)}if(l.t+=t,l.phase===\"rag\"){l.lethal?e.health>0&&(d"
+  ],
+  [
+   27,
+   "Be",
+   "function Be(s){var v;if(te-=s,te>0)return;te=.2;const t=ue.position.x,o=ue.position.z;let c=0;for(const a of B.guides){const u=(a.x-t)**2+(a"
+  ],
+  [
+   28,
+   "",
+   "t=>{var o,n,e,a,l,s,i,d,u,k;try{Q+=t||0;const c=ge.uVegTime.value;if(r.vegetation.freezeWind||(c===J?me(Q,r.scene,null,r.wind):(me(c,r.scene"
+  ],
+  [
+   29,
+   "",
+   "c=>{d(c)}"
+  ],
+  [
+   30,
+   "",
+   "w=>{if(A+=w,m.sandTime.value=A,M.done)return;const i=performance.now();for(;performance.now()-i<4&&!N.next().done;);M.ms+=performance.now()-"
+  ],
+  [
+   31,
+   "",
+   "function(){L()}"
+  ],
+  [
+   32,
+   "",
+   "function(E){var r,y,u,b;l0.timeOfDay=P.timeOfDay,l0.camera.copy(P.camera.position).applyMatrix4($0),P.camera.getWorldDirection(l0.camDir).tr"
+  ],
+  [
+   33,
+   "",
+   "function(o){if(!L){if((w-=o)>0||s>120)return;w=1,s++;const t0=P.boatSystem;if(!(t0!=null&&t0.spawn))return;try{L=t0.spawn(\"skiff\",{x:m.pos.x"
+  ],
+  [
+   34,
+   "",
+   "function(e){if(!i.camera)return;P+=e||.016;const g=i.camera.position,d=Math.hypot(g.x-N,g.z-te);(d>2||P>1.5&&d>.3)&&(P=0,ue())}"
+  ],
+  [
+   35,
+   "",
+   "()=>{const n=r.timeOfDay??12;D.uEmis.value=n<6.3||n>19.2?1:0}"
+  ],
+  [
+   36,
+   "",
+   "n=>{k0&&k.landBase||m0>=8||(X+=n,X>h0&&(X=0,h0=Math.min(30,h0*2),m0++,T0()))}"
+  ],
+  [
+   37,
+   "",
+   "()=>{const m=r.camera;m&&(_.visible=Math.hypot(m.position.x-x.x,m.position.z-x.z)<450)}"
+  ],
+  [
+   38,
+   "",
+   "a=>{var p;const h=t.player.position;h.distanceToSquared(S.group.position)>500*500||(b.copy(h),S.group.worldToLocal(b),x=Math.max(0,x-a),S.up"
+  ],
+  [
+   39,
+   "",
+   "D=>{var _0,B0,Z0,A0,b0;const z=(_0=n.player)==null?void 0:_0.position;if(!(!z||z.distanceToSquared(l.group.position)>400*400)){if(!Y&&z.dist"
+  ],
+  [
+   40,
+   "y",
+   "function y(M){var z;try{const T=C.timeOfDay??12;B.uNight.value=T>=19.2||T<5.4?1:T>17.8?(T-17.8)/1.4:T<6.6?(6.6-T)/1.2:0,P0.copy(C.camera.pos"
+  ],
+  [
+   41,
+   "e",
+   "function e(){var h,r,l,z;try{const t=K.camera.position,M=((h=K.player)==null?void 0:h.position)||t,u=(((r=y.uNight)==null?void 0:r.value)??0"
+  ],
+  [
+   42,
+   "",
+   "u=>{var o,l,d,C,c,D;y+=u;const f=(o=a.player)==null?void 0:o.position,i=(l=a.camera)==null?void 0:l.position;x.update(y,i||f,(d=a.env)==null"
+  ],
+  [
+   43,
+   "",
+   "()=>{const r=De[0];if(!r)return;const s=o.renderer,e=[r.tex.a,r.tex.n,r.tex.o].find(n=>n&&!n.userData.warm);if(!e){De.shift();return}try{s.i"
+  ],
+  [
+   44,
+   "",
+   "r=>{var y;if(D-=r,D>0)return;D=.4;const s=W(),e=(y=o.camera)==null?void 0:y.position,n=new Map,a=[];for(const p of b)if(!(!p.root.visible||!"
+  ],
+  [
+   45,
+   "",
+   "e=>{r-=e,!(r>0)&&(r=5,s()&&(tt.on=!0))}"
+  ],
+  [
+   46,
+   "",
+   "r=>{var f,y,p,v,w,B,N;for(const g of A)g.c.update(r,{speed:0,grounded:!0,lookAt:(f=o.player)!=null&&f.position&&g.c.root.position.distanceTo"
+  ],
+  [
+   47,
+   "",
+   "r=>{var y,p;if(fe-=r,fe>0)return;fe=4;const s=(y=o.player)==null?void 0:y.position;if(!s)return;const e=K(s),n=I(s.x,s.z),a=O(s,n),f=Le(n,nu"
+  ],
+  [
+   48,
+   "",
+   "i=>{var _,S,D;if(oe-=i,oe>0||(oe=4,c))return;const l=(_=o.player)==null?void 0:_.position;if(!l)return;const m=((o.timeOfDay??14)%24+24)%24;"
+  ],
+  [
+   49,
+   "",
+   "i=>{for(const l of b)try{l.character.update(i,{speed:l.speed||0,grounded:!0,lookAt:l.lookAt})}catch(m){console.warn(\"[npc] staged\",m),b.dele"
+  ],
+  [
+   50,
+   "",
+   "i=>{try{G(Math.min(i,.1))}catch(l){console.warn(\"[npc] promenade\",l)}}"
+  ],
+  [
+   51,
+   "",
+   "e=>{var n,i,a;try{Fe(e)}catch{}try{io(Math.min(e,.1))}catch(s){console.warn(\"[people] crowd\",s)}try{co(e)}catch{}try{v()}catch{}try{lo(e)}ca"
+  ],
+  [
+   52,
+   "",
+   "function(e){var r,a;if(!(e>0)||(r=t.ui)!=null&&r.paused)return;const n=t.player;let o=null;for(const i of x){if(i.marker.userData.ring.rotat"
+  ],
+  [
+   53,
+   "",
+   "function(r){var t,n,s;if(!(!(r>0)||(t=o.ui)!=null&&t.paused)&&(o.input.pressed(\"KeyK\")&&(W(o)||u.owner===\"jobs\")&&(u.open&&u.owner===\"jobs\"?"
+  ],
+  [
+   54,
+   "L",
+   "function L(n){var v,h,s;if(P-=n,P<=0){P=2;try{W()}catch{}U()}const m=a.camera,l=((v=a.vehicles)==null?void 0:v.list)||[];for(const t of l)if"
+  ],
+  [
+   55,
+   "",
+   "C=>{var M,A,W;const R=(M=p.camera)==null?void 0:M.position;if(!R)return;(S-=C)<=0&&(S=1,v=s.nearGlades(R.x,R.z,500)&&!((A=p.interiors)!=null"
+  ],
+  [
+   56,
+   "",
+   "function(n){var a,d,f,c,i,w,x,g,z,A,k,_,X,st,it,Z,lt;try{const D=e.player;if(!D)return;const _t=e.ui||{},q=_t.paused||_t.phoneOpen||r.busy;i"
+  ],
+  [
+   57,
+   "",
+   "function(t){var a,l,f;if(!(t>0))return;const s=(a=e.player)==null?void 0:a.position;if(s){if(r-=t,r<=0){r=.5;for(const o of i.sites){const u"
+  ],
+  [
+   58,
+   "",
+   "function(t){var o;!(t>0)||(o=e.ui)!=null&&o.paused||(Y(t),k(t),ct(t))}"
+  ],
+  [
+   59,
+   "R",
+   "function R(s){var w,n,o,g,A,P,h,z,x,H;const d=e.player,V=d==null?void 0:d.position;if(!V)return;const Y=((w=e.clock)==null?void 0:w.elapsed)"
+  ],
+  [
+   60,
+   "",
+   "function(l){var c,o,b;if(!(l>0))return;const u=w();if(!u)return;const p=u.mode===\"platform\"&&!u.busy?\"platform\":u.mode;if(p!==t.mode){const "
+  ],
+  [
+   61,
+   "",
+   "function(a){var d;const n=g();if(!n||n.mode===\"street\"||!n.kit){M=-1;return}if(!h&&(h=k(),!h)||(n.here!==M&&(M=n.here,D(),n.mode===\"platform"
+  ],
+  [
+   62,
+   "",
+   "n=>{var p,l;const r=H();if(!r)return;S-=n,Q-=n,tt-=n,S<=0&&e.garbage.length&&P(r);for(let f=e.garbage.length-1;f>=0;f--){const h=e.garbage[f"
+  ],
+  [
+   63,
+   "",
+   "function(e){var a,d,h,f,r,p,x;if(!(e>0)||(a=i.ui)!=null&&a.paused)return;const o=E();if(L-=e,H-=e,L<=0){L=2;const t=(()=>{try{return y.distr"
+  ],
+  [
+   64,
+   "",
+   "()=>{const t=o.scene;t&&r(t.environment)}"
+  ],
+  [
+   65,
+   "",
+   "()=>{var t;const e=(t=i.player)==null?void 0:t.state;e!=null&&e.inVehicle&&e.vehicle&&!e.vehicle.isBoat&&(s.lastCar=e.vehicle.typeKey||e.veh"
+  ],
+  [
+   66,
+   "",
+   "function(){if(a.length){r.length=0;for(let e=0;e<a.length&&r.length<64;e++){const s=a[e];s.__psGateQ=!1,s.material&&r.push(s)}a.splice(0,Mat"
+  ],
+  [
+   67,
+   "",
+   "function(){var A,P,H,$,L,Q,R;const a=performance.now(),x=a-F;if(F=a,!e.shown)return;if(f&&m.length)try{S()}catch{}if(e.frames[e.i]=x,e.work["
+  ],
+  [
+   68,
+   "",
+   "function(l){var a,f,u,m,S,d;if(g||(a=o.ui)!=null&&a.title||(f=o.ui)!=null&&f.paused||(u=o.ui)!=null&&u.dead||(m=o.frontEnd)!=null&&m.active|"
+  ],
+  [
+   69,
+   "",
+   "function(n){p&&(p.s+=n*p.speed)}"
+  ],
+  [
+   70,
+   "st",
+   "function st(ZA){var eA,fA;if(Le.acc+=ZA,Le.frames++,Le.worst=Math.max(Le.worst,ZA),Le.acc>=.5&&(Le.fps=Le.frames/Le.acc,Le.ms=Le.acc/Le.fram"
+  ],
+  [
+   71,
+   "",
+   "function(eA){var SA,FA;const fA=l.state,GA=fA.vehicle,U=fA.inVehicle?((GA==null?void 0:GA.submerged)||0)>=.8:!!l.headUnderwater;U?l.breath=M"
+  ],
+  [
+   72,
+   "",
+   "function(eA){var SA,FA;const fA=l.state;if(I.ui.weaponWheel&&!I.input.down(\"Tab\")){if(ze.wheelT+=eA,ze.wheelT>.5){try{(FA=(SA=I.hud)==null?v"
+  ],
+  [
+   73,
+   "",
+   "()=>{Number.isFinite(l.health)?Ve=l.health:(console.warn(\"[player] health was NaN, restored\"),l.health=Ve),Number.isFinite(l.armor)?Xt=l.arm"
+  ]
+ ],
+ "tookSecs": 261,
+ "loadBefore": "4.18 5.90 6.89",
+ "loadAfter": "5.84 6.18 6.70"
+}
