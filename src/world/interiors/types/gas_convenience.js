@@ -4,7 +4,7 @@
 import { registerStoreType } from '../registry.js';
 import { cut, rw, rd } from '../plan.js';
 import { clamp } from '../kit/util.js';
-import { family, gondola, wallShelf, coolerBank, checkout, trashCan, floorSign, mopBucket, cctvDome, convexMirror, exitSign, wallFan, floorMat, atm } from '../fixtures/retail.js';
+import { family, gondola, gondolaGen, wallShelf, wallShelfGen, coolerBank, coolerBankGen, checkout, trashCan, floorSign, mopBucket, cctvDome, convexMirror, exitSign, wallFan, floorMat, atm } from '../fixtures/retail.js';
 import { stockRack, handTruck, officeDesk, safe, dvr, restroom, lockers, wallClock, lightSwitch, breakerPanel } from '../fixtures/backroom.js';
 import { stack, shelfRun } from '../items/stock.js';
 import { magRack, basketStack, chestFreezer } from '../fixtures/aisles.js';
@@ -67,7 +67,7 @@ registerStoreType({
     const bs = P.spans(S, 'back', 1.6)[0]; let coolers = null;
     if (bs) { const n = Math.max(2, Math.min(8, Math.floor((bs.len - 0.15) / 0.76))), mid = (bs.a + bs.b) / 2, at = P.onFace(bs.face, mid, 0), hdr = prints.make('coolhdr', 600, 90, (g, w, h) => { g.fillStyle = v.pal[0]; g.fillRect(0, 0, w, h); g.fillStyle = v.pal[1]; g.font = '900 58px Arial Black, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(v.cooler, w / 2, h / 2 + 3, w - 30); }, { lit: 1.25, ch: 1 });
       const plans = [[BEER, ['lobo-lager', 'cayo-light'], ['cayo-tall', 'cayo-light'], ['lobo-lager'], ['malta-faro', 'cayo-tall']], [SODA, SODA.slice(2), SODA20, SODA20.slice(2), ['zumbo-cola-20', 'tiki-orange-20']], [ENERGY, ['voltra', 'voltra-riptide'], ['voltra-mango', 'tocororo-cold'], ['rally-orange', 'rally-blue'], ENERGY], [WATER, ['aguamar'], ['aguamar-1l', 'bayleaf-tea'], ['vaca-choc', 'bayleaf-tea'], ['aguamar']], [DAIRY, ['egg-sandwich', 'tuna-sandwich'], ['vaca-choc', 'tocororo-cold'], ['vaca-milk'], ['bayleaf-gallon']]];
-      coolers = coolerBank(ctx, at.x, at.z, at.ry, { doors: n, plans: R.shuffle(plans), header: hdr, headerC: v.pal[0], led: v.led }); P.take(bs.face, mid - n * 0.38 - 0.1, mid + n * 0.38 + 0.1); }
+      coolers = yield* coolerBankGen(ctx, at.x, at.z, at.ry, { doors: n, plans: R.shuffle(plans), header: hdr, headerC: v.pal[0], led: v.led }); P.take(bs.face, mid - n * 0.38 - 0.1, mid + n * 0.38 + 0.1); }
     yield;
     // ---- food service wall opposite the checkout: coffee, roller grill, fountain; then wall shelving to the back
     const ox = -fl * (S.w / 2), ory = fl * Math.PI / 2, fz0 = S.z1 - 0.9, fsl = clamp(S.d * 0.42, 2.6, 4.2);
@@ -91,14 +91,14 @@ registerStoreType({
     yield;
     // side walls: shelving in whatever wall length is left
     for (const side of ['left', 'right']) for (const sp of P.spans(S, side, 1.3)) { const food = (side === 'left') === (fl > 0), a = Math.max(sp.a, S.z0 + 0.1), b = Math.min(sp.b, food ? fz0 - fsl - 0.15 : cz - cl / 2 - 0.5); if (b - a < 1.3) continue; const at = P.onFace(sp.face, (a + b) / 2, 0);
-      wallShelf(ctx, at.x, at.z, at.ry, { l: b - a - 0.1, h: 2.05, plan: [MISC, PANTRY, SNACK, CHIPS, ['zumbo-cola-2l', 'alivio']], pegs: PEGS, pegsFrom: 4 }); for (let u = a + 0.6; u < b - 0.3; u += 1.3) poster(R.pick(['voltra', 'zumbo-cola', 'crunchero-bbq', 'cayo-light', 'tiki-pina', 'lobo-lager']), at.x + sp.face.nx * 0.012, 2.6, u, at.ry, 0.44); }
+      yield* wallShelfGen(ctx, at.x, at.z, at.ry, { l: b - a - 0.1, h: 2.05, plan: [MISC, PANTRY, SNACK, CHIPS, ['zumbo-cola-2l', 'alivio']], pegs: PEGS, pegsFrom: 4 }); for (let u = a + 0.6; u < b - 0.3; u += 1.3) poster(R.pick(['voltra', 'zumbo-cola', 'crunchero-bbq', 'cayo-light', 'tiki-pina', 'lobo-lager']), at.x + sp.face.nx * 0.012, 2.6, u, at.ry, 0.44); }
     yield;
     // ---- gondolas in the middle, running front to back
     const gx0 = Math.min(cx, -cx) + 1.3 + (fl < 0 ? 0.9 : 0.9), gx1 = Math.max(cx, -cx) - 1.5, frz = S.d > 10.5 && R.chance(0.65), gz1 = S.z1 - 2.6 - (frz ? 1.8 : 0), gz0 = S.z0 + 0.82 + 1.5, gl = Math.max(0, Math.min(9, gz1 - gz0)), ng = gl > 1.6 ? Math.max(1, Math.floor((gx1 - gx0 + 1.25) / 2.15)) : 0;
     const rx = /Rx|Drugs|Farmacia|Pharmacy/.test(p.name), plansA = rx ? [[DEPT.beauty.slice(1), DEPT.health.slice(0, 3), DEPT.health.slice(3), DEPT.beauty], [DEPT.household.slice(3), DEPT.paper, DEPT.beauty.slice(2), DEPT.health], [CHIPS, SNACK, DEPT.cookies.slice(0, 3), DEPT.health.slice(2)]]
       : [[PANTRY, MISC, SNACK, CHIPS], [CHIPS, SNACK, ['donpepe-mariquitas', 'quesitos'], CHIPS.slice(1)], [['zumbo-cola-2l', 'torque-oil'], PANTRY, ['dona-pastelito', 'dona-cake'], SNACK], [DEPT.paper.slice(1), DEPT.household.slice(3), DEPT.health.slice(0, 3), DEPT.cookies.slice(2)]];
     for (let i = 0; i < ng; i++) { const gx = ng === 1 ? (gx0 + gx1) / 2 : gx0 + 0.45 + i * (gx1 - gx0 - 0.9) / (ng - 1); const sg = prints.promo(R.pick(['SNACK DEAL', 'OFERTA', 'MIX & MATCH']), R.pick(['2 FOR $6', '3 X $5', '2 FOR $4']), R.pick(['Any Crunchero 8 oz', 'Tiki Tang 12 oz cans', 'VOLTRA 16 oz']), { bg: v.pal[1] === '#ffffff' ? '#ffd21f' : v.pal[1], band: v.pal[0] });
-      gondola(ctx, gx, (gz0 + gz1) / 2, Math.PI / 2, { l: gl, h: v.tier === 'luxury' ? 1.3 : 1.45, rows: 2, sides: [plansA[i % plansA.length], plansA[(i + 1) % plansA.length]], ends: [{ pegs: PEGS, sign: sg }, i % 2 ? { pegs: PEGS.slice(2) } : [BARS, SNACK, CHIPS, ['aguamar']]] }); if (i % 2 === 0) yield; }
+      yield* gondolaGen(ctx, gx, (gz0 + gz1) / 2, Math.PI / 2, { l: gl, h: v.tier === 'luxury' ? 1.3 : 1.45, rows: 2, sides: [plansA[i % plansA.length], plansA[(i + 1) % plansA.length]], ends: [{ pegs: PEGS, sign: sg }, i % 2 ? { pegs: PEGS.slice(2) } : [BARS, SNACK, CHIPS, ['aguamar']]] }); if (i % 2 === 0) yield; }
     // ---- front of store: beer stacks, ATM, trash, mats, wet floor sign, ice
     const fx = -fl * (S.w / 2 - 1.1); stack(ctx, 'cayo-12', fx * 0.45, y0, S.z1 - 0.75, 2, 1, 4); stack(ctx, 'lobo-12', fx * 0.45 + 0.95 * -fl, y0, S.z1 - 0.75, 2, 1, 3); ctx.G.at(fx * 0.45, S.z1 - 0.75, 0, () => ctx.solid(-1.4, 0, -0.2, 0.5, 0.5, 0.2, { occ: false }));
     atm(ctx, fl * (S.w / 2 - 0.4), S.z1 - 0.45, -fl * Math.PI / 2 + (fl > 0 ? 0 : 0)); trashCan(ctx, P.doorX + fl * -1.5, S.z1 - 0.4); floorMat(ctx, P.doorX, S.z1 - 2.2, 1.6, 0.9, [40, 36, 32]);

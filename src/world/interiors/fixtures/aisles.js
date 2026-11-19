@@ -3,7 +3,7 @@
 // display counters (pawn / gun / jewelry). Same conventions as retail.js: build into ctx.G in the fixture's own frame, add colliders,
 // shadows, POIs and items through the stock helpers. Big stores call these per group and `yield` between them.
 import * as THREE from 'three';
-import { gondola, checkout } from './retail.js';
+import { gondola, gondolaGen, checkout } from './retail.js';
 import { shelfRun, stack } from '../items/stock.js';
 import { FIXTURES as LIGHT } from '../lighting.js';
 import { productSize } from '../items/catalog.js';
@@ -21,7 +21,7 @@ export function aisleSign(ctx, x, z, yCeil, num, cats, o = {}) {
 // a block of gondolas running along z between z0 and z1 (store frame), centers at xs. plans(i) -> { sides: [a, b], ends: [a, b] }
 export function* aisleBlock(ctx, xs, z0, z1, o = {}) {
   const l = z1 - z0, cz = (z0 + z1) / 2; let i = 0;
-  for (const x of xs) { const pl = o.plans(i); gondola(ctx, x, cz, Math.PI / 2, { l, h: o.h || 1.65, levels: o.levels || 5, d: o.d || 0.42, sides: pl.sides, ends: pl.ends, rows: o.rows, block: o.block }); i++; yield; }
+  for (const x of xs) { const pl = o.plans(i); yield* gondolaGen(ctx, x, cz, Math.PI / 2, { l, h: o.h || 1.65, levels: o.levels || 5, d: o.d || 0.42, sides: pl.sides, ends: pl.ends, rows: o.rows, block: o.block }); i++; yield; }
   if (o.signs) for (let k = 0; k <= xs.length; k++) { if (!o.signs[k]) continue; const ax = k === 0 ? xs[0] - (o.gap ?? 1.0) : k === xs.length ? xs[xs.length - 1] + (o.gap ?? 1.0) : (xs[k - 1] + xs[k]) / 2; if (o.inRoom && !o.inRoom(ax)) continue; aisleSign(ctx, ax, cz, o.yCeil, k + 1, o.signs[k], { c: o.signC, ry: Math.PI / 2 }); }
 }
 

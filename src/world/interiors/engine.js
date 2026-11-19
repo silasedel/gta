@@ -15,8 +15,9 @@ import { setDesign, getProduct, allProducts, productCell } from './items/catalog
 import { auditClerk, STAFF_TAGS, LANE_MIN } from './clerkLane.js';
 import { rng, hashStr, clamp } from './kit/util.js';
 import { probeJob, probePlaceholder } from './kit/probe.js';
+import { note, prof } from './kit/prof.js';
 import { setProbePlaceholder } from './kit/materials.js';
-import { surfaceTextures } from './kit/surfaces.js';
+import { surfaceTextures, surfacesPending } from './kit/surfaces.js';
 import { preloadModels, modelsReady } from './kit/models.js';
 
 const DEEP_OFF = typeof location !== 'undefined' && /[?&]deep=0\b/.test(location.search), DEEP_CAP = 34; // ?deep=0: lots keep the 9 x 10 m city default (before/after)
@@ -72,12 +73,15 @@ export function createEngine(game, opts = {}) {
 
   // ---------------------------------------------------------------- physics bodies (created while an interior is shown)
   const dead = [];
+  // r7: colliders are added a few milliseconds per frame (a grocery has ~1500; all at once was a 0.3-1 s frame when it appeared)
   function makeBody(s) { const b = s.built; if (!b || b.body) return; const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), s.facing);
-    const body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(s.center.x, s.baseY, s.center.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }));
-    for (const c of b.colliders) { const [x, y, z, hx, hy, hz, ry] = c; if (hx < 0.004 || hy < 0.004 || hz < 0.004) continue; const d = RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z).setFriction(0.6); if (ry) d.setRotation({ x: 0, y: Math.sin(ry / 2), z: 0, w: Math.cos(ry / 2) }); world.createCollider(d, body); }
+    b.body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(s.center.x, s.baseY, s.center.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })); b.colI = 0; bodyTick(s, 1.5); }
+  function bodyTick(s, ms = 2) { const b = s.built; if (!b?.body || b.colI == null) return; const t0 = performance.now(), body = b.body;
+    while (b.colI < b.colliders.length && performance.now() - t0 < ms) { const [x, y, z, hx, hy, hz, ry] = b.colliders[b.colI++]; if (hx < 0.004 || hy < 0.004 || hz < 0.004) continue; const d = RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z).setFriction(0.6); if (ry) d.setRotation({ x: 0, y: Math.sin(ry / 2), z: 0, w: Math.cos(ry / 2) }); world.createCollider(d, body); }
+    if (b.colI < b.colliders.length) return;
     for (const d of b.doors) { if (!d.half) continue; d.col = world.createCollider(RAPIER.ColliderDesc.cuboid(d.half[0], d.half[1], d.half[2]).setTranslation(d.x, d.y + d.h / 2, d.z), body); d.col.setEnabled(false); d.blocking = false; }
-    b.body = body; }
-  function killBody(s) { const b = s.built; if (b?.body) { dead.push(b.body); b.body = null; for (const d of b.doors) d.col = null; } }
+    b.colI = null; }
+  function killBody(s) { const b = s.built; if (b?.body) { dead.push(b.body); b.body = null; b.colI = null; for (const d of b.doors) d.col = null; } }
   function flushBodies(max = 3) { for (let i = 0; i < max && dead.length; i++) { const b = dead.shift(); try { world.removeRigidBody(b); } catch (e) { console.warn('[interiors] removeRigidBody', e); } } }
   // generate the store's surface textures in idle time before it is built (the build would otherwise draw them in one slice)
   function prewarm(s) { s.warmQ = true; const p = s.profile, w = { wear: p.wear }, list = [];
@@ -100,8 +104,13 @@ export function createEngine(game, opts = {}) {
     if (p) { const done = () => { b.compiled = true; }; p.then(done, done); setTimeout(done, 6000); }
     // and upload its textures a few milliseconds per frame (first use would otherwise upload them all in one frame)
     const tex = new Set(); g.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'alphaMap']) { const t = m[k] || m.uniforms?.[k]?.value; if (t && t.isTexture && !t.isRenderTargetTexture) tex.add(t); } }); b.texQ = [...tex]; }
-  function uploadTick(b, ms = 3) { const r = game.renderer, q = b.texQ; if (!q || !r?.initTexture) { b.texQ = null; return; } const t0 = performance.now(); while (q.length && performance.now() - t0 < ms) { try { r.initTexture(q.shift()); } catch (e) { /* */ } } if (!q.length) b.texQ = null; }
-  function show(s) { const b = s.built; if (!b || b.visible || !b.ready || b.compiled === false) return; if (b.texQ) { uploadTick(b); if (b.texQ) return; } b.visible = true; b.group.visible = true; if (!b.group.parent) scene.add(b.group); try { makeBody(s); } catch (e) { console.warn('[interiors] colliders', e); } }
+  function uploadTick(b, ms = 3) { const r = game.renderer, q = b.texQ; if (!q || !r?.initTexture) { b.texQ = null; return; } const t0 = performance.now(); while (q.length && performance.now() - t0 < ms) { const t1 = performance.now(); try { r.initTexture(q.shift()); } catch (e) { /* */ } note('upload', performance.now() - t1); } if (!q.length) b.texQ = null; }
+  function show(s) { const b = s.built; if (!b || b.visible || !b.ready || b.compiled === false) return; if (surfacesPending() && performance.now() - (b.surfWait ??= performance.now()) < 4000) return; /* r7: textures still drawing in the worker */ if (b.texQ) { uploadTick(b); if (b.texQ) return; } b.visible = true; b.group.visible = true; if (!b.group.parent) scene.add(b.group); try { makeBody(s); } catch (e) { console.warn('[interiors] colliders', e); }
+    if (!b.revealed) { b.revealQ = b.group.children.filter((o) => o.visible); for (const o of b.revealQ) o.visible = false; b.revealed = true; revealTick(b); } }
+  // r7: the first draw of a mesh uploads its buffers: reveal a new interior a slice of geometry per frame (it appears while the
+  // player is still 40-70 m away), so its ~10 MB of vertex data is not uploaded in one frame
+  const vtx = (o) => { let n = 0; o.traverse((m) => { if (m.geometry?.attributes?.position) n += m.geometry.attributes.position.count * (m.isInstancedMesh ? Math.max(1, m.count * 0.15) : 1); }); return n; };
+  function revealTick(b, budget = 45000) { const q = b.revealQ; if (!q) return; let n = 0; while (q.length && n < budget) { const o = q.shift(); o.visible = true; n += vtx(o); } if (!q.length) b.revealQ = null; }
   function hide(s) { const b = s.built; if (!b || !b.visible) return; b.visible = false; b.group.visible = false; killBody(s); try { hooks.people?.release(s); } catch (e) { /* */ } }
   function dispose(s) { const b = s.built; if (!b) return; if (probeBusy === s) probeBusy = null; hide(s); try { hooks.interact?.forget(s); } catch (e) { /* */ } disposeBuilt(b); s.built = null; }
 
@@ -138,7 +147,8 @@ export function createEngine(game, opts = {}) {
     const passing = !(game.intFastOld ?? INT_FAST_OLD) && fastS.v > 12 && !current; // game.intFastOld = true: old behavior (A/B)
     if (!passing) for (const s of nearList) { if (s.dist > 160) break; if (!s.built && !s.warmQ) prewarm(s); }
     for (const s of wanted) { if (!s.built) { if (!pending && !passing && modelsReady() && hasShell(s)) pending = { s, it: buildInterior(game, s, s.def) }; } else if (!s.built.visible) show(s); }
-    if (pending && !passing) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const t1 = performance.now(), r = pending.it.next(), d1 = performance.now() - t1, pr = pending.s._buildProf; if (pr && d1 > (pr.worst || 0)) { pr.worst = Math.round(d1); pr.worstAfter = pr.last; } if (r.done) { pending.s.built = r.value; scene.add(r.value.group); precompile(r.value); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
+    for (const s of nearList) { if (s.built?.colI != null) bodyTick(s); if (s.built?.revealQ) revealTick(s.built); } // r7: colliders and geometry trickle in
+    if (pending && !passing) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const t1 = performance.now(), r = pending.it.next(), d1 = performance.now() - t1, pr = pending.s._buildProf; if (pr && d1 > (pr.worst || 0)) { pr.worst = Math.round(d1); pr.worstAfter = pr.last; } note('step:' + (pr?.last || '?') + (pr?.fx != null ? '#' + pr.fx : ''), d1); if (r.done) { pending.s.built = r.value; scene.add(r.value.group); prof('compile', () => precompile(r.value)); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
     const sky = updateSky(hour);
     let hidden = 0;
     for (const s of list) { const b = s.built; if (!b) continue; if (!nearList.includes(s)) s.dist = Math.hypot(pp.x - s.center.x, pp.z - s.center.z);
@@ -170,7 +180,7 @@ export function createEngine(game, opts = {}) {
   function probeTick(s, b) { const p = b.probe, lv = b.levels[0] * 0.6 + b.levels[1] * 0.4; if (!game.renderer) return;
     if (!p.job) { if (p.rt && Math.abs(lv - p.lv) < 0.2) return; if (probeBusy && probeBusy !== s) return; probeBusy = s; p.lv = lv; p.t0 = 0; p.size = 256; // must match the placeholder size (kit/probe.js)
       p.job = probeJob(game.renderer, s, b, p.box, p.at, p); }
-    const t0 = performance.now(); try { const r = p.job.next(); const dt = performance.now() - t0; p.t0 += dt; p.slice = Math.max(p.slice || 0, dt); (p.steps ||= []).push([r.value === undefined ? 'end' : String(r.value), Math.round(dt)]); if (p.steps.length > 40) p.steps.shift(); if (r.done) { p.rt?.dispose(); p.rt = r.value; p.job = null; p.ms = Math.round(p.t0); probeBusy = null; } }
+    const t0 = performance.now(); try { const r = p.job.next(); const dt = performance.now() - t0; note('probe', dt); p.t0 += dt; p.slice = Math.max(p.slice || 0, dt); (p.steps ||= []).push([r.value === undefined ? 'end' : String(r.value), Math.round(dt)]); if (p.steps.length > 40) p.steps.shift(); if (r.done) { p.rt?.dispose(); p.rt = r.value; p.job = null; p.ms = Math.round(p.t0); probeBusy = null; } }
     catch (e) { console.warn('[interiors] probe', e); b.probe = null; probeBusy = null; } }
   let probeBusy = null;
   // ---------------------------------------------------------------- persistence (core-systems save hooks)

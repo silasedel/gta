@@ -48,7 +48,7 @@ export function createVenuePeople(game, opts = {}) {
       const free = pois.filter((q) => (q.tag === tag || (tag === 'barStand' && q.tag === 'stool')) && !L.used.has(q)); if (!free.length) continue;
       let poi = free[Math.floor(Math.random() * free.length)];
       if (tag === 'barStand') { const fx = Math.sin(poi.ry), fz = Math.cos(poi.ry), sx = Math.cos(poi.ry), sz = -Math.sin(poi.ry); poi = { ...poi, x: poi.x - fx * 0.32 + sx * 0.32, z: poi.z - fz * 0.32 + sz * 0.32, base: poi }; }
-      const p = spawnOne(s, role, poi, state); L.used.add(poi.base || poi); if (p) L.peds.push({ p, role, tag, state, poi: poi.base || poi }); return;
+      const t0 = performance.now(), p = spawnOne(s, role, poi, state); if (globalThis.__intProf?.on && performance.now() - t0 > 2) globalThis.__intProf.list.push(['spawn', Math.round(performance.now() - t0), Math.round(t0)]); L.used.add(poi.base || poi); if (p) L.peds.push({ p, role, tag, state, poi: poi.base || poi }); return;
     }
   }
   // r7: shoppers walk the aisles. Every 8-25 s a browsing shopper picks another free shelf spot and walks there along the store's

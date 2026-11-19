@@ -73,15 +73,17 @@ export class Geo {
       if (o.slice && performance.now() - t0 > o.slice) { yield; t0 = performance.now(); }
       if (!p.n) continue;
       const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.Float32BufferAttribute(p.pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(p.nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(p.uv, 2));
-      g.setIndex(p.n > 65535 ? new THREE.Uint32BufferAttribute(p.idx, 1) : new THREE.Uint16BufferAttribute(p.idx, 1));
+      // r7: big parts are copied into typed arrays a chunk at a time (one merged material of a grocery was a single long step)
+      const arrs = [[p.pos, Float32Array], [p.nor, Float32Array], [p.uv, Float32Array], [p.idx, p.n > 65535 ? Uint32Array : Uint16Array]].map(([src, T]) => [src, new T(src.length)]);
+      for (const [src, dst] of arrs) for (let i = 0; i < src.length; i += 30000) { const e = Math.min(src.length, i + 30000); for (let k = i; k < e; k++) dst[k] = src[k]; if (o.slice && performance.now() - t0 > o.slice) { yield; t0 = performance.now(); } }
+      g.setAttribute('position', new THREE.BufferAttribute(arrs[0][1], 3)); g.setAttribute('normal', new THREE.BufferAttribute(arrs[1][1], 3)); g.setAttribute('uv', new THREE.BufferAttribute(arrs[2][1], 2)); g.setIndex(new THREE.BufferAttribute(arrs[3][1], 1));
       if (mat.userData.baked) { for (const k of ['bk0', 'bk1', 'bk2']) g.setAttribute(k, new THREE.BufferAttribute(new Float32Array(p.n * 3), 3)); ranges.push({ g, start: total, n: p.n }); total += p.n; }
       const mesh = new THREE.Mesh(g, mat); mesh.castShadow = !!o.cast && !mat.transparent; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false;
       if (mat.userData.order) mesh.renderOrder = mat.userData.order;
       group.add(mesh); meshes.push(mesh);
     }
     const pos = new Float32Array(total * 3), nor = new Float32Array(total * 3);
-    for (const r of ranges) { pos.set(r.g.attributes.position.array, r.start * 3); nor.set(r.g.attributes.normal.array, r.start * 3); }
+    for (const r of ranges) { pos.set(r.g.attributes.position.array, r.start * 3); nor.set(r.g.attributes.normal.array, r.start * 3); if (o.slice && performance.now() - t0 > o.slice) { yield; t0 = performance.now(); } }
     const apply = (bk0, bk1, bk2, off = 0) => { for (const r of ranges) { const a = (r.start + off) * 3, b = a + r.n * 3; r.g.attributes.bk0.array.set(bk0.subarray(a, b)); r.g.attributes.bk1.array.set(bk1.subarray(a, b)); r.g.attributes.bk2.array.set(bk2.subarray(a, b)); r.g.attributes.bk0.needsUpdate = r.g.attributes.bk1.needsUpdate = r.g.attributes.bk2.needsUpdate = true; } };
     this.parts.clear();
     return { meshes, bake: { pos, nor, count: total, apply } };

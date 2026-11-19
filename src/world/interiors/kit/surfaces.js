@@ -2,9 +2,10 @@
 // Each surface draws into three canvases: A = albedo (sRGB), H = height (gray, becomes the normal map), G = roughness (gray).
 // When the design system publishes a shared material library the same names are looked up there first (see materials.js).
 import * as THREE from 'three';
+import { note } from './prof.js';
 import { rng, css, shade, mixc, clamp } from './util.js';
 
-const cv = (w, h = w) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const cv = (w, h = w) => { if (typeof document === 'undefined') return new OffscreenCanvas(w, h); const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }; // r7: OffscreenCanvas in the surface worker
 // tiling helpers: everything that touches an edge is drawn again on the opposite side
 function wrap(S, x, y, r, fn) { for (const ox of [0, x < r ? S : x > S - r ? -S : null]) { if (ox === null) continue; for (const oy of [0, y < r ? S : y > S - r ? -S : null]) { if (oy === null) continue; fn(x + ox, y + oy); } } }
 function blotch(c, S, R, n, r0, r1, col, a0, a1) { for (let i = 0; i < n; i++) { const x = R() * S, y = R() * S, r = R.range(r0, r1), a = R.range(a0, a1); wrap(S, x, y, r, (X, Y) => { const g = c.createRadialGradient(X, Y, 0, X, Y, r); g.addColorStop(0, css(typeof col === 'function' ? col() : col, a)); g.addColorStop(1, css(typeof col === 'function' ? col() : col, 0)); c.fillStyle = g; c.fillRect(X - r, Y - r, 2 * r, 2 * r); }); } }
@@ -97,16 +98,38 @@ function rollerFinish(A, G, S, R) {
     const gg = G.createLinearGradient(x, 0, x + w, 0); gg.addColorStop(0, 'rgba(0,0,0,0)'); gg.addColorStop(0.5, `rgba(${R() < 0.5 ? '255,255,255' : '0,0,0'},${0.05 + R() * 0.06})`); gg.addColorStop(1, 'rgba(0,0,0,0)'); G.fillStyle = gg; G.fillRect(x, 0, w, S); }
   for (let i = 0; i < S * S / 60; i++) { const x = R() * S, y = R() * S; A.fillStyle = `rgba(${R() < 0.5 ? '255,255,255' : '0,0,0'},0.035)`; A.fillRect(x, y, 1.5, 1.5); G.fillStyle = `rgba(0,0,0,0.08)`; G.fillRect(x, y, 1, 1); } // stipple (orange peel)
 }
-export function surfaceTextures(name, o = {}) {
+export function surfaceTextures(name, o = {}) { const t0 = performance.now(), r = surfaceTextures0(name, o); note('surf:' + name, performance.now() - t0); return r; }
+// r7: the drawing itself (also runs in kit/surfWorker.js): -> { A (albedo), N (normal), G (roughness) } canvases, S, def
+export function drawSurface(name, o = {}) {
   const def = SURFACES[name]; if (!def) throw new Error('unknown surface ' + name);
-  const wear = Math.round(clamp(o.wear ?? 0.3) * 2) / 2, key = `${name}|${col3(o.c)}|${col3(o.c2)}|${col3(o.c3)}|${wear}`;
-  let t = TEX.get(key); if (t) return t;
+  const wear = Math.round(clamp(o.wear ?? 0.3) * 2) / 2, key = surfKey(name, o);
   const S = o.size || def.size || 256, A = cv(S), H = cv(S), G = cv(S), R = rng(key);
   H.getContext('2d', { willReadFrequently: true }); // perf: CPU-backed, so normalMap()'s getImageData is not a GPU readback (86 ms a second downtown)
   def.draw(A.getContext('2d'), H.getContext('2d'), G.getContext('2d'), S, R, { ...o, wear });
   if (!INT_ART_OFF && ROLLED.has(name)) rollerFinish(A.getContext('2d'), G.getContext('2d'), S, R); // r2-art: paint-roller lanes + stipple, so walls are not one flat layer
+  return { A, N: normalMap(H, S, def.bump || 2.2), G, S, def };
+}
+const surfKey = (name, o) => `${name}|${col3(o.c)}|${col3(o.c2)}|${col3(o.c3)}|${Math.round(clamp(o.wear ?? 0.3) * 2) / 2}`;
+// r7 (zero-hitch shop entry): surfaces are drawn in a Worker (OffscreenCanvas; one 256 px surface was 30-2000 ms on the main
+// thread). The textures exist at once with a 4 px placeholder of the base color and get the worker's bitmaps when they arrive;
+// engine.show() waits for surfacesPending() === 0. ?surfsync=1 = old main-thread drawing.
+const SYNC = typeof location === 'undefined' || /[?&]surfsync=1\b/.test(location.search) || typeof Worker === 'undefined' || typeof OffscreenCanvas === 'undefined';
+let worker = null, jobN = 0, pending = 0; const jobs = new Map();
+export const surfacesPending = () => pending;
+function getWorker() { if (worker || SYNC) return worker; try { worker = new Worker(new URL('./surfWorker.js', import.meta.url), { type: 'module' }); worker.onmessage = (e) => { const j = jobs.get(e.data.id); jobs.delete(e.data.id); pending--; if (!j) return; if (e.data.err) { console.warn('[interiors] surface worker', j.name, e.data.err); try { const d = drawSurface(j.name, j.o); fill(j.t, [d.A, d.N, d.G], true); } catch (x) { /* keep the placeholder */ } return; } fill(j.t, e.data.bm, false); }; worker.onerror = (e) => { console.warn('[interiors] surface worker failed, drawing on the main thread', e.message); worker = null; }; } catch (e) { worker = null; } return worker; }
+function fill(t, imgs, canvas) { [t.map, t.normalMap, t.roughnessMap].forEach((x, i) => { x.dispose(); x.image = imgs[i]; x.flipY = canvas; x.needsUpdate = true; }); t.pending = false; }
+const ph = (rgb) => { const c = cv(4); const g = c.getContext('2d'); g.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`; g.fillRect(0, 0, 4, 4); return c; };
+function surfaceTextures0(name, o = {}) {
+  const def = SURFACES[name]; if (!def) throw new Error('unknown surface ' + name);
+  const key = surfKey(name, o);
+  let t = TEX.get(key); if (t) return t;
   const mk = (c, srgb) => { const x = new THREE.CanvasTexture(c); x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = 8; if (srgb) x.colorSpace = THREE.SRGBColorSpace; return x; };
-  t = { map: mk(A, true), normalMap: mk(normalMap(H, S, def.bump || 2.2), false), roughnessMap: mk(G, false), m: def.m, rough: (def.rough ?? 1) * (INT_ART_OFF ? 1 : POLISH[name] ?? 1), metal: def.metal || 0 };
+  const base = { m: def.m, rough: (def.rough ?? 1) * (INT_ART_OFF ? 1 : POLISH[name] ?? 1), metal: def.metal || 0 };
+  const w = !o.sync && getWorker();
+  if (w) { const c = Array.isArray(o.c) ? o.c : [150, 150, 150]; t = { map: mk(ph(c), true), normalMap: mk(ph([128, 128, 255]), false), roughnessMap: mk(ph([200, 200, 200]), false), ...base, pending: true };
+    const id = ++jobN; jobs.set(id, { t, name, o }); pending++; const oo = {}; for (const k in o) if (typeof o[k] !== 'function' && typeof o[k] !== 'object' || Array.isArray(o[k])) oo[k] = o[k]; w.postMessage({ id, name, o: oo }); TEX.set(key, t); return t; }
+  const d = drawSurface(name, o);
+  t = { map: mk(d.A, true), normalMap: mk(d.N, false), roughnessMap: mk(d.G, false), ...base };
   TEX.set(key, t); return t;
 }
 export const surfaceCount = () => TEX.size;

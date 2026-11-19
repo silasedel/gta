@@ -2,6 +2,7 @@
 // (ctx.solid), bake occluders, contact shadows, lights, items (through the stock helpers), points of interest and interactables.
 // Fixture families (ctx.fam) keep a store's hardware consistent while differing from store to store.
 import * as THREE from 'three';
+import { M4 } from '../kit/geo.js';
 import { shelfRun, pegRun } from '../items/stock.js';
 import { FIXTURES as LIGHT } from '../lighting.js';
 import { libModel } from '../kit/models.js';
@@ -16,15 +17,16 @@ export const FAMILIES = { // maker families (provisional until design.families l
 export function family(ctx, name) { const f = FAMILIES[name] || FAMILIES.almond, M = ctx.M, w = ctx.profile.wear; return (ctx.fam = { name, shelf: M.flat(f.shelf, { rough: 0.5, metal: 0.25, wear: w }), upright: M.flat(f.upright, { rough: 0.5, metal: 0.3 }), back: M.surf(f.back[0], { ...f.back[1], wear: w }), kick: M.flat(f.kick, { rough: 0.7 }), edge: M.flat(f.edge, { rough: 0.4, metal: 0.3 }), steel: M.surf('steel', { wear: w }), dark: M.flat('#1a1b1e', { rough: 0.6 }), chrome: M.flat('#d9dcdf', { rough: 0.2, metal: 0.9 }) }); }
 
 // Double-sided gondola. o: { l, h, levels, d (shelf depth per side), sides: [frontPlan, backPlan] where a plan is [[pids] per level, bottom first], ends: [planA, planB] end caps, sign }
-export function gondola(ctx, x, z, ry, o = {}) {
+export function gondola(...a) { const it = gondolaGen(...a); let r = it.next(); while (!r.done) r = it.next(); return r.value; } // r7: run-to-end wrapper; builders yield* gondolaGen
+export function* gondolaGen(ctx, x, z, ry, o = {}) {
   const { G } = ctx, F = ctx.fam, l = o.l || 3.6, h = o.h || 1.45, d = o.d || 0.4, levels = o.levels || 4, zone = 'gon' + ctx.pois.length;
-  G.at(x, z, ry, () => {
+  G.push(M4(x, 0, z, ry)); try {
     G.boxB(F.back, 0, 0.14, 0, l, h - 0.14, 0.03); G.boxB(F.kick, 0, 0, 0, l, 0.14, 2 * d + 0.06); G.boxB(F.edge, 0, h, 0, l + 0.04, 0.03, 0.06);
     for (let u = -l / 2; u <= l / 2 + 0.01; u += l / Math.max(1, Math.round(l / 1.22))) G.boxB(F.upright, u, 0, 0, 0.035, h + 0.02, 0.07);
     for (const s of [1, -1]) { const plan = o.sides?.[s > 0 ? 0 : 1]; G.push(new THREE.Matrix4().makeRotationY(s > 0 ? 0 : Math.PI));
       for (let k = 0; k < levels; k++) { const y = 0.14 + k * (h - 0.3) / levels + (k ? 0.02 : 0), dd = k === 0 ? d + 0.02 : d - 0.03 * k * 0; G.box(F.shelf, 0, y - 0.012, 0.015 + dd / 2, l - 0.01, 0.024, dd); G.box(F.edge, 0, y - 0.018, 0.015 + dd + 0.004, l - 0.01, 0.036, 0.008); rail(ctx, 0, y - 0.018, 0.015 + dd + 0.0085, l - 0.02);
         if (plan?.[k]) shelfRun(ctx, -l / 2 + 0.03, l / 2 - 0.03, y, 0.015 + dd, dd - 0.02, plan[k], { zone, start: k * 3, shade: 0.04 * (levels - 1 - k), rows: typeof o.rows === 'function' ? o.rows(k) : o.rows, block: o.block }); }
-      ctx.poi('browse', R(ctx).range(-l / 2 + 0.5, l / 2 - 0.5), d + 0.62, Math.PI, { zone }); ctx.poi('restock', R(ctx).range(-l / 2 + 0.5, l / 2 - 0.5), d + 0.55, Math.PI, { zone }); G.pop(); }
+      ctx.poi('browse', R(ctx).range(-l / 2 + 0.5, l / 2 - 0.5), d + 0.62, Math.PI, { zone }); ctx.poi('restock', R(ctx).range(-l / 2 + 0.5, l / 2 - 0.5), d + 0.55, Math.PI, { zone }); G.pop(); yield; }
     ctx.solid(-l / 2, 0, -d - 0.03, l / 2, h, d + 0.03); ctx.shadow(0, 0, l + 0.3, 2 * d + 0.5);
     // end caps: short shelves or a peg panel facing down the aisle
     for (const e of [1, -1]) { const plan = o.ends?.[e > 0 ? 0 : 1]; if (!plan) continue; G.push(new THREE.Matrix4().makeTranslation(e * (l / 2 + 0.02), 0, 0).multiply(new THREE.Matrix4().makeRotationY(e * Math.PI / 2))); const w = 2 * d + 0.04;
@@ -32,25 +34,27 @@ export function gondola(ctx, x, z, ry, o = {}) {
       if (plan.pegs) pegRun(ctx, -w / 2 + 0.02, w / 2 - 0.02, 0.3, h - 0.02, 0.015, plan.pegs, { zone });
       else for (let k = 0; k < 4; k++) { const y = 0.14 + k * (h - 0.3) / 4; G.box(F.shelf, 0, y - 0.012, 0.17, w, 0.024, 0.32); G.box(F.edge, 0, y - 0.018, 0.334, w, 0.036, 0.008); if (plan[k]) shelfRun(ctx, -w / 2 + 0.01, w / 2 - 0.01, y, 0.33, 0.3, plan[k], { zone, block: 0.4 }); }
       if (plan.sign) { const p = plan.sign; G.plane(p.mat, 0, h + 0.2, 0.02, w, 0.34, { uvRect: p.rect }); G.plane(p.mat, 0, h + 0.2, 0.018, w, 0.34, { uvRect: p.rect, ry: Math.PI }); }
-      ctx.solid(-w / 2, 0, 0, w / 2, h, 0.36); ctx.poi('browse', 0, 0.95, Math.PI, { zone }); G.pop(); }
-  });
+      ctx.solid(-w / 2, 0, 0, w / 2, h, 0.36); ctx.poi('browse', 0, 0.95, Math.PI, { zone }); G.pop(); yield; }
+  } finally { G.pop(); }
 }
 const R = (ctx) => ctx.R;
 
 // Wall shelving run against a wall face (frame: back against z = 0, faces +z). o: { l, h, levels, d, plan: [[pids] per level], pegsFrom (level index above which pegs replace shelves), pegs: [pids] }
-export function wallShelf(ctx, x, z, ry, o = {}) {
+export function wallShelf(...a) { const it = wallShelfGen(...a); let r = it.next(); while (!r.done) r = it.next(); return r.value; } // r7: run-to-end wrapper; builders yield* wallShelfGen
+export function* wallShelfGen(ctx, x, z, ry, o = {}) {
   const { G } = ctx, F = ctx.fam, l = o.l || 3, h = o.h || 2.1, d = o.d || 0.4, levels = o.levels || 5, zone = 'wall' + ctx.pois.length;
-  G.at(x, z, ry, () => { G.boxB(F.back, 0, 0.14, 0.02, l, h - 0.14, 0.03); G.boxB(F.kick, 0, 0, d / 2 + 0.03, l, 0.14, d + 0.02); for (let u = -l / 2; u <= l / 2 + 0.01; u += l / Math.max(1, Math.round(l / 1.22))) G.boxB(F.upright, u, 0, 0.04, 0.035, h + 0.02, 0.05);
+  G.push(M4(x, 0, z, ry)); try { G.boxB(F.back, 0, 0.14, 0.02, l, h - 0.14, 0.03); G.boxB(F.kick, 0, 0, d / 2 + 0.03, l, 0.14, d + 0.02); for (let u = -l / 2; u <= l / 2 + 0.01; u += l / Math.max(1, Math.round(l / 1.22))) G.boxB(F.upright, u, 0, 0.04, 0.035, h + 0.02, 0.05);
     const top = o.pegs ? Math.min(levels, o.pegsFrom ?? 3) : levels; let yTop = 0;
-    for (let k = 0; k < top; k++) { const y = 0.14 + k * (h - 0.35) / levels + (k ? 0.02 : 0); yTop = y; G.box(F.shelf, 0, y - 0.012, 0.035 + d / 2, l - 0.01, 0.024, d); G.box(F.edge, 0, y - 0.018, 0.035 + d + 0.004, l - 0.01, 0.036, 0.008); rail(ctx, 0, y - 0.018, 0.035 + d + 0.0085, l - 0.02); if (o.plan?.[k]) shelfRun(ctx, -l / 2 + 0.03, l / 2 - 0.03, y, 0.035 + d, d - 0.02, o.plan[k], { zone, start: k * 2, shade: 0.05 * (top - 1 - k) }); }
+    for (let k = 0; k < top; k++) { const y = 0.14 + k * (h - 0.35) / levels + (k ? 0.02 : 0); yTop = y; G.box(F.shelf, 0, y - 0.012, 0.035 + d / 2, l - 0.01, 0.024, d); G.box(F.edge, 0, y - 0.018, 0.035 + d + 0.004, l - 0.01, 0.036, 0.008); rail(ctx, 0, y - 0.018, 0.035 + d + 0.0085, l - 0.02); if (o.plan?.[k]) shelfRun(ctx, -l / 2 + 0.03, l / 2 - 0.03, y, 0.035 + d, d - 0.02, o.plan[k], { zone, start: k * 2, shade: 0.05 * (top - 1 - k) }); yield; }
     if (o.pegs) pegRun(ctx, -l / 2 + 0.03, l / 2 - 0.03, yTop + 0.3, h, 0.035, o.pegs, { zone });
-    ctx.solid(-l / 2, 0, 0, l / 2, h, d + 0.05); ctx.shadow(0, d / 2, l + 0.2, d + 0.4); for (let u = -l / 2 + 0.7; u < l / 2 - 0.3; u += 1.5) { ctx.poi('browse', u, d + 0.65, Math.PI, { zone }); } ctx.poi('restock', 0, d + 0.55, Math.PI, { zone }); });
+    ctx.solid(-l / 2, 0, 0, l / 2, h, d + 0.05); ctx.shadow(0, d / 2, l + 0.2, d + 0.4); for (let u = -l / 2 + 0.7; u < l / 2 - 0.3; u += 1.5) { ctx.poi('browse', u, d + 0.65, Math.PI, { zone }); } ctx.poi('restock', 0, d + 0.55, Math.PI, { zone }); } finally { G.pop(); }
 }
 
 // Reach-in cooler bank against a wall (frame: back at z = 0, glass doors face +z). o: { doors, plans: [[[pids] per shelf] per door], header: print, led: color, hw (door width) }
-export function coolerBank(ctx, x, z, ry, o = {}) {
+export function coolerBank(...a) { const it = coolerBankGen(...a); let r = it.next(); while (!r.done) r = it.next(); return r.value; } // r7: run-to-end wrapper; builders yield* coolerBankGen
+export function* coolerBankGen(ctx, x, z, ry, o = {}) {
   const { G, M } = ctx, F = ctx.fam, n = o.doors || 4, dw = o.hw || 0.76, l = n * dw + 0.1, d = 0.82, h = 2.02, body = M.flat(o.c || '#1b1c20', { rough: 0.45, metal: 0.4 }), inner = M.flat('#eef2f4', { rough: 0.5 }), wire = M.flat('#c8ccd0', { rough: 0.35, metal: 0.7 }), ledC = o.led || '#dff2ff', zone = 'cool' + ctx.pois.length, out = { doors: [] };
-  G.at(x, z, ry, () => {
+  G.push(M4(x, 0, z, ry)); try {
     G.boxB(body, 0, 0, d / 2, l, 0.16, d); G.boxB(body, 0, h, d / 2, l, 0.34, d); G.boxB(body, -l / 2 + 0.025, 0.16, d / 2, 0.05, h - 0.16, d); G.boxB(body, l / 2 - 0.025, 0.16, d / 2, 0.05, h - 0.16, d); G.boxB(inner, 0, 0.16, 0.03, l - 0.1, h - 0.16, 0.02); G.boxB(inner, 0, 0.16, d / 2, l - 0.1, 0.012, d - 0.08);
     for (let i = 0; i < 6; i++) G.box(M.flat('#0c0d0f', { rough: 0.7 }), -l / 2 + 0.2 + i * (l - 0.4) / 5, 0.08, d + 0.002, 0.18, 0.07, 0.004); // kick grille
     if (o.header) { G.plane(o.header.mat, 0, h + 0.17, d + 0.004, l - 0.08, 0.28, { uvRect: o.header.rect }); LIGHT.glowPanel(ctx, 0, h + 0.17, d + 0.01, { w: l, h: 0.3, color: o.headerC || '#cfe9ff', k: 0.9 }); }
@@ -63,9 +67,9 @@ export function coolerBank(ctx, x, z, ry, o = {}) {
         host = { kind: 'coolerDoor', part: door, open: 0, want: 0, ry0: door.rotation.y, t: 0 }; out.doors.push(host);
         ctx.anim.push((dt) => { if (host.t > 0) { host.t -= dt; if (host.t <= 0) host.want = 0; } const k = Math.max(-dt * 3, Math.min(dt * 3, host.want - host.open)); if (!k) return; host.open += k; door.rotation.y = host.ry0 - host.open * 1.45; door.updateMatrix(); }); }
       for (let k = 0; k < lv; k++) { const y = 0.2 + k * (h - 0.32) / lv; G.box(wire, cx, y - 0.006, d / 2 - 0.02, dw - 0.07, 0.008, d - 0.16, { rx: 0.05 }); G.box(wire, cx, y + 0.012, d - 0.1, dw - 0.07, 0.03, 0.006); if (plan[k]) shelfRun(ctx, cx - dw / 2 + 0.045, cx + dw / 2 - 0.035, y, d - 0.105, 0.5, plan[k], { zone, host, block: 0.24, rows: 4, tagY: 0.012, start: i + k, shade: 0 }); }
-      ctx.poi('browse', cx, d + 0.7, Math.PI, { zone }); if (i % 2 === 0) ctx.poi('restock', cx, d + 0.6, Math.PI, { zone, cooler: true }); }
+      ctx.poi('browse', cx, d + 0.7, Math.PI, { zone }); if (i % 2 === 0) ctx.poi('restock', cx, d + 0.6, Math.PI, { zone, cooler: true }); yield; }
     ctx.solid(-l / 2, 0, 0, l / 2, h + 0.34, d); ctx.shadow(0, d / 2 + 0.1, l + 0.2, d + 0.5);
-  });
+  } finally { G.pop(); }
   return out;
 }
 

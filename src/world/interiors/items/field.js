@@ -33,7 +33,7 @@ export class ItemField {
       g.list.forEach((s, ii) => { s.im = im; s.ii = ii; im.setMatrixAt(ii, this._matrix(s)); const r = s.rect; uv.set([r[0], r[1], r[2] - r[0], r[3] - r[1]], ii * 4);
         const up = Math.cos(s.rx) * Math.cos(s.rz); pos[k * 3] = s.x + Math.sin(s.ry) * 0.04; pos[k * 3 + 1] = s.y + h * 0.6 * s.s * Math.max(0.3, up); pos[k * 3 + 2] = s.z + Math.cos(s.ry) * 0.04; const nl = Math.hypot(1, 0.55); nor[k * 3] = Math.sin(s.ry) / nl; nor[k * 3 + 1] = 0.55 / nl; nor[k * 3 + 2] = Math.cos(s.ry) / nl; gain[k] = s.gain; k++; });
       geo.setAttribute('iUv', new THREE.InstancedBufferAttribute(uv, 4)); for (const a of ['bk0', 'bk1', 'bk2']) geo.setAttribute(a, new THREE.InstancedBufferAttribute(new Float32Array(cnt * 3), 3));
-      im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.castShadow = false; im.receiveShadow = false; im.matrixAutoUpdate = false; group.add(im); this.meshes.push(im); this.order.push({ im, cnt });
+      im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.castShadow = false; im.receiveShadow = false; im.userData.noProbe = true; /* r7: thousands of products are not worth a reflection pass */ im.matrixAutoUpdate = false; group.add(im); this.meshes.push(im); this.order.push({ im, cnt });
     }
     return { pos, nor, gain, count: n };
   }

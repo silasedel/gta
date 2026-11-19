@@ -5,7 +5,7 @@
 import { registerStoreType } from '../registry.js';
 import { cut, rw } from '../plan.js';
 import { clamp } from '../kit/util.js';
-import { family, gondola, coolerBank, checkout, trashCan, floorSign, mopBucket, cctvDome, convexMirror, exitSign, floorMat } from '../fixtures/retail.js';
+import { family, gondola, gondolaGen, coolerBank, coolerBankGen, checkout, trashCan, floorSign, mopBucket, cctvDome, convexMirror, exitSign, floorMat } from '../fixtures/retail.js';
 import { stockRack, handTruck, officeDesk, safe, dvr, restroom, lockers, wallClock, lightSwitch, breakerPanel } from '../fixtures/backroom.js';
 import { tallWall, pallet, cagePartition } from '../fixtures/aisles.js';
 import { shelfRun, stack } from '../items/stock.js';
@@ -58,7 +58,7 @@ registerStoreType({
     yield;
     // ---- beer cave: cooler doors across the back wall
     for (const sp of P.spans(S, 'back', 1.6)) { const n = Math.min(8, Math.floor((sp.len - 0.2) / 0.76)); if (n < 2) continue; const mid = (sp.a + sp.b) / 2, at = P.onFace(sp.face, mid, 0);
-      coolerBank(ctx, at.x, at.z, at.ry, { doors: n, plans: [[['lobo-12', 'cayo-12'], ['lobo-lager'], ['cayo-light', 'cayo-tall'], D.beer, ['lobo-lager', 'malta-faro']], [['cayo-12'], ['cayo-tall'], D.beer, ['cayo-light'], D.wine.slice(2, 4)], [['lobo-12'], D.wine.slice(2), D.wine.slice(4), ['aguamar', 'zumbo-cola-20'], ['tiki-orange-20', 'limonazo-20']]], header: prints.make('lcool', 600, 90, (g, w, h) => { g.fillStyle = '#16181c'; g.fillRect(0, 0, w, h); g.fillStyle = '#35c6f4'; g.font = '900 56px Arial Black, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('ICE COLD BEER · WINE', w / 2, h / 2 + 3, w - 30); }, { lit: 1.3, ch: 1 }), headerC: '#9fd8ff' });
+      yield* coolerBankGen(ctx, at.x, at.z, at.ry, { doors: n, plans: [[['lobo-12', 'cayo-12'], ['lobo-lager'], ['cayo-light', 'cayo-tall'], D.beer, ['lobo-lager', 'malta-faro']], [['cayo-12'], ['cayo-tall'], D.beer, ['cayo-light'], D.wine.slice(2, 4)], [['lobo-12'], D.wine.slice(2), D.wine.slice(4), ['aguamar', 'zumbo-cola-20'], ['tiki-orange-20', 'limonazo-20']]], header: prints.make('lcool', 600, 90, (g, w, h) => { g.fillStyle = '#16181c'; g.fillRect(0, 0, w, h); g.fillStyle = '#35c6f4'; g.font = '900 56px Arial Black, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('ICE COLD BEER · WINE', w / 2, h / 2 + 3, w - 30); }, { lit: 1.3, ch: 1 }), headerC: '#9fd8ff' });
       P.take(sp.face, mid - n * 0.38 - 0.1, mid + n * 0.38 + 0.1); }
     yield;
     // ---- spirits walls down both sides (category runs with lit headers); the counter side stops short of the counter
@@ -72,7 +72,7 @@ registerStoreType({
     const gx0 = S.x0 + 0.4 + 1.5, gx1 = S.x1 - 0.4 - 1.5, gz0 = S.z0 + 0.84 + 1.7, gz1 = Math.min(S.z1 - 2.6, cz - cl / 2 - 0.3), gl = gz1 - gz0, ng = gl > 1.6 ? clamp(Math.floor((gx1 - gx0 + 1.2) / 2.1), 1, 4) : 0;
     for (let i = 0; i < ng; i++) { const gx = ng === 1 ? (gx0 + gx1) / 2 : gx0 + i * (gx1 - gx0) / (ng - 1); if (Math.abs(gx - cx) < 1.5 && gz1 > cz - cl / 2 - 0.4) continue;
       const W = D.wine.concat(['mp-wine']), sg = prints.promo(R.pick(['WINE SALE', 'STAFF PICK', 'NEW']), R.pick(['2 FOR $20', '$9.99', '15% OFF 6']), R.pick(['Marisol reds', 'Brisa whites', 'Any 750 ml wine']), { bg: '#f6efe0', band: v.pal[0] });
-      gondola(ctx, gx, (gz0 + gz1) / 2, Math.PI / 2, { l: gl, h: 1.65, levels: 4, d: 0.36, rows: 2, block: 0.2, sides: [[W.slice(0, 2), W.slice(2, 4), W.slice(4), W], [W.slice(3), W.slice(0, 3), SP.slice(0, 4), SP.slice(4, 8)]], ends: [{ pegs: ['chispa-lighter', 'nutty-peanuts', 'gatorbite-original'], sign: sg }, [D.beer, ['lobo-lager'], SP.slice(8), D.minis]] });
+      yield* gondolaGen(ctx, gx, (gz0 + gz1) / 2, Math.PI / 2, { l: gl, h: 1.65, levels: 4, d: 0.36, rows: 2, block: 0.2, sides: [[W.slice(0, 2), W.slice(2, 4), W.slice(4), W], [W.slice(3), W.slice(0, 3), SP.slice(0, 4), SP.slice(4, 8)]], ends: [{ pegs: ['chispa-lighter', 'nutty-peanuts', 'gatorbite-original'], sign: sg }, [D.beer, ['lobo-lager'], SP.slice(8), D.minis]] });
       stack(ctx, R.pick(['lobo-12', 'cayo-12']), gx, ctx.FLOOR_Y, gz1 + 0.75, 2, 1, R.int(3, 5)); ctx.G.at(gx, gz1 + 0.75, 0, () => ctx.solid(-0.42, 0, -0.15, 0.42, 0.65, 0.15, { occ: false })); yield; }
     // r7: oak barrels (the user's Barrel 2) by the window in the cellar variant, wine on the heads
     if (v.key === 'cellar' || R.chance(0.3)) for (const s of [-1, 1]) { const bx = -cs * (S.w / 2 - 0.65) + s * 0.0, bz = S.z1 - 1.3 - (s > 0 ? 0.85 : 0); if (Math.abs(bx - doorX) < 1.6) continue; if (libModel(ctx, 'barrel', bx, bz, R() * 6)) { ctx.G.at(bx, bz, 0, () => { ctx.solid(-0.36, 0, -0.36, 0.36, 0.95, 0.36, { occ: false }); ctx.shadow(0, 0, 0.8, 0.8); }); for (let k = 0; k < 3; k++) ctx.item(D.wine[(k + (s > 0 ? 2 : 0)) % D.wine.length], bx - 0.12 + k * 0.12, ctx.FLOOR_Y + 0.948, bz + R.jit(0.05), R.jit(0.5), { zone: 'barrel' }); } }

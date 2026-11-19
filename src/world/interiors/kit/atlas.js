@@ -2,6 +2,7 @@
 // GLOBAL holds prints shared by every store (product labels, brand posters); each interior owns a small local Atlas for prints
 // that carry its own name, prices or lore, disposed with the interior so GPU memory stays level.
 import * as THREE from 'three';
+import { note } from './prof.js';
 import { css, inkOn } from './util.js';
 
 export class Atlas {
@@ -18,10 +19,10 @@ export class Atlas {
     if (p.x + w + 2 * P > S) { p.x = 0; p.y += p.rowH; p.rowH = 0; }
     if (p.y + h + 2 * P > S) p = this._page();
     const x = p.x + P, y = p.y + P; p.x += w + 2 * P; p.rowH = Math.max(p.rowH, h + 2 * P);
-    const g = p.g; g.save(); g.translate(x, y); g.beginPath(); g.rect(0, 0, w, h); g.clip(); g.clearRect(0, 0, w, h); try { draw(g, w, h); } catch (e) { console.warn('[interiors] atlas draw failed', key, e); g.fillStyle = '#c33'; g.fillRect(0, 0, w, h); } g.restore();
+    const tc = performance.now(), g = p.g; g.save(); g.translate(x, y); g.beginPath(); g.rect(0, 0, w, h); g.clip(); g.clearRect(0, 0, w, h); try { draw(g, w, h); } catch (e) { console.warn('[interiors] atlas draw failed', key, e); g.fillStyle = '#c33'; g.fillRect(0, 0, w, h); } g.restore();
     // bleed the border outwards so mipmaps do not pull in the neighbors
     g.drawImage(p.c, x, y, w, 1, x, y - P, w, P); g.drawImage(p.c, x, y + h - 1, w, 1, x, y + h, w, P); g.drawImage(p.c, x, y - P, 1, h + 2 * P, x - P, y - P, P, h + 2 * P); g.drawImage(p.c, x + w - 1, y - P, 1, h + 2 * P, x + w, y - P, P, h + 2 * P);
-    p.dirty = true; p.tex.needsUpdate = true;
+    p.dirty = true; p.tex.needsUpdate = true; note('cell:' + String(key).slice(0, 24), performance.now() - tc);
     cl = { tex: p.tex, page: this.pages.indexOf(p), rect: [x / S, (y + h) / S, (x + w) / S, y / S], px: [x, y, w, h], w, h, canvas: p.c }; this.cells.set(key, cl); return cl;
   }
   // redraw an existing cell (screens, clocks, running totals)

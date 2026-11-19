@@ -5,7 +5,7 @@
 import { registerStoreType } from '../registry.js';
 import { cut, rw } from '../plan.js';
 import { clamp, hashStr } from '../kit/util.js';
-import { family, gondola, checkout, trashCan, cctvDome, exitSign, floorMat } from '../fixtures/retail.js';
+import { family, gondola, gondolaGen, checkout, trashCan, cctvDome, exitSign, floorMat } from '../fixtures/retail.js';
 import { stockRack, officeDesk, safe, dvr, restroom, lockers, wallClock, breakerPanel } from '../fixtures/backroom.js';
 import { displayCase, tallWall } from '../fixtures/aisles.js';
 import { pistol, longGunWall } from '../fixtures/specialty.js';
@@ -51,7 +51,7 @@ registerStoreType({
     // ---- floor: ammo gondolas and gear; ammo wall on the open side
     const fx0 = cs > 0 ? S.x0 + 1.7 : sx + 1.4, fx1 = cs > 0 ? sx - 1.4 : S.x1 - 1.7, fz0 = bz + 1.6, fz1 = S.z1 - 2.4, gl = fz1 - fz0, ng = gl > 1.6 ? clamp(Math.floor((fx1 - fx0 + 1.2) / 2.2), 1, 3) : 0;
     for (let i = 0; i < ng; i++) { const gx = ng === 1 ? (fx0 + fx1) / 2 : fx0 + i * (fx1 - fx0) / (ng - 1), A = D.ammo, sg = prints.promo(R.pick(['RANGE DAY', 'IN STOCK', 'BULK']), R.pick(['$19.99', '2 FOR $35', '10% OFF']), R.pick(['9mm FMJ 50 rd', 'Paper targets 25 pk', 'Ear protection']), { bg: '#e8b81e', band: v.pal[0] });
-      gondola(ctx, gx, (fz0 + fz1) / 2, Math.PI / 2, { l: gl, h: 1.5, levels: 4, d: 0.36, rows: 2, block: 0.24, sides: [[A.slice(3), A.slice(0, 3), A, A.slice(1, 4)], [A.slice(2), A, A.slice(0, 2), A.slice(4)]], ends: [{ pegs: D.gear.slice(0, 4), sign: sg }, { pegs: D.gear.slice(1, 4) }] }); yield; }
+      yield* gondolaGen(ctx, gx, (fz0 + fz1) / 2, Math.PI / 2, { l: gl, h: 1.5, levels: 4, d: 0.36, rows: 2, block: 0.24, sides: [[A.slice(3), A.slice(0, 3), A, A.slice(1, 4)], [A.slice(2), A, A.slice(0, 2), A.slice(4)]], ends: [{ pegs: D.gear.slice(0, 4), sign: sg }, { pegs: D.gear.slice(1, 4) }] }); yield; }
     for (const sp of P.spans(S, cs > 0 ? 'left' : 'right', 1.4)) { const a = Math.max(sp.a, bz + 0.8), b = Math.min(sp.b, S.z1 - 1.2); if (b - a < 1.4) continue; const at = P.onFace(sp.face, (a + b) / 2, 0); tallWall(ctx, at.x, at.z, at.ry, { l: b - a - 0.1, h: 2.1, levels: 6, d: 0.3, rows: 2, block: 0.3, plan: [['case-0'], D.ammo.slice(4), D.ammo.slice(0, 3), D.ammo.slice(2, 5), D.ammo, D.ammo.slice(3)], header: prints.make('ammohdr', 420, 80, (g, w, h) => { g.fillStyle = v.pal[0]; g.fillRect(0, 0, w, h); g.fillStyle = '#ffffff'; g.font = '900 52px Arial Black, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('AMMUNITION', w / 2, h / 2 + 3, w - 20); }, { global: true, lit: 1.1, ch: 1 }) }); }
     yield;
     // ---- dressing: range rules, safety notices, flags of the made-up range league, cameras, sign, window bars
