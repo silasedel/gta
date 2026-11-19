@@ -2,6 +2,14 @@
 
 How the world and the systems connect. If something here is wrong, fix the code or this file in the same commit.
 
+## 0. Code style (user, Nov 19): readable, normally formatted code
+Write code the way shipped game codebases read, not dense one-liners:
+- One statement per line. No chains of statements joined with `;` on one line, no `if (...) { a; b; c; }` on one line.
+- Lines up to ~100 characters. Break long calls, object literals and conditions over several lines.
+- Small, named functions with a short comment on what and why, instead of long inline lambdas.
+- Prettier is the formatter (`.prettierrc` at the repo root, `npm run format`). Format what you touch before committing.
+- Comments explain decisions (why), not what the next line obviously does.
+
 ## 1. World frame and map
 - Meters. **+X east, +Z south, Y up.** Heading 0 faces +Z; a direction from heading h is (sin h, cos h).
 - The map is traced from the user's own images: roads `docs/v2/plan/map_roads_target.webp`, land/water/cover
