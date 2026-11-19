@@ -199,6 +199,7 @@ export function createArrest(game, G, law, police, comms) {
 
   // ------------------------------------------------------------------ the booking scene
   const jailCss = `
+body.pl-jail-on .pl-radio,body.pl-jail-on .pl-subs{display:none}
 .pl-jail{position:fixed;inset:0;z-index:60;pointer-events:none;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eee}
 .pl-jail .pl-black{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .6s ease}
 .pl-jail .pl-flash{position:absolute;inset:0;background:#fff;opacity:0}
@@ -271,7 +272,7 @@ export function createArrest(game, G, law, police, comms) {
     return set;
   }
   function removeSet() { if (set) game.scene.remove(set.group); if (set?.key) set.key.intensity = 0; }
-  function hudHidden(on) { tryCall('hud', () => document.getElementById('ps-hud')?.classList.toggle('photo', on)); }
+  function hudHidden(on) { tryCall('hud', () => { document.getElementById('ps-hud')?.classList.toggle('photo', on); document.body.classList.toggle('pl-jail-on', on); }); }
   const fmtCharge = (c) => (law.crimeName ? law.crimeName(c) : String(c).replace(/_/g, ' '));
   function startJail(info) {
     jailDom();
