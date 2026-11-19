@@ -1706,7 +1706,10 @@ export function createPost(game) {
       const fullPx = Math.max(1, W * H) * renderer.getPixelRatio() * renderer.getPixelRatio();
       const capScale = Math.min(1, Math.sqrt((lk?.maxPx || 2560 * 1440) / fullPx));
       const panicFloor = Math.min(1, Math.sqrt((1280 * 720) / fullPx));
-      emergencyT = perf.frameMs > 40 ? emergencyT + ms / 1000 : Math.max(0, emergencyT - ms / 1000);
+      // Nov 19b (user: "pixelated"): only a GPU-bound slow frame counts. A CPU-bound game (the usual case) gained nothing
+      // from the 720p-class floor and just looked blurry and grainy.
+      const gpuSlow = perf.frameMs > 40 && perf.cpuMs < perf.frameMs - 6;
+      emergencyT = gpuSlow ? emergencyT + ms / 1000 : Math.max(0, emergencyT - ms / 1000);
       const floorNow = emergencyT > 2 ? panicFloor : scaleFloor();
       const rsMin = Math.min(capScale, Math.max(lk?.scaleMin ?? 1, floorNow));
       const rsMax = Math.min(capScale, Math.max(lk?.scaleMax ?? 1, rsMin));

@@ -730,6 +730,8 @@ function startTitle(game, ctx, cin, fe, params) {
     const story = game.story;
     if (kind === 'restart' && story) {
       await story.restartStory({ save: false });
+      // the intro (Dex and the first jobs) stays off until the rewrite: a restart also lands in free roam
+      if (!INTRO_ON) await story.skipIntro({ save: false });
       return;
     }
     let ok = false;
@@ -762,7 +764,7 @@ function startTitle(game, ctx, cin, fe, params) {
   async function afterReveal(kind) {
     const story = game.story;
     if (!story) return;
-    if (kind === 'play' && !INTRO_ON) kind = 'freeroam';
+    if ((kind === 'play' || kind === 'restart') && !INTRO_ON) kind = 'freeroam';
     if (kind !== 'play' || !hasSave) await story.runner.autosave('menu:' + kind);
     if (kind === 'freeroam')
       game.hud?.notify?.(
