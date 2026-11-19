@@ -121,6 +121,7 @@ export async function createVehicles(game) {
       if (isNear(pos, 7)) continue;
       const heading = Math.atan2(p.fx, p.fz);
       if (!spotFree(pos, heading, spec)) continue;
+      if (game.placement?.parkOk && !game.placement.parkOk(pos.x, pos.z, heading, spec?.L || 4.8, spec?.W || 2.0, e)) continue; // map audit: no curb spot in a bush or a narrow lane (world/placement.v2.js)
       return { pos, heading, edge: e };
     }
     return null;
@@ -1416,6 +1417,7 @@ export async function createVehicles(game) {
   // lot planting blocks parking (user: an SUV wedged in the hedge by Nico's stairs): no parked car within 1.5 m of a drawn
   // shrub / hedge (r2-physics' shrub zones, registered within 50 m of the player) at its center or corners
   function lotBlocked(x, z, heading = 0, L = 4.8, W = 2.0) {
+    if (game.placement?.parkOk && !game.placement.parkOk(x, z, heading, L, W)) return true; // map audit: the shared rule (bushes anywhere on the map, water)
     const at = game.physics?.shrubs?.at; if (!at) return false;
     const c = Math.cos(heading), s_ = Math.sin(heading);
     for (const [a, b] of [[0, 0], [W / 2, L / 2], [-W / 2, L / 2], [W / 2, -L / 2], [-W / 2, -L / 2], [0, L / 2], [0, -L / 2]]) {
@@ -1755,7 +1757,7 @@ export async function createVehicles(game) {
     if ((bushT += dt) > 1.2) { bushT = 0; try { const pp = game.player?.position;
       if (pp && game.physics?.shrubs?.at) for (const v of list.slice()) {
         if (!v.parked || v.pinned || v.playerDriven || v.ai || v.everDriven || v.rare || v.playerOwned) continue;
-        const t = v.body?.translation?.(); if (!t || Math.hypot(t.x - pp.x, t.z - pp.z) > 50) continue;
+        const t = v.body?.translation?.(); if (!t || Math.hypot(t.x - pp.x, t.z - pp.z) > (game.placement?.parkOk ? 180 : 50)) continue; // map audit: the placement rule knows every drawn shrub, not only the 50 m physics zones
         const r = v.body.rotation(), h = Math.atan2(2 * (r.w * r.y + r.x * r.z), 1 - 2 * (r.y * r.y + r.x * r.x)), T = CAR_TYPES[v.typeKey] || {};
         const hit = lotBlocked(t.x, t.z, h, (T.L || 4.6) * 0.9, (T.W || 1.9) * 0.9);
         if (hit && !inView(new THREE.Vector3(t.x, t.y, t.z))) removeVehicle(v);   // seen right now: re-checked next tick, removed once off screen

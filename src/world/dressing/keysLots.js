@@ -20,6 +20,11 @@ export function buildKeysLots(game, api) {
     const [x, z] = toW(L.x, L.z), ry = L.face + H, y = groundY(x, z), seed = (Math.abs(Math.round(L.x * 31 + L.z * 17)) % 99991) + 7;
     const fx = Math.sin(ry), fz = Math.cos(ry), rx = Math.cos(ry), rz = -Math.sin(ry), at = (u, v) => [x + rx * u + fx * v, z + rz * u + fz * v];
     const drvSide = L.car ? Math.sign(L.car.u || 1) : 1;
+    // map audit (user: from Nico's back deck a house and dock sat in the middle of the water): these lots were laid out on an
+    // older coastline. A house whose footprint reaches the water (a stilt house: more than a third of it) or a carriageway is
+    // left out, with its extras, instead of standing sunk in the bay (game.placement: the shared "may something stand here")
+    { const PL = game.placement; let wet = 0, road = 0; for (const [u, v] of [[0, 0], [-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5], [0, -0.5], [0, 0.5], [-0.5, 0], [0.5, 0]]) { const [px, pz] = at(u * L.w, v * L.d); if (isWater(px, pz)) wet++; if (PL?.onRoad?.(px, pz)) road++; }
+      if ((road || wet > (L.stilt ? 3 : 0)) && !(typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search))) { (out.skipped ||= []).push(L.id); continue; } }
     if (houseLots?.enabled) houseLots.add({ id: 'keys:' + L.id, x, z, y, heading: ry, w: L.w + 2 * L.side + 2, d: L.d + L.back + 2, front: L.d / 2 + 2, roadGap: Math.max(0, L.gap - 2), source: 'street', seed, style: L.style,
       house: { w: L.w, d: L.d, stilt: L.stilt, base: L.base, roadV: L.d / 2 + L.gap, drvU: drvSide * (L.w / 2 + 2.2), front: Math.min(3.2, L.gap - 1), style: L.style, yard: { gap: L.gap, back: L.back, side: L.side }, over: L.over } });
     out.lots.push(L.id);
@@ -59,6 +64,7 @@ export function buildKeysLots(game, api) {
   const RAP = game.RAPIER, W = game.world, rapCyl = (x, y, z, h, r2) => { try { W.createCollider(RAP.ColliderDesc.cylinder(h / 2, r2).setTranslation(x, y, z)); } catch (e) { /* */ } };
   for (const Dk of KEYS_DOCKS) {
     const [x0, z0] = toW(Dk.x, Dk.z), h = Dk.face + H, dx = Math.sin(h), dz = Math.cos(h), dim = DIMS[Dk.model]; if (!dim) continue;
+    if (isWater(x0, z0) && !(typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search))) { out.docksSkipped = (out.docksSkipped || 0) + 1; continue; } // land end in the sea (older coastline): no dock floating mid-bay
     let t = 0; for (; t < 40; t += 0.5) if (isWater(x0 + dx * t, z0 + dz * t)) break; if (t >= 40) continue;
     const L = dim[1], land = t - 1.6, cx = x0 + dx * (land + L / 2), cz = z0 + dz * (land + L / 2);
     boxCol(cx, deckY - 0.1, cz, dim[0] / 2 - 0.15, 0.1, L / 2, h);

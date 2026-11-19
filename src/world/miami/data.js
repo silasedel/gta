@@ -82,6 +82,7 @@ function buildHash(minX, minZ, maxX, maxZ, cell, count, bboxOf) {
   return { minX, minZ, cell, nx, nz, start: cnt, items };
 }
 
+const MAPFIX_OFF = typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search); // map audit fixes A/B (tools/v2/map-audit.mjs)
 export async function loadMiamiData(game, opts = {}) {
   const root = opts.base || DEFAULT_BASE;
   const t0 = performance.now();
@@ -915,7 +916,11 @@ export async function loadMiamiData(game, opts = {}) {
       cx /= o.length; cz /= o.length;
       return { id: r.id, rings, h: r.h, minH: r.mh || 0, levels: r.lv || 0, kind: r.t, type: r.t, style: r.st, zone: ZONES[r.zn], part: !!r.part,
         roof: r.rs || 'flat', colour: r.col || null, roofColour: r.rcol || null, name: null, area: Math.abs(ar / 2), cx, cz, storefront: sfByBuilding.get(r.id) || null, ...bExtra(r) };
-    });
+    }).filter((b) => { // map audit (user: houses / buildings standing sunk in the sea): a footprint mostly over water (stale data on a
+      // moved coastline) is not built; piers, boathouses and marinas stand on the water on purpose. ?mapfix=0 = old
+      if (MAPFIX_OFF || /pier|dock|boat|marina|houseboat/.test(String(b.kind || ''))) return true;
+      const o = b.rings[0]; let w = isWater(b.cx, b.cz) ? 1 : 0; for (const q of o) if (isWater(b.cx + (q[0] - b.cx) * 0.8, b.cz + (q[1] - b.cz) * 0.8)) w++;
+      return w / (o.length + 1) < 0.5; });
     const tile = { tx, tz, x0, z0, size: TS, key, areas, roads, nodes: nodesT, buildings: buildingsT, trees, palms, signals, lamps, busStops, crossings, stops, props: other,
       sidewalkPolys: (T.sw || []).map(ringsA), paths: (T.fw || []).map((r) => ({ kind: r.k, width: r.w, surface: r.s || null, bridge: !!r.br, sub: r.sb || null, pts: ringA(r.p) })),
       piers: (T.pr || []).map((r) => ({ kind: r.k, y: Math.min(r.y ?? PIER_Y, PIER_Y), rings: ringsA(r) })),

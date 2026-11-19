@@ -12,6 +12,7 @@ const DEG = Math.PI / 180;
 // r5-bridge (user's Keys bridge render): over-water decks of the Overseas Highway in the Keys (z > 3900) get the Florida Keys look:
 // plain slab with low solid parapets (no jersey / lamps), bents every ~28 m of 3-4 slender rectangular columns under a cap beam.
 // ?keysbridge=0 = the generic viaduct look.
+const WCLEAR = !(typeof location !== 'undefined' && /[?&](wclear|mapfix)=0\b/.test(location.search)), WATER_Y = 2.2; // deck top over open water (sea level -0.12)
 const KEYSB = !(typeof location !== 'undefined' && /[?&]keysbridge=0\b/.test(location.search));
 
 // uniform grid of item ids (cell -> int list)
@@ -49,13 +50,20 @@ export function* buildNetworkSteps(data, opts = {}) {
   const own = new Uint8Array(E.length);
   const ymaxOf = (e) => { let m = 0; for (let i = 0; i < e.y.length; i++) if (e.y[i] > m) m = e.y[i]; return m; };
   for (const e of E) if (e.elevated && e.pts.length >= 2 && ymaxOf(e) >= P.MIN_OWN_Y) own[e.id] = 1;
+  // map audit (user: a road lies flat on the water): a drivable street whose centre line runs >= 12 m over open water without a
+  // bridge tag in the data is taken over as a low bridge (water clearance bound + ramps at both ends) instead of a ribbon on the sea
+  const wetOwn = new Uint8Array(E.length);
+  if (WCLEAR) for (const e of E) { if (own[e.id] || e.pts.length < 2 || !e.y || /footway|path|pedestrian|steps|cycleway|track|bridleway|corridor|platform/.test(e.kind || '')) continue;
+    let run = 0, best = 0; for (let i = 1; i < e.pts.length; i++) { const [ax, az] = e.pts[i - 1], [bx, bz] = e.pts[i], L = Math.hypot(bx - ax, bz - az), k = Math.max(1, Math.ceil(L / 3));
+      for (let q = 0; q < k; q++) { const t = q / k; if (isWater(ax + (bx - ax) * t, az + (bz - az) * t)) { run += L / k; if (run > best) best = run; } else run = 0; } }
+    if (best >= 12) { own[e.id] = 1; wetOwn[e.id] = 1; } }
   { // drop connected components that never rise above 1 m (data noise: tiny humps stay plain ground roads)
     const seen = new Uint8Array(E.length);
     for (const e0 of E) {
       if (!own[e0.id] || seen[e0.id]) continue;
       const comp = [], st = [e0.id]; seen[e0.id] = 1; let mx = 0;
       while (st.length) { const id = st.pop(), e = E[id]; comp.push(id); mx = Math.max(mx, ymaxOf(e)); for (const n of [e.a, e.b]) for (const k of N[n].edges) if (own[k] && !seen[k]) { seen[k] = 1; st.push(k); } }
-      if (mx < 1.0) for (const id of comp) own[id] = 0;
+      if (mx < 1.0 && !comp.some((id) => wetOwn[id])) for (const id of comp) own[id] = 0;
     }
   }
   const nodeOwnEnds = new Map(); // node -> [{e, atA}]
@@ -291,6 +299,10 @@ export function* buildNetworkSteps(data, opts = {}) {
       for (let q = 0; q < n; q++) { const i = end === 0 ? q : n - 1 - q, s = end === 0 ? c.s[i] : c.length - c.s[i]; if (s > zone && q > 0) break;
         if (kind === 'junction' || kind === 'street') { eq[i] = 0; beq[i] = 0; cons[i] = 1; } }
       if (kind === 'deck' && nodeY.has(node)) { eq[end === 0 ? 0 : n - 1] = nodeY.get(node); cons[end === 0 ? 0 : n - 1] = 6; }
+      // map audit (user: ramps that do not meet anything): a deck whose OSM way just ends (no road continues) over land comes down to
+      // the ground there instead of stopping in the air as a cut-off slab; the grade cones turn it into a <= 7 % ramp. Over water it
+      // stays (a pier / a ferry ramp)
+      if (WCLEAR && kind === 'dead') { const i = end === 0 ? 0 : n - 1; if (!isWater(c.x[i], c.z[i])) { eq[i] = 0; beq[i] = 0; cons[i] = 1; } }
     }
     for (let i = 0; i < n; i++) for (const r of c.rel[i]) {
       const higher = r.prio > c.prio;
@@ -334,6 +346,15 @@ export function* buildNetworkSteps(data, opts = {}) {
     // three-level conflicts (a deck squeezed between a deck above and a deck below): ask the lower one to go down next pass
     for (let i = 0; i < n; i++) if (loSrc[i] && hi[i] < lo[i] - 0.05) { const r = loSrc[i], ck = chains[r.k], lim = Math.max(0, hi[i] - loNeed[i]);
       for (let q = Math.max(0, r.j - 1); q <= Math.min(ck.n - 1, r.j + 2); q++) ck.extraHi[q] = Math.min(ck.extraHi[q], lim); }
+    // map audit (user: a stretch of the overpass lies flat on the water, the bridge dips underwater): over open water a deck keeps
+    // WATER_Y above the sea everywhere (soffit clear of the waves); the grade cones below carry it onto the land approaches at <= 7 %.
+    // ?wclear=0 = old
+    if (WCLEAR) { // capped by a 6.5 % climb from the nearest pinned height (a junction / street end at grade): never a step at the shore
+      const cap = new Float64Array(n).fill(Infinity);
+      for (let i = 0; i < n; i++) if (!Number.isNaN(eq[i])) cap[i] = eq[i];
+      for (let i = 1; i < n; i++) cap[i] = Math.min(cap[i], cap[i - 1] + 0.065 * (c.s[i] - c.s[i - 1]));
+      for (let i = n - 2; i >= 0; i--) cap[i] = Math.min(cap[i], cap[i + 1] + 0.065 * (c.s[i + 1] - c.s[i]));
+      for (let i = 0; i < n; i++) if (Number.isNaN(eq[i]) && isWater(c.x[i], c.z[i])) { const v = Math.min(WATER_Y, cap[i]); if (v > lo[i]) { lo[i] = v; if (!cons[i]) cons[i] = 4; } } }
     const OA = c.ovs ? { yt, w, eq, lo, hi, cons, beq } : null; if (OA) applyProfile(c, OA, 1);
     // grade cones: every pin / bound propagates at <= ~7 % (low humps get lower instead of steeper; clearance lifts start early)
     { const G = 0.07, lo0 = Float64Array.from(lo), hi0 = Float64Array.from(hi);

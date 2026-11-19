@@ -24,6 +24,7 @@ import { buildingStyle, podiumStyle, groundStyle } from '../city/families.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { groundClaims } from '../ground/claims.js';
 const R4SLAB = !(typeof location !== 'undefined' && /[?&]r4slab=0\b/.test(location.search)); // r4-shoreland: no seawall cap on natural inland banks
+const MAPFIX_OFF = typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search); // map audit fixes A/B (tools/v2/map-audit.mjs)
 const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 import { occupancy } from '../ground/occupancy.js';
 import { surfaceMask } from '../ground/surfaceMask.js';
@@ -2470,7 +2471,9 @@ export function createTileBuilder(ctx) {
         const S0 = tile.size || provider.tileSize || 200, x0 = tile.x0 ?? tile.tx * S0, z0 = tile.z0 ?? tile.tz * S0;
         if (p.x - x0 < 3 || x0 + S0 - p.x < 3 || p.z - z0 < 3 || z0 + S0 - p.z < 3) return;
         let near = 0; for (const [dx, dz] of [[2.5, 0], [-2.5, 0], [0, 2.5], [0, -2.5]]) if (slab(p.x + dx, p.z + dz) !== null) near++;
-        if (near >= 1) { p.y = Math.max(0, Math.min(0.03, gY0(p.x, p.z) > 0.1 ? 0 : gY0(p.x, p.z))); placeStats.groundSnapped = (placeStats.groundSnapped || 0) + 1; } }
+        // map audit (user: palm roots float a few inches): no slab anywhere under or beside it = it stands on the bare ground (Keys lanes,
+        // verges without a sidewalk); a curb-height base hung 15 cm in the air there. ?mapfix=0 = old
+        if (near >= 1 || !MAPFIX_OFF) { p.y = Math.max(0, Math.min(0.03, gY0(p.x, p.z) > 0.1 ? 0 : gY0(p.x, p.z))); placeStats.groundSnapped = (placeStats.groundSnapped || 0) + 1; } }
       };
     const inB = (x, z, r) => insideBuilding(tile, x, z) || insideBuilding(tile, x + r, z) || insideBuilding(tile, x - r, z) || insideBuilding(tile, x, z + r) || insideBuilding(tile, x, z - r); // trunk / post through a wall
     for (const kind of Object.keys(OCC)) {

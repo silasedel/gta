@@ -37,6 +37,14 @@ export async function initV2(game) {
     return true;
   }
   const fields = [], blocks = [], placed = new Map(), placedDirty = new Set();
+  // map audit (user: parked cars inside bushes): every drawn shrub field is indexed (8 m cells), so game.placement can keep cars, signs
+  // and props out of bushes anywhere on the map, not only within the 50 m the physics shrub zones cover. shrubNear(x, z, pad) -> 0..1
+  const SHC = 8, shrubIdx = new Map();
+  const shrubAdd = (f, items, rad) => { f._shrub = []; for (const it of items) { const k = Math.floor(it.x / SHC) + ',' + Math.floor(it.z / SHC); let a = shrubIdx.get(k); if (!a) shrubIdx.set(k, (a = [])); const e = { x: it.x, z: it.z, r: rad * (it.s ?? 1) }; a.push(e); f._shrub.push(k, e); } };
+  const shrubDrop = (f) => { const L = f._shrub; if (!L) return; for (let i = 0; i < L.length; i += 2) { const a = shrubIdx.get(L[i]); if (!a) continue; const j = a.indexOf(L[i + 1]); if (j >= 0) a.splice(j, 1); } f._shrub = null; };
+  function shrubNear(x, z, pad = 0) { let best = 0; const cx = Math.floor(x / SHC), cz = Math.floor(z / SHC);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const a = shrubIdx.get((cx + i) + ',' + (cz + j)); if (!a) continue; for (const e of a) { const d = Math.hypot(x - e.x, z - e.z), r = e.r + pad; if (d < r) best = Math.max(best, 1 - d / r); } }
+    return best; }
   // (r2-veg, item 12) palm fit for set pieces (house lots, towns): royal palms only along avenues (trunk / primary / secondary roads),
   // coconut palms only near open water, otherwise sabal (or the feathery tropical palm in yards)
   const coastC = new Map();
@@ -116,7 +124,8 @@ export async function initV2(game) {
       if (!opts.noClear) { const n0 = items.length; items = items.filter((it) => clearAt(it.x, it.z, KIND_TYPE[ALIAS[kind] || kind] === 'shrub' ? 0.6 : 1.2)); clearStats.fieldDropped += n0 - items.length; }
       if (!opts.model && !KIND_TYPE[ALIAS[kind] || kind]) { console.warn('[vegetation] unknown kind', kind); return { group: new THREE.Group(), update() {}, stats() { return {}; }, remove() {}, dispose() {} }; }
       const f = createVegField(game.renderer, opts.model ? kind : (ALIAS[kind] || kind), items, opts); (opts.parent || game.scene).add(f.group); fields.push(f);
-      f.remove = () => { const i = fields.indexOf(f); if (i >= 0) fields.splice(i, 1); f.group.removeFromParent(); f.dispose(); };
+      if (opts.model ? opts.model.cls === 'shrub' : KIND_TYPE[ALIAS[kind] || kind] === 'shrub') { const rr = opts.model?.radius; shrubAdd(f, items, Number.isFinite(rr) ? Math.max(0.4, Math.min(2.5, rr * 0.8)) : 0.9); }
+      f.remove = () => { const i = fields.indexOf(f); if (i >= 0) fields.splice(i, 1); shrubDrop(f); f.group.removeFromParent(); f.dispose(); };
       if (game.camera) f.update(game.camera, true);
       return f;
     },
@@ -137,7 +146,7 @@ export async function initV2(game) {
     // no plant may grow here (docks, piers, decks, set-piece pads): block(x, z, r) or block({ x0, z0, x1, z1 }); returns an id for unblock(id)
     block(x, z, r = 2) { const b = typeof x === 'object' ? { ...x } : { x, z, r }; blocks.push(b); cs?.rejectArea?.(b); return blocks.length - 1; },
     unblock(id) { blocks[id] = null; },
-    blockedAt, solidAt,
+    blockedAt, solidAt, shrubNear,
     // placement audit around (x, z): countryside trees whose base floats above the ground under their footprint, stand on a road,
     // in a building / on a dock (static collider above the ground), or crowd another trunk (< 1.2 m). -> counts + examples
     audit(x, z, r = 200) {

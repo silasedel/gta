@@ -29,5 +29,26 @@ export async function initV2(game) {
     }
     return false;
   }
-  game.placement = { onRoad, inWater, blocked, footprintOnRoad, off: OFF };
+  // parkOk(x, z, heading, L, W, edge?) -> may a car be parked here? (user: parked cars inside bushes, one in the middle of a narrow
+  // Keys lane). False when the box touches water, a drawn bush / hedge (the city's bush index, the shrub zones near the player and
+  // every drawn library shrub instance), or when the street it stands on is too narrow to keep a travel lane free beside it
+  // (two-way < 7.4 m, one-way < 5.6 m: a curb spot there blocks the lane, the car parks elsewhere)
+  function narrow(edge) { if (!edge) return false; const w = edge.width || 6; return edge.oneway ? w < 5.6 : w < 7.4; }
+  function bushAt(x, z, pad) {
+    let b = 0; try { b = game.city?.bushAt?.(x, z, pad) || 0; } catch (e) { /* */ }
+    if (b <= 0) { try { b = game.vegetation?.shrubNear?.(x, z, pad) || 0; } catch (e) { /* */ } }
+    return b;
+  }
+  const MF_OFF = (typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search)); // ?mapfix=0 = old (audit before / after)
+  function parkOk(x, z, heading = 0, L = 4.8, W = 2.0, edge = null) {
+    if (OFF || MF_OFF) return true;
+    if (edge && narrow(edge)) return false;
+    const c = Math.cos(heading), s = Math.sin(heading);
+    for (const [a, b] of [[0, 0], [W / 2, L / 2], [-W / 2, L / 2], [W / 2, -L / 2], [-W / 2, -L / 2], [W / 2, 0], [-W / 2, 0], [0, L / 2], [0, -L / 2]]) {
+      const px = x + a * c + b * s, pz = z - a * s + b * c;
+      if (inWater(px, pz) || bushAt(px, pz, 0.6) > 0) return false;
+    }
+    return true;
+  }
+  game.placement = { onRoad, inWater, blocked, footprintOnRoad, parkOk, narrow, off: OFF };
 }

@@ -123,6 +123,10 @@ export async function loadStreetKit({ M } = {}) {
     const s = scenes[set]; if (!s) continue;
     for (const o of meshesOf(s)) { const n = o.name || o.parent?.name; const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld); g.computeBoundingSphere(); signs[n] = { geometry: g, material: tune(o.material) }; }
   }
+  // map audit (user: every street STOP plate sat off its post): the converter left the post and the plates off their own axes, so a
+  // post scaled 2.4x across drifted sideways from its plate. Every sign part is centred on x = z = 0 here (heights kept), so any
+  // placer puts post and plate on one axis (regulatory.v2.js, the Keys yard)
+  if (!(typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search))) for (const k in signs) { const g = signs[k].geometry; g.computeBoundingBox(); const bb = g.boundingBox; g.translate(-(bb.min.x + bb.max.x) / 2, 0, -(bb.min.z + bb.max.z) / 2); g.computeBoundingBox(); g.computeBoundingSphere(); }
   if (signs.post) { signs.post.material = signs.post.material.clone(); signs.post.material.metalness = 0.75; signs.post.material.roughness = 0.45; }
   // SPEED LIMIT plates: the library 24x30 plate (NO PARKING) with its face repainted (original art; worn background cropped
   // from the same sign's blank back in the library atlas). One atlas for every speed value; front UVs remapped per value.

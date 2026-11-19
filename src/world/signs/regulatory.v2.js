@@ -29,8 +29,13 @@ export async function initV2(game) {
   const occupied = [];
   const free = (x, z) => { for (const o of occupied) if (Math.abs(o[0] - x) < 3 && Math.abs(o[1] - z) < 3) return false; occupied.push([x, z]); return true; };
   // place a sign for traffic travelling (dx, dz) at point p: right-hand curb, facing the driver
+  // map audit (user: a street sign stood in the middle of a road): a sign position on ANY carriageway (a side street at a T, a
+  // lane running beside this one) moves further off this road's edge, up to 2.5 m, or the sign is dropped (game.placement)
+  const PL = (typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search)) ? null : game.placement; // ?mapfix=0 = old (audit before / after)
+  const offRoad = (x, z, ox, oz) => { if (!PL?.onRoad) return [x, z]; for (let k = 0; k <= 5; k++) { const px = x + ox * k * 0.5, pz = z + oz * k * 0.5; if (!PL.onRoad(px, pz, 0.25)) return [px, pz]; } return null; };
   const place = (p, dx, dz, w, list, extra, setback = 1.4) => {
-    const side = w / 2 + setback, x = p.x - dz * side, z = p.z + dx * side;   // right of travel (x east, z south): (-dz, dx)
+    const side = w / 2 + setback, q = offRoad(p.x - dz * side, p.z + dx * side, -dz, dx); if (!q) return;   // right of travel (x east, z south): (-dz, dx)
+    const [x, z] = q;
     if (game.city.isWater?.(x, z)) return;
     if (!free(x, z)) return;
     list.push({ x, z, y: gh(x, z), h: Math.atan2(-dx, -dz), ...extra });
@@ -47,7 +52,8 @@ export async function initV2(game) {
       const L = J?.legs?.find((l) => l.edge === e); if (!L) return false;
       const s0 = L.D + (L.sw > 0 ? 6.0 : 2.4); if (s0 > L.len * 0.45) return false; // behind crosswalk (0.6 + 3.0) + stop bar (1.2 + 0.5)
       const q2 = sampleFrame(L.fr, s0), nl = Math.hypot(q2.nx, q2.nz) || 1, o = L.hw + curbOff; // inbound right = frame side -1
-      const x = q2.x - q2.nx / nl * o, z = q2.z - q2.nz / nl * o; if (game.city.isWater?.(x, z) || !free(x, z)) return true;
+      const qq = offRoad(q2.x - q2.nx / nl * o, q2.z - q2.nz / nl * o, -q2.nx / nl, -q2.nz / nl); if (!qq) return true;
+      const [x, z] = qq; if (game.city.isWater?.(x, z) || !free(x, z)) return true;
       stops.push({ x, z, y: gh(x, z), h: Math.atan2(L.dx, L.dz) }); return true; };
     if (e.controlB === 'stop' && !atJunction(e.b)) { const d = Math.min(e.length - 1, (w * 0.5) + 6); const p = pointAt(e, e.length - d); place(p, p.dx, p.dz, w, stops, undefined, curbOff + 0.2); }
     if (e.controlA === 'stop' && !e.oneway && !atJunction(e.a)) { const d = Math.min(e.length - 1, (w * 0.5) + 6); const p = pointAt(e, d); place(p, -p.dx, -p.dz, w, stops, undefined, curbOff + 0.2); }
@@ -99,9 +105,12 @@ export async function initV2(game) {
     const instS = (part, arr, name, y, fwd, scl) => { if (!arr.length || !part) return; const m = new THREE.InstancedMesh(part.geometry, part.material, arr.length); m.name = name; m.castShadow = true; m.receiveShadow = true;
       const loc = new THREE.Matrix4().compose(new THREE.Vector3(0, y, fwd), new THREE.Quaternion(), scl || one); m.userData.loc = loc;
       arr.forEach((s, i) => { m4.multiplyMatrices(baseOf(s), loc); m.setMatrixAt(i, m4); (s._parts ||= []).push([m, i]); }); m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); scene.add(m); meshes.push(m); return m; };
+    // the kit centres every sign part on its axis (streetkit.js); the plate hangs just in front of the 2.4x post's face
+    const bbOf = (g) => { if (!g.boundingBox) g.computeBoundingBox(); return g.boundingBox; }, pb = bbOf(K.signs.post.geometry), front = pb.max.z * 2.4, OLDZ = (typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search));
+    const plateZ = (g, z0) => OLDZ ? z0 : front - bbOf(g).min.z + 0.006;
     instS(K.signs.post, [...stops, ...allLim], 'reg-sign-posts', 0, 0, new THREE.Vector3(2.4, 2.9, 2.4));
-    instS(K.signs.stop, stops, 'reg-stop', 2.45, 0.045);
-    for (const [mph, arr] of limits) { const pl = K.speedPlate(mph); if (pl) instS(pl, arr, `reg-limit-${mph}`, 2.3, 0.04); }
+    instS(K.signs.stop, stops, 'reg-stop', 2.45, plateZ(K.signs.stop.geometry, 0.045));
+    for (const [mph, arr] of limits) { const pl = K.speedPlate(mph); if (pl) instS(pl, arr, `reg-limit-${mph}`, 2.3, plateZ(pl.geometry, 0.04)); }
   } else {
   inst(postGeo, metal, [...stops, ...allLim], 'reg-sign-posts', true);
   inst(stopGeo, stopMat, stops, 'reg-stop-faces');
