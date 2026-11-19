@@ -10,7 +10,7 @@ import { createCharacter, humansLoaded, humansTotal } from '../player/characterM
 import { sitOnFurniture, standUp } from './furnitureSeat.js';
 import { makeTowel, makeBeachThings, restOnTowel, clearTowelContact } from './beachTowel.js';
 import { createRagdollSystem } from './ragdoll.js';
-import { cornerRoute, cornerSetback, laneBase, createSpace, walkGround, SOFT_PATH } from './walk.js';
+import { cornerRoute, cornerSetback, laneBase, createSpace, walkGround, SOFT_PATH, obstacleSteer } from './walk.js';
 import { PERSONAS, pickPersona } from './personality.js';
 import { AGE, GROUP_THEMES, groupMate, pickTheme } from './people/groups.js';
 import { createSignals } from './streetlife.js';
@@ -640,9 +640,9 @@ export async function createPeds(game) {
     try { if (game.placement?.onRoad?.(x, z, 0.25)) return why('road'); if (game.placement?.inWater?.(x, z)) return why('water'); } catch (e) { /* */ }
     if (walkGround(game, x, z, _wg) === 'road') return why('road');
     try {   // trunks (r2-physics colliders), poles, walls, fences, parked cars' static shells: a ball at chest height
-      _ball = _ball || new RAPIER.Ball(0.32);
+      _ball = _ball || new RAPIER.Ball(0.24);
       const QF = RAPIER.QueryFilterFlags;
-      if (world.intersectionWithShape({ x, y: y + 1.05, z }, _bq, _ball, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS)) return why('solid');
+      if (world.intersectionWithShape({ x, y: y + 1.15, z }, _bq, _ball, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS)) return why('solid');
     } catch (e) { /* keep */ }
     return true;
   }
@@ -1489,7 +1489,7 @@ export async function createPeds(game) {
           // never step into anybody (steering only: nobody is pushed into a wall or the road)
           if (targetSpeed > 0) {
             const st = space.steer(ped._ag, ped.pos.x, ped.pos.z, Math.sin(ped.heading), Math.cos(ped.heading), ped.speed);
-            if (ped.nav) ped.nav.steer = st.side;
+            if (ped.nav) ped.nav.steer = st.side || (ped.speed > 0.2 ? obstacleSteer(game, ped, ped.pos.x, ped.pos.y, ped.pos.z, Math.sin(ped.heading), Math.cos(ped.heading), dt) : 0);   // r7-walk: around trunks / poles
             targetSpeed *= st.slow;
             if (st.block) { ped.speed = 0; ped.blockT = (ped.blockT || 0) + dt; if (ped.blockT > 4 && ped.nav && !ped.nav.path && !ped.follow) { ped.nav.dir *= -1; ped.nav.sbE = null; ped.blockT = 0; } }   // a blocked narrow sidewalk: turn back
             else ped.blockT = 0;

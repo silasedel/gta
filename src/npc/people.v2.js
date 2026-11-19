@@ -17,7 +17,7 @@ import { hasLOS } from '../gameplay/util.js';
 import { createTalk } from './talk.js';
 import * as PR from './props.js';
 import { createSignals, createSpots, createGovernor } from './streetlife.js';
-import { walkGround } from './walk.js';
+import { walkGround, obstacleSteer } from './walk.js';
 import { GROUP_THEMES, groupMate, pickTheme } from './people/groups.js';
 
 export const order = 120;
@@ -863,7 +863,7 @@ export async function initV2(game) {
         else if (calm && !w.group && !w.nav?.path && Math.random() < sdt / 55) { w.pauseT = 3 + Math.random() * 6; w.pausePose = Math.random() < 0.6 ? POSE.phone : POSE.stand; }
         if (SPACE && w.ag) {
           const st = SPACE.steer(w.ag, w.pos.x, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), w.v || 0);
-          if (w.nav) w.nav.steer = st.side;
+          if (w.nav) w.nav.steer = st.side || ((w.v || 0) > 0.2 && Math.abs(w.pos.x - cam.x) < 70 && Math.abs(w.pos.z - cam.z) < 70 ? obstacleSteer(game, w, w.pos.x, w.gy, w.pos.z, Math.sin(w.heading), Math.cos(w.heading), sdt) : 0);   // r7-walk: around trunks / poles
           tgt *= st.slow;
           if (st.block) { w.v = 0; w.blockT = (w.blockT || 0) + sdt; if (w.blockT > 4 && w.nav && !w.nav.path && !w.buddy) { w.nav.dir *= -1; w.nav.sbE = null; w.blockT = 0; } } else w.blockT = 0;
         }
