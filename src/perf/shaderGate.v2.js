@@ -22,8 +22,11 @@ export function initV2(game) {
   const orig = r.renderBufferDirect;
   const props = r.properties;
   const queue = [];
-  const stats = (game.shaderGate = { skipped: 0, queued: 0, compiled: 0, on: true });
+  const stats = (game.shaderGate = { skipped: 0, queued: 0, compiled: 0, empty: 0, on: true });
   r.renderBufferDirect = function (camera, scene, geometry, material, object, group) {
+    // perf (Nov 19): instanced pools with no live instances still cost a full draw setup (program, uniforms, VAO) every
+    // pass: about half of the ~400 city prop pools are empty at any time (measured 968 main-pass draws downtown)
+    if (object.isInstancedMesh && object.count === 0) { stats.empty++; return; }
     if (stats.on && game.ready && scene === game.scene && material !== scene.overrideMaterial) {
       const om = object.material;
       if (om === material || (Array.isArray(om) && om.includes(material))) {
