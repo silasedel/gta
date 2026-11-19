@@ -1,0 +1,109 @@
+{
+ "set": "final",
+ "when": "2026-11-19T04:40:53.035Z",
+ "runs": {
+  "A": {
+   "gus_ground_noon": {
+    "avgMs": 98.37,
+    "p95Ms": 251.8,
+    "calls": 738,
+    "tris": 8125234
+   },
+   "gus_dock_dawn": {
+    "avgMs": 78.28,
+    "p95Ms": 224.7,
+    "calls": 632,
+    "tris": 4742294
+   },
+   "west_airboat_noon": {
+    "avgMs": 52.12,
+    "p95Ms": 94.7,
+    "calls": 361,
+    "tris": 5371929
+   },
+   "south_aerial_noon": {
+    "avgMs": 5027.04,
+    "p95Ms": 39787.9,
+    "calls": 357,
+    "tris": 5347428
+   },
+   "south_bank_dawn": {
+    "avgMs": 59.83,
+    "p95Ms": 119.1,
+    "calls": 563,
+    "tris": 6349145
+   },
+   "tarp_ground": {
+    "avgMs": 46.08,
+    "p95Ms": 81.2,
+    "calls": 427,
+    "tris": 6294361
+   },
+   "slough_airboat": {
+    "avgMs": 44.7,
+    "p95Ms": 59.7,
+    "calls": 427,
+    "tris": 6044683
+   },
+   "slough_aerial": {
+    "avgMs": 50.36,
+    "p95Ms": 143.4,
+    "calls": 591,
+    "tris": 2777060
+   }
+  },
+  "B": {
+   "gus_ground_noon": {
+    "avgMs": 209.14,
+    "p95Ms": 748.2,
+    "calls": 399,
+    "tris": 2938120
+   },
+   "gus_dock_dawn": {
+    "avgMs": 231.67,
+    "p95Ms": 526.5,
+    "calls": 256,
+    "tris": 1232382
+   },
+   "west_airboat_noon": {
+    "avgMs": 89.73,
+    "p95Ms": 112.9,
+    "calls": 553,
+    "tris": 2507040
+   },
+   "south_aerial_noon": {
+    "avgMs": 67.84,
+    "p95Ms": 90.4,
+    "calls": 458,
+    "tris": 2225458
+   },
+   "south_bank_dawn": {
+    "avgMs": 72.15,
+    "p95Ms": 118,
+    "calls": 635,
+    "tris": 2908913
+   },
+   "tarp_ground": {
+    "avgMs": 46.35,
+    "p95Ms": 61.2,
+    "calls": 452,
+    "tris": 1915013
+   },
+   "slough_airboat": {
+    "avgMs": 45.54,
+    "p95Ms": 72.5,
+    "calls": 544,
+    "tris": 2264653
+   },
+   "slough_aerial": {
+    "avgMs": 50.45,
+    "p95Ms": 67.5,
+    "calls": 539,
+    "tris": 1914684
+   }
+  }
+ },
+ "errors": [
+  "ERR THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: M.grass\nMaterial Type: MeshStandardMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:241: 'gN' : function already has a body\n\n  236: #endif\n  237: varying vec3 vGmW;\n  238: float feH1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }\n  239: float feN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(feH1(i), feH1(i + vec2(1.0, 0.0)),"
+ ]
+}

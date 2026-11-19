@@ -75,7 +75,7 @@ export function createCypress(game, G) {
     const w = new THREE.InstancedMesh(g.wood, barkMat, MAX), f = new THREE.InstancedMesh(g.fol, folMat, MAX);
     for (const m of [w, f]) { m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; m.name = `gl7Cyp${li ? 'Far' : ''}${i}`; scene.add(m); }
     f.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX * 3).fill(1), 3);
-    if (li) { w.castShadow = false; }
+    if (li) { w.castShadow = false; f.castShadow = false; } // far LOD: the far static shadow map is enough
     return { w, f };
   }));
   // ---------- layout: domes (round, tallest in the middle) and strands (along sloughs)

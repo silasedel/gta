@@ -22,7 +22,7 @@ export function createMist(game, G) {
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         { vec3 ip = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]); vec2 d = cameraPosition.xz - ip.xz; float L = max(length(d), 0.001); d /= L;
           transformed = vec3(-d.y * position.x, position.y, d.x * position.x);
-          vMistK = smoothstep(10.0, 45.0, L) * (1.0 - smoothstep(${(R - 80).toFixed(1)}, ${R.toFixed(1)}, L)); }`);
+          vMistK = (1.0 - 0.8 * smoothstep(4.0, 30.0, cameraPosition.y - ip.y)) * smoothstep(10.0, 45.0, L) * (1.0 - smoothstep(${(R - 80).toFixed(1)}, ${R.toFixed(1)}, L)); }`);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vMistK;')
       .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= vMistK;');
   };
@@ -41,7 +41,7 @@ export function createMist(game, G) {
   let scanT = 0;
   function update(dt, cam, active) {
     const h = (((game.timeOfDay ?? 12) % 24) + 24) % 24, a = active ? mistAmount(h) * (game.weather?.kind === 'rain' ? 0.6 : 1) : 0;
-    mat.opacity = a * 0.95; mesh.visible = a > 0.01; stats.amount = +a.toFixed(2);
+    mat.opacity = a * 0.8; mesh.visible = a > 0.01; stats.amount = +a.toFixed(2);
     if (mesh.visible) { const env = game.env, sc = env?.sun?.color, df = env?.dayFactor ?? 1; // unlit puffs take the light's color: warm at dawn, gray-blue at night
       const k = 0.25 + 0.75 * Math.min(1, df * 1.4); if (sc) mat.color.setRGB((0.62 + 0.38 * sc.r) * k, (0.64 + 0.36 * sc.g) * k, (0.68 + 0.32 * sc.b) * k); }
     if (!mesh.visible) { if (cells.size && !active) { cells.clear(); rebuild(); } return; }
