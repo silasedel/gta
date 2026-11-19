@@ -1088,7 +1088,14 @@ export function createTileBuilder(ctx) {
         if (md) r = Math.max(r, md.radius * TREE_LIB[sp][1] * 0.85);
       }
       if (r > 0) return (crownR[sp] = r);
-    } // (greenery, overnight) library crowns for (const g of flora?.VT?.[sp] || []) { const P = g.leaf.attributes.position; for (let i = 0; i < P.count; i++) r = Math.max(r, Math.hypot(P.getX(i), P.getZ(i))); } return (crownR[sp] = r);
+    }
+    // (greenery, overnight) library crowns; Nov 19: this fallback had been commented out by accident (code after a `//` on
+    // one dense line), so species without a library model returned undefined
+    for (const g of flora?.VT?.[sp] || []) {
+      const P = g.leaf.attributes.position;
+      for (let i = 0; i < P.count; i++) r = Math.max(r, Math.hypot(P.getX(i), P.getZ(i)));
+    }
+    return (crownR[sp] = r);
   }
   function vegTrees(group, sp, items) {
     if (TREE_LIB[sp] && libInst(group, TREE_LIB[sp][0], items, 'tree', TREE_LIB[sp][1]))
