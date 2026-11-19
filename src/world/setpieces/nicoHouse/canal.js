@@ -39,6 +39,14 @@ export function installCanal(game, o) {
     const [hx, hz] = toH(x, z);
     return inH(hx, hz, pad);
   };
+  // the bay strip past Nico's bay wall, where the set piece draws water over the map's old beach (o.bay, H frame): water for the
+  // city queries too, so grass, plants and scatter never grow there (r12: a grass clump stood in the bay beside the skiff)
+  const B = o.bay;
+  const inBay = (x, z) => {
+    if (!B) return false;
+    const [hx, hz] = toH(x, z);
+    return hx > B.x0 && hx < B.x1 && hz > B.z0 && hz < B.z1;
+  };
   const bedAt = (x, z) => {
     const [hx, hz] = toH(x, z);
     return sea - canalDepth(C, hx, hz);
@@ -84,7 +92,7 @@ export function installCanal(game, o) {
     const isW = city.isWater?.bind(city),
       gh = city.groundHeightAt?.bind(city),
       sd = city.seabedDepthAt?.bind(city);
-    city.isWater = (x, z) => inside(x, z) || (isW ? isW(x, z) : false);
+    city.isWater = (x, z) => inside(x, z) || inBay(x, z) || (isW ? isW(x, z) : false);
     if (gh) city.groundHeightAt = (x, z, y) => (inside(x, z) ? bedAt(x, z) : gh(x, z, y));
     if (sd) city.seabedDepthAt = (x, z) => (inside(x, z) ? sea - bedAt(x, z) : sd(x, z));
     const T = city.terrain;

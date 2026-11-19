@@ -377,6 +377,7 @@ export async function initV2(game) {
       game.nicoHouse_canal = installCanal(game, {
         canal: P4.canal,
         wallZ: P4.wallZ,
+        bay: { x0: P4.wallX0, x1: P4.canal.x1 + 18, z0: P4.wallZ - 22, z1: P4.wallZ - 0.05 },
         sea,
         toWorld: (hx, hz) => {
           const [gx, gz] = HtoG(hx, hz);
