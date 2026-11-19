@@ -101,6 +101,10 @@ const IMP_MAX = VEGLOD ? 580 : 480; // impostors cover the whole near-tile ring 
 const BLD_SLIVER = !(typeof location !== 'undefined' && /[?&]bldsliver=0\b/.test(location.search));
 const FARVEG = !(typeof location !== 'undefined' && /[?&]farveg=0\b/.test(location.search)),
   FAR_MAX = 1300;
+// perf A/B: empty prop pools stay visible (old behaviour) with ?poolhide=0 or POOL_KEEP_EMPTY.on = true at run time
+export const POOL_KEEP_EMPTY = {
+  on: typeof location !== 'undefined' && /[?&]poolhide=0\b/.test(location.search),
+};
 const SH_Y = LADDER_ON ? 0.058 : 0.05; // W4: shoulders sit between the junction fill (0.055) and the decals (0.062), matching their ladder rung
 const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under the sand areas (0.01), not 2 mm (z-fight)
 const FAC = {
@@ -1594,6 +1598,9 @@ export function createTileBuilder(ctx) {
         n++;
       }
       im.count = n;
+      // perf (Nov 19): most of the ~400 pools hold nothing in view at any time. An empty pool that stays visible still
+      // goes through the render list, sorting and the draw setup in the main pass and every shadow pass.
+      im.visible = n > 0 || POOL_KEEP_EMPTY.on;
       im.instanceMatrix.clearUpdateRanges();
       im.instanceMatrix.addUpdateRange(0, Math.max(16, n * 16));
       im.instanceMatrix.needsUpdate = true;

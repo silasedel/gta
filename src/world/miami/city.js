@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { createMaterials } from './materials.js';
 import { breathe, initTexturesSliced, compileSliced } from '../../core/pace.js';
 import { createStreamer } from './stream.js';
-import { createTileBuilder } from './tilebuild.js';
+import { createTileBuilder, POOL_KEEP_EMPTY } from './tilebuild.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createDataProvider } from './dataProvider.js';
 import { buildPort } from './port.js';
@@ -867,6 +867,8 @@ export async function createMiamiCity(game, opts = {}) {
       if (prevBR) prevBR.call(this, r, sc, cam, ...rest);
     };
     city.cullStats = builder.cullStats;
+    city.cullPools = builder.cullPools;
+    city.poolKeepEmpty = POOL_KEEP_EMPTY; // perf A/B: .on = true keeps empty pools visible
   }
   // synchronous warm-up: colliders + near tiles around the spawn so the player never falls
   await breathe();
