@@ -13,6 +13,37 @@ import { withBrowser, GAME_READY, startGame } from './browser.mjs';
 const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
 const SET = o.set || 'after';
+// ---- --surface: map-wide road SURFACE audit (every tile with a road, built off-scene; tools/v2/road-surface.page.js)
+//   node tools/v2/road-audit.mjs --surface --set before [--near x,z,r] [--limit N]
+//   -> docs/v2/reports/road-surface-<set>.json { counts, perClass top findings, findings (all clusters) }
+if (o.surface) {
+  const t0 = Date.now(), log = (...m) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0)}s]`, ...m);
+  await withBrowser({ width: 960, height: 540, maxSeconds: +(o.max || 3000) }, async (b) => {
+    await b.send('Page.addScriptToEvaluateOnNewDocument', { source: `(() => { const W = window.WebSocket; window.WebSocket = function (u, p) { if (String(p).includes('vite-hmr') || /[?&]token=/.test(String(u))) return { readyState: 0, addEventListener() {}, removeEventListener() {}, send() {}, close() {} }; return new W(u, p); }; window.WebSocket.prototype = W.prototype; Object.assign(window.WebSocket, { OPEN: 1, CLOSED: 3, CONNECTING: 0, CLOSING: 2 }); })();` });
+    await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
+    await b.waitFor(GAME_READY + " && typeof window.__tbSurfaceTile === 'function'", 600);
+    await b.eval(`import('/tools/v2/road-surface.page.js').then((m) => { window.__RS = m; return 1; })`);
+    let tiles = JSON.parse(await b.eval(`JSON.stringify(__RS.roadTiles(game))`));
+    if (o.near) { const [x, z, r] = String(o.near).split(',').map(Number); tiles = tiles.filter(([tx, tz]) => Math.hypot((tx + 0.5) * 200 - x, (tz + 0.5) * 200 - z) < r + 142); }
+    if (o.limit) tiles = tiles.slice(0, +o.limit);
+    log('tiles', tiles.length);
+    const rep = { set: SET, when: new Date().toISOString(), build: await b.eval('game.miamiData?.build || null'), tiles: tiles.length, counts: {}, findings: [], errors: [] };
+    const file = `docs/v2/reports/road-surface-${SET}.json`;
+    for (let i = 0; i < tiles.length; i += 8) {
+      const chunk = tiles.slice(i, i + 8);
+      const r = JSON.parse(await b.eval(`(async () => { const out = []; for (const [tx, tz] of ${JSON.stringify(chunk)}) { try { const t0 = performance.now(); const q = await Promise.race([__RS.auditTile(game, tx, tz), new Promise((res) => setTimeout(() => res({ tile: [tx, tz], error: 'timeout 30s' }), 30000))]); if (q) { q.ms = Math.round(performance.now() - t0); out.push(q); } } catch (e) { out.push({ tile: [tx, tz], error: String(e && e.stack || e).slice(0, 300) }); } } return JSON.stringify(out); })()`, 600000));
+      for (const q of r) { if (q.error) { rep.errors.push(q); continue; } for (const f of q.findings) rep.findings.push(f); }
+      log('chunk', i, r.map((q) => q.tile + ':' + (q.ms ?? '') + (q.error ? '!' : '')).join(' '));
+      if ((i / 8) % 10 === 0) { rep.counts = {}; for (const f of rep.findings) rep.counts[f.cls] = (rep.counts[f.cls] || 0) + 1; log(i + chunk.length, '/', tiles.length, JSON.stringify(rep.counts), 'errors', rep.errors.length); fs.writeFileSync(file, JSON.stringify(rep)); }
+    }
+    rep.counts = {}; for (const f of rep.findings) rep.counts[f.cls] = (rep.counts[f.cls] || 0) + 1;
+    rep.top = {}; for (const f of rep.findings) (rep.top[f.cls] ||= []).push(f); for (const k in rep.top) rep.top[k] = rep.top[k].sort((p, q) => q.n - p.n).slice(0, 25);
+    if (b.errors.length) rep.consoleErrors = [...new Set(b.errors)].slice(0, 30);
+    fs.writeFileSync(file, JSON.stringify(rep, null, 1));
+    log('COUNTS', JSON.stringify(rep.counts), 'errors', rep.errors.length, '->', file);
+  });
+  process.exit(0);
+}
 const DIR = path.resolve('docs/v2/shots/stage1/roads'); fs.mkdirSync(DIR, { recursive: true });
 const PICKS = path.resolve('docs/v2/reports/road-audit-picks.json');
 const rep = { set: SET, when: new Date().toISOString(), junctions: {} };

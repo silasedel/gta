@@ -199,6 +199,14 @@ How the world and the systems connect. If something here is wrong, fix the code 
 - **Water edge (Nov 18).** The ocean reads the opaque scene depth (copied before its first pass) for the true water depth
   near the shore: ground meeting the water needs no special mesh work; `?softshore=0` = old edge.
 
+- **Road surfaces (roads pass, Nov 19).** Curbs are one poured concrete profile (`src/world/miami/curbs.js`: gutter pan 7 mm over
+  the asphalt, battered face, rounded nose, baked AO / wear in vertex colors, same sidewalk batch); slab and curb-strip edges that
+  face lawn slope into the ground (no vertical box faces). The asphalt gutter strip at junction corners is off with it. Owned
+  (elevated) edges whose ramp stops short of a ground junction get the missing at-grade stretch from `groundTail` (tilebuild); pieces
+  cut at a tile seam tuck a 0.2 m flap under the neighbor (no hairline at seams). `?roadfix=0` = all of it off, `?curb3d=0` = old
+  curbs. Audit: `node tools/v2/road-audit.mjs --surface --set <name> [--near x,z,r]` (every road tile built off-scene,
+  `tools/v2/road-surface.page.js`; report `docs/v2/reports/road-surface-<set>.json`); shots `node tools/v2/roads/shots.mjs --set <s>`.
+
 ## 4. Events (`game.emit` / `game.on`)
 - `crime` `{ type, position|pos, severity?, by?: 'officer'|'witness'|'alarm'|'camera'|'self', witnesses? }` — types in
   `src/gameplay/wantedCore.js SEV` (assault, shoplift, vehicle_theft, carjack, trespass, vandalism, speeding, red_light,

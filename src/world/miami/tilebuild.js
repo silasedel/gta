@@ -8,6 +8,7 @@ import { grassCardMap, weedCard, clumpCard } from '../vegetation/grasscards.js';
 import { bakeImpostor } from '../vegetation/field.js';
 import { meshGround } from '../vegetation/ground.js';
 import { polyFrame, ribbon, sideWall, fillPoly, polyArea, quadUp, wallGaps, fillPolyDown } from './geom.js';
+import { curbLine, curbChains } from './curbs.js';
 import { buildJunction, sampleFrame, convexCCW, subtractConvex, bboxOf, spandrelFan, clipToConvex } from './roadgeo.js';
 
 const PASTELS = [0xf1cfc2, 0xc4e2da, 0xf3e4bc, 0xdcd3e2, 0xf1d6bc, 0xd3e3c8, 0xcadde6, 0xecccc6, 0xf6efe4, 0xfbf1da, 0xe9d5dc, 0xcde4df]; // r2-art: sun-faded (was candy pastels)
@@ -26,6 +27,9 @@ import { groundClaims } from '../ground/claims.js';
 const R4SLAB = !(typeof location !== 'undefined' && /[?&]r4slab=0\b/.test(location.search)); // r4-shoreland: no seawall cap on natural inland banks
 const MAPFIX_OFF = typeof location !== 'undefined' && /[?&]mapfix=0\b/.test(location.search); // map audit fixes A/B (tools/v2/map-audit.mjs)
 const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
+const AUD = { src: '?', on: false }; // road surface audit: source tag of the vertices being written (surfaceTile)
+const ROADFIX = !(typeof location !== 'undefined' && /[?&]roadfix=0\b/.test(location.search)); // roads pass (Nov 19) master switch: ?roadfix=0 = every road-surface fix of this pass off (before shots)
+const CURB3D = ROADFIX && !(typeof location !== 'undefined' && /[?&]curb3d=0\b/.test(location.search)); // roads pass: poured curb + gutter profile (curbs.js); ?curb3d=0 = old box faces
 import { occupancy } from '../ground/occupancy.js';
 import { surfaceMask } from '../ground/surfaceMask.js';
 import { patchTerrainEdges } from '../ground/groundEdge.js';
@@ -1411,7 +1415,9 @@ export function createTileBuilder(ctx) {
         const A = [p.o[0], H, p.o[1], p.u, 0], Bv = [q.o[0], H, q.o[1], q.u, 0], Cv = [q.i[0], H, q.i[1], q.u, (q.ro - q.ri) / 2.5], D = [p.i[0], H, p.i[1], p.u, (p.ro - p.ri) / 2.5];
         for (const bt of [tgt, coll]) if (bt) { tri(bt, A, Bv, Cv); tri(bt, A, Cv, D); }
         // curb face along the curb arc (faces the road: away from O) and the back-edge chamfer down to the lawn (toward O)
-        if (curbTgt) { const fx = (p.cx + q.cx) / 2, fz = (p.sz + q.sz) / 2, fl = Math.hypot(fx, fz) || 1, nx = fx / fl, nz = fz / fl, L = Math.hypot(q.o[0] - p.o[0], q.o[1] - p.o[1]);
+        if (curbTgt && CURB3D) { curbLine(curbTgt, [p.o, q.o], [[p.cx, p.sz], [q.cx, q.sz]], { h: H, y0: 0.05, seed: k });
+          const w = 0.35, a1 = [p.i[0], H, p.i[1]], b1 = [q.i[0], H, q.i[1]], c1 = [q.i[0] - q.cx * w, -0.03, q.i[1] - q.sz * w], d1 = [p.i[0] - p.cx * w, -0.03, p.i[1] - p.sz * w]; quadUp(curbTgt, a1, b1, c1, d1, cc, 0.4); }
+        else if (curbTgt) { const fx = (p.cx + q.cx) / 2, fz = (p.sz + q.sz) / 2, fl = Math.hypot(fx, fz) || 1, nx = fx / fl, nz = fz / fl, L = Math.hypot(q.o[0] - p.o[0], q.o[1] - p.o[1]);
           const f = [[p.o[0], 0, p.o[1]], [q.o[0], 0, q.o[1]], [q.o[0], H, q.o[1]], [p.o[0], H, p.o[1]]];
           const out = (p.o[0] - O[0]) * (q.o[1] - p.o[1]) - (p.o[1] - O[1]) * (q.o[0] - p.o[0]) > 0; // winding so the face shows from the road side
           for (const ii of out ? [0, 2, 1, 0, 3, 2] : [0, 1, 2, 0, 2, 3]) curbTgt.vert(f[ii][0], f[ii][1], f[ii][2], nx, 0, nz, (ii === 1 || ii === 2 ? L : 0) * 0.4, f[ii][1] * 0.4, cc);
@@ -1622,8 +1628,22 @@ export function createTileBuilder(ctx) {
   // leg's mouth, along its curb line to the return tangent, around the return and out to the next leg's mouth, written with a
   // road frame of its own (the strip's centerline, curbed class) so the same shader paints the same pan, joints and grime.
   const SEAMS_OLD = typeof location !== 'undefined' && /[?&]seams=old/.test(location.search); // A/B: the old junction seams
+  // roads pass: a poured curb along a road edge (frame offset side * hw, profile facing the road) and the soil berm behind a free-standing
+  // curb strip (a 0.4 m slope from its back edge down into the ground instead of a vertical face on the lawn)
+  function curbAlong(batch, fr, side, hw, a, b, h, seed) {
+    const P = [], N = [], L = fr[fr.length - 1].s, s0 = Math.max(0, a), s1 = Math.min(L, b); if (s1 - s0 < 0.2) return;
+    const st = Math.max(2, Math.ceil((s1 - s0) / 1.0));
+    for (let k = 0; k <= st; k++) { const q = sampleAt(fr, s0 + (s1 - s0) * k / st), nl = Math.hypot(q.nx, q.nz) || 1; P.push([q.x + q.nx * side * hw, q.z + q.nz * side * hw]); N.push([-q.nx * side / nl, -q.nz * side / nl]); }
+    curbLine(batch, P, N, { h, y0: 0.05, seed: seed || 0 });
+  }
+  const _bermC = new THREE.Color(0x9c968a);
+  function backBerm(batch, fr, side, o, a, b, h) {
+    const L = fr[fr.length - 1].s, s0 = Math.max(0, a), s1 = Math.min(L, b); if (s1 - s0 < 0.2) return; const st = Math.max(2, Math.ceil((s1 - s0) / 1.0)); let prev = null;
+    for (let k = 0; k <= st; k++) { const q = sampleAt(fr, s0 + (s1 - s0) * k / st), nl = Math.hypot(q.nx, q.nz) || 1, ux = q.nx * side / nl, uz = q.nz * side / nl, x = q.x + q.nx * side * o, z = q.z + q.nz * side * o;
+      const cur = [[x, h, z], [x + ux * 0.4, -0.03, z + uz * 0.4]]; if (prev) quadUp(batch, prev[0], cur[0], cur[1], prev[1], _bermC, 1 / 2.5); prev = cur; }
+  }
   function curbGutters(B, J) {
-    if (SURF_OFF || !B.asphalt || !B.asphalt._srf || SEAMS_OLD) return;
+    if (SURF_OFF || !B.asphalt || !B.asphalt._srf || SEAMS_OLD || CURB3D) return; // roads pass: the poured curb (curbs.js) has its own concrete gutter pan
     const at = (L, s, side, o) => { const q = sampleFrame(L.fr, s); return [q.x + q.nx * side * o, q.z + q.nz * side * o]; };
     const pip = (x, z) => { const P = J.poly; let ins = false; for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], xb = P[b][0], zb = P[b][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) ins = !ins; } return ins; };
     for (const c of J.corners) {
@@ -1740,12 +1760,27 @@ export function createTileBuilder(ctx) {
     for (const e of L) if (x >= e.bb[0] && x <= e.bb[2] && z >= e.bb[1] && z <= e.bb[3] && pipR(e.rings[0], x, z) && !e.rings.slice(1).some((h) => pipR(h, x, z))) return true;
     return false;
   }
+  // roads pass (Nov 19, the user's Keys bridge shot): an elevated-network edge ends its ramp ~12 m short of a ground junction (room for
+  // the old disc), but the job-4 junction outline only starts 1 m from the node, so sand showed between the ramp foot and the city
+  // street. Every stretch of an owned edge that is at grade and not covered by any deck is drawn as plain road (render + collider),
+  // butting exactly onto the ramp end and the junction mouth (no overlap, no coplanar layers).
+  function groundTail(B, r, tile, coll) {
+    if (!elevated || !elevated.footprintAt || r.pts.length < 2) return;
+    const fr = polyFrame(r.pts), L = fr[fr.length - 1].s, hw = r.width / 2, pe = pieceEnds(r), tailB = pe ? pe.LE - pe.s0 - L : 0;
+    const sMin = pe && pe.A ? Math.max(0, pe.A.D - pe.s0) : 0, sMax = pe && pe.B ? Math.min(L, pe.LE - pe.B.D - pe.s0) : L; void tailB;
+    const G = D && D.roadGraph, e = G && G.edges ? G.edges[r.edgeId] : null, yG = (s) => { if (!e || !e.y || !e.cum || !pe) return 0; const se = pe.s0 + s; let i = 1; while (i < e.cum.length - 1 && e.cum[i] < se) i++; const t = Math.max(0, Math.min(1, (se - e.cum[i - 1]) / ((e.cum[i] - e.cum[i - 1]) || 1))); return (e.y[i - 1] || 0) + ((e.y[i] || 0) - (e.y[i - 1] || 0)) * t; };
+    const free = (s) => { if (yG(s) > 0.4) return false; const q = sampleAt(fr, s); for (const o of [0, -hw * 0.8, hw * 0.8]) if (safeCall(() => elevated.footprintAt(q.x + q.nx * o, q.z + q.nz * o), false)) return false; return !(isWater && isWater(q.x, q.z)); };
+    let a = null; const flushRun = (b) => { if (a !== null && b - a > 0.3) { ribbon(B.asphalt, fr, null, -hw, hw, 0.05, 0xffffff, 1 / 7, a, b); if (coll) { coll.tag = 'road'; ribbon(coll, fr, null, -hw, hw, 0.05, 0xffffff, 1, a, b); } } a = null; };
+    for (let s = sMin; s <= sMax + 1e-6; s += 0.25) { const ok = free(s); if (ok && a === null) a = Math.max(sMin, s - 0.25); else if (!ok && a !== null) flushRun(s); }
+    flushRun(sMax);
+  }
   function* buildRoads(B, tile, props, coll, flush) {
     resolveDecks(tile); let rc = 0;
     for (const r of tile.roads) {
       if (r.pts.length < 2) continue;
       if (++rc % 10 === 0) { if (flush) flush(); yield; }
-      if (owned(r)) continue; // decks / ramps come from elevated.js
+      AUD.src = 'r' + (r.edgeId ?? r.id);
+      if (owned(r)) { if (ROADFIX) groundTail(B, r, tile, coll); continue; } // decks / ramps come from elevated.js; roads pass: the at-grade end it leaves undrawn is paved here
       paintEdge = r.edgeId ?? null; // job 4: paint clip also keeps this road's lines off the other legs where legs overlap near a sharp junction
       const prof = roadProfile(r, tile);
       const fr = polyFrame(prof.pts), L = fr[fr.length - 1].s, hw = r.width / 2, ys = prof.ys;
@@ -1773,6 +1808,12 @@ export function createTileBuilder(ctx) {
       const dw = ys ? deckWidths(fr, ys, r, hw, tile) : null;
       if (dw && dw.shrunk) { if (rB > rA + 0.2) vribbon(B.asphalt, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = 'deck'; vribbon(coll, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1); } }
       else { if (rB > rA + 0.2) { if (!ys && B.dirtRoad && (r.surface === 'dirt' || /track/.test(r.kind || ''))) ribbon(B.dirtRoad, fr, ys, -hw, hw, yRoad, 0xffffff, 1 / 4, rA, rB); else if (!ys && laneOfRoad(r)) ribbon(B.asphalt, fr, ys, -hw, hw, yRoad, LANE_TINT, 1 / 7, rA, rB); else roadStrips(B.asphalt, fr, ys, hw, yRoad, rA, rB, r); } if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1, cA, L - cB); } }
+      if (ROADFIX && !ys && pe && rB > rA + 0.2) { // roads pass: a piece cut at a tile seam tucks a 0.2 m flap under its neighbor, so no hairline of sand shows through the seam
+        const tb = (r.surface === 'dirt' || /track/.test(r.kind || '')) && B.dirtRoad ? B.dirtRoad : B.asphalt, tint = laneOfRoad(r) ? LANE_TINT : 0xffffff, fc = new THREE.Color(tint);
+        const flap = (s, dir) => { const q = sampleAt(fr, s), a = [q.x - q.nx * hw, yRoad, q.z - q.nz * hw], b = [q.x + q.nx * hw, yRoad, q.z + q.nz * hw], ox = q.dx * dir * 0.2, oz = q.dz * dir * 0.2;
+          quadUp(tb, a, b, [b[0] + ox, yRoad - 0.04, b[2] + oz], [a[0] + ox, yRoad - 0.04, a[2] + oz], fc, 1 / 7); };
+        if (pe.s0 > 0.01 && rA < 0.01) flap(0, -1);
+        if (pe.LE - pe.s0 - L > 0.01 && rB > L - 0.01) flap(L, 1); }
       // ground-continuity R2: a thin concrete edge strip where an open road meets the verge (no raw asphalt-to-grass cut)
       const lane = !ys && laneOfRoad(r);
       const curbedEdge = !lane && (pe ? (pe.e.sidewalk || 0) > 0 : !!r.sidewalks);
@@ -1785,7 +1826,9 @@ export function createTileBuilder(ctx) {
       if (GM_ON && curbedEdge && !ys && rB > rA + 1 && !/service|track|path|footway/.test(r.kind || '')) for (const side of [-1, 1]) { // ground pass: a city street whose sidewalk is set back (tree lawn) still has a granite curb at the asphalt edge
         if (!sideOpen(side)) continue; let a = rA, b = rB; if (pe && !capA && jA) a = (side > 0 ? jA.tB : jA.tA) - pe.s0; if (pe && !capB && jB) b = pe.LE - (side > 0 ? jB.tA : jB.tB) - pe.s0; if (b < a + 1) continue;
         const oIn = side * hw, o1 = side * (hw + 0.3);
-        if (B.sidewalk) { ribbon(B.sidewalk, fr, 0, Math.min(oIn, o1), Math.max(oIn, o1), CURB - 0.004, 0xc9c6bf, 1 / 2.5, a, b); /* r2-roads: 4 mm under the slab top, so where a slab also reaches the curb it wins (was a z-fight band) */ sideWall(B.sidewalk, fr, 0, oIn, CURB, 0, 0xa8a6a2, -side, a, b); sideWall(B.sidewalk, fr, 0, o1, CURB, 0, 0xb4b1aa, side, a, b); }
+        if (B.sidewalk) { const hS = CURB3D ? CURB - 0.009 : CURB - 0.004; ribbon(B.sidewalk, fr, 0, Math.min(oIn, o1), Math.max(oIn, o1), hS, 0xc9c6bf, 1 / 2.5, a, b); /* r2-roads: under the slab top, so where a slab also reaches the curb it wins (roads pass: 9 mm, was a 4 mm z-fight band) */
+          if (CURB3D) { curbAlong(B.sidewalk, fr, side, hw, a, b, hS, r.edgeId); backBerm(B.sidewalk, fr, side, hw + 0.3, a, b, hS); } // roads pass: poured curb + gutter, soil berm behind (no box on the lawn)
+          else { sideWall(B.sidewalk, fr, 0, oIn, CURB, 0, 0xa8a6a2, -side, a, b); sideWall(B.sidewalk, fr, 0, o1, CURB, 0, 0xb4b1aa, side, a, b); } }
         if (coll) { coll.tag = 'roadSidewalk'; ribbon(coll, fr, 0, Math.min(oIn, o1), Math.max(oIn, o1), CURB, 0xffffff, 1, a, b); sideWall(coll, fr, 0, oIn, CURB, 0, 0xffffff, -side, a, b); }
       }
       if (!scanShoulder && !GM_ON && !ys && !lane && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
@@ -1946,6 +1989,7 @@ export function createTileBuilder(ctx) {
       if (n.degree < 3) continue;
       if (++nc % 15 === 0) { if (flush) flush(); yield; }
       const lv = nodeLevel(tile, n); if (!lv.kind) continue; // overpass crossing: the levels do not connect
+      AUD.src = 'j' + (n.id ?? (n.x + ',' + n.z));
       if (elevated) { const es = (endsOf(tile).get(endKey([n.x, n.z])) || []), ow = es.filter((e) => owned(e.r)).length;
         if (ow && (ow === es.length || safeCall(() => elevated.isGroundJunctionBlocked(n.id), false))) continue; lv.kind = 'ground'; lv.y = 0; }
       const J = lv.kind === 'ground' ? junctionOf(n.id) : null;
@@ -1964,7 +2008,10 @@ export function createTileBuilder(ctx) {
           // r2-roads: per segment, so a slab that wraps only part of the return no longer leaves the rest of it without a curb (asphalt straight onto the dirt)
           const segSlab = (a, b) => { const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2, dx = c.O[0] - mx, dz = c.O[1] - mz, d = Math.hypot(dx, dz) || 1; return slabAt(tile, mx + dx / d * 0.5, mz + dz / d * 0.5); };
           for (let k = 0; k < c.arc.length - 1; k++) { if (!SEAMS_OLD && segSlab(c.arc[k], c.arc[k + 1])) continue; const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
-            quadUp(B.sidewalk, [a[0], CURB - 0.004, a[1]], [b[0], CURB - 0.004, b[1]], [bi[0], CURB - 0.004, bi[1]], [ai[0], CURB - 0.004, ai[1]], col, 1 / 2.5); // r2-roads: under a slab that reaches the return
+            quadUp(B.sidewalk, [a[0], (CURB3D ? CURB - 0.009 : CURB - 0.004), a[1]], [b[0], (CURB3D ? CURB - 0.009 : CURB - 0.004), b[1]], [bi[0], (CURB3D ? CURB - 0.009 : CURB - 0.004), bi[1]], [ai[0], (CURB3D ? CURB - 0.009 : CURB - 0.004), ai[1]], col, 1 / 2.5); // r2-roads: under a slab that reaches the return
+            if (CURB3D) { const ua = [(a[0] - c.O[0]), (a[1] - c.O[1])], ub = [(b[0] - c.O[0]), (b[1] - c.O[1])], la = Math.hypot(ua[0], ua[1]) || 1, lb = Math.hypot(ub[0], ub[1]) || 1; // roads pass: poured curb round the return, berm behind
+              curbLine(B.sidewalk, [a, b], [[ua[0] / la, ua[1] / la], [ub[0] / lb, ub[1] / lb]], { h: (CURB3D ? CURB - 0.009 : CURB - 0.004), y0: 0.05, seed: k + J.node.id });
+              quadUp(B.sidewalk, [ai[0], (CURB3D ? CURB - 0.009 : CURB - 0.004), ai[1]], [bi[0], (CURB3D ? CURB - 0.009 : CURB - 0.004), bi[1]], [bi[0] - ub[0] / lb * 0.4, -0.03, bi[1] - ub[1] / lb * 0.4], [ai[0] - ua[0] / la * 0.4, -0.03, ai[1] - ua[1] / la * 0.4], _bermC, 1 / 2.5); continue; }
             for (const [p, q] of [[a, b], [ai, bi]]) { const ex = q[0] - p[0], ez = q[1] - p[1], L = Math.hypot(ex, ez) || 1; let nx = ez / L, nz = -ex / L; const mx = (p[0] + q[0]) / 2, mz = (p[1] + q[1]) / 2; const toO = (c.O[0] - mx) * nx + (c.O[1] - mz) * nz; if ((p === a) === (toO > 0)) { nx = -nx; nz = -nz; }
               const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], CURB, q[1]], [p[0], CURB, p[1]]]; for (const [sg, ord] of [[1, [0, 1, 2, 0, 2, 3]], [-1, [0, 2, 1, 0, 3, 2]]]) for (const ii of ord) B.sidewalk.vert(v[ii][0], v[ii][1], v[ii][2], nx * sg, 0, nz * sg, ii === 1 || ii === 2 ? L * 0.4 : 0, v[ii][1] * 0.4, col); } } // both windings: the face shows whichever way the arc runs
         }
@@ -2333,10 +2380,13 @@ export function createTileBuilder(ctx) {
   function slabInto(batch, clip, y, uvS, col) {
     for (const [a, b2, d] of clip.tris) quadUp(batch, [a[0], y, a[1]], [b2[0], y, b2[1]], [d[0], y, d[1]], [d[0], y, d[1]], col, uvS);
   }
-  function curbsInto(batch, clip, h, col) { // low curb faces along the clipped outline (job 4: one outward face per oriented edge)
+  function curbsInto(batch, clip, h, col, render = false) { // low curb faces along the clipped outline (job 4: one outward face per oriented edge)
+    if (clip.oriented && render && CURB3D) { // roads pass: road-side edges become one continuous poured curb + gutter (curbs.js), chained round the curves
+      curbChains(batch, clip.edges.filter((e) => e[2] === true), (p, q) => { const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz) || 1; return [dz / L, -dx / L]; }, { h, y0: 0.05 });
+      clip = { oriented: true, edges: clip.edges.filter((e) => e[2] !== true) }; }
     if (clip.oriented) { for (const [p, q, road] of clip.edges) { const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz) || 1, nx = dz / L, nz = -dx / L;
         if (road === false && !batch.tag) { // back edge (lawn / lot side): a 0.35 m chamfer down to the ground instead of a dark vertical step
-          const w = 0.35, a = [p[0], h, p[1]], b = [q[0], h, q[1]], c = [q[0] + nx * w, 0, q[1] + nz * w], d = [p[0] + nx * w, 0, p[1] + nz * w], sl = Math.hypot(w, h), ny = w / sl, nh = h / sl;
+          const w = 0.38, yb = CURB3D ? -0.03 : 0, a = [p[0], h, p[1]], b = [q[0], h, q[1]], c = [q[0] + nx * w, yb, q[1] + nz * w], d = [p[0] + nx * w, yb, p[1] + nz * w], sl = Math.hypot(w, h), ny = w / sl, nh = h / sl;
           for (const v2 of [a, b, c, a, c, d]) batch.vert(v2[0], v2[1], v2[2], nx * nh, ny, nz * nh, v2[0] * 0.4, v2[2] * 0.4, col); continue; }
         const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], h, q[1]], [p[0], h, p[1]]];
         for (const i of [0, 2, 1, 0, 3, 2]) batch.vert(v[i][0], v[i][1], v[i][2], nx, 0, nz, (i === 1 || i === 2 ? L : 0) * 0.4, v[i][1] * 0.4, col); } return; }
@@ -2345,7 +2395,7 @@ export function createTileBuilder(ctx) {
   }
   function sidewalkPoly(tgt, rings, coll, curbTgt = tgt, uvS = 1 / 2.5, tile = null) {
     if (tile) { const clip = clipSidewalk(rings, tile), white = new THREE.Color(0xffffff), cc = new THREE.Color(0xd8d4cc);
-      if (tgt) { slabInto(tgt, clip, CURB, uvS, white); curbsInto(curbTgt, clip, CURB, cc); }
+      if (tgt) { slabInto(tgt, clip, CURB, uvS, white); curbsInto(curbTgt, clip, CURB, cc, true); }
       if (tgt && curWeeds && clip.oriented) for (const [p, q, road] of clip.edges) { if (!road) continue; const ex = q[0] - p[0], ez = q[1] - p[1], L = Math.hypot(ex, ez); if (L < 1) continue; // ground pass: sparse weeds in the gutter crack of every curb (road side of the slab)
         const nx = ez / L, nz = -ex / L; for (let t = 0.5; t < L; t += 3.5) { const x0 = p[0] + ex / L * t, z0 = p[1] + ez / L * t, h = hash(((x0 * 7) | 0) * 131 + ((z0 * 11) | 0)); if (h > 0.08) continue; const x = x0 + nx * 0.05, z = z0 + nz * 0.05;
           curWeeds.push({ x, y: 0.05, z, ry: h * 77, s: 0.6 + h * 7 }); const AW = (globalThis.__gpWeeds ||= []); if (AW.length < 400) AW.push([x, z, nx, nz]); } }
@@ -3901,5 +3951,33 @@ export function createTileBuilder(ctx) {
     return out;
   }
   if (typeof window !== 'undefined') window.__tbDebugProps = debugProps;
+  // road surface audit (tools/v2/road-audit.mjs --surface): the ground surfaces of one tile built exactly as buildNear builds them
+  // (areas, terrain grid, sidewalk slabs, roads, junctions, caps, curbs, markings, decals), into tagged batches that never reach the
+  // scene. Every vertex carries the source it came from (AUD.src: 'r<edge>' road piece, 'j<node>' junction, 's<k>' slab, 'a' area).
+  // Returns { tx, tz, relief, batches: { name: { p: Float32Array, t: string[] (per triangle) } }, terrain: Float32Array | null }.
+  async function surfaceTile(tx, tz) {
+    const run = async (g) => { let r, n = 0; for (;;) { r = g.next(); if (r.done) return r.value; if ((++n & 15) === 0) await new Promise((ok) => setTimeout(ok, 0)); else await null; } }; // macrotask breaks: tile data loads arrive as network callbacks
+    const tile = await run(getTileG(tx, tz)); if (!tile) return null;
+    const T0 = provider.tileSize || 200, X0 = tx * T0, Z0 = tz * T0, synth = !!(terrain && terrain.synthetic(tx, tz)), LF = { on: !!(tile.relief && D), k: null };
+    class TB extends Batch { constructor() { super(); this.t = []; } vert(x, y, z, nx, ny, nz, u, v, col) { super.vert(x, y, z, nx, ny, nz, u, v, col); if (this.p.length % 9 === 0) this.t.push(AUD.src); } }
+    const names = ['junction', 'parking', 'promenade', 'panels', 'wood', 'guard', 'asphalt', 'marks', 'sidewalk', 'trim', 'land', 'sand', 'grass', 'dirtRoad', 'lines', 'shoulder', 'decals', 'runway', 'taxiway', 'apron'];
+    const B = {}; for (const k of names) B[k] = new TB();
+    const NB = new Proxy(B, { get: (o, k) => (k in o ? o[k] : NULL_BATCH) });
+    if (LF.on) for (const key in B) liftB(B[key], LF);
+    for (const key of ['asphalt', 'lines', 'decals']) attachRoadChannel(B[key]);
+    AUD.src = 'a'; for (const a of tile.areas || []) areaFill(NB, a);
+    let ter = null; if (synth) { const tr = await run(terrain.gridGen(X0, Z0, X0 + T0, Z0 + T0, 4, { skirt: 0 })); if (tr) ter = tr.geometry.attributes.position.array; if (tr) tr.geometry.dispose(); }
+    let k = 0; for (const rings of sidewalksOf(tile)) { AUD.src = 's' + (k++); await run(clipGen(rings, tile)); const zn = zoneAt(rings[0][0][0], rings[0][0][1]);
+      if (M.promenade && /beach|nightlife/.test(zn)) sidewalkPoly(B.promenade, rings, null, B.sidewalk, 1 / 8, tile); else if (M.panels && /downtown|business|brickell|commercial/.test(zn)) sidewalkPoly(B.panels, rings, null, B.sidewalk, 1 / 6, tile); else sidewalkPoly(B.sidewalk, rings, null, B.sidewalk, 1 / 2.5, tile); }
+    AUD.src = 'p'; for (const p of tile.piers || []) pierDeck(NB, p, null, null);
+    AUD.on = true; await run(buildRoads(NB, tile, null, null)); AUD.on = false; AUD.src = '?';
+    const out = { tx, tz, relief: LF.on, synth, batches: {}, terrain: ter, roads: tile.roads.filter((r) => r.pts.length > 1).map((r) => { const ow = owned(r), pr = ow ? { pts: r.pts, ys: null } : roadProfile(r, tile); return { owned: ow, edgeId: r.edgeId, pts: pr.pts, ys: pr.ys, width: r.width, kind: r.kind, sidewalks: !!r.sidewalks, lane: !pr.ys && !!laneOfRoad(r), surface: r.surface }; }) };
+    for (const kk of names) { const b = B[kk]; if (!b.p.length) continue; out.batches[kk] = { p: new Float32Array(b.p), n: new Float32Array(b.n), t: b.t }; }
+    if (elevated) { const er = await run(elevTileG({ tx, tz }, { colliders: false })); if (er && er.group) { const P = [], v = new THREE.Vector3(); er.group.updateMatrixWorld(true);
+      er.group.traverse((o) => { if (!o.isMesh || o.isInstancedMesh || !o.geometry?.attributes?.position) return; const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, pa = g.attributes.position; for (let i = 0; i < pa.count; i++) { v.fromBufferAttribute(pa, i).applyMatrix4(o.matrixWorld); P.push(v.x, v.y, v.z); } if (g !== o.geometry) g.dispose(); });
+      er.group.traverse((o) => { if (o.isMesh) { o.geometry?.dispose?.(); } }); if (P.length) out.batches.elev = { p: new Float32Array(P), t: new Array(P.length / 9).fill('e') }; } }
+    return out;
+  }
+  if (typeof window !== 'undefined') window.__tbSurfaceTile = surfaceTile;
   return { debugProps, junctionOf, sigStats, capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat, ...greenMats] };
 }
