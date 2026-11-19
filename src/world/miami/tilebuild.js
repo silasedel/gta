@@ -3537,7 +3537,8 @@ export function createTileBuilder(ctx) {
       const n = g.attributes.position.count, at = new Float32Array(n * 2);
       for (const [v0, v1, tx, tz] of ranges) for (let v = v0; v < v1; v++) { at[v * 2] = tx; at[v * 2 + 1] = tz; }
       g.setAttribute('aTile', new THREE.BufferAttribute(at, 2));
-      g.computeBoundingSphere(); g.computeBoundingBox(); yield;
+      // perf (Nov 19): box only, sphere from the box (computeBoundingSphere walked the merged chunk twice more: 50-90 ms steps)
+      g.computeBoundingBox(); yield; g.boundingSphere = g.boundingBox.getBoundingSphere(new THREE.Sphere());
       const m = new THREE.Mesh(g, mat); m.castShadow = false; m.receiveShadow = true; m.matrixAutoUpdate = false; m.updateMatrix();
       group.add(m);
     }
