@@ -1,5 +1,6 @@
 // Miami city (CITY agent): real-scale OSM Miami, streamed tiles with near/mid/far LOD and incremental colliders.
 // Data comes from ./data.js (DATA agent) when present; until then a dev provider reads the raw OSM caches.
+import { updateSignGlow } from '../city/shopSigns.js';
 import * as THREE from 'three';
 import { createMaterials } from './materials.js';
 import { breathe, initTexturesSliced, compileSliced } from '../../core/pace.js';
@@ -258,7 +259,7 @@ export async function createMiamiCity(game, opts = {}) {
     benches: data?.benches || benches, leanSpots: data?.leanSpots || leanSpots, benchesNear: data?.benchesNear, leanSpotsNear: data?.leanSpotsNear, storefrontsNear: (x, z, r, out = []) => { const a = data?.storefrontsNear ? data.storefrontsNear(x, z, r).slice() : []; builder.synthShopsNear(x, z, r, a); out.length = 0; for (const l of a) out.push(l); return out; }, // DATA lots + synthetic ground-floor shops,
     root, streamer, get grass() { return grassField; }, provider: provider.source || 'data.js',
     update(dt) {
-      const h = game.timeOfDay ?? 12; updateMats(dt, h);
+      const h = game.timeOfDay ?? 12; updateMats(dt, h); updateSignGlow(M.lampHead?.emissiveIntensity);
       focus[0].x = game.camera.position.x; focus[0].z = game.camera.position.z;
       const p = game.player?.position; if (p) { focus[1].x = p.x; focus[1].z = p.z; }
       const vb = game.player?.state?.vehicle?.body, v = vb?.translation?.(); if (v) { focus[2].x = v.x; focus[2].z = v.z; } else { focus[2].x = focus[1].x; focus[2].z = focus[1].z; }

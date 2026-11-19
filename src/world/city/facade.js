@@ -360,12 +360,12 @@ void facadeEval() {
           float tr = type == 8 ? 1.0 : 1.0 - refl * 0.82;
           float dayI = uFDay * (type == 8 ? 0.55 : type == 6 || type == 7 ? 0.5 : 0.34) * (1.0 - 0.5 * clamp(it, 0.0, 1.0)); // r2-art: 0.2 -> 0.34, the room reads behind daylight glass (depth, not a flat decal)
           if (type != 6 && type != 7 && type != 8) I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.45); // rooms seen through daylight glass are muted
-          if (type == 6 || type == 7) { dayI += uFDay * 0.12; I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.3) * vec3(1.15, 0.97, 0.76); } // shop fronts: warm lit interiors by day too, no candy-colored rooms
+          if (type == 6 || type == 7) { dayI += uFDay * 0.3; /* r8: shop fronts read as lit shops, not grey mirrors */ I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.3) * vec3(1.15, 0.97, 0.76); } // shop fronts: warm lit interiors by day too, no candy-colored rooms
           float l2 = type == 8 ? max(lit, uFNight * 0.9) : lit;
           oEmi = I * tr * (1.0 - cov) * (dayI + l2 * litC * uFGlow) + cC * cov * l2 * litC * 0.3 * uFGlow * tr;
           oAlb = mix(gTint * (type == 8 ? 0.0 : 0.4), cC * 0.85, cov * 0.9);
           oRough = type == 8 ? 1.0 : 0.05 + 0.12 * fVN(pm * 2.3 + cell * 7.0);
-          oMetal = type == 8 ? 0.0 : mix(type == 6 || type == 7 ? 0.35 : 0.5, 0.0, cov * 0.75); // r2-art: 0.68 -> 0.5, less mirror, more room
+          oMetal = type == 8 ? 0.0 : mix(type == 6 || type == 7 ? 0.16 : 0.5, 0.0, cov * 0.75); // r2-art: 0.68 -> 0.5, less mirror, more room
           if ((type == 0 || type == 3) && (prof == 1 || prof == 2) && fH2(cell * 7.7 + seed + 3.0) < 0.07 && wq.y < 0.47) { // a window left open: lower sash pushed up, no glass in front of the room
             oAlb *= 0.25; oMetal = 0.0; oRough = 0.9; oEmi = I * (1.0 - cov) * (dayI * 1.6 + l2 * litC * uFGlow);
           }
@@ -407,7 +407,13 @@ void facadeEval() {
       float fk = smoothstep(0.4, 2.0, px / min(cs.x, cs.y)) * gz;
       alb = mix(alb, gTint * 0.36, fk); metal = mix(metal, 0.72, fk); rough = mix(rough, 0.14, fk);
     }
+    if (type != 2) { // r8 contact shadow: the slab / ledge line at the top of every floor shades the wall just under it
+      float tp = cs.y - pm.y, cU = (1.0 - smoothstep(0.0, 0.42, tp)) * (1.0 - smoothstep(0.6, 2.5, px));
+      ao *= 1.0 - 0.32 * cU; alb *= 1.0 - 0.1 * cU;
+    }
   }
+  if (!horiz) { float hbA = vFWP.y - vFc.x; // r8 contact shadow where the wall meets the ground
+    if (hbA > -0.3) { float cB = 1.0 - smoothstep(0.0, 0.85, hbA); ao *= 1.0 - 0.42 * cB; alb *= 1.0 - 0.12 * cB; } }
   if ((bits & 65536) != 0 && uFAwn > 0.5) { // shop awning canvas: bounce from the lit shop window below (stronger on the underside) and a
     // little light through the fabric, so a dark awning reads as colored canvas at night instead of a black void
     float under = clamp(-vFWN.y, 0.0, 1.0);

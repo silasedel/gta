@@ -1480,7 +1480,7 @@ export async function createVehicles(game) {
     // van (Van 5), sun-faded, rusted and salt-crusted, locked, on a clear spot (game.placement: never on a pole, stairs or bins)
     try { for (let i = 0; i < 40 && game.lots?.enabled !== false && !game.houses; i++) await new Promise((r) => setTimeout(r, 500));
       const p = NH.toWorld(new THREE.Vector3(18.6, 0, 25.0)), hv = 1.58 + h0, q = game.placement?.clearSpot ? game.placement.clearSpot(p.x, p.z, hv, 5.3, 2.1, 8, { cars: true }) : [p.x, p.z];
-      if (q) { const v = await spawnParked('van5', { x: q[0], z: q[1], heading: hv, color: 0x9a968a, finish: 'solid', old: true, locked: true, keepSpot: true, wear: { dirt: 0.45, rust: 0.42, fade: 0.7, age: 1, dirtColor: 'salt' } }); if (v) { v.pinned = true; v.derelict = true; } }
+      if (q) { const v = await spawnParked('van5', { x: q[0], z: q[1], heading: hv, color: 0x9a968a, finish: 'solid', old: true, locked: true, keepSpot: true, wear: { dirt: 0.45, rust: 0.42, fade: 0.7, age: 1, dirtColor: 'salt' } }); if (v) { v.pinned = true; v.derelict = true; import('../world/props/weathered.js').then((m) => m.weatherObject(v.mesh, { fade: 0.7, rust: 0.55, grime: 0.6, seed: 5 })).catch(() => { /* cosmetic */ }); } }
     } catch (e) { /* optional */ }
   })();
   // placeStatic('covered1', { x, z, heading }) -> Promise<Object3D>: a static library prop (car under a cover) with a box collider

@@ -33,6 +33,7 @@ const GM_KIND = { asphalt: 'asphalt', junction: 'asphalt', dirtRoad: 'asphalt', 
 import { breakables } from './breakables.js';
 import { shopAprons } from '../shops/frontage.js';
 import { shopRoomsMaterial, roomKind } from '../shops/roomGlass.js';
+import { shopSignAtlas, signQuad } from '../city/shopSigns.js';
 const AWN3D = !(typeof location !== 'undefined' && /[?&]shops=0\b/.test(location.search)); // shops pass: 3D scalloped shell awnings
 const SHOP_APRONS = !(typeof location !== 'undefined' && /[?&]aprons=0\b/.test(location.search)); // shops pass A/B: ?aprons=0 = before
 import { dynProps } from '../props/dynamicProps.v2.js';
@@ -816,7 +817,9 @@ export function createTileBuilder(ctx) {
       if (FB && sf) { // ground floor around the shop fronts: the building's own windows and doors on every side (no blank back walls)
         const G = groundStyle(FS, false, false) || FS;
         wallGaps(sview(FB, G, G.bayW, GF - y0), outer, y0, GF, G.bayW, GF - y0, FS.tint, 7.37, 0, openings);
-      } else if (FB) { const G1 = groundStyle(FS, true, false); facadeWalls(FB, outer, y0, GF, G1 || FS, 7); if (G1 && G1.type === WIN.storefront) streetShopDress(B, outer, y0, GF, G1, seed, opts.props); } else wallGaps(B.shop, outer, y0, GF, 64, GF - y0, new THREE.Color(0xffffff), ((hash(seed + 3) * 8) | 0) / 8, -y0 / (GF - y0), openings);
+        if (style !== 'house' && style !== 'warehouse' && y0 < 0.5 && !b.part && h > GF + 2.5) fasciaSigns(B, outer, y0, GF, seed, zone, openings);
+      } else if (FB) { const G1 = groundStyle(FS, true, false); facadeWalls(FB, outer, y0, GF, G1 || FS, 7); if (G1 && G1.type === WIN.storefront) streetShopDress(B, outer, y0, GF, G1, seed, opts.props);
+        if (style !== 'house' && style !== 'warehouse' && y0 < 0.5 && !b.part && h > GF + 2.5 && opts.lod !== 1) fasciaSigns(B, outer, y0, GF, seed, zone); } else wallGaps(B.shop, outer, y0, GF, 64, GF - y0, new THREE.Color(0xffffff), ((hash(seed + 3) * 8) | 0) / 8, -y0 / (GF - y0), openings);
       if (sf && B.shopGlass) for (const f of sf) glassFront(B, outer, f, y0, GF, color, opts.props);
       if (FB) facadeWalls(FB, outer, GF, h, FS, 20); else wallStrip(B[fstyle], outer, GF, h, tw, th, color, uOff, vOff - GF / th);
       if (sf) fillPolyDown(B.trim, b.rings, GF - 0.02, new THREE.Color(0xe6e2da));
@@ -2098,6 +2101,34 @@ export function createTileBuilder(ctx) {
     }
   }
   // ground-floor shop bays drawn by the facade shader (no mapped shop lot): awnings and planters on the street-facing bays
+  const _white = new THREE.Color(1, 1, 1);
+  // r8 (user: downtown ground floors look flat, no signs): tenant signs on commercial ground floors. On each street-facing face
+  // (8 m or longer) one to three fascia boards with made-up brand lettering sit in the wall band just above the ground floor
+  // (GF + 0.1 .. GF + 0.62, under the first-floor sills), boxed out 14 cm with a lit lettered face (src/world/city/shopSigns.js)
+  const SIGN_ZONES = /downtown|business|brickell|commercial|midtown|arts|edgewater|overtown|nightlife|retail|mixed|beach|tourist|havana/;
+  function fasciaSigns(B, outer, y0, GF, seed, zone, skip = null) {
+    if (!B.signs || !B.trim || !SIGN_ZONES.test(String(zone || ''))) return;
+    const A = shopSignAtlas(), ya = GF + 0.34, yb = GF + 0.86; // above the string course / ledge over the shop fronts (GF .. GF + 0.3, 0.34 deep)
+    const pip = (x, z) => { let c = false; for (let a = 0, b2 = outer.length - 1; a < outer.length; b2 = a++) { const xa = outer[a][0], za = outer[a][1], xb = outer[b2][0], zb = outer[b2][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) c = !c; } return c; };
+    for (let i = 0; i < outer.length; i++) {
+      let p = outer[i], q = outer[(i + 1) % outer.length];
+      if (pip((p[0] + q[0]) / 2 - (q[1] - p[1]) * 0.05, (p[1] + q[1]) / 2 + (q[0] - p[0]) * 0.05)) { const t0 = p; p = q; q = t0; } // the sign faces out of the footprint whatever the ring winding
+      const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz);
+      if (L < 8) continue;
+      const tx = dx / L, tz = dz / L, nx = -tz, nz = tx;
+      if (roadDist && roadDist(p[0] + dx / 2 + nx * 3, p[1] + dz / 2 + nz * 3) > 14) continue;
+      if (skip && skip.some((o) => { const ux = o.x - p[0], uz = o.z - p[1], u = ux * tx + uz * tz, v = ux * nx + uz * nz; return u > -1 && u < L + 1 && Math.abs(v) < 2.5; })) continue; // shop fronts with their own banners
+      const nS = Math.min(3, Math.max(1, Math.floor(L / 12))), ry = Math.atan2(-tz, tx);
+      for (let k = 0; k < nS; k++) {
+        const hk = hash(seed * 59 + i * 17 + k * 5); if (hk > 0.8) continue;
+        const sm = L * (k + 0.5) / nS, hw = Math.min(L / nS / 2 - 0.6, 1.6 + hk * 1.6); if (hw < 1) continue;
+        const bc = new THREE.Color(AWN[(hk * 9.7 * AWN.length | 0) % AWN.length]).multiplyScalar(0.55);
+        B.trim.addGeometry(BOXG, m4(p[0] + tx * sm + nx * 0.19, (ya + yb) / 2, p[1] + tz * sm + nz * 0.19, ry, hw * 2 + 0.14, yb - ya + 0.1, 0.38), bc); // boxed sign, proud of the ledge
+        const o = 0.385, Pt = (sv, y) => [p[0] + tx * sv + nx * o, y, p[1] + tz * sv + nz * o], h2 = Math.min(hw, (yb - ya) * 4);
+        signQuad(B.signs, A, (hash(seed * 43 + i * 11 + k * 3) * A.n) | 0, [Pt(sm - h2, ya + 0.02), Pt(sm + h2, ya + 0.02), Pt(sm + h2, yb - 0.02), Pt(sm - h2, yb - 0.02)], [nx, 0, nz], _white);
+      }
+    }
+  }
   function streetShopDress(B, outer, y0, GF, G, seed, props) {
     const top = Math.min(GLASS_TOP, GF - 0.35);
     for (let i = 0; i < outer.length; i++) {
@@ -2117,7 +2148,11 @@ export function createTileBuilder(ctx) {
         for (let k = 0; k < nb; k++) { const sA = k * bw + 0.26, sB = (k + 1) * bw - 0.26; if (sB - sA < 1.2) continue;
           box(sA, sB, y0, y0 + 0.42, 0.07, granite); // kick plate
           const hB = hash(seed * 23 + i * 11 + k); if (hB < 0.55) { const sc = new THREE.Color(AWN[(hB * 7.3 * AWN.length | 0) % AWN.length]).multiplyScalar(0.8);
-            box(sA + 0.1, sB - 0.1, top + 0.06, Math.min(GF - 0.12, top + 0.62), 0.1, sc); box(sA + 0.35, sB - 0.35, top + 0.18, Math.min(GF - 0.24, top + 0.5), 0.12, sc.clone().lerp(new THREE.Color(0xf2ece0), 0.75)); } } // sign board with a lighter panel
+            box(sA + 0.1, sB - 0.1, top + 0.06, Math.min(GF - 0.12, top + 0.62), 0.1, sc); box(sA + 0.35, sB - 0.35, top + 0.18, Math.min(GF - 0.24, top + 0.5), 0.12, sc.clone().lerp(new THREE.Color(0xf2ece0), 0.75));
+            if (B.signs) { // r8: made-up brand lettering on the panel (src/world/city/shopSigns.js), never wider than 8:1
+              const A = shopSignAtlas(), ya = top + 0.2, yb = Math.min(GF - 0.26, top + 0.48), hh = yb - ya, wMax = hh * 8, sm = (sA + sB) / 2, hw = Math.min((sB - sA - 0.8) / 2, wMax / 2), o = 0.125;
+              if (hw > 0.4 && hh > 0.12) { const Pt = (sv, y) => [p[0] + tx * sv + nx * o, y, p[1] + tz * sv + nz * o];
+                signQuad(B.signs, A, (hash(seed * 41 + i * 13 + k * 7) * A.n) | 0, [Pt(sm - hw, ya), Pt(sm + hw, ya), Pt(sm + hw, yb), Pt(sm - hw, yb)], [nx, 0, nz], _white); } } } } // sign board with a lighter panel
       }
       for (let k = 0; k < nb; k++) {
         const sA = k * bw + 0.35, sB = (k + 1) * bw - 0.35;
@@ -3275,6 +3310,7 @@ export function createTileBuilder(ctx) {
     const B = { junction: new Batch(), parking: new Batch(), promenade: new Batch(), panels: new Batch(), shopGlass: new Batch(), wood: new Batch(), pool: new Batch(), guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch(), roof: new Batch(), neon: new Batch(), shop: new Batch(), office: new Batch(), deco: new Batch(), glass: new Batch(), band: new Batch(), warehouse: new Batch(), punched: new Batch(), ribbon: new Batch(), curtain: new Batch(), condo: new Batch(), grid: new Batch(), land: new Batch(), sand: new Batch(), grass: new Batch(), dirtRoad: new Batch(), lines: new Batch(), shoulder: new Batch(), decals: new Batch() };
     if (M.facade) { B.fac = new FBatch(); B.trim = fview(B.fac, WL.stucco); B.roof = fview(B.fac, WL.roofConcrete); }
     if (M.roomGlass) { B.roomGlass = new Batch(); B.roomGlass.w = []; }
+    B.signs = new Batch(); // r8: shop sign lettering
     if (shopRoomsMaterial(M)) { B.shopRooms = new Batch(); B.shopRooms.w = []; } // shops pass
     const T0 = provider.tileSize || 200, X0 = t.tx * T0, Z0 = t.tz * T0, synth = !!(terrain && terrain.synthetic(t.tx, t.tz)), LF = { on: !!(tile.relief && D), k: null };
     if (terrain) { B.runway = new Batch(); B.taxiway = new Batch(); B.apron = new Batch(); }
@@ -3327,6 +3363,7 @@ export function createTileBuilder(ctx) {
       ['trim', M.trim, true], ['roof', M.roof, false], ['neon', M.neon, false], ['shop', M.shop, true], ['office', M.office, true], ['deco', M.deco, true], ['glass', M.glass, true], ['band', M.band, true], ['warehouse', M.warehouse, true], ...['punched', 'ribbon', 'curtain', 'condo', 'grid'].map((k) => [k, M[k] || M.office, true])]) {
       const m = meshOf(B[name], mat, { cast }); if (m) { if (B[name]._srf) applyRoadChannel(THREE, m, B[name]); if (name === 'shopGlass') m.renderOrder = 10; group.add(m); const gk = GM_KIND[name]; if (gk) GMASK.register(m, gk); yield; }
     }
+    if (B.signs && B.signs.p.length) { const m = meshOf(B.signs, shopSignAtlas().mat, { cast: false }); if (m) { m.name = 'shop-signs'; group.add(m); } }
     if (B.roomGlass && B.roomGlass.p.length) { // shop rooms behind street-front glass (aWear = room kind + how lit)
       const m = meshOf(B.roomGlass, M.roomGlass, { cast: false });
       if (m) { m.geometry.setAttribute('aWear', new THREE.BufferAttribute(new Float32Array(B.roomGlass.w), 1)); m.name = 'shop-rooms'; m.renderOrder = -1; group.add(m); }
