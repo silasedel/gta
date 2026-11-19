@@ -281,7 +281,8 @@ export const P8 = {
   terrace: { z0: -13.0, z1: -16.2, x0: -26, x1: 12.4, fall: 4 },
   // r8: the canal, 6 m of water between timber bulkheads, from the bay (NW end) in toward the SE, straight
   // r9 (user, Nov 19): twice as wide: 12 m of water (was 6 m); Nico's wall stays where the lower deck is flush with it
-  canal: { x0: 12.6, x1: 24.6, z1: 20.0, on: true, fake: true },
+  // r12 (user, Nov 19 eve): a bit wider (14 m) and a bit longer (2 m further in; the street's turning circle is ~4 m past the end)
+  canal: { x0: 12.6, x1: 26.6, z1: 22.0, on: true, fake: true },
   // the dock (A): leaves the bay wall at an angle by the canal mouth, turns, runs straight to the big platform, parallel to the wall
   // r9 (user, Nov 19): ONE angled gangway straight from the wall to the platform (no knee), and a narrower platform (5.0 x 3.8 m, was 7.4 x 5.9)
   // r10 (playtest Nov 19): a straight pier square to the wall into the middle of the platform's wall side (wallX = its center line)

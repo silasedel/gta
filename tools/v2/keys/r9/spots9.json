@@ -189,5 +189,194 @@
   "tod": 11,
   "showPlayer": true,
   "eval": "const S = game.city.playerSpawn; game.teleport(S.x, S.y, S.z, (game.city.playerSpawnHeading || 0) + Math.PI); game.cameraOverride = null;"
+ },
+ "HOOP": {
+  "ref": null,
+  "eye": [
+   0,
+   0,
+   0
+  ],
+  "hdg": 0,
+  "fov": 62,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "frame": "r4_ext_house_b",
+  "fEye": [
+   3.5,
+   1.7,
+   -14.5
+  ],
+  "fLook": [
+   8.0,
+   1.8,
+   -10.8
+  ]
+ },
+ "STAIR": {
+  "ref": null,
+  "eye": [
+   0,
+   0,
+   0
+  ],
+  "hdg": 0,
+  "fov": 70,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "frame": "r4_ext_house_b",
+  "fEye": [
+   2.0,
+   3.0,
+   -15.5
+  ],
+  "fLook": [
+   10.0,
+   1.5,
+   -11.0
+  ]
+ },
+ "GYM": {
+  "ref": null,
+  "eye": [
+   0,
+   0,
+   0
+  ],
+  "hdg": 0,
+  "fov": 70,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "frame": "r4_ext_house_b",
+  "fEye": [
+   9.2,
+   4.45,
+   -3.3
+  ],
+  "fLook": [
+   11.0,
+   2.9,
+   -11.5
+  ]
+ },
+ "DOCK": {
+  "ref": null,
+  "eye": [
+   0,
+   0,
+   0
+  ],
+  "hdg": 0,
+  "fov": 62,
+  "tod": 16,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "frame": "r4_ext_site_h",
+  "fEye": [
+   -2.0,
+   2.5,
+   -36.0
+  ],
+  "fLook": [
+   -2.0,
+   0.0,
+   -18.0
+  ]
+ },
+ "DOOR": {
+  "ref": null,
+  "eye": [
+   0,
+   0,
+   0
+  ],
+  "hdg": 0,
+  "fov": 70,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "frame": "r4_ext_house_b",
+  "fEye": [
+   -3.2,
+   5.2,
+   -7.0
+  ],
+  "fLook": [
+   -6.5,
+   4.6,
+   -7.0
+  ]
+ },
+ "DOOROUT": {
+  "ref": null,
+  "eye": [
+   0,
+   0,
+   0
+  ],
+  "hdg": 0,
+  "fov": 62,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "frame": "r4_ext_house_b",
+  "fEye": [
+   -10.5,
+   5.3,
+   -5.0
+  ],
+  "fLook": [
+   -6.5,
+   4.6,
+   -7.0
+  ]
+ },
+ "CANAL": {
+  "ref": null,
+  "eye": [
+   0,
+   0,
+   0
+  ],
+  "hdg": 0,
+  "fov": 62,
+  "tod": 11,
+  "player": [
+   -5.66,
+   0,
+   -1.41
+  ],
+  "frame": "r4_ext_site_h",
+  "fEye": [
+   13.4,
+   2.4,
+   -8.0
+  ],
+  "fLook": [
+   20.0,
+   -1.2,
+   4.0
+  ]
  }
 }

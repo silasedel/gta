@@ -328,11 +328,7 @@ export function build(ctx) {
       );
       g.dispose();
     }
-    // nobody walks on the water: a collider at the wall tops stops the player at the edge (the world's ground under the channel is
-    // land in the coarse raster; until the map carries the canal the channel is fenced and closed here)
-    Fr.col.box((x0 + x1) / 2, lidY - 0.6 + 0.5, (Wz + z1) / 2, x1 - x0, 1.2, z1 - Wz, {
-      tag: 'water',
-    });
+    // r12: no lid collider over the water any more: the canal is real water in the world (canal.js: swim, bed, no land)
     ctx.r8canalBatch = CI;
   }
   // ---------- the depth portal and the water of the bay strip ----------
@@ -435,7 +431,7 @@ export function build(ctx) {
       const d = inCn ? Math.min(x - Cn.x0, Cn.x1 - x, Cn.z1 - z) : Math.max(0, Wz - z);
       return 0.58 + 0.42 * Math.min(1, d / 2.2);
     };
-    const sheet = (x0, x1, z0, z1, step, mat, alpha) => {
+    const sheet = (x0, x1, z0, z1, step, mat, alpha, yFn) => {
       const nx = Math.max(1, Math.ceil((x1 - x0) / step)),
         nz = Math.max(1, Math.ceil((z1 - z0) / step)),
         g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz);
@@ -452,7 +448,7 @@ export function build(ctx) {
         col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = k;
         al[i] = alpha ? alpha(x, z) : 1;
         uv.setXY(i, x, z);
-        pa.setY(i, Math.max(sea + 0.012, ground(x, z) + 0.06));
+        pa.setY(i, yFn ? yFn(x, z) : Math.max(sea + 0.012, ground(x, z) + 0.06));
       } /* r8: the surface rides 6 cm over the world's coarse ground where that stands above the sea (no depth tricks) */
       pa.needsUpdate = true;
       g.computeVertexNormals();
@@ -468,7 +464,22 @@ export function build(ctx) {
       Fr.groups.ext.add(m);
       return m;
     };
-    if (Cn.on) sheet(Cn.x0, Cn.x1, Wz - 0.01, Cn.z1, 0.75, WM);
+    if (Cn.on) {
+      const CM = canalWaterMaterial(THREE, WM.normalMap, Cn, Wz, sea, ctx);
+      // one flat surface over the world's coarse ground under the channel (land where the map is not carved yet, its bank strip
+      // ~5 cm under the sea where it is, the street's turning circle at the far end): 8 cm over the highest of it, never under
+      // 10 cm over the sea, never over 30 cm
+      let lvl = sea + 0.1;
+      for (let x = Cn.x0 + 0.3; x < Cn.x1; x += 0.75)
+        for (let z = Wz; z < Cn.z1 + 0.5; z += 0.75) lvl = Math.max(lvl, ground(x, z) + 0.08);
+      lvl = Math.min(lvl, sea + 0.3);
+      const m = sheet(Cn.x0, Cn.x1, Wz - 0.01, Cn.z1, 0.75, CM, null, () => lvl);
+      m.onBeforeRender = (rd, sc, cam) => {
+        CM.userData.camL
+          .copy(cam.position)
+          .applyMatrix4(CM.userData.inv.copy(m.matrixWorld).invert());
+      };
+    }
     if (bayLand) {
       sheet(BX.x0, BX.x1, BX.z0, BX.z1, 1.5, WM);
       const F8 = 8,
@@ -1001,3 +1012,94 @@ export function build(ctx) {
   }
   Fr.build();
 }
+
+// r12 (user: "look real and deeper, a sandy silty bottom, darker and murkier with depth"): the canal's water is opaque (the
+// world's coarse ground still runs under it), so the bottom is drawn INTO the surface: per pixel the view ray is refracted at the
+// surface and marched down to the bed profile (canal.js canalDepth, the same one the bed collider uses) or a wall; the hit is shaded
+// (rippled sand, silt by the walls, a few rocks and shells, soft caustics; weathered planks with algae lower down) and the
+// water absorbs it along the path (red first), fading to a dark green murk. Reflections and the ripple normals stay the
+// standard material's.
+function canalWaterMaterial(THREE, normalMap, Cn, Wz, sea, ctx) {
+  const m = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.05,
+    metalness: 0,
+    envMapIntensity: 1.0,
+    // the street's asphalt (junction units -7) reaches a little over the channel's end: the water wins there
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -12,
+  });
+  m.name = 'r12canalWater';
+  m.normalMap = normalMap;
+  m.normalScale = new THREE.Vector2(0.07, 0.07);
+  const U = {
+    uCamL: { value: new THREE.Vector3() },
+    uR: { value: new THREE.Vector4(Cn.x0, Cn.x1, Wz, Cn.z1) },
+    uSea: { value: sea },
+    uT: { value: 0 },
+  };
+  m.userData.camL = U.uCamL.value;
+  m.userData.inv = new THREE.Matrix4();
+  ctx.updaters.push((dt) => {
+    U.uT.value += dt;
+  });
+  m.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vCL;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCL = position;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace(
+        '#include <common>',
+        '#include <common>\nvarying vec3 vCL;\nuniform vec3 uCamL;\nuniform vec4 uR;\nuniform float uSea;\nuniform float uT;',
+      )
+      .replace('#include <color_fragment>', '#include <color_fragment>\n' + CANAL_GLSL);
+  };
+  m.customProgramCacheKey = () => 'r12canalWater';
+  return m;
+}
+
+const CANAL_GLSL = /* glsl */ `
+{
+  vec3 V = normalize(vCL - uCamL);
+  vec3 Rd = refract(V, vec3(0.0, 1.0, 0.0), 0.75);
+  Rd.y = min(Rd.y, -0.08);
+  Rd = normalize(Rd);
+  vec3 p = vCL;
+  float L = 0.0, hit = 0.0, dwH = 0.0;
+  for (int i = 0; i < 40; i++) {
+    float st = 0.1 + L * 0.06;
+    p += Rd * st;
+    L += st;
+    float dw = min(min(p.x - uR.x, uR.y - p.x), uR.w - p.z);
+    if (dw < 0.0 && p.z > uR.z) { hit = 2.0; break; }
+    float t = clamp(dw / 4.0, 0.0, 1.0);
+    t = t * t * (3.0 - 2.0 * t);
+    float n = sin(p.x * 0.9 + p.z * 0.37) * sin(p.z * 0.61 - p.x * 0.23);
+    if (p.y < uSea - (2.0 + 0.5 * t + 0.08 * n)) { hit = 1.0; dwH = max(dw, 0.0); break; }
+  }
+  vec3 col = vec3(0.0);
+  if (hit > 1.5) {
+    // the bulkhead below the waterline: vertical planks, algae lower down
+    float along = (abs(p.x - uR.x) < 0.4 || abs(p.x - uR.y) < 0.4) ? p.z : p.x;
+    float f = fract(along / 0.235);
+    col = vec3(0.3, 0.26, 0.2) * (0.72 + 0.28 * smoothstep(0.0, 0.08, f) * smoothstep(1.0, 0.92, f));
+    col = mix(col, vec3(0.15, 0.21, 0.11), smoothstep(uSea - 0.5, uSea - 1.6, p.y));
+  } else if (hit > 0.5) {
+    vec2 q = p.xz;
+    float rip = sin(dot(q, vec2(1.9, 2.9)) + 1.3 * sin(q.x * 0.45 + q.y * 0.3)) * 0.5 + 0.5;
+    col = vec3(0.66, 0.6, 0.47) * (0.8 + 0.2 * rip);
+    col = mix(col, vec3(0.33, 0.31, 0.24), (1.0 - smoothstep(0.0, 2.2, dwH)) * 0.8);
+    vec2 cell = floor(q * 0.9), fr = fract(q * 0.9) - 0.5;
+    float h = fract(sin(dot(cell, vec2(127.1, 311.7))) * 43758.5453), h2 = fract(h * 91.7);
+    float d = length(fr - (vec2(h, h2) - 0.5) * 0.6);
+    if (h > 0.9) col = mix(col, vec3(0.3, 0.29, 0.27), smoothstep(0.17, 0.11, d));
+    else if (h > 0.85) col = mix(col, vec3(0.88, 0.84, 0.76), smoothstep(0.06, 0.03, d));
+    float ca = sin(q.x * 2.3 + uT * 1.1 + sin(q.y * 1.7)) * sin(q.y * 2.1 - uT * 0.9 + sin(q.x * 1.3));
+    col *= 1.0 + 0.35 * pow(abs(ca), 3.0);
+  }
+  vec3 tr = exp(-L * vec3(1.05, 0.56, 0.5));
+  diffuseColor.rgb = col * 0.6 * tr + vec3(0.012, 0.05, 0.046) * (1.0 - tr);
+}
+`;

@@ -5,7 +5,8 @@ import { buildNicoHouse, PLAN } from './index.js';
 import { CAR_SPOTS, PLANTING, LITTER, DRIVE, DRIVE_PUDDLE } from './yard.data.js';
 import { patchPuddles } from '../../ground/puddles.js';
 import { lots as houseLots } from '../houses/lots.js';
-import { R4, R8, P4, toS, plantClear, HtoG, BtoG } from './r4/plan4.js';
+import { R4, R8, P4, toS, plantClear, HtoG, BtoG, GtoH } from './r4/plan4.js';
+import { installCanal } from './canal.js';
 import { NICO_MAP_LAND } from './mapPatch.data.js';
 // r2-perf: the yard ground collider as a triangle mesh with the SAME vertices and cell triangulation as the heightfield
 // descriptor. Rapier's heightfield has no BVH, so the player's character controller paid ~2.2 ms per call standing in the
@@ -368,6 +369,28 @@ export async function initV2(game) {
       /* skip a bad descriptor */
     }
   }
+
+  // r12 (playtest Nov 19: "he floats above the canal"): the canal is water in the running world (swim, bed, no land under it)
+  if (R8 && !temporary && !KEYS_OFF && P4.canal.on)
+    try {
+      const v3 = new THREE.Vector3();
+      game.nicoHouse_canal = installCanal(game, {
+        canal: P4.canal,
+        wallZ: P4.wallZ,
+        sea,
+        toWorld: (hx, hz) => {
+          const [gx, gz] = HtoG(hx, hz);
+          v3.set(gx, 0, gz).applyMatrix4(g.matrixWorld);
+          return [v3.x, v3.z];
+        },
+        toH: (x, z) => {
+          v3.set(x, 0, z).applyMatrix4(inv);
+          return GtoH(v3.x, v3.z);
+        },
+      });
+    } catch (e) {
+      console.warn('[nicoHouse] canal', e);
+    }
 
   // ---- anchors in world space ----
   const anchors = {};

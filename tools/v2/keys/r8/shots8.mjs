@@ -65,6 +65,7 @@ await withBrowser(
       let look;
       if (s.top) look = new T.Vector3(eye.x, gy, eye.z - 0.001);
       else { const h = s.hdg * Math.PI / 180, p = (s.pitch || 0) * Math.PI / 180; look = eye.clone().add(new T.Vector3(Math.sin(h) * Math.cos(p), Math.sin(p), -Math.cos(h) * Math.cos(p))); }
+      if (s.frame) { let fg = null; NH.group.traverse((o) => { if (o.name === s.frame) fg = o; }); if (fg) { fg.updateMatrixWorld(true); eye.copy(new T.Vector3(...s.fEye).applyMatrix4(fg.matrixWorld)); look = new T.Vector3(...s.fLook).applyMatrix4(fg.matrixWorld); } }
       game.timeOfDay = s.tod ?? 11;
       if (game.weather?.set) { try { game.weather.set(s.weather || 'clear', { instant: true }); game.weather.hold?.(true); } catch (e) {} }
       const pl = s.player ? new T.Vector3(C.x + s.player[0], 0, C.z + s.player[2]) : eye; try { game.teleport(pl.x, undefined, pl.z, s.ph ?? 0); } catch (e) {}
