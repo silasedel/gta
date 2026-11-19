@@ -195,7 +195,11 @@ How the world and the systems connect. If something here is wrong, fix the code 
   Rules from the measurements: no CPU readback of GPU data in a frame (`readPixels`, `getBufferSubData`, `getImageData` on
   an accelerated canvas: create canvases you read with `willReadFrequently`); never ray-test the whole scene
   (`scene.traverse` + `Raycaster` against every InstancedMesh); a new shader program is never first-used in a frame
-  (`src/perf/shaderGate.v2.js` skips the draw until it links; `?shadergate=0` = off).
+  (`src/perf/shaderGate.v2.js` skips the draw until it links; `?shadergate=0` = off). The same module draws transparent
+  double-sided materials in one pass (`forceSinglePass`, `?singlepass=0`) and gives each shadow caster class its own depth
+  material (`?shadowdepth=0`): never flip `material.side` / `needsUpdate` per frame. `world.updateSceneQueries()` is cheap
+  now (`src/perf/physicsGuard.v2.js` skips it unless colliders changed); physics spawn-spot queries have a per-frame budget
+  (`vehicles.js spotQ`). The frame cap defaults to 60 with even pacing on 120 Hz panels (`perfGuards.v2.js`).
 - **Water edge (Nov 18).** The ocean reads the opaque scene depth (copied before its first pass) for the true water depth
   near the shore: ground meeting the water needs no special mesh work; `?softshore=0` = old edge.
 
