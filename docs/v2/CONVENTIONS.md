@@ -130,6 +130,8 @@ How the world and the systems connect. If something here is wrong, fix the code 
   (`camps.js`: Gator Gus Airboat Rides with 3 rentable airboats, $25 on boarding via `game.wallet.pay`; stilt fish camps,
   tarp shack, airboat-only island shack; sites found on the map data near target points in `PLACES`, people by cast id via
   `game.npc.spawnPosed`). `?gl7=0` off, `?gl7parts=water,moss` subset. Shots: `tools/v2/everglades/shots.mjs`, `check.mjs`.
+  r7b: the user's Nov 18 downloads (bald cypress + its moss, great blue heron, RV trailer, oil drums, junk car, flatbed, mossy
+  stone) are aged / regraded by `tools/v2/everglades/age_tex.py` and converted by `build_models.sh` (`X=` / `A=` section).
 
 ## 3. Rendering rules (stage 1)
 - Locked 1080p-class internal resolution; TAA in every preset; no film grain. Any screen-space dither must use the
