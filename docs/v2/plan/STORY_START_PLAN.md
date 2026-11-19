@@ -69,16 +69,37 @@ D3. Proximity voice: WebRTC audio between peers, signaled over the existing WebS
   Opus voice frames through the server WebSocket. A TURN server is optional later.
 - Use TLS (`wss://`), keep a room cap (e.g. 8 players), and add simple rate limits on the server.
 
-## Phase E: the bigger systems (later, in pieces, both accounts)
-New police system and AI, smart NPCs (schedules, reactions, memory), stores (buy and sell UI), more missions and the casino heist
-(BIG_UPDATE_PLAN.md sections 6–7, 14). Each becomes its own brief once A–C are in.
+## Phase E: the bigger systems (split between both accounts, see the schedule)
+- E1 **Police AI v2** (this account): dispatch by wanted level, units that search the last known position, line of sight
+  and sound, roadblocks at 3+ stars, helicopter at 4+, tactical response at 5, escape by breaking line of sight, and a cooldown.
+  Builds on `src/gameplay/police/**` and CONVENTIONS 4a. Missions call into it.
+- E2 **Smart NPCs** (friend): daily schedules (home, work, beach, nightlife by hour), reactions (flee, cower, call the
+  police, film, fight back by personality), short memory of the player (you robbed them, they recognize you), and group
+  behavior. Builds on `src/npc/**` and `src/gameplay/wantedSense.js`.
+- E3 **Stores** (friend): one store system (enter, browse, buy, sell) for guns, clothes, food, car mods. Data-driven
+  stock and prices on `src/systems/economy.js`, `inventory.js`, `items.js`; interiors from `src/world/interiors/**`. C1
+  (Weapon Purchase) uses the gun store.
+- E4 **More missions and the casino heist** (both, after A–C): the heist design is in BIG_UPDATE_PLAN.md section 14. Each
+  mission is one brief on the story framework.
 
-## Budget and order (realistic)
-- This account (~75% of the weekly limit left, resets Nov 26): finish the current polish pass, then the Prettier reformat and push, then
-  Phase A (about 10–15% of the week), then Phase B (about 20–30%). Keep about 15% for fixes from playtests.
-- Friend's account: Phase D now (no dependency), then Phase C once Phase A is pushed. Hand-off briefs are below; paste one
-  per session. Pull `main` first, work on a branch, push the branch, open a PR.
-- At most 4–5 agents at once on this machine (more starved the browser slots and the CPU this morning).
+## Schedule: a few days, both accounts in parallel
+Agents per account: at most 4–5 at once (more starved CPU and browser slots). Each account works on its own branch and
+merges through PRs, so two people never edit the same files at the same time.
+
+| Day | This account (main session + agents) | Friend's account |
+|---|---|---|
+| Today (Nov 19) | Finish the polish pass, run the Prettier reformat, push `main`. Then **Phase A** (story framework + new main menu). | Pull `main` after the push. Start **D** (multiplayer + voice) and **E3** (stores) as two sessions. |
+| Day 2 (Nov 20) | Push A. **Phase B** intro missions B1–B3 (First Job, Ocean Smuggling, Swamp Rescue), in parallel agents, one per mission. **E1** police AI v2 as one agent. | **C1–C3** optional missions (on Phase A, one session each). Continue D. **E2** smart NPCs. |
+| Day 3 (Nov 21) | **B4–B5** (Seaplane Escape, Free Roam Unlock), full playthrough fixes, merge friend PRs, build, bench, push. | Finish D (deploy the server, two-machine test), C and E2/E3 fixes, PRs. |
+| Day 4+ | Playtest-driven fixes; start E4 (more missions, the heist). | E4 missions from briefs. |
+
+Integration rules: `main` must always build and boot. Before each merge, run the boot check (`npx vite build` then start
+the app). PRs list what was verified in the game.
+
+## Budget (realistic)
+- This account: 25% of the week used, resets Nov 26. Phase A about 10%, Phase B about 25%, E1 about 8%, merges and fixes about
+  12%. That leaves about 20% for playtest fixes after the video.
+- Friend's account: D, C, E2, E3, about 4–6 sessions over three days; each session gets one brief below.
 
 ## Hand-off brief: Phase D (paste into the friend's Claude Code)
 "Southline repo (GitHub silasedel/gta-v2), branch from `main` as `mp-voice`. Read `docs/v2/CONVENTIONS.md` (code style
@@ -93,6 +114,20 @@ readable code, push the branch and open a PR to `main`."
 C, and the story framework in `src/story/**` (how a mission is defined, see the intro missions as examples). Build C1–C3
 as independent optional missions with map markers, autosave and correct skip flags. Reuse stores, combat, chase AI,
 boats, diving. Push the branch and open a PR."
+
+## Hand-off brief: E2 smart NPCs (friend; can start now)
+"Southline repo (GitHub silasedel/gta-v2), branch `npc-smart` from `main`. Read `docs/v2/CONVENTIONS.md` (section 0 code
+style, 4b people) and `docs/v2/plan/STORY_START_PLAN.md` E2. Make pedestrians feel alive: daily schedules by hour and district,
+reactions by personality (flee, cower, call the police, film with the phone, fight back), short memory of the player, and groups
+that walk and talk together. Extend `src/npc/**`; don't rewrite the crowd renderer. Hold the frame budget (no more than
+~1 ms extra downtown); think at low rates and only near the player. Commit often, push the branch, open a PR."
+
+## Hand-off brief: E3 stores (friend; can start now)
+"Southline repo, branch `stores` from `main`. Read `docs/v2/CONVENTIONS.md` and `docs/v2/plan/STORY_START_PLAN.md` E3. Build
+one store system: walk in, browse a clean store UI, buy and sell, with data-driven stock and prices for guns and ammo, clothes
+(hook into the wardrobe), food and drinks, and car mods. Use `src/systems/{economy,inventory,items,money}.js` and existing
+interiors in `src/world/interiors/**`. Expose `game.stores.open(id)` and events so missions (the Weapon Purchase mission) can
+use them. Commit often, push the branch, open a PR."
 
 ---
 
