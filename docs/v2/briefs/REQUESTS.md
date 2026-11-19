@@ -58,3 +58,21 @@ polygonOffsetUnits: -2` (decals -2 / -4); never two faces in the same plane.
    `M.facade` at (-1065, 6, 5334), and `countryside` vs `countryside` / `vegField_*` duplicates (two instanced fields at the
    same spots, e.g. hibiscus at -1010, 1.4, 5183).
 3. **Vehicles: `car-paint` vs `car-trim` fight on the parked pickup / sedan at Nico's lot** (about -1006.7, 1.3, 5187.8, 1100 px).
+
+## From the shop-interiors agent (r7, Nov 18)
+1. **Map-wide world (`src/world/miami/tilebuild.js`, `data.js`): storefront kinds.** The city only stamps 10 kinds (convenience,
+   liquor, pharmacy, hardware, salon, clothes, restaurant, fast_food, hotel, office). Interiors now have real types for grocery
+   (`supermarket`), pawn (`pawnbroker`), gun shop (`weapons`), barber (`barber` / `salon`), fast food, liquor. Until the city stamps
+   `supermarket` / `pawnbroker` / `weapons`, interiors take half the deep `convenience` lots as groceries and split `hardware` lots
+   40 % pawn / 30 % gun shop by seed. If you add those kinds, nothing else is needed.
+2. **Map-wide world: storefront shells.** Shops now grow BACK into their own building (fitter `room()` / `grow()` in
+   `src/world/interiors/legacy/fitlots.js`, `?deep=0` = old 9 x 10 m). This relies on the ground floor of a storefront building being
+   hollow (outer walls + GF ceiling collider), which it is today; please keep it that way, and keep `sf.w` = the glass width.
+3. **NPCs (`src/npc/**`):** shop people are posed at POIs by `src/world/interiors/venuePeople.js` (clerk at `counter`, shoppers at
+   `browse` / `register` / `queue`, barbers at `barber`, clients in `chair`). A "browse" idle (look at shelf, pick up, put back) and
+   a short walk between two POIs would make shoppers feel alive; nothing in the interiors code has to change for that.
+5. **Map agent: the street in front of Nico's house is not drawn (mock-up 01 needs it).** The road graph has
+   "Pelican Point Ln" (edge 3274, keys_detail "nico driveway") running from the lot front (set piece frame x -6, z 33.5;
+   world about (-1001, 5207)) straight out to Coconut Row, but no asphalt shows there in game (top-down and roof
+   shots in docs/v2/shots/nico_r7/): the yard's new straight drive (yard.data.js DRIVE) ends at sand. Please render
+   that lane (or tell me if it is meant to be gone, and I will end the drive at the yard edge).

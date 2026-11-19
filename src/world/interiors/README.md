@@ -125,4 +125,10 @@ Preview with bloom like the game at night: `preview.html?type=nightclub&n=1&w=9&
 - **Staff and customers:** only venues (`store.venue`) get people (`venuePeople.js`); shops still record `staff()` / `ctx.poi` only.
 - Stairs, elevators and upper floors; a stuck-spot walker; music per venue; openable drawers/cabinets other than cooler doors.
 - First build of a type draws its textures and labels on the main thread (one-time slices over 25 ms).
-- Only `gas-convenience` exists as a V2 type; Cuban cafe and sneaker boutique are not built.
+- Shop types (r7): `gas-convenience`, `grocery` (supermarket + half the deep convenience lots), `liquor`, `pawn` and `gunshop` (seeded split
+  of `hardware` lots), `barber` (salon), `fastfood`, plus the venue types. Big-store fixtures: `fixtures/aisles.js` (aisle blocks, checkout
+  lanes, produce, magazine rack, tall walls, chest freezer, carts, pallets, glass display cases); pawn / gun / barber pieces:
+  `fixtures/specialty.js`; the full product range: `items/range.js` (DEPT lists for planograms).
+- Real depth: a type's `depth(sf, { W, room, seed })` returns how deep it wants the lot; the engine grows the lot back into its own
+  building (`legacy/fitlots.js` `room()` / `grow()`), `?deep=0` keeps the 9 x 10 m city default.
+- Library models only the interiors use are converted into `models/` and listed in `kit/models.js` (LOCAL).
