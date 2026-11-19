@@ -345,7 +345,7 @@ export function createTileBuilder(ctx) {
     for (let k = 0; k < 20; k++) { const a = k / 20 * Math.PI * 2, r = 0.47; parts.push([BOXG, m4(Math.cos(a) * r, 0.008, Math.sin(a) * r, -a, 0.42, 0.014, 0.035), 0x3a3836]); }
     for (const r of [0.27, 0.68]) for (let k = 0; k < 16; k++) { const a = (k + 0.5) / 16 * Math.PI * 2; parts.push([BOXG, m4(Math.cos(a) * r, 0.009, Math.sin(a) * r, Math.PI / 2 - a, 2 * Math.PI * r / 16 + 0.01, 0.016, 0.04), 0x303030]); }
     return mergeParts(parts); })();
-  const grateMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, color: new THREE.Color(1.7, 1.7, 1.7) }); grateMat.name = 'tree-grate'; // r2-roads / r2-art: cast iron as a dielectric (metal 0, L 0.05-0.1, rough 0.75-0.85)
+  const grateMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, color: new THREE.Color(1.7, 1.7, 1.7) }); grateMat.name = 'tree-grate'; grateMat.polygonOffset = true; grateMat.polygonOffsetFactor = -1; grateMat.polygonOffsetUnits = -2; // r8 z-fight sweep: flush with the sidewalk panels // r2-roads / r2-art: cast iron as a dielectric (metal 0, L 0.05-0.1, rough 0.75-0.85)
   const boatMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.1 });
   if (M.timeU) boatMat.onBeforeCompile = (sh) => {
     sh.uniforms.uBoatTime = M.timeU;
