@@ -99,5 +99,100 @@
   "tex": 512,
   "col": 0,
   "_from": "game-ready-military-base-asset-pack.zip"
+ },
+ "base_tent": {
+  "src": "/private/tmp/claude-501/sl/prep/base_tent.glb",
+  "tris": 6000,
+  "tex": 1024,
+  "lod1": 800,
+  "col": 300,
+  "_from": "tent-military.zip"
+ },
+ "base_sb_line": {
+  "src": "/private/tmp/claude-501/sl/prep/base_sb_line.glb",
+  "tris": 2500,
+  "tex": 1024,
+  "lod1": 400,
+  "col": 200,
+  "_from": "sandbags-defense-line.zip"
+ },
+ "base_sb_nest": {
+  "src": "/private/tmp/claude-501/sl/prep/base_sb_nest.glb",
+  "tris": 3500,
+  "tex": 1024,
+  "lod1": 500,
+  "col": 300,
+  "_from": "sandbags-defense-line.zip"
+ },
+ "base_sb_store": {
+  "src": "/private/tmp/claude-501/sl/prep/base_sb_store.glb",
+  "tris": 4000,
+  "tex": 1024,
+  "lod1": 500,
+  "col": 300,
+  "_from": "sandbags-defense-line.zip"
+ },
+ "base_sb_wall": {
+  "src": "/private/tmp/claude-501/sl/prep/base_sb_wall.glb",
+  "tris": 3000,
+  "tex": 1024,
+  "lod1": 400,
+  "col": 0,
+  "_from": "sandbag-wall-24mb.zip"
+ },
+ "base_wire_fence": {
+  "src": "/private/tmp/claude-501/sl/prep/base_wire_fence.glb",
+  "tris": 0,
+  "tex": 1024,
+  "col": 0,
+  "_from": "wire-fence.zip"
+ },
+ "base_mesh_fence": {
+  "src": "/private/tmp/claude-501/sl/prep/base_mesh_fence.glb",
+  "tris": 1200,
+  "tex": 1024,
+  "col": 0,
+  "_from": "fence-11mb.zip"
+ },
+ "base_wood_tower": {
+  "src": "/private/tmp/claude-501/sl/prep/base_wood_tower.glb",
+  "tris": 0,
+  "tex": 1024,
+  "col": 200,
+  "_from": "wooden-watchtower.zip"
+ },
+ "base_hut": {
+  "src": "/private/tmp/claude-501/sl/prep/base_hut.glb",
+  "tris": 8000,
+  "tex": 1024,
+  "lod1": 1000,
+  "bake1": false,
+  "col": 400,
+  "_from": "military-style-building-with-animations.zip"
+ },
+ "base_checkpoint": {
+  "src": "/private/tmp/claude-501/sl/prep/base_checkpoint.glb",
+  "tris": 0,
+  "tex": 1024,
+  "col": 200,
+  "_from": "checkpoint-building.zip (ASCII FBX via assimp)"
+ },
+ "base_mil_tower": {
+  "src": "/private/tmp/claude-501/sl/prep/base_mil_tower.glb",
+  "tris": 0,
+  "tex": 1024,
+  "lod1": 800,
+  "bake1": false,
+  "col": 300,
+  "_from": "military-watchtower-1.zip (Collada via assimp)"
+ },
+ "base_mast": {
+  "src": "/private/tmp/claude-501/sl/prep/base_mast.glb",
+  "tris": 0,
+  "tex": 1024,
+  "lod1": 1500,
+  "bake1": false,
+  "col": 0,
+  "_from": "simple-signal-tower.zip (Collada via assimp)"
  }
 }

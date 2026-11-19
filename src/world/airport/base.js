@@ -12,10 +12,15 @@
 // heads (airport/sec_cam), guards p12 (tactical officer retinted olive). Converters: tools/v2/airport/convert_w6.py, convert.sh.
 // The fence (fence.js) is 3.4 m with a concertina coil, climbable only at the climb spots (crates stacked outside; a
 // sweeping camera and a patrol cover each one, so it can be done but needs timing). No real-world insignia anywhere.
+// W7 (Nov 19): fighters park facing open pavement (F-22 on connector A3, nose to runway 17/35; F-16 / F-35 on the GA
+// apron facing taxiway A), with their taxi lanes reserved first; camp / hut / tower dressing in dressing.js; the naval
+// pier with the patrol ship and the destroyer in pier.js. Check: node tools/v2/airport/w7.mjs (shots + jet takeoff).
 import * as THREE from 'three';
 import { loadModel } from './models.js';
 import { pip } from './geom.js';
 import { buildHelipad } from './heli.v2.js';
+import { dressBase } from './dressing.js';
+import { buildPier } from './pier.js';
 
 export const BASE_NAME = 'Southline Air Station';
 const OLIVE = 0x4b5320;
@@ -298,6 +303,15 @@ export async function buildBase(ap, ctx, plan, F) {
   reserve(plan.pad.x, plan.pad.z, 22);
   reserve(ap.tower.x, ap.tower.z, 14);
   for (const stand of ap.stands) reserve(stand.x, stand.z, 18);
+  // Fighters park facing open pavement with a straight run to a runway (W7: the F-22 sat nose-in on gate G2,
+  // facing the C-130 on G1, and drove into it when taken). Their spots and the first 40 m ahead of each nose are
+  // reserved before anything else is placed.
+  const jetSpots = planJetSpots();
+  for (const j of jetSpots) {
+    const ux = Math.sin(j.heading);
+    const uz = Math.cos(j.heading);
+    for (let d = -6; d <= 40; d += 8) reserve(j.x + ux * d, j.z + uz * d, 10);
+  }
 
   const quonsetSpots = [at(6, -52), at(6, 56), at(-6, -54), at(-6, 58), at(-20, -40), at(-20, 40)];
   const hq = freeSpot(quonsetSpots, hangarHeading, 14.5, 10.5);
@@ -545,6 +559,34 @@ export async function buildBase(ap, ctx, plan, F) {
   // the base helipad, by the tower
   out.pad = buildHelipad(game, plan.pad.x, plan.pad.z, plan.pad.r, group);
   out.heli = spawnPadHeli(out.pad);
+  // W7 dressing (tent camp, huts, nests, mast, towers) and the naval pier outside the fence
+  const kit = {
+    game,
+    ap,
+    group,
+    ground,
+    boxCol,
+    place,
+    lodSwap,
+    freeSpot,
+    reserve,
+    out,
+    at,
+    th,
+    signMesh,
+    loadModel,
+    physics: { world, RAPIER, body },
+  };
+  try {
+    await dressBase(kit);
+  } catch (e) {
+    console.warn('[base] dressing', e);
+  }
+  try {
+    await buildPier(kit);
+  } catch (e) {
+    console.warn('[base] pier', e);
+  }
   await spawnFighters();
   // Humvees (the vehicles agent's humvee1 when it is in the car index, else an olive SUV)
   let hkey = 'suv1';
@@ -713,15 +755,35 @@ export async function buildBase(ap, ctx, plan, F) {
     A.mesh.add(lod);
   }
 
-  async function spawnFighters() {
-    const g2 = ap.stands.find((s) => s.id === 'G2');
-    if (g2) await spawnJet('jet_f22', g2.x, g2.z, g2.heading);
+  // Where the fighters park: the F-22 on the apron end of connector A3, nose down A3 to runway 17/35 (about
+  // 100 m of clear pavement); the F-16 and F-35 on the GA apron, noses to taxiway A.
+  function planJetSpots() {
+    const spots = [];
+    const a3 = ap.taxiways.find((t) => t.id === 'A3');
+    if (a3) {
+      const [p0, p1] = a3.pts;
+      const L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
+      const ux = (p1[0] - p0[0]) / L;
+      const uz = (p1[1] - p0[1]) / L;
+      spots.push({
+        key: 'jet_f22',
+        x: p0[0] - ux * 24,
+        z: p0[1] - uz * 24,
+        heading: Math.atan2(ux, uz),
+      });
+    }
     const ga = (ap.gaStands || [])[2];
-    if (!ga) return;
-    await spawnJet('jet_f16', ga.x - 6, ga.z, ga.heading);
-    const rx = Math.cos(ga.heading);
-    const rz = -Math.sin(ga.heading);
-    await spawnJet('jet_f35', ga.x - 6 + rx * 22, ga.z + rz * 22, ga.heading);
+    if (ga) {
+      const rx = Math.cos(ga.heading);
+      const rz = -Math.sin(ga.heading);
+      spots.push({ key: 'jet_f16', x: ga.x - 6, z: ga.z, heading: ga.heading });
+      spots.push({ key: 'jet_f35', x: ga.x - 6 + rx * 22, z: ga.z + rz * 22, heading: ga.heading });
+    }
+    return spots;
+  }
+
+  async function spawnFighters() {
+    for (const j of jetSpots) await spawnJet(j.key, j.x, j.z, j.heading);
   }
 }
 
