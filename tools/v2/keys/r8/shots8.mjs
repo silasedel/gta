@@ -18,7 +18,8 @@ const rep = { set: SET, when: new Date().toISOString(), shots: {} };
 
 await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 1300) }, async (b) => {
   await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
-  await b.waitFor(GAME_READY + " && typeof game.teleport === 'function' && !!game.nicoHouse", 600);
+  try { await b.waitFor(GAME_READY + " && typeof game.teleport === 'function' && !!game.nicoHouse", +(o.boot || 420)); }
+  catch (e) { console.log('BOOT FAILED', await b.eval('JSON.stringify({ ready: !!(window.game && game.ready), v2: !!(window.game && game.v2), nh: !!(window.game && game.nicoHouse) })').catch(() => '?')); console.log('ERRORS\n' + [...new Set(b.errors)].slice(0, 30).join('\n')); console.log('LOGS\n' + b.logs.slice(-40).join('\n')); throw e; }
   if (!(await startGame(b))) console.log('WARN: title did not close');
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; if (!${!!o.hud}) { const st = document.createElement('style'); st.textContent = 'body * { visibility: hidden !important; } canvas.keys-shot { visibility: visible !important; }'; document.head.appendChild(st); game.renderer.domElement.classList.add('keys-shot'); } return 1; })()`);
   if (o.probe) { const pr = await b.eval(fs.readFileSync(o.probe, 'utf8')); fs.writeFileSync(path.join(DIR, `${SET}_probe.json`), typeof pr === 'string' ? pr : JSON.stringify(pr, null, 1)); console.log('probe written'); }
