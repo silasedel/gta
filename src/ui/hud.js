@@ -1368,6 +1368,7 @@ export function createHUD(game) {
   }
 
   // ---------- per-frame ----------
+  const vnCache = { v: null, k: null, nm: '', br: '', md: '' };
   function update(dt) {
     pumpNotifs(); pumpHelp();
     dt = num(dt, num(game.clock?.dt, 1 / 60)); dt = clamp(dt, 0, 0.1);
@@ -1446,13 +1447,17 @@ export function createHUD(game) {
       if (rk !== lastKmh) { lastKmh = rk; spdArc.setAttribute('stroke-dasharray', `${(ARC_LEN * frac).toFixed(1)} 999`); spdNum.textContent = rk;
         const ta = (135 + frac * 270) * Math.PI / 180;
         spdTip.setAttribute('cx', (90 + Math.cos(ta) * ARC_R).toFixed(1)); spdTip.setAttribute('cy', (90 + Math.sin(ta) * ARC_R).toFixed(1)); }
-      const nm = String(st.vehicle.name || st.vehicle.spec?.label || 'Vehicle').replace(/\s*#\d+$/, '').toUpperCase();
-      if (spdName.textContent !== nm) spdName.textContent = nm;
-      { const V = st.vehicle, sp = V.spec || {}; let br = sp.brand || '', md = sp.model || sp.name || '';
-        if (!br || !md) { const w = nm.split(' '); br = br || w[0] || ''; md = md || w.slice(1).join(' '); }
-        br = String(br).toUpperCase(); md = String(md).replace(/\s*#\d+$/, '').toUpperCase();
-        if (vcBrand.textContent !== br) vcBrand.textContent = br;
-        if (vcModel.textContent !== md) vcModel.textContent = md;
+      // render track (Nov 18 perf): the name strings are built once per vehicle (were 4 regex / case passes every frame)
+      const V0 = st.vehicle, nmKey = V0.name || V0.spec?.label || 'Vehicle';
+      if (vnCache.v !== V0 || vnCache.k !== nmKey) {
+        const nm0 = String(nmKey).replace(/\s*#\d+$/, '').toUpperCase(), sp = V0.spec || {}; let br = sp.brand || '', md = sp.model || sp.name || '';
+        if (!br || !md) { const w = nm0.split(' '); br = br || w[0] || ''; md = md || w.slice(1).join(' '); }
+        vnCache.v = V0; vnCache.k = nmKey; vnCache.nm = nm0; vnCache.br = String(br).toUpperCase(); vnCache.md = String(md).replace(/\s*#\d+$/, '').toUpperCase();
+        if (spdName.textContent !== nm0) spdName.textContent = nm0;
+        if (vcBrand.textContent !== vnCache.br) vcBrand.textContent = vnCache.br;
+        if (vcModel.textContent !== vnCache.md) vcModel.textContent = vnCache.md;
+      }
+      { const V = st.vehicle;
         const hf = Number.isFinite(V.health) ? V.health / 1000 : 1;
         const ec = V.disabled || hf <= 0.15 ? 'bad' : hf < 0.5 ? 'warn' : 'ok';
         if (vcEng.dataset.s !== ec) { vcEng.dataset.s = ec; vcEng.className = 'ps-vc-eng ' + ec; } }

@@ -12,7 +12,12 @@ import { LOOK_OFF } from './fogChunks.js';
 const MAX_LIGHTS = 256;
 const GRID = 16;           // tiles per side
 const TILE = 22;           // metres per tile  -> 352 m grid around the camera
-const K = 8;               // lights per tile (2 RGBA texels)
+// lights per tile (4 RGBA texels). Was 8: where more lamps reached a tile (the Keys lots: street lamps + porch and yard
+// lights), the extra ones were cut off at the 22 m tile edge, which drew hard straight light lines and bright rectangles
+// on the ground and made light pop on and off as the camera-snapped grid moved. Each tile now keeps the K lamps that
+// light its center most (intensity / distance^2), so a lamp that does not make the cut is too weak to leave an edge.
+const K = 16;
+const KT = K / 4;          // texels per tile
 export const CLUSTER_R = 165;
 const POOL_FAR = 1100;
 
@@ -23,8 +28,8 @@ let dataTex = null, gridTex = null;
 function makeTextures() {
   const d = new Float32Array(MAX_LIGHTS * 2 * 4);
   dataTex = new THREE.DataTexture(d, MAX_LIGHTS, 2, THREE.RGBAFormat, THREE.FloatType);
-  const g = new Float32Array(GRID * 2 * GRID * 4).fill(-1);
-  gridTex = new THREE.DataTexture(g, GRID * 2, GRID, THREE.RGBAFormat, THREE.FloatType);
+  const g = new Float32Array(GRID * KT * GRID * 4).fill(-1);
+  gridTex = new THREE.DataTexture(g, GRID * KT, GRID, THREE.RGBAFormat, THREE.FloatType);
   for (const t of [dataTex, gridTex]) {
     t.magFilter = t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true;
     // keep a single shared instance across UniformsUtils.clone() (it clones anything with isTexture)
@@ -52,8 +57,8 @@ export function patchLampChunks() {
 		vec3 psWP = cameraPosition + ( vec4( geometryPosition, 0.0 ) * viewMatrix ).xyz;
 		ivec2 psT = ivec2( floor( ( psWP.xz - uLampInfo.xy ) / uLampInfo.z ) );
 		if ( psT.x >= 0 && psT.y >= 0 && psT.x < ${GRID} && psT.y < ${GRID} ) {
-			for ( int psk = 0; psk < 2; psk ++ ) {
-				vec4 psIds = texelFetch( uLampGrid, ivec2( psT.x * 2 + psk, psT.y ), 0 );
+			for ( int psk = 0; psk < ${KT}; psk ++ ) {
+				vec4 psIds = texelFetch( uLampGrid, ivec2( psT.x * ${KT} + psk, psT.y ), 0 );
 				for ( int psc = 0; psc < 4; psc ++ ) {
 					float psF = psIds[ psc ];
 					if ( psF < 0.0 ) break;
@@ -258,8 +263,10 @@ export function createLampSystem(game) {
 
   // ---------- per frame clustering ----------
   const lastCam = new THREE.Vector3(1e9, 0, 0);
-  const sel = new Int32Array(MAX_LIGHTS);
-  const candI = [], candD = [];
+  const sel = new Int32Array(MAX_LIGHTS), selW = new Float32Array(MAX_LIGHTS);
+  let candCap = 1024, candI = new Int32Array(candCap), candD = new Float32Array(candCap), order = new Int32Array(candCap);
+  function growCand() { candCap *= 2; const a = new Int32Array(candCap); a.set(candI); candI = a; const b = new Float32Array(candCap); b.set(candD); candD = b; order = new Int32Array(candCap); }
+  const fill = new Uint8Array(GRID * GRID), tileK = new Int16Array(GRID * GRID * K), tileS = new Float32Array(GRID * GRID * K);
   let lastOn = -1;
   api.update = (dt, camera, on) => {
     try { scanStep(dt); } catch (e) { console.warn('[lamps] scan', e); }
@@ -273,21 +280,21 @@ export function createLampSystem(game) {
     const moved = lastCam.distanceToSquared(cam) > 4;
     if (!moved && !dirty && Math.abs(on - lastOn) < 0.02) return;
     dirty = false; lastOn = on; lastCam.copy(cam);
-    // gather candidates
-    candI.length = 0; candD.length = 0;
+    // gather candidates (preallocated: this ran every 2 m of camera travel and made arrays each time)
+    let m = 0;
     const c0x = Math.floor((cam.x - CLUSTER_R) / CELL), c1x = Math.floor((cam.x + CLUSTER_R) / CELL);
     const c0z = Math.floor((cam.z - CLUSTER_R) / CELL), c1z = Math.floor((cam.z + CLUSTER_R) / CELL);
     const R2 = CLUSTER_R * CLUSTER_R;
     for (let cx = c0x; cx <= c1x; cx++) for (let cz = c0z; cz <= c1z; cz++) {
       const a = cells.get(ck(cx, cz)); if (!a) continue;
-      for (const i of a) {
-        const dx = X[i] - cam.x, dz = Z[i] - cam.z, d2 = dx * dx + dz * dz;
-        if (d2 < R2) { candI.push(i); candD.push(d2); }
+      for (let j = 0; j < a.length; j++) {
+        const i = a[j], dx = X[i] - cam.x, dz = Z[i] - cam.z, d2 = dx * dx + dz * dz;
+        if (d2 < R2) { if (m >= candCap) growCand(); candI[m] = i; candD[m] = d2; m++; }
       }
     }
-    let m = candI.length;
-    let order = candI.map((_, k) => k);
-    if (m > MAX_LIGHTS) { order.sort((a, b) => candD[a] - candD[b]); m = MAX_LIGHTS; }
+    // nearest first (stable choice when more than MAX_LIGHTS are in range)
+    for (let k = 0; k < m; k++) order[k] = k;
+    if (m > MAX_LIGHTS) { const ord = order.subarray(0, m); ord.sort((p, q) => candD[p] - candD[q]); m = MAX_LIGHTS; }
     const d = dataTex.image.data;
     for (let k = 0; k < m; k++) {
       const i = candI[order[k]]; sel[k] = i;
@@ -296,24 +303,34 @@ export function createLampSystem(game) {
       d[k * 4] = X[i]; d[k * 4 + 1] = Y[i]; d[k * 4 + 2] = Z[i]; d[k * 4 + 3] = RG[i];
       const o = (MAX_LIGHTS + k) * 4;
       d[o] = R[i]; d[o + 1] = G[i]; d[o + 2] = B[i]; d[o + 3] = I[i] * on * fade;
+      selW[k] = I[i] * fade;
     }
-    // bin into the camera-centred tile grid (snapped so tiles don't swim)
+    // bin into the camera-centred tile grid (snapped so tiles don't swim); per tile keep the K strongest at its center
     const ox = Math.floor(cam.x / TILE) * TILE - (GRID / 2) * TILE;
     const oz = Math.floor(cam.z / TILE) * TILE - (GRID / 2) * TILE;
     lampInfo.x = ox; lampInfo.y = oz; lampInfo.z = TILE;
-    const gd = gridTex.image.data; gd.fill(-1);
-    const fill = new Uint8Array(GRID * GRID);
+    fill.fill(0);
     for (let k = 0; k < m; k++) {
       const i = sel[k], r = RG[i];
       const tx0 = Math.max(0, Math.floor((X[i] - r - ox) / TILE)), tx1 = Math.min(GRID - 1, Math.floor((X[i] + r - ox) / TILE));
       const tz0 = Math.max(0, Math.floor((Z[i] - r - oz) / TILE)), tz1 = Math.min(GRID - 1, Math.floor((Z[i] + r - oz) / TILE));
       for (let tz = tz0; tz <= tz1; tz++) for (let tx = tx0; tx <= tx1; tx++) {
-        const t = tz * GRID + tx; const f = fill[t];
-        if (f >= K) continue;
-        fill[t] = f + 1;
-        // texel (tx*2 + f>>2, tz), channel f&3
-        gd[((tz * GRID * 2) + tx * 2 + (f >> 2)) * 4 + (f & 3)] = k;
+        const t = tz * GRID + tx, base = t * K;
+        // contribution at the nearest point of the tile (so a lamp right at the edge ranks as strong as it looks there)
+        const px = Math.min(Math.max(X[i], ox + tx * TILE), ox + (tx + 1) * TILE), pz = Math.min(Math.max(Z[i], oz + tz * TILE), oz + (tz + 1) * TILE);
+        const ex = X[i] - px, ez = Z[i] - pz, ey = Y[i] - GY[i];
+        const sc = selW[k] / (ex * ex + ez * ez + ey * ey + 9);
+        let f = fill[t];
+        if (f >= K) { if (sc <= tileS[base + K - 1]) continue; f = K - 1; } else fill[t] = f + 1;
+        // insertion into the tile's list sorted by score (descending)
+        while (f > 0 && tileS[base + f - 1] < sc) { tileS[base + f] = tileS[base + f - 1]; tileK[base + f] = tileK[base + f - 1]; f--; }
+        tileS[base + f] = sc; tileK[base + f] = k;
       }
+    }
+    const gd = gridTex.image.data; gd.fill(-1);
+    for (let t = 0; t < GRID * GRID; t++) {
+      const tx = t % GRID, tz = (t / GRID) | 0, n2 = fill[t];
+      for (let f = 0; f < n2; f++) gd[((tz * GRID * KT) + tx * KT + (f >> 2)) * 4 + (f & 3)] = tileK[t * K + f];
     }
     dataTex.needsUpdate = true; gridTex.needsUpdate = true;
     // (isTexture=false textures still upload through setTexture2D via version bump)

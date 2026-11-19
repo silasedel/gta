@@ -111,10 +111,13 @@ const POINT_TARGET = 16;
 const SPOT_TARGET = 4;
 let addPatched = false;
 const tracked = new Set();
+// render track (Nov 18): the per-render walk uses a plain array copy (for...of over the Set made an iterator per render)
+let trackedArr = [], trackedDirty = true;
+function trackedList() { if (trackedDirty) { trackedArr = Array.from(tracked); trackedDirty = false; } return trackedArr; }
 
 function register(o) {
-  if (o && (o.isPointLight || o.isSpotLight) && !o.userData.psSpareLight) {
-    tracked.add(o);
+  if (o && (o.isPointLight || o.isSpotLight) && !o.userData.psSpareLight && !tracked.has(o)) {
+    tracked.add(o); trackedDirty = true;
   }
 }
 
@@ -184,23 +187,57 @@ function stabilizeLights(game) {
   };
   const byDistance = (a, b) => a.userData.psD2 - b.userData.psD2;
 
-  function fit(list, target, spareList, cam) {
+  // Render track (Nov 18, user: "lighting snaps darker / brighter"): when more real lights were in view than the budget,
+  // the ranking (distance / intensity) decided every frame which ones sat out, so lights popped on and off as the camera
+  // moved. Now: a ranked-in light keeps a 40% bonus (hysteresis), and a light that changes sides fades over ~0.3 s
+  // (intensity scaled for this render, restored after). A light seen for the first time appears at once (muzzle flashes).
+  // If a newcomer needs a slot while one is still fading out, the weakest fading light gives way. ?lightfade=0 = old.
+  const FADE = !(typeof location !== 'undefined' && /[?&]lightfade=0\b/.test(location.search));
+  const scaled = [];
+  function fit(list, target, spareList, cam, noFade) {
+    let active = list.length;
     if (list.length > target) {
-      for (const l of list) {
+      for (let i = 0; i < list.length; i++) {
+        const l = list[i];
         l.getWorldPosition(camPos);
-        l.userData.psD2 = camPos.distanceToSquared(cam.position) / Math.max(0.05, l.intensity || 0.05);
+        l.userData.psD2 = camPos.distanceToSquared(cam.position) / Math.max(0.05, l.intensity || 0.05) * (FADE && l.userData.psIn ? 0.6 : 1);
       }
       list.sort(byDistance);
-      for (let i = target; i < list.length; i++) {
-        list[i].visible = false;
-        hiddenNow.push(list[i]);
+      if (!FADE || noFade) {
+        for (let i = target; i < list.length; i++) {
+          list[i].visible = false;
+          hiddenNow.push(list[i]);
+        }
+        active = target;
+      } else {
+        const now = performance.now() / 1000;
+        active = 0;
+        for (let i = 0; i < list.length; i++) {
+          const l = list[i], u = l.userData, want = i < target;
+          const h = u.psT === undefined ? 0 : Math.min(0.1, Math.max(0, now - u.psT));
+          u.psT = now; u.psIn = want;
+          if (u.psW === undefined) u.psW = want ? 1 : 0;
+          else u.psW = want ? Math.min(1, u.psW + h * 3.3) : Math.max(0, u.psW - h * 3.3);
+          if (u.psW > 0) active++;
+        }
+        // over the budget while lights cross over: the weakest fading-out lights give way
+        for (let i = list.length - 1; i >= 0 && active > target; i--) { const u = list[i].userData; if (!u.psIn && u.psW > 0) { u.psW = 0; active--; } }
+        for (let i = list.length - 1; i >= 0 && active > target; i--) { const u = list[i].userData; if (u.psW > 0) { u.psW = 0; active--; } }
+        for (let i = 0; i < list.length; i++) {
+          const l = list[i], w = l.userData.psW;
+          if (w <= 0) { l.visible = false; hiddenNow.push(l); }
+          else if (w < 1) { l.userData.psI0 = l.intensity; l.intensity *= w * w * (3 - 2 * w); scaled.push(l); }
+        }
       }
+    } else if (FADE) {
+      for (let i = 0; i < list.length; i++) { const u = list[i].userData; u.psW = 1; u.psIn = true; u.psT = undefined; }
     }
-    const need = Math.max(0, target - list.length);
+    const need = Math.max(0, target - active);
     for (let i = 0; i < spareList.length; i++) {
       spareList[i].visible = i < need;
     }
   }
+  function restoreScaled() { for (let i = 0; i < scaled.length; i++) { const l = scaled[i]; l.intensity = l.userData.psI0; } scaled.length = 0; }
 
   let pruneT = 0;
   const prevBefore = scene.onBeforeRender;
@@ -210,7 +247,10 @@ function stabilizeLights(game) {
       livePoint.length = 0;
       liveSpot.length = 0;
       const layers = cam.layers;
-      for (const l of tracked) {
+      restoreScaled(); // (a render that threw skipped onAfterRender: never compound the fade)
+      const TL = trackedList();
+      for (let ti = 0; ti < TL.length; ti++) {
+        const l = TL[ti];
         if (!effectiveIn(l, scene, layers)) {
           continue;
         }
@@ -237,7 +277,7 @@ function stabilizeLights(game) {
           if (top !== scene) {
             l.userData.psGone = (l.userData.psGone || 0) + 1;
             if (l.userData.psGone > 3) {
-              tracked.delete(l);
+              tracked.delete(l); trackedDirty = true;
             }
           } else {
             l.userData.psGone = 0;
@@ -256,6 +296,7 @@ function stabilizeLights(game) {
       l.visible = true;
     }
     hiddenNow.length = 0;
+    restoreScaled();
     if (prevAfter) {
       prevAfter.call(this, renderer, sc, cam, rt);
     }
@@ -279,8 +320,8 @@ function stabilizeLights(game) {
           if (!effectiveIn(l, scene, cam.layers)) continue;
           if (l.isSpotLight) liveSpot.push(l); else livePoint.push(l);
         }
-        fit(livePoint, POINT_TARGET, spares.point, cam);
-        fit(liveSpot, SPOT_TARGET, spares.spot, cam);
+        fit(livePoint, POINT_TARGET, spares.point, cam, true);
+        fit(liveSpot, SPOT_TARGET, spares.spot, cam, true);
         fitted = true;
       } catch (e) {
         // never break a compile

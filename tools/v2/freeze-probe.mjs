@@ -70,6 +70,15 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: SECS + 600, extraArgs
     const walk = (n) => { const cf = n.callFrame; const k = `${cf.functionName || '(anon)'} ${String(cf.url).split('/').slice(-2).join('/')}:${cf.lineNumber}`; agg.set(k, (agg.get(k) || 0) + n.selfSize); tot += n.selfSize; for (const c of n.children || []) walk(c); };
     if (r) walk(r.head);
     rep.alloc = { totalMB: Math.round(tot / 1e6), top: [...agg.entries()].sort((x, y) => y[1] - x[1]).slice(0, 25).map(([k, v]) => [k, Math.round(v / 1e5) / 10]) };
+    // render track: who calls the top allocators (self size by the 3 nearest game-code callers), so library frames
+    // (three.js setValueV3f, toArray, iterator next, String.replace) point at the game code behind them
+    const topK = new Set(rep.alloc.top.slice(0, 14).map((x) => x[0])); const via = new Map();
+    const nm = (cf) => `${cf.functionName || '(anon)'} ${String(cf.url).split('/').slice(-2).join('/')}:${cf.lineNumber}`;
+    const walk2 = (n, chain) => { const k = nm(n.callFrame); const ch = chain.concat(k);
+      if (topK.has(k) && n.selfSize) { const callers = ch.slice(0, -1).filter((x) => !/three\.module|node_modules|\(root\)|\(program\)/.test(x)).slice(-3).join(' < '); const kk = k + '  <=  ' + callers; via.set(kk, (via.get(kk) || 0) + n.selfSize); }
+      for (const c of n.children || []) walk2(c, ch); };
+    if (r) walk2(r.head, []);
+    rep.alloc.via = [...via.entries()].sort((x, y) => y[1] - x[1]).slice(0, 40).map(([k, v]) => [k, Math.round(v / 1e5) / 10]);
   }
   rep.perfEnd = await b.eval(`JSON.stringify({ fps: game.perf?.fps, calls: game.renderer.info.render.calls, tris: game.renderer.info.render.triangles, geo: game.renderer.info.memory.geometries, tex: game.renderer.info.memory.textures })`);
     if (b.errors.length) rep.errors = [...new Set(b.errors)].slice(0, 20);

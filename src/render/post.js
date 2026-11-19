@@ -1050,12 +1050,19 @@ export function createPost(game) {
   const lumBuf = new Uint8Array(32 * 18 * 4);
   const lumW = new Float32Array(32 * 18);
   { let ws = 0; for (let y = 0; y < 18; y++) for (let x = 0; x < 32; x++) { const dx = (x + 0.5) / 32 - 0.5, dy = (y + 0.5) / 18 - 0.45; const w = Math.exp(-(dx * dx * 5 + dy * dy * 7)); lumW[y * 32 + x] = w; ws += w; } for (let i = 0; i < lumW.length; i++) lumW[i] /= ws; }
-  const ae = { pending: false, frame: 0, avgLog: null, comp: 0, ok: true };
+  const ae = { pending: false, frame: 0, t: 0, avgLog: null, smLog: null, comp: 0, vel: 0, ok: true };
   const aePass = {
     enabled: true, needsSwap: false, clear: false, renderToScreen: false,
     setSize() {},
     render(r, wb, rb) {
-      if (!game.look3 || game.look3Parts?.ae === false || !ae.ok || ae.pending || (ae.frame++ % 24) !== 0) return; // r2-perf: every 24th frame (the readback synced the GPU queue under ANGLE-Metal; exposure eases at 0.9-1.8 per s, so 2-3 readings a second give the same result)
+      // r2-perf: a reading every 24th frame (the readback synced the GPU queue under ANGLE-Metal). Render track (Nov 18,
+      // user: "lighting snaps darker / brighter instantly"): at 10-20 fps that was one reading every 1.2-2.4 s, and the
+      // exposure then lunged toward each new reading. Now time based: at most every 0.3 s, at least every 24th frame.
+      const nowS = performance.now() / 1000;
+      if (!game.look3 || game.look3Parts?.ae === false || !ae.ok || ae.pending) return;
+      ae.frame++;
+      if (ae.frame < 24 && nowS - ae.t < 0.3) return;
+      ae.frame = 0; ae.t = nowS;
       lumMat.uniforms.tDiffuse.value = rb.texture;
       const prev = r.getRenderTarget();
       r.setRenderTarget(lumRT); r.render(lumScene, lumCam); r.setRenderTarget(prev);
@@ -1114,7 +1121,8 @@ export function createPost(game) {
   function scaleFloor() {
     if (game.dynres?.active) return game.dynres.floor ?? 0.5; // r2-perf dynamic resolution (src/render/dynres.v2.js, off by default): its own per-preset floor
     const full = Math.max(1, W * H) * renderer.getPixelRatio() * renderer.getPixelRatio();
-    return Math.min(1, Math.sqrt((1920 * 1080) / full));
+    const minPx = (!/[?&]res2k=0/.test(location.search) && game.quality?.current?.look?.minPx) || 1920 * 1080; // r6: High / Extra High hold 2560x1440 (quality.v2.js minPx)
+    return Math.min(1, Math.sqrt(minPx / full));
   }
   function setSize(w, h) {
     W = Math.max(1, w); H = Math.max(1, h);
@@ -1365,15 +1373,29 @@ export function createPost(game) {
       gu.uStable.value = game.look3 ? 1 : 0;
       // simple eye adaptation: stop down when staring into the sun, open up slightly otherwise
       const adaptTarget = 1.0 - 0.3 * sunOn * day;
-      adapt += (adaptTarget - adapt) * Math.min(1, dt * 1.5);
+      adapt += (adaptTarget - adapt) * Math.min(1, dt * 0.9); // render track: 1.5/s read as a snap when the sun entered the view
       // look3 auto exposure: partial adaptation toward a reference scene luminance, limited to -0.6 / +1.1 stops
       {
         const A = game.lookAE || (game.lookAE = { ref: -2.0, strength: 0.55, min: -0.3, max: 1.1, up: 0.9, down: 1.8 });
         let want = 0;
-        if (game.look3 && ae.avgLog !== null && !env?.underwater) { const r2a = game.lookR2 !== false; want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, r2a ? Math.max(A.min, -0.1) : A.min, A.max * (1 - 0.45 * night) * (1 - (r2a ? 0.5 : 0.65) * THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0, 0.15, 0.45))); } // nights stay night; at high sun shaded streets open at most ~0.4 stop (downtown noon washed out at +0.9)
-        const rate = want > ae.comp ? A.up : A.down;
-        ae.comp += (want - ae.comp) * (1 - Math.exp(-Math.min(dt, 0.1) * rate));
-        if (game.lookAEInstant) ae.comp = want;
+        // render track (Nov 18): the scene reading is smoothed (0.6 s), the exposure has a dead zone (hysteresis: changes
+        // under 0.06 stop are ignored) and follows with a critically damped spring capped at 0.7 stop/s, so it never jumps
+        // or lunges: a reading that arrives late or a single bright frame only nudges it.
+        if (ae.avgLog !== null) ae.smLog = ae.smLog === null ? ae.avgLog : ae.smLog + (ae.avgLog - ae.smLog) * (1 - Math.exp(-Math.min(dt, 0.1) / 0.6));
+        if (game.look3 && ae.avgLog !== null && !env?.underwater) { const r2a = game.lookR2 !== false; want = THREE.MathUtils.clamp((A.ref - ae.smLog) * A.strength, r2a ? Math.max(A.min, -0.1) : A.min, A.max * (1 - 0.45 * night) * (1 - (r2a ? 0.5 : 0.65) * THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0, 0.15, 0.45))); } // nights stay night; at high sun shaded streets open at most ~0.4 stop (downtown noon washed out at +0.9)
+        const AE_OLD = game.lookAESnap === true; // A/B: game.lookAESnap = true restores the old exponential chase
+        if (AE_OLD) { const rate = want > ae.comp ? A.up : A.down; ae.comp += (want - ae.comp) * (1 - Math.exp(-Math.min(dt, 0.1) * rate)); }
+        else {
+          const err = want - ae.comp, dead = 0.06;
+          const goal = Math.abs(err) <= dead ? ae.comp : want - Math.sign(err) * dead * 0.5;
+          const st = want > ae.comp ? 1.1 : 0.75, w = 2 / st, h = Math.min(dt, 0.1), x = w * h, ex = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+          const ch = ae.comp - goal, tmp = (ae.vel + w * ch) * h;
+          ae.vel = (ae.vel - w * tmp) * ex;
+          let nc = goal + (ch + tmp) * ex;
+          const maxStep = 0.7 * h; nc = THREE.MathUtils.clamp(nc, ae.comp - maxStep, ae.comp + maxStep);
+          ae.vel = h > 0 ? (nc - ae.comp) / h : 0; ae.comp = nc;
+        }
+        if (game.lookAEInstant) { ae.comp = want; ae.vel = 0; }
         A.avgLog = ae.avgLog; A.comp = ae.comp;
       }
       if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt * Math.pow(2, ae.comp) * (game.look3 && game.lookR2 !== false ? (game.lookExpR2 ?? 1.12) : 1); // r2-look (user, Nov 17 afternoon: "too dark"): +0.16 stop; sunlit pale ground ~0.8 display

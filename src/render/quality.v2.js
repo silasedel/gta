@@ -13,11 +13,13 @@ export const order = 6;
 
 const KEY = 'portsolana.v2.quality';
 
+const PX_2K = 2560 * 1440; // r6: High / Extra High render at 2K or better (drawing buffer and internal picture)
+
 export const PRESETS = {
   ultra: {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
-    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 1.0, scaleMax: 1.0, msaa: 4 },
+    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 1.0, scaleMax: 1.0, msaa: 4, minPx: PX_2K },
     // r2-render (user: "turn anti-aliasing on heavy and up the resolution"; the M3 Max class is CPU-bound with GPU headroom)
     label: 'Ultra',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
@@ -33,7 +35,7 @@ export const PRESETS = {
   high: {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
-    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 0.65, scaleMax: 1.0, msaa: 2 }, // user (Nov 18): the app was 'super laggy' at Retina 2x + MSAA 4x with no headroom: the frame-time governor may now drop the internal scale to 0.65 when frames are slow (full res when light), MSAA 2x (TAA resolves the rest)
+    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 0.8, scaleMax: 1.0, msaa: 2, minPx: PX_2K }, // r6 (user: "make the res 2k"): the governor never goes under 0.8 of native and never under 2560x1440 internal (minPx, post.js scaleFloor); it only steps down at all on GPU-bound slow frames. Was 0.65 with a 1920x1080 floor. // // user (Nov 18): the app was 'super laggy' at Retina 2x + MSAA 4x with no headroom: the frame-time governor may now drop the internal scale to 0.65 when frames are slow (full res when light), MSAA 2x (TAA resolves the rest)
     label: 'High',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     // look track: native on High so Retina is crisp by default; the render-scale governor (post.js) pays for it when GPU-bound
@@ -129,15 +131,19 @@ export async function initV2(game) {
   };
   // device pixel ratio for a preset: never below what gives a 1920x1080-class internal picture (by pixel count)
   // and never above the display's own ratio (capped at 2)
+  const RES_OLD = /[?&]res2k=0/.test(location.search); // before/after switch
   function dprFor(p) {
     const native = Math.min(window.devicePixelRatio || 1, 2);
     const css = Math.max(1, window.innerWidth * window.innerHeight);
     const min = Math.min(native, Math.max(1, Math.sqrt((1920 * 1080) / css)));
+    // r6 2K presets (look.minPx): never fewer drawing-buffer pixels than 2560x1440, also on a 1x display or in a small
+    // window (rendered above the display's ratio and scaled down by the browser: supersampled, still crisp). Cap 2.
+    const need = !RES_OLD && p.look?.minPx ? Math.min(2, Math.sqrt(p.look.minPx / css)) : 0;
     if (p.dpr === 'native') {
-      return native;
+      return Math.round(Math.max(native, need) * 100) / 100;
     }
     if (typeof p.dpr === 'number') {
-      return Math.round(Math.min(native, Math.max(min, p.dpr)) * 100) / 100;
+      return Math.round(Math.max(need, Math.min(native, Math.max(min, p.dpr))) * 100) / 100;
     }
     if (p.dpr === 'mid') {
       return Math.round((min + (native - min) * 0.5) * 100) / 100;
