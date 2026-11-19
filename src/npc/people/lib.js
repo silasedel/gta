@@ -166,7 +166,9 @@ export function personMaterial(base, variant = 0) {
   return m;
 }
 /** close-up texture level for a person: 0 = 1K albedo / 512 normal (crowd), 1 = 2K albedo, 2 = full 4K albedo + 2K normal */
-const HI = { 1: { a: '_a2.webp' }, 2: { a: '_a4.webp', n: '_n2.webp' } };
+// perf (Nov 19): the close-up level uses the 2K albedo too: one 4K upload (+ mips) was a 230 ms frame, and a person fills at
+// most ~800 px of the 1898 px Retina height, which 2K covers (?people4k=1 = the 4K albedo)
+const HI = { 1: { a: '_a2.webp' }, 2: { a: (typeof location !== 'undefined' && /[?&]people4k=1\b/.test(location.search)) ? '_a4.webp' : '_a2.webp', n: '_n2.webp' } };
 // r7 (interiors agent: 165 ms frames on walk-in): a new close-up texture is uploaded on its own (renderer.initTexture)
 // before any material shows it, so the upload is not added to the first frame that draws the person
 let HI_R = null;
