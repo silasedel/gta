@@ -13,6 +13,7 @@ import { createCharacter } from '../player/characterModel.js';
 import { createSkids, createScreech, createSmoke, createShards, playImpact } from './skids.js';
 import { addExternalModel, hasExternalModel, buildExternalCar, createKindRegistry, externalModelKeys } from './registry.js';
 import { initFleet } from './glb/index.js';
+import { createHotwire } from './ui/hotwire.js';
 import { loadCarModel, buildStaticCar } from './glb/glbCar.js';
 import { RARE_PLACEMENTS } from './glb/placements.js';
 import { createShapeVehicle } from './physics/suspension.js'; // r2-physics (carphys 2)
@@ -617,6 +618,7 @@ export async function createVehicles(game) {
   }
 
   // ------------------------------------------------------------ physics per tick
+  const hotwire = createHotwire(game);   // stolen-car minigame (idle: no per-frame cost)
   const QF = RAPIER.QueryFilterFlags;
   const wheelFilter = (QF.EXCLUDE_SENSORS | QF.EXCLUDE_KINEMATIC);
   const _up = new THREE.Vector3(), _fw = new THREE.Vector3();
@@ -735,7 +737,10 @@ export async function createVehicles(game) {
     if (v.playerDriven !== v.prevPD) {
       v.prevPD = v.playerDriven; v.guardT = 0.8;
       if (v.playerDriven) {
-        if (!v.engineOn && !v.disabled && !v.flooded) { v.engineOn = true; v.rpm = v.model.idleRpm * 1.8; game.emit?.('engineStart', { vehicle: v }); }
+        const start = () => { if (!v.engineOn && !v.disabled && !v.flooded) { v.engineOn = true; v.rpm = v.model.idleRpm * 1.8; game.emit?.('engineStart', { vehicle: v }); } };
+        // a broken-into car has to be hotwired first (src/vehicles/ui/hotwire.js); owned, unlocked and running cars start as before
+        if (v.needsHotwire && !v.engineOn && hotwire.start(v, (ok) => { if (ok) { v.needsHotwire = false; if (v.playerDriven) start(); } })) { /* wiring */ }
+        else start();
         v.engineOffT = 0;
       } else { v.shiftT = 0; v.engineOffT = 4; }
     }
@@ -2115,6 +2120,7 @@ export async function createVehicles(game) {
       const v = e?.vehicle;
       if (!v || !v.locked || v.breakingIn || v.playerOwned) return;
       v.breakingIn = true;
+      if (!v.engineOn) v.needsHotwire = true;   // no key: wired under the column once inside
       game.audio?.play?.('glass', { position: v.mesh.position.clone(), volume: 0.9 });
       breakGlass(v);
       game.emit?.('crime', { type: 'vehicle_theft', position: v.mesh.position.clone(), severity: 1 });
