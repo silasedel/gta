@@ -4,7 +4,7 @@
 import { LOD } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-const BASE = 'assets/models/mission/';
+const BASE = (import.meta.env?.BASE_URL ?? '/') + 'assets/models/mission/';
 const loader = new GLTFLoader();
 const cache = new Map();
 let manifestPromise = null;
