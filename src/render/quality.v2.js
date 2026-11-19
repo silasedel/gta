@@ -35,7 +35,10 @@ export const PRESETS = {
   high: {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
-    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 0.8, scaleMax: 1.0, msaa: 2, minPx: PX_2K }, // r6 (user: "make the res 2k"): the governor never goes under 0.8 of native and never under 2560x1440 internal (minPx, post.js scaleFloor); it only steps down at all on GPU-bound slow frames. Was 0.65 with a 1920x1080 floor. // // user (Nov 18): the app was 'super laggy' at Retina 2x + MSAA 4x with no headroom: the frame-time governor may now drop the internal scale to 0.65 when frames are slow (full res when light), MSAA 2x (TAA resolves the rest)
+    // perf (Nov 19, measured in the Mac app at 3024x1898): native Retina internal resolution cost ~40 ms a frame on the GPU;
+    // ~1440p internal (0.75 of the Retina canvas, TAA-resolved and upscaled by the grade pass) is 27 ms with the CPU now the
+    // limit. The governor may drop to 0.67 (~1270p) when GPU-bound. Was scaleMin 0.8 / scaleMax 1.0 / minPx 2560x1440.
+    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 0.67, scaleMax: 0.75, msaa: 2, minPx: 2016 * 1264 }, // r6 (user: "make the res 2k"): the governor never goes under 0.8 of native and never under 2560x1440 internal (minPx, post.js scaleFloor); it only steps down at all on GPU-bound slow frames. Was 0.65 with a 1920x1080 floor. // // user (Nov 18): the app was 'super laggy' at Retina 2x + MSAA 4x with no headroom: the frame-time governor may now drop the internal scale to 0.65 when frames are slow (full res when light), MSAA 2x (TAA resolves the rest)
     label: 'High',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     // look track: native on High so Retina is crisp by default; the render-scale governor (post.js) pays for it when GPU-bound
