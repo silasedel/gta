@@ -1,0 +1,41 @@
+[
+ {
+  "key": "super4",
+  "t100": 3.18,
+  "target": 3.2,
+  "t160": 5.7,
+  "top": 263,
+  "targetTop": 296,
+  "brake100": 39.9,
+  "dev": 1.2,
+  "force": 12294,
+  "mass": 1450,
+  "drive": "rwd"
+ },
+ {
+  "key": "coupe3",
+  "t100": 3.6,
+  "target": 3.6,
+  "t160": 6.82,
+  "top": 299,
+  "targetTop": 308,
+  "brake100": 39.9,
+  "dev": 26.9,
+  "force": 11381,
+  "mass": 1515,
+  "drive": "rwd"
+ },
+ {
+  "key": "sedan6",
+  "t100": 8.07,
+  "target": 8,
+  "t160": 18.07,
+  "top": 182,
+  "targetTop": 200,
+  "brake100": 43.5,
+  "dev": 15.1,
+  "force": 5476,
+  "mass": 1500,
+  "drive": "fwd"
+ }
+]

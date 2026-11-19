@@ -9,6 +9,7 @@ import { loadCarModel, isCarLoaded, buildGlbCar, glbStats } from './glbCar.js';
 import { FLEET, FLEET_BY_KEY, specFor, modelFor, zoneMix, fileKey, pickUsColor, pickUsPaint, PAINT_BIAS } from './fleet.js';
 import { rng, hashSeed } from '../model/rng.js';
 import { LAZY, afterReady } from '../../core/loadMode.js';
+import { EXTRA_ENGINES, solveEngineForce } from './perf.js';
 
 const BASE = (import.meta.env?.BASE_URL || '/') + 'assets/vehicles/cars/';
 // engine profiles (same numbers as catalog.js E)
@@ -27,6 +28,7 @@ const E = {
   dsl: { engine: 'diesel', cylinders: 6, aspiration: 'turbo', exhaust: 'diesel', maxRpm: 4500, idleRpm: 650, gears: [4.0, 2.4, 1.6, 1.15, 0.85, 0.68], final: 3.4 },
   dslH: { engine: 'diesel', cylinders: 6, aspiration: 'turbo', exhaust: 'diesel', maxRpm: 2800, idleRpm: 600, gears: [6.0, 3.6, 2.3, 1.5, 1.0, 0.75], final: 4.6 },
   ev: { engine: 'electric', cylinders: 0, aspiration: 'electric', exhaust: 'none', maxRpm: 14000, idleRpm: 0, gears: [9.0], final: 1.0 },
+  ...EXTRA_ENGINES,
 };
 // procedural catalog keys -> library equivalents (so code that spawns 'police', 'taxi', 'ambulance'... gets real models)
 const ALIAS = { police: 'police1', police_suv: 'police1', unmarked: 'police1', taxi: 'taxi1', taxi_xl: 'taxi1', ambulance: ['van3', 'van4'], firetruck: 'truck6',
@@ -45,8 +47,9 @@ export async function initFleet(cat, opts = {}) {
     const spec = specFor(e, man), m = modelFor(e), eng = E[m.engineProfile] || E.i4;
     CAR_TYPES[e.key] = spec;
     MODELS[e.key] = { key: e.key, brand: e.brand, name: e.name, class: e.cls, engine: eng.engine, maxRpm: eng.maxRpm, idleRpm: eng.idleRpm, gears: eng.gears, final: eng.final,
-      sound: { engine: eng.engine, cylinders: eng.cylinders, aspiration: eng.aspiration, exhaust: eng.exhaust }, tier: e.tier, year: e.year,
+      sound: { engine: eng.engine, cylinders: eng.cylinders, aspiration: eng.aspiration, exhaust: eng.exhaust, voice: m.voice || (eng.engine === 'flat6' ? 'flat6' : null) }, tier: e.tier, year: e.year,
       price: Math.round(9000 * Math.pow(2.6, e.tier - 1) / 100) * 100, rare: !!e.rare, library: true };
+    if (spec.t100) spec.engine = solveEngineForce(spec, MODELS[e.key], spec.t100);
     if (!ALL_KEYS.includes(e.key)) ALL_KEYS.push(e.key);
     keys.push(e.key);
   }

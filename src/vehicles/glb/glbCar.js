@@ -102,15 +102,34 @@ function cabinTest(P) {
 function shadeCabin(g, rgb, inCab, sel) {
   if (!inCab) return;
   const p = g.getAttribute('position'); let nc = 0;
+  const mask = new Uint8Array(p.count); g.userData.cabMask = mask;   // cabin vertices (look.interior recolors them per car)
   for (let i = 0; i < p.count; i++) {
     if (sel && !sel(i)) continue;
     if (!inCab(p.getX(i), p.getY(i), p.getZ(i))) continue;
-    nc++;
+    nc++; mask[i] = 1;
     let r = rgb[i * 3] * 0.5, gg = rgb[i * 3 + 1] * 0.5, b = rgb[i * 3 + 2] * 0.5; const L = lum3(r, gg, b);
     if (L > 0.16) { const k = 0.16 / L; r *= k; gg *= k; b *= k; }
     rgb[i * 3] = r; rgb[i * 3 + 1] = gg; rgb[i * 3 + 2] = b;
   }
   g.userData.cabinShaded = nc;
+}
+// a per-car leather color for the cabin (look.interior, e.g. Nico's tan interior): the shaded cabin vertices of the shared trim
+// geometry, recolored on a per-car copy of the color attribute (position / normal / uv stay shared), brightness kept
+function interiorGeo(g, color, own) {
+  const mask = g.userData.cabMask; if (!mask) return g;
+  const src = g.getAttribute('color'), rm = g.getAttribute('aRM'); if (!src) return g;
+  const c = new THREE.Color(color), out = new Float32Array(src.array);
+  for (let i = 0; i < mask.length; i++) {
+    if (!mask[i] || (rm && rm.getY(i) > 0.5)) continue;
+    const L = lum3(out[i * 3], out[i * 3 + 1], out[i * 3 + 2]), k = Math.max(0.45, Math.min(1.3, L / 0.09));   // keeps seams / shadows of the source
+    out[i * 3] = c.r * k; out[i * 3 + 1] = c.g * k; out[i * 3 + 2] = c.b * k;
+  }
+  const n = new THREE.BufferGeometry();
+  for (const name in g.attributes) n.setAttribute(name, g.attributes[name]);
+  n.setIndex(g.index); n.setAttribute('color', new THREE.BufferAttribute(out, 3));
+  for (const gr of g.groups) n.addGroup(gr.start, gr.count, gr.materialIndex);
+  n.boundingSphere = g.boundingSphere; n.boundingBox = g.boundingBox; n.userData = { ...g.userData };
+  own.push(n); return n;
 }
 function prepTrim(g, inCab = null) {
   const { rgb, a } = col4(g), n = a.length, rm = new Float32Array(n * 2);
@@ -613,6 +632,9 @@ export function buildGlbCar(key, look, t, info) {
     patch = { min: [-st.w / 2, hy0, hz0], max: [st.w / 2, t.roofY + 0.3, hz1], color: st.color ?? 0x0c0d0f, strength: 1, satin: st.satin ?? true };
     if (st.roofW) patch.min2 = [-st.roofW / 2, S.roofY ?? t.roofY - 0.2, S.roof?.[0] ?? t.zC - 0.1], patch.max2 = [st.roofW / 2, t.roofY + 0.3, S.roof?.[1] ?? t.zB + 0.3];
     if (st.line) patch.line = st.line;   // { color, w }: lighter pinstripe edge around the stripe panels
+    // side band (Nico's yellow truck, mock-up docs/v2/plan/nico_car): the second box is a flank stripe instead of the roof
+    // half: full width in x (both flanks), a y band above the wheel arches and under the hood line, nose to tail
+    if (st.side) { const sd = st.side; patch.min2 = [-t.Wm, sd.y[0], sd.z?.[0] ?? (man.shape?.rear ?? -t.L / 2) + 0.12]; patch.max2 = [t.Wm, sd.y[1], sd.z?.[1] ?? front - 0.22]; }
   }
   // molded black fender flares drawn by the paint shader (manifest .flares, radii in wheel radii): a clean arc, no sawtooth
   let flare = null;
@@ -629,6 +651,7 @@ export function buildGlbCar(key, look, t, info) {
   const lightMats = lamps.lightMats;
   const big = t.heavy ? 2.2 : 1;
   const lod = new THREE.LOD(), levels = [], slots = { paint: [], glass: [], roof: [] }, sets = [];
+  const ownGeos = [];   // per-car geometry copies (look.interior)
   let paint0 = null;
   // physics wheel nodes FL FR RL RR (+X = left), positioned by vehicles.js every frame (steer.position.y = -suspension)
   const susp = t.susp || [0.36, 34], restY = -(susp[0] - 9.81 / (4 * susp[1]));
@@ -654,7 +677,7 @@ export function buildGlbCar(key, look, t, info) {
   for (const level of [0, 1, 2]) {
     const G = M.lv[level], g = new THREE.Group();
     if (G.paint) { const m = new THREE.Mesh(G.paint, paint); m.castShadow = level < 2; m.receiveShadow = level < 2; g.add(m); slots.paint.push(m); if (level === 0) paint0 = m; }
-    if (G.trim) { const m = new THREE.Mesh(G.trim, trim); m.castShadow = level < 2; m.receiveShadow = level < 2; g.add(m); }
+    if (G.trim) { const m = new THREE.Mesh(level < 2 && look.interior != null ? interiorGeo(G.trim, look.interior, ownGeos) : G.trim, trim); m.castShadow = level < 2; m.receiveShadow = level < 2; g.add(m); }
     if (G.glass) { const m = new THREE.Mesh(G.glass, glass); m.renderOrder = 2; g.add(m); slots.glass.push(m); }
     if (G.lamp) { const m = new THREE.Mesh(G.lamp, lamps.material); g.add(m); }
     for (const T of G.tex || []) { const m = new THREE.Mesh(T.geo, T.mat); m.castShadow = level < 2; m.receiveShadow = level < 2; g.add(m); }
@@ -713,6 +736,7 @@ export function buildGlbCar(key, look, t, info) {
       paint.dispose(); lamps.material.dispose(); sheet.texture.dispose(); plateMat?.dispose();
       for (const [im] of sets) im.dispose();
       if (paint0?.userData.ownGeo) paint0.geometry.dispose();
+      for (const g of ownGeos) g.dispose();
     },
   };
   return car;

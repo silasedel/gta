@@ -4,6 +4,8 @@
 // Real lengths (m) per model drive the scale in tools/v2/cars/cars.json (kept in sync with `L` here).
 
 // class physics (mass kg, engine = peak drive force N, vmax km/h, susp [rest m, stiffness], rollK)
+import { PERF } from './perf.js';
+
 const PHYS = {
   compact: { mass: 1250, engine: 6000, vmax: 185, steer: 0.62, grip: 2.3, drive: 'fwd', susp: [0.34, 38], rollK: 1 },
   sedan: { mass: 1450, engine: 7000, vmax: 200, steer: 0.6, grip: 2.25, drive: 'fwd', susp: [0.36, 34], rollK: 1 },
@@ -164,10 +166,18 @@ export function specFor(e, man) {
   spec.palette = e.palette || PAL[e.pal] || US_MIX.flatMap((x) => x[1]);
   if (!e.palette && !e.pal) spec.paletteMix = true; // fleet.look() rolls the US color mix
   spec.exhaustPos = [[spec.W / 2 - 0.45, spec.yb + 0.1, -spec.L / 2]];
+  // per-model real-car performance (perf.js); the drive force is solved from t100 in index.js once the engine profile is known
+  const pf = PERF[e.key];
+  if (pf) {
+    spec.mass = pf.mass; spec.drive = pf.drive; spec.t100 = pf.t100;
+    // the force law fades as (v / vmax)^2.2, so the spec vmax sits a little above the real top speed to actually reach it
+    spec.vmaxReal = pf.vmax / 3.6; spec.vmax = pf.vmax * 1.12 / 3.6;
+    for (const k of ['grip', 'steer', 'rollK', 'comY', 'antiRoll', 'brakeK', 'downforce', 'powerSlide']) if (pf[k] != null) spec[k] = pf[k];
+  }
   return spec;
 }
 export function modelFor(e) {
-  return { key: e.key, brand: e.brand, name: e.name, class: e.cls, engineProfile: ENG[e.eng] || 'i4', tier: e.tier, year: e.year, rare: !!e.rare, parkedOnly: !!e.parkedOnly };
+  return { key: e.key, brand: e.brand, name: e.name, class: e.cls, engineProfile: PERF[e.key]?.eng || ENG[e.eng] || 'i4', voice: PERF[e.key]?.voice || null, tier: e.tier, year: e.year, rare: !!e.rare, parkedOnly: !!e.parkedOnly };
 }
 
 // zone fleets (class weights).  Industrial / port: trucks and vans; Keys and rural: pickups; rich zones: more SUVs and sports.

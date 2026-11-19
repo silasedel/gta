@@ -262,6 +262,7 @@ export async function createVehicles(game) {
       look = opts.look || rollUniqueLook(typeKey, pos, opts.seed);
       if (fleet?.isGlb(typeKey) && !opts.look) fleet.look(typeKey, look);
       if (opts.stripe) look.stripe = opts.stripe;
+      if (opts.interior != null) look.interior = opts.interior; // cabin leather color (glbCar interiorGeo)
       if (opts.ride != null) look.ride = opts.ride;
       if (opts.finish) look.finish = opts.finish;
       if (opts.old) look.old = true; // flat chrome, dusty glass (glbCar)
@@ -797,7 +798,7 @@ export async function createVehicles(game) {
     v.soft = (v.soft ?? 0) + ((v.softTarget || 0) - (v.soft ?? 0)) * Math.min(1, dt * 3);
     const soft = v.inWater ? 0 : v.soft;
     if (soft > 0.01) engine *= 1 - 0.2 * soft;
-    const brakeImpulse = brake * spec.mass * 2.1 * dt; // per wheel (r2-physics: ~8.4 m/s2 full braking on dry asphalt, was 10.4)
+    const brakeImpulse = brake * spec.mass * 2.1 * (spec.brakeK ?? 1) * dt; // per wheel (r2-physics: ~8.4 m/s2 full braking on dry asphalt, was 10.4)
     const drive = spec.drive;
     const nDrive = drive === 'awd' ? 4 : 2;
     for (let i = 0; i < 4; i++) {
@@ -1450,13 +1451,19 @@ export async function createVehicles(game) {
     }
     const y = o.y ?? groundY(o.x, o.z);
     const v = createVehicle(CAR_TYPES[key] ? key : 'sedan', o.color ?? null, new THREE.Vector3(o.x, y, o.z), o.heading || 0,
-      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe, ride: o.ride, finish: o.finish, old: o.old, tint: o.tint });
+      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe, interior: o.interior, ride: o.ride, finish: o.finish, old: o.old, tint: o.tint });
     specials.add(v); v.pinned = true;
     if (!o.keepSpot) { try { game.physics?.watchParked?.(v); } catch (e) { /* optional */ } }
     return v;
   }
   // Nico's yard (Key Largo, user mock-up docs/v2/plan/nico_house/0_front_deck_mockup.webp): the gray lifted pickup with a black
   // hood stripe in front of the deck, the old faded pale-blue classic broadside to its right.  House-local frame: +Z = street.
+  // Nico's main car to come (user, Nov 19; mock-ups docs/v2/plan/nico_car/mockup_side.webp, mockup_rear.webp): a coupe-utility
+  // (pickup-bed muscle car) in warm glossy yellow, an orange-red band over the hood and along both flanks above the wheel
+  // arches, chrome trim, tan / brown leather cabin; no lettering or badges.  Spread into its NICO_CARS entry once the ute model
+  // is imported (then it replaces truck9 in the drive).  side.y = flank band height (m above ground): measure per model.
+  const NICO_UTE_SCHEME = { color: 0xf2a90f, finish: 'gloss', interior: 0x8a5634, wear: { dirt: 0.06, rust: 0, fade: 0, dirtColor: 'sand' },
+    stripe: { w: 1.1, color: 0xd8461a, satin: false, side: { y: [0.62, 0.74] } } };
   const NICO_CARS = [
     // silver metallic with one wide satin-black racing stripe over the hood and the cab roof (never on glass, lamps or trim), sandy dust
     // (user: "shiny gray in the sun, normal gray on the shaded sides": medium cool silver ~0.33 linear (t9b: 0xb0b4b9 still read near-white next to the mock-up's gray body); graphite ~0.13 linear stripe
@@ -1484,7 +1491,7 @@ export async function createVehicles(game) {
     }
     for (const c of NICO_CARS) {
       const ta = c.key === 'truck9' && NH.house?.anchors?.truckR4, p = NH.toWorld(ta ? ta.pos.clone().setY(0) : new THREE.Vector3(c.local[0], 0, c.local[1]));   // r4-house: the drive spot follows the rebuilt house
-      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: (ta ? ta.heading : c.heading) + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, old: c.old, tint: c.tint, keepSpot: true }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
+      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: (ta ? ta.heading : c.heading) + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, interior: c.interior, ride: c.ride, old: c.old, tint: c.tint, keepSpot: true }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
     // the old van rusting on the lot across the lane (user r8: the 2.8k-tri graffiti van read very low-res): the HD boxy passenger

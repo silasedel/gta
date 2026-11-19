@@ -1080,6 +1080,7 @@ export function createAudio(game) {
     const m = car.model || {}, cls = carClass(car);
     let k = m.engine;
     if (cls === 'bus' || cls === 'moto' || cls === 'motorcycle') return CLASS_ENGINE[cls];
+    if (m.sound?.voice && ENGINE[m.sound.voice]) return m.sound.voice; // per-model voice (src/vehicles/glb/perf.js)
     if (k === 'i4' && (m.turbo || cls === 'sports')) k = 'i4turbo';
     if (k === 'diesel' && cls === 'bus') k = 'bus';
     if (k && ENGINE[k]) return k;
