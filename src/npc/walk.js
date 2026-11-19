@@ -121,7 +121,7 @@ export function cornerRoute(node, A, sigmaA, offA, B, all, lane, wantOther = fal
           }
           crossings++;
         }
-        seq.push({ c, cross: !over.soft });
+        seq.push({ c, cross: !over.soft, e: over.e });
       }
       if (ok) opts.push({ sigmaB, seq, crossings });
     }
@@ -145,7 +145,8 @@ export function cornerRoute(node, A, sigmaA, offA, B, all, lane, wantOther = fal
   const last = pts[pts.length - 1],
     db = dirs[ib];
   const sB = Math.max(0.3, (last.x - N.x) * db.ux + (last.z - N.z) * db.uz);
-  return { pts, sigmaB: ch.sigmaB, sB, crossings: ch.crossings };
+  const crossed = ch.seq.filter((s) => s.cross).map((s) => s.e);
+  return { pts, sigmaB: ch.sigmaB, sB, crossings: ch.crossings, crossed };
 }
 
 /** distance (m along A, back from the node) at which a walker on A leaves its lane for the corner */
@@ -441,4 +442,67 @@ export function carYield(a, n, x, z, dt) {
   }
   a._cySlow = 1;
   return 0;
+}
+
+// ---------------------------------------------------------------------------------------------------- crossing
+// smart-peds (Nov 19; user: "pause and cross the road properly"): a walker at the curb steps off only when no moving
+// car will pass over its crossing line while it is on the road (the time to walk across plus a margin), and at a
+// signalized junction only on the walk phase. Once it has stepped off it never stops mid-road.
+const CROSS_PAD = 3.5; // m beside the crossing line that still counts as "on the crosswalk"
+
+/** no moving car (CARS) will be on the line (x0, z0) -> (x1, z1) within the time needed to walk it at `speed` */
+export function crossingClear(x0, z0, x1, z1, speed = 1.6, margin = 2.5) {
+  const dx = x1 - x0;
+  const dz = z1 - z0;
+  const L = Math.hypot(dx, dz) || 1;
+  const ux = dx / L;
+  const uz = dz / L;
+  const tNeed = L / Math.max(0.8, speed) + margin;
+  for (let k = 0; k < CARS.n; k++) {
+    const px = CARS.x[k] - x0;
+    const pz = CARS.z[k] - z0;
+    const along = px * ux + pz * uz;
+    const lat = px * uz - pz * ux;
+    if (Math.abs(lat) > 70) continue;
+    const vAlong = CARS.vx[k] * ux + CARS.vz[k] * uz;
+    const vLat = CARS.vx[k] * uz - CARS.vz[k] * ux;
+    // on the crosswalk now
+    if (Math.abs(lat) < CROSS_PAD && along > -CROSS_PAD && along < L + CROSS_PAD) return false;
+    // coming toward the line: where along it will the car cross, and when?
+    if (lat * vLat >= 0 || Math.abs(vLat) < 0.5) continue;
+    const t = -lat / vLat;
+    if (t > tNeed) continue;
+    const at = along + vAlong * t;
+    if (at > -CROSS_PAD && at < L + CROSS_PAD) return false;
+  }
+  return true;
+}
+
+/**
+ * Wait at the curb before a crossing. nc = the walker's nav.cross ({ x, z, node }); returns true while it must keep
+ * waiting. signals = streetlife createSignals (or null). jaywalk = the walker's trait (0..1): only a very bold walker
+ * goes against the light, and only into a clear road.
+ */
+export function crossWait(nc, x, z, dt, signals, speed, jaywalk = 0) {
+  if (nc.go) return false;
+  nc.wait = (nc.wait || 0) + dt;
+  if ((nc.t = (nc.t ?? 0) - dt) > 0) return true;
+  nc.t = 0.3;
+  // a little look left and right before stepping off, even into an empty street
+  if (nc.wait < 0.6) return true;
+  let ws = null;
+  try {
+    ws = nc.node !== undefined && signals ? signals.walkState(nc.node, nc.x - x, nc.z - z) : null;
+  } catch (e) {
+    ws = null;
+  }
+  // after a long wait on a busy unsignalized street people accept a shorter gap
+  const margin = nc.wait > 20 ? 0.5 : 2.5;
+  const clear = crossingClear(x, z, nc.x, nc.z, speed * 1.25, margin);
+  if (ws) {
+    if (clear && (ws.walk || (jaywalk > 0.75 && nc.wait > 5 && Math.random() < 0.02))) nc.go = true;
+  } else if (clear) {
+    nc.go = true;
+  }
+  return !nc.go;
 }

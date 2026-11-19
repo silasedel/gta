@@ -32,7 +32,7 @@ import { hasLOS } from '../gameplay/util.js';
 import { createTalk } from './talk.js';
 import * as PR from './props.js';
 import { createSignals, createSpots, createGovernor } from './streetlife.js';
-import { walkGround, obstacleSteer, carYield } from './walk.js';
+import { walkGround, obstacleSteer, carYield, crossWait } from './walk.js';
 import { makeTowel } from './beachTowel.js';
 const TOWEL_PAL = [
   0xe07f68, 0x2f8a86, 0xf0ede6, 0xe8d78a, 0x9cc1de, 0xb8a8d2, 0xe6b3b5, 0x3b6fb6, 0xf2a541,
@@ -582,6 +582,8 @@ export async function initV2(game) {
 
   // ---------------------------------------------------------------- far tier: instanced crowd on the sidewalks
   const NAV = peds._nav || null;
+  // smart-peds (Nov 19): curb waits for a clear road, building-aware doors, purposeful stops. ?pedsmart=0 = before
+  const SMART = !(typeof location !== 'undefined' && /[?&]pedsmart=0/.test(location.search));
   const SPACE = NAV?.space || null; // r6-walk: everybody on foot in one spatial hash (src/npc/walk.js)
   let crowd = null;
   // the far tier wears the user's own people (src/npc/people/farCrowd.js: each person's LOD2 mesh, GPU-skinned by the
@@ -848,6 +850,8 @@ export async function initV2(game) {
       leaving: false,
       ampJit: 0.92 + Math.random() * 0.16,
       v: 0,
+      // a rare bold walker who may cross against the light (into a clear road only)
+      trait: Math.random() < 0.06 ? 0.9 : 0,
     };
     crowd.setFade(i, 0);
     const FL = farLook(L, w.pos, w.still);
@@ -967,7 +971,7 @@ export async function initV2(game) {
       }
       if (!spot && r > 0.88 && (act === 'errands' || act === 'stroll' || act === 'lunch')) {
         // walking out of a shop door onto the sidewalk
-        const dr = spots.door(pos.x, pos.z, 0, 25);
+        const dr = doorOut(spots.door(pos.x, pos.z, 0, 25));
         if (dr) {
           w.pos.set(dr.x, dr.y, dr.z);
           w.gy = dr.y;
@@ -1015,6 +1019,29 @@ export async function initV2(game) {
     audit.crowdSpawned++;
     record('crowd|' + L.sig, pick.id.id);
     return true;
+  }
+  // smart-peds: a shop door taken from the lot data can sit inside the building model; step out along the facing to
+  // the first spot outside the footprint (null when there is none within 5 m)
+  function doorOut(dr) {
+    if (!dr || !SMART || !NAV.inBuilding) return dr;
+    const fx = Math.sin(dr.facing ?? 0);
+    const fz = Math.cos(dr.facing ?? 0);
+    for (let k = 0; k <= 5; k += 0.5) {
+      const x = dr.x + fx * k;
+      const z = dr.z + fz * k;
+      if (!NAV.inBuilding(x, z)) return k === 0 ? dr : { ...dr, x, z };
+    }
+    return null;
+  }
+  // the point to walk to for a door: the line there stops at the first building wall
+  function doorGoal(w, dr) {
+    if (!dr || !SMART || !NAV.bld) return dr;
+    const k = NAV.bld.lastFree(w.pos.x, w.pos.z, dr.x, dr.z, 0.4);
+    if (k >= 1) return dr;
+    if (k * Math.hypot(dr.x - w.pos.x, dr.z - w.pos.z) < 0.6) {
+      return { ...dr, x: w.pos.x, z: w.pos.z }; // already at the wall: in through the door here
+    }
+    return { ...dr, x: w.pos.x + (dr.x - w.pos.x) * k, z: w.pos.z + (dr.z - w.pos.z) * k };
   }
   /** r6-walk: a companion who walks beside a walker at the same pace (a couple) */
   let groupN = 1;
@@ -1310,6 +1337,17 @@ export async function initV2(game) {
     // walking out of a shop door to the sidewalk
     if (w.exitT > 0) {
       w.exitT -= dt;
+      if (
+        SMART &&
+        walkGround(
+          game,
+          w.pos.x + Math.sin(w.heading) * 0.8,
+          w.pos.z + Math.cos(w.heading) * 0.8,
+        ) === 'road'
+      ) {
+        w.exitT = 0; // out on the sidewalk: join it here, never walk on into the road
+        return false;
+      }
       w.pos.x += Math.sin(w.heading) * w.speed * dt;
       w.pos.z += Math.cos(w.heading) * w.speed * dt;
       crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
@@ -1336,8 +1374,29 @@ export async function initV2(game) {
       return true;
     }
     const nc = w.nav?.cross;
-    // walk signal: wait at the corner (standing, some on the phone) until the walk phase
-    if (nc && nc.node !== undefined && !w.jog) {
+    if (SMART && nc) {
+      // smart-peds: at the curb, look and wait for a clear road (and the walk phase at a light), then go
+      const wait = crossWait(nc, w.pos.x, w.pos.z, dt, signals, w.speed, w.trait || 0);
+      if (wait && !w.waiting) {
+        w.waiting = true;
+        w.v = 0;
+        w.poseK = null;
+        lifeStats.signalWaits++;
+        crowd.setPose(w.i, Math.random() < 0.3 ? POSE.phone : POSE.stand, 1, null, 1);
+      } else if (!wait && w.waiting) {
+        w.waiting = false;
+        const g = gaitFor(w);
+        crowd.setPose(w.i, POSE.walk, g.cadence, null, g.amp);
+      }
+      if (w.waiting) {
+        const hd = Math.atan2(nc.x - w.pos.x, nc.z - w.pos.z);
+        w.heading +=
+          Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, dt * 3);
+        crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
+        return true;
+      }
+    } else if (nc && nc.node !== undefined && !w.jog) {
+      // walk signal: wait at the corner (standing, some on the phone) until the walk phase
       if ((nc.sig || 0) - dt <= 0) {
         nc.sig = 0.5;
         const ws = signals.walkState(nc.node, nc.x - w.pos.x, nc.z - w.pos.z);
@@ -1377,7 +1436,7 @@ export async function initV2(game) {
         walkGround(game, (dr.x + w.pos.x) / 2, (dr.z + w.pos.z) / 2) !== 'road' &&
         walkGround(game, dr.x, dr.z) !== 'road'
       ) {
-        w.goal = dr;
+        w.goal = doorGoal(w, dr);
         return true;
       }
     }
@@ -1390,13 +1449,22 @@ export async function initV2(game) {
       Math.hypot(dst.x - w.pos.x, dst.z - w.pos.z) < 8
     ) {
       w.nav.dest = null;
+      // smart-peds: half of them stop at the window first (or check the phone outside), then walk on to the next
+      // place; the others go in
+      if (SMART && !w.group && Math.random() < 0.5) {
+        w.pauseT = 4 + Math.random() * 7;
+        w.pausePose = Math.random() < 0.35 ? POSE.phone : POSE.stand;
+        w.lookAt = dst;
+        w.nav.dest = spots.door(w.pos.x, w.pos.z, 30, 150) || null;
+        return false;
+      }
       if (
         !w.buddy &&
         !w.group &&
         walkGround(game, (dst.x + w.pos.x) / 2, (dst.z + w.pos.z) / 2) !== 'road' &&
         walkGround(game, dst.x, dst.z) !== 'road'
       ) {
-        w.goal = dst;
+        w.goal = doorGoal(w, dst);
         return true;
       }
     }
@@ -1495,9 +1563,11 @@ export async function initV2(game) {
       }
       if (w.still) continue;
       // r2-perf: walkers beyond 60 m step at half rate (the GPU animation is time-based; 30 Hz positions are invisible there)
+      // smart-peds: every 3rd frame past 60 m, every 4th past 110 m (a few cm per step, not visible at that range)
       let sdt = dt;
+      const every = !SMART ? 2 : d > 110 ? 4 : 3;
       if (d > 60) {
-        if (((crowdFrame + w.i) & 1) === 1) {
+        if ((crowdFrame + w.i) % every !== 0) {
           w._acc = (w._acc || 0) + dt;
           continue;
         }
@@ -1612,8 +1682,10 @@ export async function initV2(game) {
                     sdt,
                   )
                 : 0); // r7-walk: around trunks / poles
-          tgt *= st.slow;
-          if (st.block) {
+          // mid-crossing nobody stops dead in the road: ease past each other instead
+          const onCross = SMART && !!w.nav?.cross?.go;
+          tgt *= onCross ? Math.max(st.slow, 0.55) : st.slow;
+          if (st.block && !onCross) {
             w.v = 0;
             w.blockT = (w.blockT || 0) + sdt;
             if (w.blockT > 4 && w.nav && !w.nav.path && !w.buddy) {
@@ -1654,6 +1726,11 @@ export async function initV2(game) {
           w.pos.z += Math.cos(h) * w.v * sdt + dz * k;
           hd = h;
         } else hd = NAV.navStep(w, sdt, w.v);
+        if (w.lookAt) {
+          // window shopping: face the shop while stopped
+          if (w.pauseT > 0) hd = Math.atan2(w.lookAt.x - w.pos.x, w.lookAt.z - w.pos.z);
+          else w.lookAt = null;
+        }
         w.heading +=
           Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, sdt * 5);
       } catch (e) {
@@ -1662,7 +1739,13 @@ export async function initV2(game) {
         walkers.splice(n, 1);
         continue;
       }
-      if (((crowdFrame + n) & 7) === 0) w.gy = NAV.groundAt(w.pos.x, w.pos.z, w.gy);
+      if (((crowdFrame + n) & 7) === 0) {
+        w.gy = NAV.groundAt(w.pos.x, w.pos.z, w.gy);
+        // smart-peds safety net: somebody who ended up on a building footprint (pushed, stale lane) fades out
+        if (SMART && !w.goal && !(w.exitT > 0) && NAV.inBuilding?.(w.pos.x, w.pos.z)) {
+          w.leaving = true;
+        }
+      }
       crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
     }
     crowd.update(dt);
@@ -1734,6 +1817,8 @@ export async function initV2(game) {
 
   // ---------------------------------------------------------------- per-frame
   game.updaters?.push?.((dt) => {
+    // ped logic cost (ms per frame, EMA) for the audits: game.people.ms
+    const t0 = performance.now();
     try {
       sense(dt);
     } catch (e) {
@@ -1743,6 +1828,9 @@ export async function initV2(game) {
       updateCrowd(Math.min(dt, 0.1));
     } catch (e) {
       console.warn('[people] crowd', e);
+    }
+    if (game.people) {
+      game.people.ms = (game.people.ms || 0) * 0.95 + (performance.now() - t0) * 0.05;
     }
     try {
       walkAuditStep(dt);

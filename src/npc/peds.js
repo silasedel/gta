@@ -20,7 +20,9 @@ import {
   obstacleSteer,
   carYield,
   updateCarList,
+  crossWait,
 } from './walk.js';
+import { createBuildingMask } from './bldMask.js';
 import { PERSONAS, pickPersona } from './personality.js';
 import { AGE, GROUP_THEMES, groupMate, pickTheme } from './people/groups.js';
 import { createSignals } from './streetlife.js';
@@ -195,13 +197,46 @@ export async function createPeds(game) {
     out.tz = tz;
     return out;
   }
+  // smart-peds (Nov 19): building footprints from the map data (1 m mask), for both tiers at any distance.
+  // '?pedsmart=0' = the previous walking (audit before / after).
+  const SMART = !(typeof location !== 'undefined' && /[?&]pedsmart=0/.test(location.search));
+  const bld = createBuildingMask(game);
+  const inBuilding = (x, z) => SMART && bld.inside(x, z);
+  // Which sides of an edge have a walkable lane: footpaths and lot lines of the graph run through the library
+  // building models, and some streets have a building right at the road edge. Sampled once per edge along the lane
+  // (+1 / -1 = the side as in navTarget). Sides where more than a quarter of the lane is inside buildings are closed.
+  const sideCache = new WeakMap();
+  const _sp = { x: 0, z: 0, tx: 0, tz: 1 };
+  function sideOpen(e, side) {
+    if (!SMART) return true;
+    let c = sideCache.get(e);
+    if (!c) {
+      if (!game.miamiData?.getTile) return true;
+      const L = edgeLen(e);
+      const soft = SOFT_PATH.test(e.kind || '');
+      const n = Math.max(2, Math.min(40, Math.ceil(L / 4)));
+      c = { 1: 0, '-1': 0 };
+      for (const sd of [1, -1]) {
+        const off = soft ? 0 : laneBase(e, 0.35);
+        let bad = 0;
+        for (let i = 0; i <= n; i++) {
+          edgeAt(e, (L * i) / n, _sp);
+          if (bld.inside(_sp.x - _sp.tz * sd * off, _sp.z + _sp.tx * sd * off)) bad++;
+        }
+        c[sd] = bad / (n + 1) <= 0.25 ? 1 : -1;
+      }
+      sideCache.set(e, c);
+    }
+    return c[side] > 0;
+  }
   const walkable = (e) =>
     e &&
     e.pts &&
     e.pts.length > 1 &&
     !/motorway|trunk|_link|rail|ferry/.test(e.kind || '') &&
     (e.speedKmh || 40) < 75 &&
-    !(e.bridge && (e.speedKmh || 40) > 55);
+    !(e.bridge && (e.speedKmh || 40) > 55) &&
+    (sideOpen(e, 1) || sideOpen(e, -1));
   const sideOffset = (e) => (e.width || 8) / 2 + 2.0;
   // r3-people (user, Nov 17 PM: "~20 NPCs in a line along the road edge", "NPCs walk diagonally through walls"): every
   // walker used one line at width/2 + 2 m (+-0.7 m), so a busy edge read as a single file, and that line ignored the
@@ -287,7 +322,10 @@ export async function createPeds(game) {
         const nx = -_ep.tz * side,
           nz = _ep.tx * side;
         for (let k = hw + 0.25; k < off + 1.6 && k < n.wMax + 0.55; k += 0.5)
-          if (surfaceAt(_ep.x + nx * k, _ep.z + nz * k) === 'building') {
+          if (
+            inBuilding(_ep.x + nx * k, _ep.z + nz * k) ||
+            surfaceAt(_ep.x + nx * k, _ep.z + nz * k) === 'building'
+          ) {
             n.wMax = Math.min(n.wMax, k - 0.6);
             break;
           }
@@ -358,6 +396,8 @@ export async function createPeds(game) {
     const nx = -_ep.tz,
       nz = _ep.tx;
     const side = (ped.pos.x - _ep.x) * nx + (ped.pos.z - _ep.z) * nz >= 0 ? 1 : -1;
+    // the walker's side of this street has buildings on the lane: not a place to walk
+    if (!sideOpen(e, side)) return null;
     const dir = Math.random() < 0.5 ? 1 : -1;
     return {
       edge: e,
@@ -396,6 +436,9 @@ export async function createPeds(game) {
       n.sbE = null;
     };
     const cands = all.filter((e) => e !== A && walkable(e));
+    let streets = 0;
+    for (const e of all) if (!MINOR_ST.test(e.kind || '')) streets++;
+    const minorNode = streets < 3;
     if (!cands.length || !all.includes(A)) {
       turnBack();
       return;
@@ -445,7 +488,22 @@ export async function createPeds(game) {
       const ch = scored.splice(k, 1)[0];
       let rt = null;
       try {
-        rt = cornerRoute(node, A, sigA, offA, ch.e, all, n.lane ?? 0.5, Math.random() < 0.15);
+        rt = cornerRoute(
+          node,
+          A,
+          sigA,
+          offA,
+          ch.e,
+          all,
+          n.lane ?? 0.5,
+          !(SMART && minorNode) && Math.random() < 0.15,
+        );
+        // smart-peds: never onto a side of B that is built over, never round a corner through a building or the
+        // road, cross streets only at real junctions
+        if (rt && !routeOk(rt, ch.e, ch.fwd, minorNode)) {
+          rt = cornerRoute(node, A, sigA, offA, ch.e, all, n.lane ?? 0.5, true);
+          if (rt && !routeOk(rt, ch.e, ch.fwd, minorNode)) rt = null;
+        }
       } catch (e) {
         rt = null;
       }
@@ -467,6 +525,7 @@ export async function createPeds(game) {
       n.mh = undefined;
       // patient people wait at the corner before crossing; impatient ones go straight (people.v2.js traits)
       if (
+        !SMART &&
         rt.crossings &&
         ped.P &&
         ped.P.patience !== undefined &&
@@ -478,6 +537,36 @@ export async function createPeds(game) {
       return;
     }
     turnBack();
+  }
+  const MINOR_ST = /service|driveway|track|path|footway|pedestrian|steps|cycleway|alley/;
+  const onRoadAt = (x, z) => {
+    try {
+      return !!game.placement?.onRoad?.(x, z, 0);
+    } catch (e) {
+      return false;
+    }
+  };
+  // a corner route is usable when the side it joins on B is open and no sidewalk leg of it cuts through a building
+  // (crossing legs run over the road; the leg from the walker's own lane to the first corner starts at the node)
+  function routeOk(rt, B, fwd, minorNode) {
+    if (!SMART) return true;
+    if (!sideOpen(B, rt.sigmaB * (fwd ? 1 : -1))) return false;
+    // where only a driveway or service lane meets a street there is no corner to cross the street at
+    if (minorNode && rt.crossed?.some((e) => !MINOR_ST.test(e.kind || ''))) return false;
+    let px = rt.pts[0].x;
+    let pz = rt.pts[0].z;
+    if (inBuilding(px, pz)) return false;
+    for (let i = 1; i < rt.pts.length; i++) {
+      const q = rt.pts[i];
+      if (!q.cross && !bld.segmentFree(px, pz, q.x, q.z)) return false;
+      if (inBuilding(q.x, q.z)) return false;
+      // corners and sidewalk legs stay off the carriageway (acute junctions put some corners in the other road)
+      if (!q.cross && (onRoadAt(q.x, q.z) || onRoadAt((px + q.x) / 2, (pz + q.z) / 2)))
+        return false;
+      px = q.x;
+      pz = q.z;
+    }
+    return true;
   }
   // advance along the sidewalk; returns desired heading; moves ped.pos in xz
   function navStep(ped, dt, speed) {
@@ -579,7 +668,10 @@ export async function createPeds(game) {
       n.cross = null;
       n.mh = undefined;
       // a wall in the way: step out to the curb first (the curb point of this edge at the walker's station)
-      if (!NAV_OLD && !lineFree(ped, t.x, t.z)) {
+      if (
+        !NAV_OLD &&
+        (!lineFree(ped, t.x, t.z) || (SMART && !bld.segmentFree(ped.pos.x, ped.pos.z, t.x, t.z)))
+      ) {
         edgeAt(n.edge, n.s, _ep);
         const hw = (n.edge.width || 8) / 2 + 0.4,
           sd = (ped.pos.x - _ep.x) * -_ep.tz + (ped.pos.z - _ep.z) * _ep.tx >= 0 ? 1 : -1;
@@ -653,12 +745,15 @@ export async function createPeds(game) {
 
   // ---------------------------------------------------------------- spots
   function sidewalkNear(c, r, zone = null) {
-    try {
-      const p = city.randomSidewalkPoint?.(c, r, zone);
-      if (p && Number.isFinite(p.x))
+    // smart-peds: a few tries, never a point on a building footprint
+    for (let k = 0; k < (SMART ? 3 : 1); k++) {
+      try {
+        const p = city.randomSidewalkPoint?.(c, r, zone);
+        if (!p || !Number.isFinite(p.x) || inBuilding(p.x, p.z)) continue;
         return p.clone ? p.clone() : new THREE.Vector3(p.x, p.y || 0, p.z);
-    } catch (e) {
-      /* ignore */
+      } catch (e) {
+        /* ignore */
+      }
     }
     return null;
   }
@@ -1141,6 +1236,7 @@ export async function createPeds(game) {
     try {
       // r6-walk: the one shared ground rule (never a carriageway, never an open field away from any path)
       if (walkGround(game, x, z, _wg) !== 'ok') return false;
+      if (inBuilding(x, z)) return false;
       if (RG) {
         const r = RG.nearestEdge(x, z);
         const e = r?.edge;
@@ -3254,9 +3350,37 @@ export async function createPeds(game) {
         default: {
           // walk / jog / dog / shore
           ped.handsUp = false;
+          // smart-peds safety net: a walker on a building footprint (pushed there, stale lane) leaves out of view, or
+          // walks back to the nearest open sidewalk
+          if (
+            SMART &&
+            ((frameN + ped.id) & 15) === 0 &&
+            !ped.pinned &&
+            inBuilding(ped.pos.x, ped.pos.z)
+          ) {
+            if (!inCamView(ped.pos.x, ped.pos.y, ped.pos.z)) ped.despawnNow = true;
+            else {
+              ped.nav = navFromPos(ped);
+              ped.target = null;
+            }
+          }
           // npc-life: at a signalized corner, wait for the walk phase (impatient people sometimes go anyway)
           const nc = ped.nav?.cross;
-          if (nc && nc.node !== undefined && ped.act !== 'jog' && (nc.sig -= dt) <= 0) {
+          if (SMART && nc) {
+            // smart-peds: wait at the curb for a clear road (and the walk phase at a light), then cross briskly
+            if (
+              crossWait(nc, ped.pos.x, ped.pos.z, dt, signals, ped.walkSpeed, ped.P?.jaywalk || 0)
+            ) {
+              ped.sigWaitT = 0.05;
+              ped.heading = approachAngle(
+                ped.heading,
+                Math.atan2(nc.x - ped.pos.x, nc.z - ped.pos.z),
+                dt * 3,
+              );
+            } else {
+              ped.sigWaitT = 0;
+            }
+          } else if (nc && nc.node !== undefined && ped.act !== 'jog' && (nc.sig -= dt) <= 0) {
             nc.sig = 0.5;
             const ws = signals.walkState(nc.node, nc.x - ped.pos.x, nc.z - ped.pos.z);
             const bold = (ped.P?.jaywalk || 0) > 0.5 && Math.random() < 0.15;
@@ -3386,8 +3510,10 @@ export async function createPeds(game) {
                       dt,
                     )
                   : 0); // r7-walk: around trunks / poles
-            targetSpeed *= st.slow;
-            if (st.block) {
+            // on the road mid-crossing nobody stops dead: ease past each other instead
+            const onCross = SMART && !!ped.nav?.cross?.go;
+            targetSpeed *= onCross ? Math.max(st.slow, 0.55) : st.slow;
+            if (st.block && !onCross) {
               ped.speed = 0;
               ped.blockT = (ped.blockT || 0) + dt;
               if (ped.blockT > 4 && ped.nav && !ped.nav.path && !ped.follow) {
@@ -3595,7 +3721,7 @@ export async function createPeds(game) {
                   ped.detourT = rand(0.6, 1.1);
                   ped.detourA = (Math.random() < 0.5 ? -1 : 1) * rand(0.9, 1.4);
                 }
-                if (ped.nav) {
+                if (ped.nav && !(SMART && ped.nav.path)) {
                   ped.nav.dir *= -1;
                   ped.nav.cross = null;
                   ped.nav.jit = rand(-0.5, 1.0);
@@ -3716,6 +3842,9 @@ export async function createPeds(game) {
       inCamView,
       laneRoom,
       space,
+      inBuilding,
+      bld,
+      sideOpen,
     },
     groups,
     groupStats,

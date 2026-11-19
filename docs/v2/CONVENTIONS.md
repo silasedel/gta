@@ -296,6 +296,13 @@ stations, models), `src/gameplay/wantedCore.js` (six-star state machine, pure), 
   only for what the player did.
 - Walking: `src/npc/walk.js obstacleSteer` (trunks, poles: static ray ahead), `carYield` (on roads without a sidewalk they
   step to the verge for an approaching car; `updateCarList` once a frame in peds.update).
+- Smart peds (Nov 19, `?pedsmart=0` = before): building footprints for people come from the map rings rasterized per
+  data tile (`src/npc/bldMask.js`, `game.peds._nav.inBuilding(x, z)`, `.bld.segmentFree/lastFree`); edge sides whose
+  lane runs through buildings are closed (`_nav.sideOpen(edge, side)`), corner routes never cut through a building or the
+  road and cross streets only at real junctions (3+ streets, not driveways / service lanes). At the curb both tiers wait
+  in `walk.js crossWait` (walk phase at a light + no moving car over the crossing line within the time to cross,
+  `crossingClear`), then cross without stopping. Crowd walkers window-shop at their destination half of the time.
+  Audit: `node tools/v2/npcs/ped-audit.mjs --hour 12 --tag after [--q "&pedsmart=0"] [--prof]`.
 - Beach towels: `src/npc/beachTowel.js makeTowel / drapeTowel / makeBeachThings` (terry scan textures in
   `public/assets/npc/towel/`); the towel is re-laid under the settled body (head to heels). `?lowerlegs=0` = old leg pose.
 - Footsteps: `game.footSurfaceAt(x, y, z)` (`src/player/footSurface.v2.js`): `userData.surface` tags,
