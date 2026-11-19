@@ -759,6 +759,12 @@ async function boot() {
     const under = (P.headUnderwater || (driving && (st.vehicle?.submerged || 0) > 0.3));
     const minY = cw ? (under ? (game.city.groundHeightAt?.(target.x, target.z) ?? -30) + 0.4 : seaLevel(game) + 0.3) : 0.3;
     if (target.y < minY) target.y = minY;
+    // W5 (Nov 19): the ceiling above the CAMERA can be lower than above Nico's head (vaulted ceilings slope down toward the
+    // walls, beams, soffits): keep ~0.36 m under it so the near plane (0.25 m) never pokes through into the attic / sky
+    if (!driving && !P.swimming) try {
+      const up = world.castRay(new RAPIER.Ray(target, _upV), 0.45, true, STATIC_ONLY);
+      if (up && up.timeOfImpact < 0.36) target.y = Math.max(pivot.y - 0.5, target.y - (0.36 - up.timeOfImpact));
+    } catch (e) { /* keep */ }
     // the camera stays on the same side of the water surface as the swimmer's head: above it at the surface,
     // below it (and above the sea floor) when diving, so the near plane never cuts the water plane mid-frame
     // and the camera never looks down through the surface at a diver it cannot see

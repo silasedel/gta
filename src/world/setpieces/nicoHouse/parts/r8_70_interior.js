@@ -67,13 +67,18 @@ export function build(ctx) {
   { const CB = im.paint({ peel: 'a', fade: 0.05, gloss: 0.8, scale: 0.5 }), a = Math.atan(P.pitch);
     for (const side of [1, -1]) { const zr = P.ridgeZ, ze = side > 0 ? z1 : z0, run = Math.abs(ze - zr), sl = Math.hypot(run, run * P.pitch), n = Math.ceil((x1 - x0) / 0.15);
       for (let i = 0; i < n; i++) { const xa = x0 + i * (x1 - x0) / n, xb = x0 + (i + 1) * (x1 - x0) / n, zc = (zr + ze) / 2, yc = (ceilY(zr) + ceilY(ze)) / 2 + 0.01;
-        box(CB, xb - xa - 0.002, 0.016, sl + 0.02, (xa + xb) / 2, yc, zc, { grain: 2, color: kit.vary(0xd3ccb8, r, 0.05), wear: 0.1, bevel: 0.002 }, side * a); } }
+        box(CB, xb - xa - 0.002, 0.016, sl + 0.02, (xa + xb) / 2, yc, zc, { grain: 2, color: kit.vary(0xd3ccb8, r, 0.05), wear: 0.1, bevel: 0.002 }, side * a); }
+      // W5 (Nov 19, user: "the camera goes through the ceiling indoors"): the boards get a collider (bottom face on the
+      // boards' underside), so the camera's ceiling ray and sphere cast stop under them
+      { const zc = (zr + ze) / 2, yc = (ceilY(zr) + ceilY(ze)) / 2 + 0.01, th = 0.12, ca = Math.cos(a);
+        Fr.col.box((x0 + x1) / 2, yc - 0.008 / ca + th / 2 / ca, zc, x1 - x0, th, sl + 0.02, { rx: side * a, tag: 'ceiling' }); } }
     const BEAM = im.wood({ dark: true });
     for (let x = x0 + 0.9; x < x1 - 0.5; x += 1.6) { if (x < xP + 0.2) continue; box(BEAM, 0.11, 0.22, z1 - z0 - 0.01, x, yT + 0.15, (z0 + z1) / 2, { grain: 2, color: 0x4a3a2a, wear: 0.3, bevel: 0.008 }); Fr.col.box(x, yT + 0.15, (z0 + z1) / 2, 0.2, 0.3, z1 - z0, { tag: 'beam' }); }
     box(BEAM, x1 - x0, 0.26, 0.14, (x0 + x1) / 2, ceilY(P.ridgeZ) - 0.12, P.ridgeZ, { grain: 0, color: 0x46372a, wear: 0.3, bevel: 0.008 }); Fr.col.box((x0 + x1) / 2, ceilY(P.ridgeZ) - 0.12, P.ridgeZ, x1 - x0, 0.3, 0.22, { tag: 'beam' });
     for (const z of [z0 + 0.06, z1 - 0.06]) box(BEAM, x1 - x0, 0.14, 0.1, (x0 + x1) / 2, yT + 0.08, z, { grain: 0, color: 0x46372a, wear: 0.3 });
     // flat ceiling over the hall, bath and bedroom (they have their own low ceilings at the plate height)
-    box(CB, xP - x0, 0.03, z1 - z0, (x0 + xP) / 2, yT + 0.03, (z0 + z1) / 2, { color: 0xd3ccb8, wear: 0.1 }); }
+    box(CB, xP - x0, 0.03, z1 - z0, (x0 + xP) / 2, yT + 0.03, (z0 + z1) / 2, { color: 0xd3ccb8, wear: 0.1 });
+    Fr.col.box((x0 + xP) / 2, yT + 0.015 + 0.06, (z0 + z1) / 2, xP - x0, 0.12, z1 - z0, { tag: 'ceiling' }); }
   // ================= partitions (board walls 0.11 thick) with real doorways =================
   const hH = P.wallH + 0.02;
   const part = (ax, az, bx, bz, doors = [], o = {}) => { const L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, ry = Math.atan2(-uz, ux);
