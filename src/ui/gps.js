@@ -1,5 +1,6 @@
 // SOUTHLINE — GPS routing over city.roadGraph (A*), used by the HUD for waypoint routes.
-// route(fromX, fromZ, toX, toZ) -> { pts: [[x,z],...], length } | null
+// route(fromX, fromZ, toX, toZ, { heading }) -> { pts: [[x,z],...], length } | null
+// follow(pts, x, z, state) -> { pts: remaining polyline, dist: distance to the route } (progress only moves forward)
 
 const WALK_KINDS = new Set(['footway', 'path', 'cycleway', 'pedestrian', 'steps']);
 
@@ -39,6 +40,42 @@ function splitAt(pts, x, z) {
   const toA = [p, ...pts.slice(0, bi + 1).reverse()];
   const toB = [p, ...pts.slice(bi + 1)];
   return { toA, toB, point: p, dist: bd };
+}
+
+// Nov 19 (user: the route "glitches and goes back to your original route"): progress along a route only searches a
+// window ahead of the last matched segment, so a route that passes near itself (a loop, a U-turn, the street the player
+// came from) never makes the drawn line jump back to an earlier part
+const FOLLOW_BACK = 2; // segments behind the last match that still count (GPS noise at a corner)
+const FOLLOW_AHEAD_M = 400; // how far ahead of the last match the search looks
+function follow(pts, x, z, st) {
+  if (!pts || pts.length < 2) return { pts, dist: Infinity };
+  const i0 = Math.max(0, Math.min(pts.length - 2, (st.i ?? 0) - FOLLOW_BACK));
+  let bi = i0,
+    bd = Infinity,
+    bx = pts[i0][0],
+    bz = pts[i0][1],
+    ahead = 0;
+  for (let i = i0; i < pts.length - 1; i++) {
+    const ax = pts[i][0],
+      az = pts[i][1],
+      dx = pts[i + 1][0] - ax,
+      dz = pts[i + 1][1] - az,
+      L2 = dx * dx + dz * dz || 1e-9;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2));
+    const px = ax + dx * t,
+      pz = az + dz * t,
+      d = Math.hypot(x - px, z - pz);
+    if (d < bd) {
+      bd = d;
+      bi = i;
+      bx = px;
+      bz = pz;
+    }
+    if (i >= (st.i ?? 0)) ahead += Math.sqrt(L2);
+    if (ahead > FOLLOW_AHEAD_M) break;
+  }
+  st.i = bi;
+  return { pts: [[bx, bz], ...pts.slice(bi + 1)], dist: bd };
 }
 
 class Heap {
@@ -286,7 +323,21 @@ export function createGPS(game) {
     chain.reverse();
     return { startNode: S.get(cur).end, endNode: S.get(best).end, chain, cost: bestCost };
   }
-  function route(fx, fz, tx, tz) {
+  // seconds added to leaving the start edge against the direction of travel (the same price as a U-turn at a node), so a
+  // recalculation while driving keeps going forward instead of turning back toward the old route
+  const START_UTURN_S = 25;
+  function startTurnCost(split, towardA, heading) {
+    if (typeof heading !== 'number') return 0;
+    const leg = towardA ? split.toA : split.toB;
+    if (!leg || leg.length < 2) return 0;
+    const dx = leg[1][0] - leg[0][0],
+      dz = leg[1][1] - leg[0][1],
+      l = Math.hypot(dx, dz);
+    if (l < 1e-6) return 0;
+    const along = (Math.sin(heading) * dx + Math.cos(heading) * dz) / l;
+    return along < -0.3 ? START_UTURN_S : 0;
+  }
+  function route(fx, fz, tx, tz, opts = {}) {
     if (!graph()) return null;
     const es = nearest(fx, fz),
       eg = nearest(tx, tz);
@@ -307,8 +358,18 @@ export function createGPS(game) {
       const starts = [],
         goals = [];
       if (!strict || !es.oneway)
-        starts.push({ node: es.a, cost: edgeSec(es, lenA), e: es, fwd: false });
-      starts.push({ node: es.b, cost: edgeSec(es, lenB), e: es, fwd: true });
+        starts.push({
+          node: es.a,
+          cost: edgeSec(es, lenA) + startTurnCost(ss, true, opts.heading),
+          e: es,
+          fwd: false,
+        });
+      starts.push({
+        node: es.b,
+        cost: edgeSec(es, lenB) + startTurnCost(ss, false, opts.heading),
+        e: es,
+        fwd: true,
+      });
       goals.push({ node: eg.a, cost: edgeSec(eg, glA), e: eg, fwd: true });
       if (!strict || !eg.oneway)
         goals.push({ node: eg.b, cost: edgeSec(eg, glB), e: eg, fwd: false });
@@ -338,5 +399,5 @@ export function createGPS(game) {
     if (!pts || pts.length < 2) return pts;
     return splitAt(pts, x, z).toB;
   }
-  return { route, distTo, trimFrom, polyLen, available: () => !!graph() };
+  return { route, distTo, trimFrom, follow, polyLen, available: () => !!graph() };
 }

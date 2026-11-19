@@ -155,6 +155,17 @@ export function createHUD(game) {
     routeAt = -1e9,
     routeCheck = 0,
     routeLen = 0;
+  // Nov 19 (user: the GPS "glitches and goes back to your original route"): the route follows the player forward only,
+  // and is recomputed only when the player has really left it (hysteresis below) or the destination really moved
+  const routeFollow = { i: 0 };
+  const routeDest = { x: NaN, z: NaN };
+  const routeMotion = { x: NaN, z: NaN, heading: null };
+  let routeOffT = 0;
+  const ROUTE_OFF_M = 35; // farther than this from the line counts as off route
+  const ROUTE_BACK_M = 20; // closer than this again: back on the route, the off timer resets
+  const ROUTE_OFF_S = 1.5; // off route this long before recalculating
+  const ROUTE_MIN_GAP_MS = 3000; // at most one recalculation per 3 s
+  const ROUTE_DEST_MOVE_M = 25; // a moving target (mission marker) re-plans only when it moved this far
   const distName = (x, z) => {
     try {
       const d = game.city?.districtAt?.(x, z);
@@ -2125,6 +2136,34 @@ export function createHUD(game) {
     g.stroke();
     g.restore();
   }
+  // travel direction from the player's motion between route checks (null when standing / slow)
+  function routeHeading(p, dt) {
+    const m = routeMotion;
+    if (Number.isFinite(m.x) && dt > 0) {
+      const dx = p.x - m.x,
+        dz = p.z - m.z;
+      const speed = Math.hypot(dx, dz) / dt;
+      if (speed > 3 && speed < 120) m.heading = Math.atan2(dx, dz);
+      else if (speed <= 1) m.heading = null;
+    }
+    m.x = p.x;
+    m.z = p.z;
+    return m.heading;
+  }
+  function planRoute(p, wp, heading) {
+    routeAt = performance.now();
+    routeFor = wp;
+    routeDest.x = wp.x;
+    routeDest.z = wp.z;
+    routeFollow.i = 0;
+    routeOffT = 0;
+    try {
+      route = gps.route(p.x, p.z, wp.x, wp.z, { heading });
+    } catch (e) {
+      console.warn('[hud gps]', e);
+      route = null;
+    }
+  }
   function updateRoute(dt) {
     const wp = game.waypoint,
       p = game.player?.position;
@@ -2137,21 +2176,28 @@ export function createHUD(game) {
     if (routeCheck > 0 && route && routeFor === wp) {
       return;
     }
+    const step = 0.25 - routeCheck;
     routeCheck = 0.25;
-    const now = performance.now();
-    const off = route ? gps.distTo(route.pts, p.x, p.z) : Infinity;
-    if (routeFor !== wp || (off > 40 && now - routeAt > 1500)) {
-      routeAt = now;
+    const heading = routeHeading(p, step);
+    // a new waypoint object at (nearly) the same spot is the same destination: several systems re-assign game.waypoint
+    // (story markers every 1.5 s); re-planning from scratch each time flipped the route back and forth
+    const destMoved = Math.hypot(wp.x - routeDest.x, wp.z - routeDest.z);
+    if (!route) {
+      // no route found yet: retry every 1.5 s, at once for a new destination
+      if (routeFor !== wp || performance.now() - routeAt > 1500) planRoute(p, wp, heading);
+    } else if (!(destMoved < ROUTE_DEST_MOVE_M)) {
+      planRoute(p, wp, heading);
+    } else {
       routeFor = wp;
-      try {
-        route = gps.route(p.x, p.z, wp.x, wp.z);
-      } catch (e) {
-        console.warn('[hud gps]', e);
-        route = null;
+      const f = gps.follow(route.pts, p.x, p.z, routeFollow);
+      if (f.dist > ROUTE_OFF_M) routeOffT += step;
+      else if (f.dist < ROUTE_BACK_M) routeOffT = 0;
+      if (routeOffT >= ROUTE_OFF_S && performance.now() - routeAt > ROUTE_MIN_GAP_MS) {
+        planRoute(p, wp, heading);
       }
     }
     if (route) {
-      routeShown = gps.trimFrom(route.pts, p.x, p.z);
+      routeShown = gps.follow(route.pts, p.x, p.z, routeFollow).pts;
       routeLen = gps.polyLen(routeShown);
     } else routeShown = null;
   }
