@@ -18,7 +18,7 @@ export const order = 6;
 
 export function build(ctx) {
   if (!R8) return;
-  const { THREE, kit, mat } = ctx, Fr = frame(ctx, 'house'), B = kit.batch('r8wat'), D = kit.batch('r8watD'), M = kit.M, P = P4, r = kit.rng(806), sea = ctx.plan.seaY;
+  const { THREE, kit, mat } = ctx, Fr = frame(ctx, 'site'), B = kit.batch('r8wat'), D = kit.batch('r8watD'), M = kit.M, P = P4, r = kit.rng(806), sea = ctx.plan.seaY;
   const { lathe } = makeGeo(THREE, kit);
   const W = mat.wood({ marine: true }), WD = mat.wood(), WHITE = mat.paint({ peel: 'a', fade: 0.55, gloss: 0.85 }), ST = mat.steel();
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0, Bt = B) => Bt.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.006, rand: r, ...o });
@@ -26,7 +26,7 @@ export function build(ctx) {
   const Cn = P.canal, Wz = P.wallZ, bed = sea - 2.6;
   const yard = (x, z) => (ctx.yardY ? ctx.yardY(...Fr.toG(x, z)) : 0);
   // everything of the water side draws after the depth portal (renderOrder 61): WG holds the loaded models, the batches go there too
-  const WG = new THREE.Group(); WG.name = 'r8_waterside'; Fr.groups.detail.add(WG);
+  const WG = new THREE.Group(); WG.name = 'r8_waterside'; WG.userData.nhLodMin = 70; Fr.groups.detail.add(WG);   // r10: the dock's props draw with the dock (no late pop-in)
   const late = (o) => { o.traverse((n) => { if (n.isMesh || n.isInstancedMesh) n.renderOrder = 61; }); return o; };
   const ground = (x, z) => (ctx.opts.groundAt ? ctx.opts.groundAt(...Fr.toG(x, z)) : 0);
   // the wall top: the yard surface beside the wall on Nico's side, the terrain on the neighbor's side
@@ -73,7 +73,7 @@ export function build(ctx) {
     wallRun(Cn.x0, Cn.z1, Cn.x1, Cn.z1, 0, -1, { inCanal: true });
     wallRun(Cn.x1, Cn.z1, Cn.x1, Wz, -1, 0, { inCanal: true, far: true });
     // fences: white two-rail on Nico's side where the deck and its stair are not, chain-link on the neighbor's side and across the end
-    fence(Cn.x0, Wz + 0.45, Cn.x0, P.lower.z0 - 0.3, 1, 0); fence(Cn.x0, -0.9, Cn.x0, Cn.z1 - 0.45, 1, 0);
+    fence(Cn.x0, Wz + 0.45, Cn.x0, 0.85, 1, 0); fence(Cn.x0, 2.15, Cn.x0, Cn.z1 - 0.45, 1, 0);   // r10: along the whole wall (the turned house's gym deck stands back from it now), a gate gap at the ladder
     fence(Cn.x1, Cn.z1 - 0.3, Cn.x1, Wz + 0.6, -1, 0, { chain: true, far: true }); fence(Cn.x0 + 0.4, Cn.z1, Cn.x1 - 0.4, Cn.z1, 0, -1, { chain: true });
     // a ladder down Nico's canal wall, by the lower deck's stair
     { const lz = 1.5, lx = Cn.x0 + 0.1, top = yard(Cn.x0 - 0.4, lz) + 0.04;
@@ -151,14 +151,26 @@ export function build(ctx) {
   const yW = yard(dk.wallX, Wz + 0.3) + 0.06;   // the wall cap
   // r9 (user): ONE long angled gangway from the wall cap straight onto the platform's wall-side corner (no knee, no second run); its last
   // boards lie 12 mm over the platform's where they overlap (no z-fighting)
-  const gE = [pl.x1 - 0.1, pl.z1 - 0.9];
-  const g1 = stretch(dk.wallX, Wz - 0.2, yW - 0.04, gE[0], gE[1], y + 0.012, dk.w), g2 = null;
+  // r10 (playtest Nov 19: "one purposeful, connected structure, smooth joints to the seawall"): a straight pier square to the wall from the
+  // fence gap to the middle of the platform's wall side. It starts ON the wall cap (a level landing across the cap with a header beam on the
+  // wall's face), then one even ramp down to the platform; the ramp's last boards lie 12 mm over the platform's (no z-fighting)
+  const capW = 0.5, zL0 = Wz + capW, zL1 = Wz - 0.25;
+  stretch(dk.wallX, zL0, yW, dk.wallX, zL1, yW, dk.w);
+  box(W, dk.w + 0.3, 0.24, 0.1, dk.wallX, yW - 0.17, Wz - 0.07, { grain: 0, color: gray(0.62), wear: 0.9 });   // header on the wall face
+  const gE = [dk.wallX, pl.z1 - 0.3];
+  const g1 = stretch(dk.wallX, zL1, yW - 0.005, gE[0], gE[1], y + 0.012, dk.w), g2 = null;
+  // stringer ends sit in steel hangers on the header (the joint reads as built, not stacked)
+  for (const sx of [-1, 1]) box(ST, 0.07, 0.2, 0.12, dk.wallX + sx * (dk.w / 2 - 0.1), yW - 0.17, zL1 + 0.02, { color: 0x6f706c, bevel: 0.004 });
+  // a fascia board round the platform and along the pier's sides: one finished edge for the whole dock
+  { const fas = (ax, az, bx, bz, ya, yb) => { const L = Math.hypot(bx - ax, bz - az), ry = Math.atan2(-(bz - az), bx - ax); box(W, L, 0.16, 0.035, (ax + bx) / 2, (ya + yb) / 2 - 0.1, (az + bz) / 2, { grain: 0, color: gray(0.7), wear: 0.8 }, 0, ry, Math.atan2(yb - ya, L) * (Math.abs(bx - ax) > Math.abs(bz - az) ? 1 : 0)); };
+    fas(pl.x0 - 0.02, pl.z0 - 0.02, pl.x1 + 0.02, pl.z0 - 0.02, y, y); fas(pl.x0 - 0.02, pl.z1 + 0.02, dk.wallX - dk.w / 2, pl.z1 + 0.02, y, y); fas(dk.wallX + dk.w / 2, pl.z1 + 0.02, pl.x1 + 0.02, pl.z1 + 0.02, y, y);
+    fas(pl.x0 - 0.02, pl.z0, pl.x0 - 0.02, pl.z1, y, y); fas(pl.x1 + 0.02, pl.z0, pl.x1 + 0.02, pl.z1, y, y); }
   // the platform: boards run toward the house (A)
   { const pitch = 0.152; for (let x = pl.x0 + pitch / 2; x < pl.x1 - 0.03; x += pitch) { const tone = r() < 0.05 ? kit.vary(0xbfa77e, r, 0.06) : gray(0.85 + r() * 0.3); box(WD, 0.142, 0.045, pl.z1 - pl.z0 - (r() - 0.5) * 0.03, x, y - 0.022 + (r() - 0.5) * 0.005, (pl.z0 + pl.z1) / 2, { grain: 2, color: tone, wear: 0.5 + r() * 0.5, bevel: 0.007 }, 0, (r() - 0.5) * 0.008); }
     for (const z of [pl.z0 + 0.06, (pl.z0 + pl.z1) / 2, pl.z1 - 0.06]) box(W, pl.x1 - pl.x0, 0.22, 0.07, (pl.x0 + pl.x1) / 2, y - 0.155, z, { grain: 0, color: gray(0.6), wear: 0.9 });
     Fr.col.box((pl.x0 + pl.x1) / 2, y - 0.15, (pl.z0 + pl.z1) / 2, pl.x1 - pl.x0, 0.3, pl.z1 - pl.z0, { tag: 'dock', surface: 'wood' }); }
   // piles: along the walk on both sides, the platform's corners and mid edges (taller at the front), the knee, the gangway's foot
-  { const L = g1.L, px = -g1.uz, pz = g1.ux; for (let t = 2.0; t < L - 1.2; t += 2.4) { const cx = dk.wallX + g1.ux * t, cz = Wz - 0.2 + g1.uz * t, yy = yW - 0.04 + (y - yW + 0.04) * t / L;
+  { const L = g1.L, px = -g1.uz, pz = g1.ux; for (let t = L / 2; t < L - 0.6; t += 2.4) { const cx = dk.wallX + g1.ux * t, cz = zL1 + g1.uz * t, yy = yW - 0.04 + (y - yW + 0.04) * t / L;
     for (const sd of [-1, 1]) pile(cx + px * sd * (dk.w / 2 + 0.14), cz + pz * sd * (dk.w / 2 + 0.14), yy + (sd < 0 && r() < 0.4 ? 0.45 : 0.06)); } }
   for (const [x, z, h] of [[pl.x0 - 0.1, pl.z0 - 0.1, 0.95], [pl.x1 + 0.1, pl.z0 - 0.1, 0.95], [pl.x0 - 0.1, pl.z1 + 0.1, 0.4], [(pl.x0 + pl.x1) / 2, pl.z0 - 0.1, 0.95], [pl.x0 - 0.1, (pl.z0 + pl.z1) / 2, 0.2], [pl.x1 + 0.1, (pl.z0 + pl.z1) / 2 - 0.6, 0.2]]) pile(x, z, y + h);
   // cross-braces under the platform's front and the walk (A: diagonal 2x8s between the piles)
@@ -220,6 +232,6 @@ export function build(ctx) {
   }));
   void g1; void g2; void pilesAt;
   // the canal's inside: built after the portal (renderOrder 61)
-  for (const m of [...CI.build(Fr.groups.ext), ...B.build(Fr.groups.ext), ...D.build(Fr.groups.detail)]) m.renderOrder = 61;
+  for (const m of [...CI.build(Fr.groups.ext), ...B.build(Fr.groups.ext), ...D.build(Fr.groups.detail)]) { m.renderOrder = 61; m.userData.nhLodMin = 70; }
   Fr.build();
 }

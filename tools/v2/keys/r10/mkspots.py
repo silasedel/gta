@@ -1,0 +1,35 @@
+# r10: extra reference cameras given in the house frame B (turned 10 deg), the site frame H or the yard frame G -> spots10.json (world offsets
+# from the house center C = BtoG(0, -7), compass headings)
+import json, math
+A = math.radians(10); TX = -1.0; TH = math.pi / 4; H0 = 0.4239; YAW = 0.72
+R = lambda a, x, z: (x * math.cos(a) + z * math.sin(a), -x * math.sin(a) + z * math.cos(a))
+def BtoH(x, z): dx, dz = R(A, x, z + 7); return (dx + TX, dz - 7)
+C_H = BtoH(0, -7)
+def H_off(x, z): return R(TH, x - C_H[0], z - C_H[1])   # H point -> world (east, south) offset from C
+def B_off(x, z): return H_off(*BtoH(x, z))
+# G: the yard frame; world = R(h + yaw)(G); C in G: toG(HtoS(C_H)) with HtoS rotating by theta = pi/4 - h about (0, -7) and toG = R(-yaw) (S + (0, oz))
+th = math.pi / 4 - H0
+def HtoS(x, z): dx, dz = R(th, x, z + 7); return (dx, dz - 7)
+def toG(x, z): return R(-YAW, x, z + 4.5)
+CG = toG(*HtoS(*C_H))
+def G_off(x, z): return R(H0 + YAW, x - CG[0], z - CG[1])
+def hdg(e, s): return round((math.degrees(math.atan2(e, -s)) + 360) % 360, 1)
+def spot(off, y, look, pitch, fov=70, tod=11, **k):
+    e, s = off; le, ls = look; return dict(ref=None, eye=[round(e, 2), y, round(s, 2)], hdg=hdg(le - e, ls - s), pitch=pitch, fov=fov, tod=tod, player=[-5.66, 0, -1.41], **k)
+S = json.load(open('tools/v2/keys/r10/spots10.json'))
+S['K2'] = spot(B_off(-0.1, -5.3), 5.25, B_off(-0.1, -3.6), -38, 70, 10)
+S['HALL'] = spot(B_off(-2.9, -7.0), 5.2, B_off(-6.5, -7.0), -6, 80, 10)
+S['BED'] = spot(B_off(-3.1, -8.0), 5.3, B_off(-5.6, -9.3), -18, 80, 10)
+S['BATH'] = spot(B_off(-3.0, -6.1), 5.4, B_off(-5.4, -4.4), -22, 80, 10)
+S['TERR'] = spot(B_off(2.7, -7.9), 5.1, B_off(1.32, -6.6), -30, 70, 10)
+S['DK'] = spot(H_off(-1.7, -12.0), 4.0, H_off(-1.7, -22.0), -18, 70, 11)
+S['PAD'] = spot(B_off(-2.0, 3.0), 1.7, B_off(-2.0, -2.0), -16, 75, 11)
+S['DRV'] = spot(G_off(-8.5, 3.5), 1.7, G_off(-25.6, 20.35), -2, 70, 11)
+S['BK'] = spot(B_off(4.0, -19.0), 1.7, B_off(9.5, -10.0), 6, 72, 11)
+json.dump(S, open('tools/v2/keys/r10/spots10.json', 'w'), indent=1)
+print({k: S[k]['eye'] for k in ['K2', 'DK', 'DRV', 'BK']})
+S = json.load(open('tools/v2/keys/r10/spots10.json'))
+S['GYM'] = spot(B_off(9.3, -2.6), 4.45, B_off(12.4, -7.5), -24, 78, 11)
+S['DKJ'] = spot(H_off(0.6, -14.6), 1.5, H_off(-1.7, -17.6), -24, 70, 11)
+S['HOOP'] = spot(B_off(6.0, -16.0), 1.7, B_off(8.5, -10.6), 8, 70, 11)
+json.dump(S, open('tools/v2/keys/r10/spots10.json', 'w'), indent=1)

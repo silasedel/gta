@@ -12,6 +12,7 @@ import { frame } from '../r4/frame.js';
 import { makeGeo } from '../r4/geo.js';
 import { loadKeysModels } from '../models.js';
 import { glb } from '../r4/glb.js';
+import { potPlant as userPot } from '../r4/pots.js';
 export const order = 70;
 
 export function build(ctx) {
@@ -40,7 +41,7 @@ export function build(ctx) {
       for (const [a, b] of subtract(x, xe, holes(zm))) box(FLOOR, b - a - 0.003, 0.02, 0.138, (a + b) / 2, F + 0.01, zm, { grain: 0, color: kit.vary(0xe8b571, r, 0.08), wear: 0.25, bevel: 0.002, uv: [r() * 7, r() * 7] });
       x = xe; } }
   box(tileMat, KTF.x1 - KTF.x0, 0.02, KTF.z1 - KTF.z0, (KTF.x0 + KTF.x1) / 2, F + 0.011, (KTF.z0 + KTF.z1) / 2, { color: 0xffffff, bevel: 0.002, uvS: 2.4 });
-  box(im.pbr('long_white_tiles', { rep: 0.9 }), xP - x0 - 0.06, 0.02, BA.z1 - z0 - 0.06, (x0 + xP) / 2, F + 0.011, (z0 + BA.z1) / 2, { color: 0xc8ccc8, bevel: 0.002 });
+  box(im.pbr('long_white_tiles', { rep: 0.9 }), xP - x0 - 0.06, 0.02, z1 - BA.z0 - 0.06, (x0 + xP) / 2, F + 0.011, (BA.z0 + z1) / 2, { color: 0xc8ccc8, bevel: 0.002 });
   box(im.wood(), 0.06, 0.012, 1.5, KTF.x0 - 0.02, F + 0.016, (HA.z0 + HA.z1) / 2, { color: 0x8a6a48 });   // threshold strip at the hall's mouth
 
   // ================= wall lining: olive vertical boards (gray-white in the kitchen), cut at the openings; bamboo roll-up blinds =================
@@ -82,19 +83,20 @@ export function build(ctx) {
       box(im.wood(), d.w + 0.14, 0.07, 0.15, ax + ux * d.u, F + 2.135, az + uz * d.u, { grain: 0, color: d.frame || 0xc9c2ac, wear: 0.4 }, 0, ry); }
     return { ux, uz, ry, L }; };
   const bathDoor = { u: 4.75 - 0.0 - (x0 - x0), w: 0.8 }, bedDoor = { u: 2.55, w: 1.1, frame: 0x7a5636 };
-  part(x0, HA.z0, xP, HA.z0, [{ ...bathDoor, u: -4.6 - x0 }]);                                   // hall | bath (the bead-curtain doorway)
-  part(x0, HA.z1, xP, HA.z1, [{ ...bedDoor, u: -4.05 - x0 }]);                                   // hall | bedroom (wood-framed sliders)
+  // r10 (playtest Nov 19): bedroom and bathroom mirrored: the bedroom on the NW side of the hall, the bathroom on the SE side
+  part(x0, HA.z1, xP, HA.z1, [{ ...bathDoor, u: -4.6 - x0 }]);                                   // hall | bath (the bead-curtain doorway)
+  part(x0, HA.z0, xP, HA.z0, [{ ...bedDoor, u: -4.05 - x0 }]);                                   // hall | bedroom (wood-framed sliders)
   part(xP, z0, xP, HA.z0 - 0.055, []);                                                           // bath | living room
   part(xP, HA.z1 + 0.055, xP, z1, [], { color: 0xcfccc2 });                                      // bedroom | kitchen (the fridge stands against it)
   // the bead curtain in the bath doorway (16), orchids beside it
   { const BEAD = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.1 }); BEAD.name = 'r8beads';
     const bg = new THREE.SphereGeometry(0.009, 6, 4), xs = [], cols = [0x8a5a2c, 0xc79a52, 0x3f6e6a, 0xb5432e, 0xe8dcc0], dx = -4.6;
-    for (let x = dx - 0.38; x <= dx + 0.38; x += 0.045) for (let y = F + 2.06; y > F + 0.12; y -= 0.042) xs.push([x + Math.sin(y * 9 + x * 40) * 0.004, y, HA.z0 + Math.sin(x * 30) * 0.01]);
+    for (let x = dx - 0.38; x <= dx + 0.38; x += 0.045) for (let y = F + 2.06; y > F + 0.12; y -= 0.042) xs.push([x + Math.sin(y * 9 + x * 40) * 0.004, y, HA.z1 + Math.sin(x * 30) * 0.01]);
     const bm = new THREE.InstancedMesh(bg, BEAD, xs.length), col = new THREE.Color(); xs.forEach((p, k) => { bm.setMatrixAt(k, M(p[0], p[1], p[2])); bm.setColorAt(k, col.set(cols[(k * 7 + (k / 45 | 0)) % cols.length])); });
     bm.name = 'r8_bead_curtain'; bm.raycast = () => {}; Fr.groups.int.add(bm);
-    box(im.wood(), 0.95, 0.04, 0.05, dx, F + 2.08, HA.z0, { grain: 0, color: 0x6a4a2e }); }
+    box(im.wood(), 0.95, 0.04, 0.05, dx, F + 2.08, HA.z1, { grain: 0, color: 0x6a4a2e }); }
   // the bedroom's wood-and-glass sliding doors (16 / 07), one pushed open
-  { const FRW = im.wood(), dzz = HA.z1, cx0 = -4.05, dw = bedDoor.w / 2 + 0.05;
+  { const FRW = im.wood(), dzz = HA.z0, cx0 = -4.05, dw = bedDoor.w / 2 + 0.05;
     const leaf = (cx, dz) => { for (const ddx of [-dw / 2 + 0.035, dw / 2 - 0.035]) box(FRW, 0.07, 2.06, 0.04, cx + ddx, F + 1.05, dzz + dz, { grain: 1, color: 0x8c6743 });
       for (const yy of [F + 0.06, F + 0.95, F + 2.06]) box(FRW, dw, yy === F + 0.95 ? 0.06 : 0.1, 0.04, cx, yy, dzz + dz, { grain: 0, color: 0x8c6743 });
       for (const [y0, y1] of [[F + 0.11, F + 0.92], [F + 0.98, F + 2.01]]) box(im.glass({ tint: 1 }), dw - 0.12, y1 - y0, 0.006, cx, (y0 + y1) / 2, dzz + dz, { color: 0xffffff, bevel: 0 }); };
@@ -106,7 +108,7 @@ export function build(ctx) {
     for (let k = 0; k < 10; k++) { const a2 = k * 2.4, l = (0.35 + (k % 3) * 0.15) * s2; I.strut(LEAF, [x, F + 0.22 * s2, z], [x + Math.cos(a2) * l * 0.5, F + 0.22 * s2 + l, z + Math.sin(a2) * l * 0.5], 0.07 * s2, 0.005, { color: kit.vary(0x3f7a34, r, 0.15) }); }
     if (flowers) for (let k = 0; k < 7; k++) I.geo(im.plastic(), new THREE.SphereGeometry(0.03, 8, 6), M(x + Math.cos(k) * 0.08, F + 0.55 * s2 + k * 0.035, z + Math.sin(k) * 0.08), { color: 0xd97cc0 });
     Fr.col.cyl(x, F + 0.3, z, 0.15 * s2, 0.6, { tag: 'prop' }); };
-  plant(-5.25, HA.z0 + 0.2, 0.9, true); plant(-3.1, HA.z0 + 0.22, 1.15, false); plant(-6.1, HA.z1 - 0.2, 0.9, false);
+  void plant;   // r10 (playtest): no more random floor plants in the hall
   { const ART = im.art('r8beachart', 256, 192, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#9cc9e0'); gr.addColorStop(0.55, '#2f8fa0'); gr.addColorStop(0.62, '#e8d8b0'); gr.addColorStop(1, '#d8c08a'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.strokeStyle = '#3a5a2a'; g.lineWidth = 4; g.beginPath(); g.moveTo(190, 150); g.quadraticCurveTo(200, 80, 220, 40); g.stroke(); }, { rough: 0.8 });
     box(im.wood(), 0.66, 0.5, 0.03, -3.3, F + 1.5, HA.z1 - 0.07, { color: 0x6a4a2e }); box(ART, 0.58, 0.42, 0.006, -3.3, F + 1.5, HA.z1 - 0.087, { color: 0xffffff, bevel: 0 }); }
   box(im.fabric('wool_boucle', { rep: 0.3 }), 0.5, 0.012, 0.8, x0 + 0.4, F + 0.026, -7.0, { color: 0x6a5a44, bevel: 0.004 });
@@ -120,7 +122,10 @@ export function build(ctx) {
   const fridge = { x0: xP + 0.06, x1: xP + 0.06 + 0.82 }, stoveX = fridge.x1 + 0.08 + 0.33, sinkX = -0.1, runX1 = 1.55;
   // base cabinets: from the stove to the peninsula corner, the sink bay under the window
   const baseRun = (xa, xb, o = {}) => { const n = Math.max(1, Math.round((xb - xa) / 0.5));
-    box(GREEN, xb - xa, 0.84, d - 0.03, (xa + xb) / 2, F + 0.02 + 0.42, zB - d / 2 + 0.015, { color: kit.mul(green(), 0.8), wear: 0.2 });
+    // r10: the carcass stops under the sink bay (its top showed through the basins as a green floor)
+    const bay = o.sinkAt != null ? [o.sinkAt - 0.53, o.sinkAt + 0.53] : null;
+    for (const [a1, b1] of bay ? [[xa, bay[0]], [bay[1], xb]] : [[xa, xb]]) if (b1 - a1 > 0.01) box(GREEN, b1 - a1, 0.84, d - 0.03, (a1 + b1) / 2, F + 0.02 + 0.42, zB - d / 2 + 0.015, { color: kit.mul(green(), 0.8), wear: 0.2 });
+    if (bay) { box(GREEN, bay[1] - bay[0], 0.5, d - 0.03, o.sinkAt, F + 0.27, zB - d / 2 + 0.015, { color: kit.mul(green(), 0.8), wear: 0.2 }); box(GREEN, bay[1] - bay[0], 0.34, 0.02, o.sinkAt, F + 0.69, zB - 0.02, { color: kit.mul(green(), 0.7), wear: 0.2 }); }
     box(GREEN, xb - xa - 0.02, 0.1, 0.02, (xa + xb) / 2, F + 0.07, zF + 0.08, { color: 0x2a2a24, wear: 0.1 });
     for (let i = 0; i < n; i++) { const xm = xa + (xb - xa) * (i + 0.5) / n, w = (xb - xa) / n - 0.012;
       if (o.sinkAt != null && Math.abs(xm - o.sinkAt) < 0.5) box(GREEN, w, 0.62, 0.02, xm, F + 0.42, zF - 0.005, { color: green(), wear: 0.25 });
@@ -134,7 +139,9 @@ export function build(ctx) {
     box(LAM, sw, 0.035, (d + 0.03 - sd) / 2, sinkX, cy, zB - 0.015 - (d + 0.03 - sd) / 4 + 0.015, { color: 0xffffff, bevel: 0.004 }); box(LAM, sw, 0.035, (d + 0.03 - sd) / 2, sinkX, cy, zF - 0.015 + (d + 0.03 - sd) / 4, { color: 0xffffff, bevel: 0.004 });
     box(LAM, runX1 - stoveX, 0.1, 0.012, (stoveX + runX1) / 2, cy + 0.068, zB - 0.006, { color: 0xffffff, bevel: 0.002 });   // backsplash
     // the user's sink (kitchen-appliances download, double basin with drainboard and faucet): cut to the bay, aged (duller steel, scale)
-    GLB('kitchen/sink.glb', { parent: Fr.groups.int, pos: [sinkX, cy - 0.185, zc], scale: [0.72, 1.0, 0.78], mat: (m) => { m.roughness = Math.max(0.45, m.roughness ?? 0.5); m.color.multiplyScalar(0.92); } }); }
+    // r10 (playtest: the sink read as a blue-green slab): its metal / roughness map is magenta (roughness 0, metal 1: a mirror of the room), so the
+    // maps go and it is brushed stainless; nothing hangs over it any more (the utensil rail moved right of the window)
+    GLB('kitchen/sink.glb', { parent: Fr.groups.int, pos: [sinkX, cy - 0.185, zc], scale: [0.72, 1.0, 0.78], mat: (m) => { m.metalnessMap = null; m.roughnessMap = null; m.metalness = 0.45; m.roughness = 0.42; m.envMapIntensity = 0.3; m.color.setRGB(0.8, 0.81, 0.82); m.needsUpdate = true; } }); }
   // the stove (the user's white range) under the hood, the fridge (the user's, resized to a real 1.7 m top-freezer and aged)
   const lib = loadKeysModels(THREE, ['stove_white', 'bath_set']);
   { const HD = im.metalPaint(); box(HD, 0.76, 0.16, 0.5, stoveX, F + 1.62, zB - 0.25, { color: 0xdedbd2, bevel: 0.01 }); hexa(I, HD, [[stoveX - 0.38, F + 1.7, zB], [stoveX + 0.38, F + 1.7, zB], [stoveX + 0.38, F + 1.7, zB - 0.5], [stoveX - 0.38, F + 1.7, zB - 0.5], [stoveX - 0.15, F + 2.1, zB], [stoveX + 0.15, F + 2.1, zB], [stoveX + 0.15, F + 2.1, zB - 0.22], [stoveX - 0.15, F + 2.1, zB - 0.22]], { color: 0xdedbd2 });
@@ -172,8 +179,9 @@ export function build(ctx) {
     GLB('kitchen/toaster.glb', { parent: DI, pos: [sinkX + 0.85, cy, zB - 0.2], ry: PI + 0.1, mat: (m) => { m.color.lerp(new THREE.Color(0xd9d2bf), 0.55); m.roughness = Math.max(0.4, m.roughness ?? 0.4); } });
     GLB('kitchen/kettle.glb', { parent: DI, pos: [stoveX + 0.62, cy, zB - 0.22], ry: PI - 0.4, mat: (m) => { m.color.lerp(new THREE.Color(0xe8e4da), 0.75); m.roughness = 0.35; } });   // white kettle (05 / 07)
     GLB('kitchen/coffeemaker.glb', { parent: DI, pos: [penX + 0.1, F + 0.917, penZ0 - 0.3], ry: -PI / 2, scale: 0.85, mat: aged(0.85, 0.45) });
-    GLB('kitchen/pot.glb', { parent: DI, pos: [stoveX - 0.15, F + 0.92, zB - 0.45], ry: 0.4, mat: aged(0.85) });
-    GLB('kitchen/pan.glb', { parent: DI, pos: [stoveX + 0.12, F + 0.92, zB - 0.25], ry: 2.6, mat: aged(0.85) });
+    // r10 (playtest: they clipped each other): the pot on a back burner, the pan on the front one beside it
+    GLB('kitchen/pot.glb', { parent: DI, pos: [stoveX - 0.17, F + 0.92, zB - 0.2], ry: 0.3, mat: aged(0.85) });
+    GLB('kitchen/pan.glb', { parent: DI, pos: [stoveX + 0.16, F + 0.92, zB - 0.52], ry: 0, mat: aged(0.85) });
     GLB('kitchen/board.glb', { parent: DI, pos: [sinkX + 0.95, cy + 0.002, zB - 0.38], ry: 0.15, scale: 0.85 });
     GLB('kitchen/knife.glb', { parent: DI, pos: [sinkX + 0.95, cy + 0.04, zB - 0.38], ry: 0.4 });
     GLB('kitchen/detergent.glb', { parent: DI, pos: [sinkX - 0.62, cy, zB - 0.12], ry: PI + 0.3, scale: 0.9 });
@@ -181,29 +189,33 @@ export function build(ctx) {
     GLB('kitchen/oil.glb', { parent: DI, pos: [stoveX + 0.5, cy, zB - 0.12], ry: 0.5, scale: 0.8 });
     GLB('kitchen/cup.glb', { parent: DI, pos: [penX + 0.2, F + 0.917, penZ1 + 0.55], ry: 1.2 });
     GLB('kitchen/bowl.glb', { parent: DI, pos: [penX + 0.05, F + 0.917, penZ1 + 1.1], ry: 0.3 });
-    GLB('kitchen/hooks.glb', { parent: DI, pos: [stoveX + 0.75, F + 1.42, zB - 0.02], ry: PI, scale: [0.7, 1, 1] });
-    GLB('kitchen/ladle.glb', { parent: DI, pos: [stoveX + 0.6, F + 1.2, zB - 0.06], ry: PI, rx: -PI / 2 });
-    GLB('kitchen/spatula.glb', { parent: DI, pos: [stoveX + 0.85, F + 1.18, zB - 0.06], ry: PI, rx: -PI / 2 });
-    GLB('kitchen/knife_rail.glb', { parent: DI, pos: [sinkX + 0.95, F + 1.32, zB - 0.02], ry: PI });
+    GLB('kitchen/hooks.glb', { parent: DI, pos: [sinkX + 1.33, F + 1.4, zB - 0.02], ry: PI, scale: [0.7, 1, 1] });
+    GLB('kitchen/ladle.glb', { parent: DI, pos: [sinkX + 1.2, F + 1.18, zB - 0.06], ry: PI, rx: -PI / 2 });
+    GLB('kitchen/spatula.glb', { parent: DI, pos: [sinkX + 1.45, F + 1.16, zB - 0.06], ry: PI, rx: -PI / 2 });
+    GLB('kitchen/knife_rail.glb', { parent: DI, pos: [sinkX + 0.9, F + 1.3, zB - 0.02], ry: PI });
     GLB('kitchen/towel.glb', { parent: DI, pos: [stoveX - 0.15, F + 0.38, zF - 0.06], ry: PI, scale: 0.55, mat: (m) => { m.color.lerp(new THREE.Color(0xc9b48a), 0.3); } });
     lathe(I, PLAST, [[0.001, 0], [0.04, 0], [0.042, 0.13], [0.02, 0.17], [0.015, 0.2], [0.001, 0.2]], M(sinkX - 0.75, cy, zB - 0.15), { color: 0xf0f0ea, seg: 16 }); }
   ctx.async.push(lib.ready.then(() => { const L = lib.instancer('r8int');
     const sp = lib.piece('stove_white', 'dock'); if (sp) { const ext = new THREE.Vector3(); sp.box.getSize(ext); L.add('stove_white', 'dock', M(stoveX, F + 0.02, zB - 0.33, 0, ext.x > ext.z ? PI : -PI / 2, 0)); }
-    for (const n of lib.names('bath_set')) { if (/klozet/.test(n)) L.add('bath_set', n, M(-3.25, F + 0.02, z0 + 0.38, 0, 0, 0)); if (/paspas/.test(n)) L.add('bath_set', n, M(-4.5, F + 0.025, -8.9, 0, PI / 2, 0)); if (/kova/.test(n)) L.add('bath_set', n, M(-2.95, F + 0.02, -7.98, 0, 0, 0)); if (/havluluk/.test(n)) L.add('bath_set', n, M(-5.9, F + 0.02, -7.95, 0, PI, 0)); }
+    for (const n of lib.names('bath_set')) { if (/klozet/.test(n)) L.add('bath_set', n, M(-3.25, F + 0.02, z1 - 0.38, 0, PI, 0)); if (/paspas/.test(n)) L.add('bath_set', n, M(-4.5, F + 0.025, -5.1, 0, PI / 2, 0)); if (/kova/.test(n)) L.add('bath_set', n, M(-2.95, F + 0.02, -6.02, 0, PI, 0)); if (/havluluk/.test(n)) L.add('bath_set', n, M(-5.9, F + 0.02, -6.05, 0, 0, 0)); }
     const out = L.build(Fr.groups.int, { cast: false }); for (const m of out) m.raycast = () => {}; }));
-  Fr.col.box(-3.25, F + 0.4, z0 + 0.38, 0.45, 0.8, 0.7, { tag: 'furniture' });
-  // bathroom: a small white pedestal sink with a mirror on the NW wall, the shower stall in the west corner
-  { const sxB = -3.95, szB = z0 + 0.25; lathe(I, im.ceramic(), [[0.001, 0], [0.11, 0], [0.08, 0.3], [0.07, 0.7], [0.24, 0.78], [0.25, 0.86], [0.001, 0.84]], M(sxB, F, szB + 0.05), { color: 0xeeeeea, seg: 24 });
-    I.tube(CHROME, [[sxB, F + 0.86, szB - 0.12], [sxB, F + 1.0, szB - 0.1], [sxB, F + 1.02, szB - 0.02], [sxB, F + 0.96, szB + 0.04]], 0.01, { seg: 8, color: 0xc8c6c0, steps: 12 });
-    box(im.glass({ tint: 1 }), 0.5, 0.62, 0.008, sxB, F + 1.55, z0 + 0.012, { color: 0xb8c4c4, bevel: 0 }); box(im.wood(), 0.56, 0.68, 0.02, sxB, F + 1.55, z0 + 0.005, { color: 0x6a4a2e });
+  Fr.col.box(-3.25, F + 0.4, z1 - 0.38, 0.45, 0.8, 0.7, { tag: 'furniture' });
+  // bathroom: a small white pedestal sink with a mirror on the SE wall, the shower stall in the south corner (r10: mirrored)
+  { const sxB = -3.95, szB = z1 - 0.25; lathe(I, im.ceramic(), [[0.001, 0], [0.11, 0], [0.08, 0.3], [0.07, 0.7], [0.24, 0.78], [0.25, 0.86], [0.001, 0.84]], M(sxB, F, szB - 0.05), { color: 0xeeeeea, seg: 24 });
+    I.tube(CHROME, [[sxB, F + 0.86, szB + 0.12], [sxB, F + 1.0, szB + 0.1], [sxB, F + 1.02, szB + 0.02], [sxB, F + 0.96, szB - 0.04]], 0.01, { seg: 8, color: 0xc8c6c0, steps: 12 });
+    box(im.glass({ tint: 1 }), 0.5, 0.62, 0.008, sxB, F + 1.55, z1 - 0.012, { color: 0xb8c4c4, bevel: 0 }); box(im.wood(), 0.56, 0.68, 0.02, sxB, F + 1.55, z1 - 0.005, { color: 0x6a4a2e });
     Fr.col.box(sxB, F + 0.45, szB, 0.5, 0.9, 0.45, { tag: 'furniture' });
-    const SH = im.pbr('long_white_tiles', { rep: 0.6 }); box(SH, 0.9, 2.1, 0.03, x0 + 0.45, F + 1.05, z0 + 0.015, { color: 0xd8ddd8 }); box(SH, 0.03, 2.1, 0.9, x0 + 0.015, F + 1.05, z0 + 0.45, { color: 0xd8ddd8 });
-    box(STEEL, 0.9, 0.06, 0.9, x0 + 0.45, F + 0.05, z0 + 0.45, { color: 0xdddddd }); I.tube(CHROME, [[x0 + 0.05, F + 1.95, z0 + 0.95], [x0 + 0.95, F + 1.95, z0 + 0.95], [x0 + 0.95, F + 1.95, z0 + 0.05]], 0.01, { seg: 6, color: 0xbbbbbb, steps: 10 });
-    const SHC = im.fabric('cotton_jersey', { rep: 0.3 }); for (let k = 0; k < 9; k++) box(SHC, 0.11, 1.6, 0.02, x0 + 0.1 + k * 0.1, F + 1.12, z0 + 0.95 + (k % 2) * 0.03, { color: 0x6f9aa8, bevel: 0.005 });
-    Fr.light({ id: 'r8_bath', pos: [-4.4, F + 2.1, -9.0], color: 0xfff0e0, intensity: 18, range: 4.5, on: true }); }
+    const SH = im.pbr('long_white_tiles', { rep: 0.6 }); box(SH, 0.9, 2.1, 0.03, x0 + 0.45, F + 1.05, z1 - 0.015, { color: 0xd8ddd8 }); box(SH, 0.03, 2.1, 0.9, x0 + 0.015, F + 1.05, z1 - 0.45, { color: 0xd8ddd8 });
+    box(STEEL, 0.9, 0.06, 0.9, x0 + 0.45, F + 0.05, z1 - 0.45, { color: 0xdddddd }); I.tube(CHROME, [[x0 + 0.05, F + 1.95, z1 - 0.95], [x0 + 0.95, F + 1.95, z1 - 0.95], [x0 + 0.95, F + 1.95, z1 - 0.05]], 0.01, { seg: 6, color: 0xbbbbbb, steps: 10 });
+    const SHC = im.fabric('cotton_jersey', { rep: 0.3 }); for (let k = 0; k < 9; k++) box(SHC, 0.11, 1.6, 0.02, x0 + 0.1 + k * 0.1, F + 1.12, z1 - 0.95 - (k % 2) * 0.03, { color: 0x6f9aa8, bevel: 0.005 });
+    Fr.light({ id: 'r8_bath', pos: [-4.4, F + 2.1, -5.0], color: 0xfff0e0, intensity: 18, range: 4.5, on: true }); }
 
   // ================= the terrarium with the corn snake at the peninsula's end (16 / 09) =================
-  { const tx = penX + 0.02, tz = penZ1 - 0.6, TW = 0.48, TL = 0.92, TH = 0.46, baseY = F + 0.78, WDK = im.wood({ dark: true }), BLK = im.metalPaint();
+  // r10 (playtest Nov 19): turned 90 deg (long side along the peninsula's end), still against the counter. Built in its own batch, in a group
+  // turned about the tank's center
+  { const tx = penX + 0.02, tz = penZ1 - 0.33, TW = 0.48, TL = 0.92, TH = 0.46, baseY = F + 0.78, WDK = im.wood({ dark: true }), BLK = im.metalPaint();
+    const TI = kit.batch('r10terr'), I = TI, box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => TI.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
+    const knob = (x, y, z, ry) => lathe(TI, CHROME, [[0.001, 0], [0.013, 0.002], [0.016, 0.014], [0.012, 0.024], [0.001, 0.026]], M(x, y, z, -PI / 2, ry, 0), { color: 0xc6c2b8, seg: 14 });
     box(WDK, TW + 0.1, 0.16, TL + 0.1, tx, baseY - 0.08, tz, { grain: 2, color: 0x3a2618, wear: 0.4, bevel: 0.012 });
     for (const dz of [-0.2, 0.2]) knob(tx + TW / 2 + 0.05, baseY - 0.08, tz + dz, PI / 2);
     lathe(I, WDK, [[0.001, 0], [0.05, 0], [0.06, 0.05], [0.04, 0.15], [0.055, 0.3], [0.035, 0.45], [0.06, 0.56], [0.08, 0.6], [0.001, 0.6]], M(tx, F + 0.12, tz), { color: 0x2f1f14, seg: 20 });
@@ -239,7 +251,8 @@ export function build(ctx) {
     { const SP = im.art('r8spray', 128, 128, (g, w, h) => { g.fillStyle = '#f2f2ee'; g.fillRect(0, 0, w, h); g.fillStyle = '#3c8a3a'; const q = kit.rng(2); for (let i = 0; i < 14; i++) { const x = q() * w, y = q() * h; g.beginPath(); for (let k = 0; k < 4; k++) { const a = k * 1.57; g.ellipse(x + Math.cos(a) * 4, y + Math.sin(a) * 4, 4, 2.5, a, 0, 6.3); } g.fill(); } }, { rough: 0.4 });
       lathe(I, SP, [[0.001, 0], [0.045, 0], [0.05, 0.02], [0.05, 0.17], [0.03, 0.22], [0.018, 0.24], [0.001, 0.24]], M(tx - 0.1, yt + 0.01, tz + 0.32), { seg: 18 });
       box(PLAST, 0.025, 0.06, 0.07, tx - 0.1, yt + 0.28, tz + 0.3, { color: 0x3c8a3a, bevel: 0.006 }); }
-    Fr.col.box(tx, F + 0.6, tz, TW + 0.12, 1.25, TL + 0.12, { tag: 'furniture' });
+    { const tg0 = new THREE.Group(), tg1 = new THREE.Group(); tg0.name = 'r10_terrarium'; tg0.position.set(tx, 0, tz); tg0.rotation.y = PI / 2; tg1.position.set(-tx, 0, -tz); tg0.add(tg1); Fr.groups.int.add(tg0); TI.build(tg1, { cast: false }); }
+    Fr.col.box(tx, F + 0.6, tz, TL + 0.12, 1.25, TW + 0.12, { tag: 'furniture' });
     Fr.interact({ id: 'terrarium', kind: 'look', label: 'Look at the corn snake', pos: [tx, baseY + 0.3, tz], radius: 1.2, use: (env) => { env?.notify?.('Noodle is coiled up on the bark. She looks fine.'); return true; } }); }
 
   // ================= living room (15): sofa on the NW wall facing SE, armchair + side table + lamp at its left, TV facing it =================
@@ -299,9 +312,7 @@ export function build(ctx) {
       Fr.col.box(cx, F + 0.4, cz, 0.45, 0.8, 1.55, { tag: 'furniture' });
       const lz = cz - 1.05; LI.cyl(im.metalPaint(), 0.012, 0.012, 1.5, M(cx - 0.05, F + 0.75, lz), { color: 0x2a2622, seg: 8 }); LI.cyl(im.metalPaint(), 0.14, 0.15, 0.02, M(cx - 0.05, F + 0.01, lz), { color: 0x2a2622, seg: 16 });
       lathe(LI, BSK, [[0.12, 0], [0.2, 0.0], [0.17, 0.3], [0.1, 0.3]], M(cx - 0.05, F + 1.4, lz), { color: 0xcaa874, seg: 18 }); Fr.col.cyl(cx - 0.05, F + 0.75, lz, 0.18, 1.5, { tag: 'prop' });
-      lathe(LI, POT, [[0.001, 0], [0.12, 0], [0.16, 0.28], [0.001, 0.26]], M(cx - 0.05, F, cz + 1.05), { color: 0xb5603a, seg: 16 });
-      for (let k = 0; k < 9; k++) { const a = k * 2.4; LI.strut(im.plastic(), [cx - 0.05, F + 0.26, cz + 1.05], [cx - 0.05 + Math.cos(a) * 0.3, F + 0.75 + (k % 3) * 0.15, cz + 1.05 + Math.sin(a) * 0.3], 0.08, 0.006, { color: 0x3f7a34 }); }
-      Fr.col.cyl(cx - 0.05, F + 0.4, cz + 1.05, 0.2, 0.8, { tag: 'prop' });
+      userPot(ctx, Fr, 'palmS', cx - 0.05, F, cz + 1.05, { interior: true, s: 0.95, ry: 0.4 });   // r10: the user's potted palm (was a strut plant)
       LI.box(im.plasticGloss(), 0.06, 1.0, 0.52, M(cx + 0.02, F + 0.5, cz + 1.4, 0, 0, 0.12), { color: 0xe8c22a, bevel: 0.08 }); }
     // the north corner (15): stacked cardboard boxes, a fishing rod leaning, a small black chest (no loose boards)
     { const CB = im.matte(); LI.box(CB, 0.45, 0.32, 0.4, M(x1 - 0.3, F + 0.16, z0 + 0.3), { color: 0xa07f56, bevel: 0.01 }); LI.box(CB, 0.4, 0.26, 0.35, M(x1 - 0.32, F + 0.45, z0 + 0.32, 0, 0.2, 0), { color: 0xb18d61, bevel: 0.01 });
@@ -322,24 +333,24 @@ export function build(ctx) {
     LI.build(LG, { cast: false });
   }
   // ================= the bedroom: bed (sleep), wicker chest, sisal rug, crate nightstand with the journal (save), clothes rack (wardrobe), fan =================
-  { const bx = x0 + 1.05, bz = (BE.z0 + z1) / 2 + 0.05, PAL = im.wood();
+  { const bx = x0 + 1.05, bz = (z0 + BE.z1) / 2 - 0.05, PAL = im.wood();
     box(PAL, 2.04, 0.22, 1.56, bx, F + 0.11, bz, { grain: 0, color: 0x7c5a3a, wear: 0.4, bevel: 0.01 }); box(PAL, 0.06, 0.9, 1.6, x0 + 0.04, F + 0.45, bz, { grain: 2, color: 0x6e4f33, wear: 0.4, bevel: 0.01 });
     { const SIS = im.art('r8sisal', 256, 256, (g, w, h) => { g.fillStyle = '#b89c6c'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 8) { g.fillStyle = ((x + y) / 4) % 2 ? 'rgba(90,70,40,0.25)' : 'rgba(230,210,160,0.2)'; g.fillRect(x + ((y / 4) % 2) * 4, y, 6, 3); } }, { rough: 0.98 });
       box(SIS, 2.3, 0.008, 1.9, bx + 0.3, F + 0.004, bz, { color: 0xffffff, bevel: 0.002 }); }
     box(im.fabric('waffle_pique_cotton', { rep: 0.3 }), 1.95, 0.2, 1.4, bx, F + 0.32, bz, { color: 0xe7e2d6, bevel: 0.06 }); box(im.fabric('cotton_jersey', { rep: 0.3 }), 1.2, 0.06, 1.42, bx + 0.35, F + 0.43, bz, { color: 0x6c7f8c, bevel: 0.03 }, 0, 0, 0.02);
-    box(im.fabric('cotton_jersey', { rep: 0.2 }), 0.38, 0.12, 0.6, x0 + 0.32, F + 0.48, bz - 0.2, { color: 0xf0ede4, bevel: 0.05 });
+    box(im.fabric('cotton_jersey', { rep: 0.2 }), 0.38, 0.12, 0.6, x0 + 0.32, F + 0.48, bz + 0.2, { color: 0xf0ede4, bevel: 0.05 });
     Fr.col.box(bx, F + 0.2, bz, 2.0, 0.4, 1.5, { tag: 'furniture' });
     Fr.interact({ id: 'bed', kind: 'sleep', label: 'Sleep (8 hours)', radius: 1.6, pos: [bx, F + 0.6, bz], use: (env) => { env?.emit?.('sleep', { hours: 8, anchor: 'bed', source: 'nico_house' }); return true; } });
-    Fr.anchor('bed', bx + 1.3, F, bz, -PI / 2); Fr.anchor('spawn', bx + 1.6, F, bz - 0.4, -PI / 2);
-    { const WK = im.pbr('tatami_mat', { rep: 0.25 }); box(WK, 0.42, 0.45, 0.85, bx + 1.35, F + 0.23, bz + 0.2, { color: 0x9c7a4c, bevel: 0.04 }); box(WK, 0.45, 0.05, 0.88, bx + 1.35, F + 0.47, bz + 0.2, { color: 0x8a6a40, bevel: 0.02 }); Fr.col.box(bx + 1.35, F + 0.25, bz + 0.2, 0.45, 0.5, 0.88, { tag: 'furniture' }); }
-    const cx = x0 + 0.25, cz = z1 - 0.22; box(im.wood(), 0.35, 0.4, 0.45, cx, F + 0.22, cz, { grain: 0, color: 0xa58b62, wear: 0.5 }); box(im.fabric('fabric_leather_01', { rep: 0.2 }), 0.21, 0.025, 0.15, cx, F + 0.435, cz, { color: 0x6b4a2e, bevel: 0.006 }, 0, 0.3);
+    Fr.anchor('bed', bx + 1.3, F, bz, -PI / 2); Fr.anchor('spawn', bx + 1.6, F, bz + 0.4, -PI / 2);
+    { const WK = im.pbr('tatami_mat', { rep: 0.25 }); box(WK, 0.42, 0.45, 0.85, bx + 1.35, F + 0.23, bz - 0.2, { color: 0x9c7a4c, bevel: 0.04 }); box(WK, 0.45, 0.05, 0.88, bx + 1.35, F + 0.47, bz - 0.2, { color: 0x8a6a40, bevel: 0.02 }); Fr.col.box(bx + 1.35, F + 0.25, bz - 0.2, 0.45, 0.5, 0.88, { tag: 'furniture' }); }
+    const cx = x0 + 0.25, cz = z0 + 0.22; box(im.wood(), 0.35, 0.4, 0.45, cx, F + 0.22, cz, { grain: 0, color: 0xa58b62, wear: 0.5 }); box(im.fabric('fabric_leather_01', { rep: 0.2 }), 0.21, 0.025, 0.15, cx, F + 0.435, cz, { color: 0x6b4a2e, bevel: 0.006 }, 0, 0.3);
     Fr.col.box(cx, F + 0.22, cz, 0.37, 0.44, 0.47, { tag: 'furniture' });
     Fr.interact({ id: 'save', kind: 'save', label: 'Write in journal (save game)', radius: 1.3, pos: [cx, F + 0.5, cz], use: (env) => { env?.emit?.('save:request', { source: 'nico_house' }); env?.notify?.('Game saved'); return true; } });
     // the clothes rack (the user's download, resized), the wardrobe; against the bedroom's NE wall
-    { const rx = xP - 0.35, rz = z1 - 0.9; GLB('clothes_rack.glb', { pos: [rx, F, rz], ry: PI / 2, cast: true }).then((g) => { if (!g) return; fit(g, { h: 1.65 }); const b = new THREE.Box3().setFromObject(g); g.position.x += rx - (b.min.x + b.max.x) / 2; g.position.z += rz - (b.min.z + b.max.z) / 2; g.position.y += F - b.min.y; Fr.groups.int.add(g); });
+    { const rx = xP - 0.35, rz = z0 + 0.9; GLB('clothes_rack.glb', { pos: [rx, F, rz], ry: PI / 2, cast: true }).then((g) => { if (!g) return; fit(g, { h: 1.65 }); const b = new THREE.Box3().setFromObject(g); g.position.x += rx - (b.min.x + b.max.x) / 2; g.position.z += rz - (b.min.z + b.max.z) / 2; g.position.y += F - b.min.y; Fr.groups.int.add(g); });
       const ward = { open: false }; Fr.interact({ id: 'wardrobe', kind: 'wardrobe', radius: 1.5, pos: [rx, F + 1.1, rz], label: () => 'Change clothes', use: (env) => { ward.open = !ward.open; if (ward.open) env?.emit?.('wardrobe:open', { source: 'nico_house' }); return ward.open; } });
       Fr.anchor('wardrobe', rx - 0.9, F, rz, -PI / 2); Fr.col.box(rx, F + 0.8, rz, 0.5, 1.6, 1.2, { tag: 'furniture' }); }
-    { const fx = x1 - 0, BL = im.metalPaint(), fxx = xP - 0.4, fzz = BE.z0 + 0.35; void fx; lathe(I, BL, [[0.001, 0], [0.18, 0], [0.18, 0.03], [0.03, 0.05], [0.001, 0.05]], M(fxx, F, fzz), { color: 0x1c1c1c, seg: 24 });
+    { const fx = x1 - 0, BL = im.metalPaint(), fxx = xP - 0.4, fzz = BE.z1 - 0.35; void fx; lathe(I, BL, [[0.001, 0], [0.18, 0], [0.18, 0.03], [0.03, 0.05], [0.001, 0.05]], M(fxx, F, fzz), { color: 0x1c1c1c, seg: 24 });
       I.cyl(BL, 0.015, 0.015, 1.15, M(fxx, F + 0.6, fzz), { color: 0x1c1c1c, seg: 10 }); const hy = F + 1.25;
       for (let k = 0; k < 16; k++) { const a = k / 16 * PI; I.geo(BL, new THREE.TorusGeometry(0.22, 0.003, 4, 32, PI), M(fxx - 0.06, hy, fzz, 0, PI / 2 + 2.2, a), { color: 0x222222 }); }
       I.geo(BL, new THREE.TorusGeometry(0.22, 0.006, 6, 40), M(fxx - 0.06, hy, fzz, 0, PI / 2 + 2.2, 0), { color: 0x222222 }); Fr.col.cyl(fxx, F + 0.6, fzz, 0.2, 1.2, { tag: 'prop' }); }
@@ -359,7 +370,11 @@ export function build(ctx) {
     const potPlant = (x, z, s2, tall) => { lathe(X, POT, [[0.001, 0], [0.13 * s2, 0], [0.17 * s2, 0.3 * s2], [0.001, 0.28 * s2]], M(x, F, z), { color: 0xa55a36, seg: 16 });
       vegIn.push([x, F + 0.26 * s2, z, tall ? 'tropical_bed' : 'tropical_leaf', (tall ? 0.95 : 0.6) * s2]);   // the vegetation library's real plant in the pot
       Fr.col.cyl(x, F + 0.4, z, 0.2 * s2, 0.8, { tag: 'prop' }); };
-    potPlant(5.2, -6.75, 0.85, false); potPlant(1.95, z0 + 0.35, 0.8, true); potPlant(-2.3, -6.0, 0.7, false);
+    void potPlant;   // r10 (playtest: random floor plants, glitching library plants): the user's potted plants, in the corners and on the counters
+    userPot(ctx, Fr, 'ficus', 5.25, F, z1 - 0.42, { interior: true, s: 0.72, ry: 0.6 });          // living room, against the SE wall between the window and the console
+    userPot(ctx, Fr, 'palmS', xP + 0.3, F, z0 + 0.32, { interior: true, s: 1.0, ry: 2.1 });         // living room, the corner by the bedroom wall
+    userPot(ctx, Fr, 'succulent', penX + 0.2, F + 0.917, -5.35, { interior: true, s: 1.1, noCol: true });   // on the peninsula
+    userPot(ctx, Fr, 'succulent', -2.35, F + 0.92 + 0.0, z1 - 0.3, { interior: true, s: 0.9, noCol: true, ry: 1.2 });   // kitchen counter end by the hall
     // a basket by the armchair, magazines on the coffee table
     const BSK = im.pbr('tatami_mat', { rep: 0.3 }); lathe(X, BSK, [[0.001, 0], [0.2, 0], [0.24, 0.32], [0.23, 0.33], [0.001, 0.3]], M(1.6, F, z0 + 0.3), { color: 0xb08a58, seg: 18 });
     X.box(im.paint({ peel: 'a', fade: 0, gloss: 0.5 }), 0.22, 0.012, 0.3, M(3.75, F + 0.32, z0 + 1.45, 0, 0.3, 0), { color: 0x3a6a8a, bevel: 0 }); X.box(im.paint({ peel: 'a', fade: 0, gloss: 0.5 }), 0.21, 0.01, 0.28, M(3.78, F + 0.333, z0 + 1.43, 0, 0.6, 0), { color: 0xc94b3a, bevel: 0 });

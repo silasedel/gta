@@ -6,7 +6,7 @@
 // plants on the deck, porch and at grade. Everything sways through one cheap vertex-shader term keyed on a per-vertex /
 // per-instance attribute (aSw = tree amplitude, tree phase, branch amplitude, branch phase).
 import { PLANTER } from '../yard.data.js';
-import { R4, toS, plantClear } from '../r4/plan4.js';
+import { R4, R8, toS, plantClear } from '../r4/plan4.js';
 const r4Out = (x, z, pad = 1.0) => R4 && plantClear(...toS(x, z), pad);   // r4: nothing grows inside the rebuilt house, decks or stairs
 export const order = 50;
 
@@ -632,7 +632,7 @@ gl_Position = projectionMatrix * mvPosition;
   { const r = kit.rng(63); for (const [x, z] of [[-21.2, -13.4], [-17.6, -13.3], [-14.9, -13.5], [-6.6, -13.3], [-1.3, -13.4], [4.3, -13.3], [7.6, -13.4], [10.8, -6.4], [10.9, -2.5], [10.7, 5.6], [10.6, -12.6]]) { const SW = ctx.siteWalls || { N: true, E: true }; if ((z < -12 && !SW.N) || (x > 10 && !SW.E)) continue; seaOats(x, z, r); } }
   // periwinkle, weeds and grass at pile footings and stair feet (not on the carport / front-bay slabs)
   const onSlab = (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);
-  { const r = kit.rng(65);
+  if (!R8) { const r = kit.rng(65);
     for (const [x, z, pw] of [[-8.42, 5.02, 1], [-8.42, 2.8, 0], [-8.42, -0.2, 1], [-8.42, -3.2, 0], [-8.42, -6.22, 1], [-6.4, 5.02, 1], [-3.6, 5.02, 0], [-0.8, 5.02, 1], [2.0, 5.02, 1], [-6.4, -6.22, 0], [-3.6, -6.22, 1], [-0.8, -6.22, 0], [6.42, -6.22, 1], [2.0, -6.22, 0], [-11.95, 6.75 + SZ, 1], [-10.4, 6.85 + SZ, 1], [-11.75, 3.0 + SZ, 0], [0.1, -7.05, 1], [-10.65, 3.05 + SZ, 0], [6.9, -3.0, 0], [6.95, 0.6, 1]]) {
       const a0 = r() * 6.28;
       for (let i = 0; i < 4 + (r() * 3 | 0); i++) { const a = a0 + i * 1.3 + r(), d = 0.36 + r() * 0.18, tx = x + Math.cos(a) * d, tz = z + Math.sin(a) * d, h = 0.18 + r() * 0.32, w = 0.3 + r() * 0.2, gc = grassC(r); if (onSlab(tx, tz)) continue; tuft(tx, 0, tz, h, w, gc, 0.02, r); }   // never through the slabs
@@ -674,6 +674,9 @@ gl_Position = projectionMatrix * mvPosition;
   };
   const F = ctx.plan.F, TERRA = 0xb5633c, COBALT = 0x2b5a92, TEAL = 0x3c8c80, MUSTARD = 0xc79a32, BLACK = 0x1c1c1e;
   let t;
+  // r10 (playtest Nov 19: 'remove random plants'): the round-3 pots, the hanging fern, the porch orchids, the front-bay ivy and the pile-footing
+  // periwinkle stood at round-3 spots (scattered pots in the yard now); the r8 house has its own potted plants (the user's models, r4/pots.js)
+  if (!R8) {
   // porch (along the front rail and the wall)
   t = pot('terra', 5.9, F, 7.6, 0.17, 0.3, TERRA); aloe(5.9, t, 7.6, 1.0);
   t = pot('glazed', 6.9, F, 7.55, 0.19, 0.36, COBALT); snake(6.9, t, 7.55, 1.05);
@@ -755,6 +758,8 @@ gl_Position = projectionMatrix * mvPosition;
       }
     }
   }
+
+  }   // !R8
 
   // ---------- build meshes ----------
   const ext = ctx.groups.ext, det = ctx.groups.detail;

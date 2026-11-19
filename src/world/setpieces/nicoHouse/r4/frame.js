@@ -1,17 +1,19 @@
 // r4 parts build in the lot's STREET frame (plan4.js). This wraps the build context so every r4 part can place geometry,
 // colliders, interactions, lights, anchors and stair flights in S while the set piece's group stays in the yard frame G.
-import { YAW, P4, HtoS, toG as toG0, ryG as ryG0 } from './plan4.js';
+import { YAW, P4, HtoS, BtoH, toG as toG0, ryG as ryG0 } from './plan4.js';
 
 const cache = new WeakMap();
 // frame(ctx): the lot frame S (+ the measured house offset P4.oz); frame(ctx, 'house'): the house frame H, turned P4.rot about the
 // house center inside S. Geometry, colliders, interactions, lights, anchors and stairs all go through the same transform.
 export function frame(ctx, kind = 'lot') {
   let per = cache.get(ctx); if (!per) cache.set(ctx, (per = {})); if (per[kind]) return per[kind];
-  const { THREE, kit } = ctx, H = kind === 'house', th = H ? P4.rot.theta : 0;
-  const toS = H ? HtoS : (x, z) => [x, z], toG = (x, z) => toG0(...toS(x, z)), ryG = (ry) => ryG0(ry + th);
+  // r10: 'house' = the house's own frame B (turned P4.hr inside the site), 'site' = the site frame H (canal, bay wall, dock)
+  const { THREE, kit } = ctx, Hb = kind === 'house' && !!P4.hr, H = kind === 'house' || kind === 'site', hr = Hb ? P4.hr : null, th = H ? P4.rot.theta + (hr ? hr.a : 0) : 0;
+  const toS = Hb ? (x, z) => HtoS(...BtoH(x, z)) : H ? HtoS : (x, z) => [x, z], toG = (x, z) => toG0(...toS(x, z)), ryG = (ry) => ryG0(ry + th);
   const [ox, oz] = toG0(0, 0);
   const sub = (parent, name) => { const g = new THREE.Group(); g.name = name; g.rotation.y = -YAW; g.position.set(ox, 0, oz); parent.add(g);
-    if (!H) return g; const p = new THREE.Group(); p.name = name + '_h'; const R = P4.rot, c2 = Math.cos(th), s2 = Math.sin(th); p.rotation.y = th; p.position.set(R.cx - (R.cx * c2 + R.cz * s2), 0, R.cz - (-R.cx * s2 + R.cz * c2)); g.add(p); return p; };
+    if (!H) return g; const p = new THREE.Group(); p.name = name + '_h'; const R = P4.rot, t0 = R.theta, c2 = Math.cos(t0), s2 = Math.sin(t0); p.rotation.y = t0; p.position.set(R.cx - (R.cx * c2 + R.cz * s2), 0, R.cz - (-R.cx * s2 + R.cz * c2)); g.add(p);
+    if (!hr) return p; const b = new THREE.Group(), c3 = Math.cos(hr.a), s3 = Math.sin(hr.a); b.name = name + '_b'; b.rotation.y = hr.a; b.position.set(hr.cx + hr.tx - (hr.cx * c3 + hr.cz * s3), 0, hr.cz + hr.tz - (-hr.cx * s3 + hr.cz * c3)); p.add(b); return b; };
   const groups = { ext: sub(ctx.groups.ext, 'r4_ext_' + kind), int: sub(ctx.groups.int, 'r4_int_' + kind), detail: sub(ctx.groups.detail, 'r4_detail_' + kind), dyn: sub(ctx.groups.dyn, 'r4_dyn_' + kind) };
   const q4 = (rx, ry, rz) => { const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ryG(ry), rz, 'YXZ')); return [q.x, q.y, q.z, q.w]; };
   const F = {

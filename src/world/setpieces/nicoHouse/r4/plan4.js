@@ -152,7 +152,9 @@ export const P8 = {
   // short steps from the upper strip down to the lower deck (NW end), and the stair from the lower deck's SE edge down to the yard,
   // running back toward the house (head pad beside the deck's SE edge, one flight going -X)
   stepsUL: { z0: -10.3, z1: -9.15 },
-  lowerStair: { pad: { x0: 11.25, x1: 12.45, z0: -2.8, z1: -1.4 }, zc: -2.0, w: 1.1 },
+  // r10 (playtest Nov 19): the stair goes down on the OTHER (NW) side of the deck, steeper (11 risers of 0.23 on 0.25 treads), so it
+  // reaches the ground sooner; its foot is by the annex's NW wall with the hoop
+  lowerStair: { pad: { x0: 11.25, x1: 12.45, z0: -12.6, z1: -11.2 }, zc: -11.95, w: 1.1, n: 11, run: 0.25 },
   // ---- posts (whitewashed 10x10 timbers) and beam lines under the body; the walkway has its own outer posts ----
   postXs: [-6.5, -2.2, 2.2, 6.5], postZs: [-10.4, -7.0, -3.6], post: 0.24,
   beam: { d: 0.29, t: 0.05 }, joist: { d: 0.235, t: 0.045, oc: 0.406 }, board: { w: 0.14, t: 0.035, gap: 0.01 },
@@ -166,12 +168,13 @@ export const P8 = {
   annex: { x0: 2.45, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.4, deckY: 2.75, door: -6.2, win: -4.5 },
   // under-house slab (C: cracked concrete pad) and the hoop on the middle beam, backboard facing SE (+Z), shot toward the bay (-Z)
   pad: { x0: -6.9, x1: 2.2, z0: -10.8, z1: -1.4 },
-  hoop: { x: 0.0, z: -7.0 },
+  hoop: { x: 7.25, z: -10.4 },   // r10: on the annex's NW wall (z = its face) at the foot of the back stair
   // interior (clear spaces at floor level): front door in the middle of the SW gable -> short hall, bath LEFT (NW), bedroom RIGHT (SE),
   // then the open kitchen (SE wall) / living room (sofa on the NW wall, TV facing it, slider in the NE gable)
   hall: { x0: -6.5, x1: -2.6, z0: -7.75, z1: -6.25 },
-  bath: { x0: -6.5, x1: -2.6, z0: -10.4, z1: -7.75 },
-  bed: { x0: -6.5, x1: -2.6, z0: -6.25, z1: -3.6 },
+  // r10 (playtest Nov 19): mirrored, the bathroom on the SE side of the hall, the bedroom on the NW side
+  bath: { x0: -6.5, x1: -2.6, z0: -6.25, z1: -3.6 },
+  bed: { x0: -6.5, x1: -2.6, z0: -10.4, z1: -7.75 },
   kitchen: { x0: -2.6, x1: 1.6, z0: -6.0, z1: -3.6 },
   living: { x0: 1.6, x1: 6.5, z0: -10.4, z1: -3.6 },
   // ---- the bay wall, the canal, the dock (H frame) ----
@@ -184,17 +187,29 @@ export const P8 = {
   canal: { x0: 12.6, x1: 24.6, z1: 20.0, on: true, fake: true },
   // the dock (A): leaves the bay wall at an angle by the canal mouth, turns, runs straight to the big platform, parallel to the wall
   // r9 (user, Nov 19): ONE angled gangway straight from the wall to the platform (no knee), and a narrower platform (5.0 x 3.8 m, was 7.4 x 5.9)
-  dock: { y: 0.42, w: 1.5, wallX: 10.6, kneeX: 7.0, z: -21.9, x1: 0.8 },
+  // r10 (playtest Nov 19): a straight pier square to the wall into the middle of the platform's wall side (wallX = its center line)
+  dock: { y: 0.42, w: 1.5, wallX: -1.7, kneeX: 7.0, z: -21.9, x1: 0.8 },
   plat: { x0: -4.2, x1: 0.8, z0: -24.2, z1: -20.4 },
   colors: {
     // r9 (B / D / C): faded sea-green siding, brown board shutters, cream trim, weathered gray-tan timber posts (not whitewash)
-    teal: 0x6c9686, tealDeep: 0x557c6f, white: 0xddd6c4, door: 0x2c2f2e, shutter: 0x5a4838,
+    teal: 0x6c9686, tealDeep: 0x557c6f, white: 0xddd6c4, door: 0x6e716f, shutter: 0x5a4838,   // r10: front door weathered gray (was near black)
     deck: 0xa48f74, deckDark: 0x6f6253, post: 0xa99c88,
   },
 };
 P8.rot.theta = _rq ? +_rq[1] * Math.PI / 180 : Math.PI / 4 - STREET_H;
+// r10 (playtest Nov 19, W1): the HOUSE (body, decks, stairs, annex, pad, hoop) is turned 10 deg counterclockwise (seen from above) inside
+// the site; the canal, the bay wall, the dock line and the beach stay where they are. Frame B = the house's own frame (every house part
+// builds in it through frame(ctx, 'house')); H = the site frame above (canal, bulkhead, dock: frame(ctx, 'site')).
+//   H = R(a) (B - c) + c + t, R as three.js (rotation.y = a). t moves the house 1 m off the canal so the turned gym deck clears its wall.
+// ?nhr=<deg> overrides the turn (0 = r9).
+const _hr = typeof location !== 'undefined' ? /[?&]nhr=(-?[\d.]+)/.exec(location.search) : null;
+P8.hr = { a: (_hr ? +_hr[1] : 10) * Math.PI / 180, cx: 0, cz: -7, tx: _hr && +_hr[1] === 0 ? 0 : -1.0, tz: 0 };
 if (R8) { for (const k of Object.keys(P4)) if (!(k in P8)) delete P4[k]; Object.assign(P4, P8); }
+const HR = () => P4.hr || { a: 0, cx: 0, cz: -7, tx: 0, tz: 0 };
+export const BtoH = (x, z) => { const R = HR(), c2 = Math.cos(R.a), s2 = Math.sin(R.a), dx = x - R.cx, dz = z - R.cz; return [R.cx + R.tx + dx * c2 + dz * s2, R.cz + R.tz - dx * s2 + dz * c2]; };
+export const HtoB = (x, z) => { const R = HR(), c2 = Math.cos(R.a), s2 = Math.sin(R.a), dx = x - R.cx - R.tx, dz = z - R.cz - R.tz; return [R.cx + dx * c2 - dz * s2, R.cz + dx * s2 + dz * c2]; };
 export const HtoG = (x, z) => toG(...HtoS(x, z));
+export const BtoG = (x, z) => toG(...HtoS(...BtoH(x, z)));
 export const GtoH = (x, z) => StoH(...toS(x, z));
 export const hdgHtoG = (h) => h + P4.rot.theta - YAW;   // a yard-frame heading (yard.data.js: 0 faces +Z_G) from an H-frame heading
 // r8: the site is fixed (the map carve follows the plan, tools/v2/map3/keys_detail.py carve_nico); kept for the callers
@@ -220,15 +235,16 @@ function terraceY8(sx, sz) {
 }
 // plants also keep out of the hoop passage under the house, the drive in front and the canal / bay edge strip. S frame.
 function plantClear8(sx, sz, pad = 0) {
-  if (houseBlock8(sx, sz, pad)) return true; const [x, z] = StoH(sx, sz);
-  return inCanalH(x, z, pad + 0.8) || z < P4.wallZ + 0.8 + pad || inR({ x0: -11, x1: 13, z0: -12.5, z1: 0.5 }, x, z, pad);
+  if (houseBlock8(sx, sz, pad)) return true; const [x, z] = StoH(sx, sz), [bx, bz] = HtoB(x, z);
+  return inCanalH(x, z, pad + 0.8) || z < P4.wallZ + 0.8 + pad || inR({ x0: -11, x1: 13, z0: -12.5, z1: 0.5 }, bx, bz, pad);
 }
 // true where the house, decks, stairs, annex or the under-house pad stand (plants, weeds and yard props keep out). S frame.
 function houseBlock8(sx, sz, pad = 0) {
-  const P = P4, [x, z] = StoH(sx, sz);
+  const P = P4, [x, z] = HtoB(...StoH(sx, sz));
   return inR({ x0: P.walk.x0 - 0.2, x1: P.lower.x1 + 0.2, z0: P.lower.z0 - 0.2, z1: P.body.z1 + 0.3 }, x, z, pad)
     || inR({ x0: P.walk.x0 - 0.2, x1: 1.3, z0: -3.6, z1: -1.9 }, x, z, pad)          // the main stair along the SE face
-    || inR({ x0: 6.9, x1: 12.6, z0: -2.9, z1: -1.3 }, x, z, pad)                     // the lower deck's stair
+    || inR({ x0: 7.8, x1: 12.6, z0: -12.7, z1: -11.1 }, x, z, pad)                   // the lower deck's stair (r10: NW side)
+    || inR({ x0: 5.5, x1: 9.0, z0: -12.0, z1: -10.3 }, x, z, pad)                    // r10: the hoop and its shooting spot
     || inR(P.pad, x, z, pad);
 }
 

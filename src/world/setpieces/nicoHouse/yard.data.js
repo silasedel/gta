@@ -138,7 +138,7 @@ export const PLANTING = [   // inside the lot only (r2-veg plants the verges and
   ['tropical_bed', -10.9, 13.1, { s: 0.55 }], ['fern_clump', -9.2, 12.9, { s: 1.0 }],
   // palmetto-like clumps (volume-shaded library beds / ferns in place of the card palmettos of part 50)
   ['tropical_bed', -22.4, -9.2, { s: 0.75 }], ['fern_clump', -20.9, -5.4, { s: 1.3 }], ['fern_clump', -20.6, 3.6, { s: 1.3 }],
-  ['tropical_bed', -18.9, 12.9, { s: 0.75 }], ['fern_clump', -19.3, 11.0, { s: 1.3 }], ['tropical_bed', -13.6, 18.2, { s: 0.7 }], ['tropical_bed', -11.0, 23.5, { s: 0.7 }],
+  ['tropical_bed', -21.9, 10.4, { s: 0.75 }], ['fern_clump', -20.6, 9.6, { s: 1.3 }],   // r10 (playtest): out of the drive (the bed stood 0.6 m from its center line) ['tropical_bed', -13.6, 18.2, { s: 0.7 }], ['tropical_bed', -11.0, 23.5, { s: 0.7 }],
   ['fern_clump', -19.2, -11.4, { s: 1.2 }], ['fern_clump', -11.6, 16.0, { s: 1.2 }],
   ['poinciana', -27.5, -6.5, { s: 1.0, seed: 7, model: 'poinciana_hd1' }],   // QA first-minutes #5 / #6: back from the classic (its limbs ran through the car, the trunk capsules stopped it)                          // red crown over the classic, right edge of the deck view (mock-up)
   // the big dense dark-green mass right of center, behind the right-hand bins, hiding the roll-off's far end (mock-up)

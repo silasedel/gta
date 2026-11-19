@@ -69,7 +69,9 @@ export async function buildNicoHouse(THREE, opts = {}) {
       _a.fromBufferAttribute(p, i0); _b.fromBufferAttribute(p, i1); _d.fromBufferAttribute(p, i2); area += _b.sub(_a).cross(_d.sub(_a)).length() / 2; n++; }
     o.updateWorldMatrix(true, false); _m.multiplyMatrices(_inv, o.matrixWorld);
     const sc = Math.cbrt(Math.abs(_m.determinant())) || 1, edge = Math.sqrt((2 * area / Math.max(1, n))) * sc, rad = bs.radius * sc;
-    const d = Math.max(lodK.min, Math.min(lodK.max, Math.min(rad * lodK.r, edge * lodK.e)));
+    let d = Math.max(lodK.min, Math.min(lodK.max, Math.min(rad * lodK.r, edge * lodK.e)));
+    // r10 (playtest: the dock's buckets and cases popped in a few feet away): a group can ask for a longer cull distance (userData.nhLodMin)
+    for (let q = o, k = 0; q && k < 6; q = q.parent, k++) if (q.userData?.nhLodMin) { d = Math.max(d, q.userData.nhLodMin); break; }
     const c = bs.center.clone().applyMatrix4(_m);
     o.userData.nhLod = { d, c };
     if (grp === 'int' || (grp !== 'ext' && d < 45)) { if (o.castShadow) lodStats.shadowOff++; o.castShadow = false; }

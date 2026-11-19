@@ -15,3 +15,6 @@ kitchen/*.glb      r8 (Nico's kitchen): the user's downloads Models/_Inbox/kitch
                    kitchen-utensils.zip (toaster, pot, pan, cutting board, bowl, knife, knife rail, spatula, ladle, wall hooks, cup,
                    detergent, olive oil, soap, towel) and wooden-kitchen.zip (microwave = the M*_low objects); one object each,
                    tools/v2/keys/r7/convert_prop.py (blender -Y), textures 512 px (sink 1K); recolored / aged in game (parts/r8_70_interior.js)
+plants/palm_pot_large.glb, plants/palm_pot_small.glb  r10 (Nico's house potted plants): the user's download Models/Plant Pots/Plant Pot 1 - Four Potted Palms
+                   (catalog.csv: source / license unknown, supplied by the user), split into its large and small pot by tools/v2/keys/r10/palm_pot.py
+                   (blender -Y), textures 512 / 256 px WebP, leaves alpha-tested in game (r4/pots.js)

@@ -3,7 +3,7 @@
 // fish-cleaning station, ladder and light.
 import { makeGroundMaterial } from '../../../ground/groundMaterial.js';
 import { WEEDS, DRIVE, DRIVE_PUDDLE } from '../yard.data.js';
-import { R4, R8, P4, toS, toG, terraceY, houseBlock, measureSite, StoH, HtoS, inCanal, inCanalH, inR as inRect } from '../r4/plan4.js';
+import { R4, R8, P4, toS, toG, terraceY, houseBlock, measureSite, StoH, HtoS, HtoB, inCanal, inCanalH, inR as inRect } from '../r4/plan4.js';
 export const order = 5;
 // ground pass: the yard sheet uses the terrain's Keys-yard ground (user's sand / grassy-sand scans, hex-tiled) so it matches the
 // lots around it; ?ground2=0 keeps the old shell-floor texture
@@ -45,7 +45,7 @@ export function build(ctx) {
     // the sheet's height at a plan point (also ctx.yardY: decals, puddles and props of part 55 follow the same surface)
     // r4: flat under the new house footprint (S frame), the lawn terrace rising to the bulkhead, the sheet sinking beyond the wall
     // line and past the lot's east / west ends (S frame) so it never runs over the neighbors' yards
-    const underAt = (x, z) => { if (!R4) return (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0; const [sx, sz] = toS(x, z); const inP = (Pv) => sx > Pv.x0 - 0.6 && sx < Pv.x1 + 0.6 && sz > Pv.z0 - 0.6 && sz < Pv.z1 + 0.6; if (R8) { const [hx, hz] = StoH(sx, sz); return houseBlock(sx, sz, 0.8) || inRect(P4.pad, hx, hz, 0.6) ? 1 : 0; } return houseBlock(sx, sz, 0.8) || inP(P4.pavers) || inP(P4.court) ? 1 : 0; };   // r7: flat under the paved carport floor too
+    const underAt = (x, z) => { if (!R4) return (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0; const [sx, sz] = toS(x, z); const inP = (Pv) => sx > Pv.x0 - 0.6 && sx < Pv.x1 + 0.6 && sz > Pv.z0 - 0.6 && sz < Pv.z1 + 0.6; if (R8) { const [hx, hz] = HtoB(...StoH(sx, sz)); return houseBlock(sx, sz, 0.8) || inRect(P4.pad, hx, hz, 0.6) ? 1 : 0; } return houseBlock(sx, sz, 0.8) || inP(P4.pavers) || inP(P4.court) ? 1 : 0; };   // r7: flat under the paved carport floor too
     const edgeS = (x, z) => { if (!R4) return 99; const [sx, sz] = toS(x, z); if (R8) { const [hx, hz] = StoH(sx, sz); return Math.min(hx + 30, 33 - hz, hz > P4.canal.z1 + 0.5 ? 27 - hx : 99); /* r8: the bulkheads hold the fill on the bay and canal sides */ } return Math.min(sx < P4.wallX0 || sx > P4.wallX1 ? sz - P4.wallZ + 1.5 : 99, 19 - sx, sx + 26); };
     const yardY = (x, z) => { const dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2)), under = underAt(x, z), near = Math.max(0, Math.min(1, (Math.hypot(Math.max(0, Math.abs(x + 1.5) - 11.5), Math.max(0, Math.abs(z - 0.25) - 8.75))) / 5));   // flat around the house, its stairs, pads and pots
       const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, edgeS(x, z)) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
@@ -173,7 +173,7 @@ export function build(ctx) {
       const g0 = 0.16 + q() * 0.1; for (let v = 0; v < 6; v++) { const tip = v === 2 || v >= 4 ? 1.5 : 0.8; bc.push(0.13 * tip * (0.8 + q() * 0.5), g0 * 0.95 * tip, 0.05 * tip); } }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(blades, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(bc, 3)); g.computeVertexNormals();
     const gm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide, bumpMap: kit.microTex(), bumpScale: 0.4 }), ms = [], cs = [];
-    const onSlab = R8 ? (x, z) => { const [sx, sz] = toS(x, z), [hx, hz] = StoH(sx, sz); return houseBlock(sx, sz, 0.1) || inRect(P4.pad, hx, hz, 0.2) || inCanalH(hx, hz, 0.4) || hz < P4.wallZ + 0.3; } : R4 ? (x, z) => { const [sx, sz] = StoH(...toS(x, z)); return (sx > P4.pavers.x0 && sx < P4.pavers.x1 && sz > P4.pavers.z0 && sz < P4.pavers.z1) || (sx > P4.deckS.x0 && sx < P4.deckE.x1 && sz > -12.8 && sz < -1.6); } : (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
+    const onSlab = R8 ? (x, z) => { const [sx, sz] = toS(x, z), [hx, hz] = StoH(sx, sz); return houseBlock(sx, sz, 0.1) || inRect(P4.pad, ...HtoB(hx, hz), 0.2) || inCanalH(hx, hz, 0.4) || hz < P4.wallZ + 0.3; } : R4 ? (x, z) => { const [sx, sz] = StoH(...toS(x, z)); return (sx > P4.pavers.x0 && sx < P4.pavers.x1 && sz > P4.pavers.z0 && sz < P4.pavers.z1) || (sx > P4.deckS.x0 && sx < P4.deckE.x1 && sz > -12.8 && sz < -1.6); } : (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
     const rc = ctx.opts.roadClear || (() => true);
     const put = (x, z, s = 1) => { if (onSlab(x, z) || !rc(x, z, 0.4)) return; ms.push(M(x, 0.01, z, 0, q() * 6.283, 0, s * (0.7 + q() * 0.9))); const d = q(); cs.push([0.75 + d * 0.5, 0.8 + d * 0.35, 0.6 + d * 0.5]); };
     const line = (ax, az, bx, bz, n, spread = 0.25, s = 1) => { for (let i = 0; i < n; i++) { const t = q(); put(ax + (bx - ax) * t + (q() - 0.5) * spread, az + (bz - az) * t + (q() - 0.5) * spread, s); } };

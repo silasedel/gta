@@ -8,7 +8,7 @@
 // standing seam on the NW slope); the user's satellite dish on the stair-head post; the hoop on the middle beam over the under-house
 // passage (backboard facing SE); the cracked concrete pad under the house. Every piece is a closed, beveled solid; faces that would
 // touch are cut or offset (no coplanar faces). Built in H through r4/frame.js.
-import { R8, P4, inR, toS, StoH } from '../r4/plan4.js';
+import { R8, P4, inR, toS, StoH, HtoB } from '../r4/plan4.js';
 import { frame } from '../r4/frame.js';
 import { makeGeo } from '../r4/geo.js';
 import { glb } from '../r4/glb.js';
@@ -152,6 +152,21 @@ export function build(ctx) {
     const pg = new THREE.DodecahedronGeometry(0.03, 0), pm = [], pc = [];
     for (let i = 0; i < 160; i++) { const side = q() < 0.5, x = side ? PD.x0 + (PD.x1 - PD.x0) * q() : (q() < 0.5 ? PD.x0 : PD.x1) + (q() - 0.5) * 0.5, z = side ? (q() < 0.5 ? PD.z0 : PD.z1) + (q() - 0.5) * 0.5 : PD.z0 + (PD.z1 - PD.z0) * q();
       pm.push(M(x, 0.035, z, q() * 3, q() * 3, 0, 0.25 + q() * 0.4)); const v = 0.42 + q() * 0.22; pc.push([v, v * 0.92, v * 0.82]); }
+    // r10 (playtest Nov 19: "no harsh end"): the slab's edge breaks up into the yard: broken-off chunks, half-sunk, a band of rubble and
+    // a soft ring of trodden dirt that fades out into the yard sheet (one transparent mesh, no depth write)
+    { const ch = [], cc = [], per = 2 * ((PD.x1 - PD.x0) + (PD.z1 - PD.z0)), at = (t) => { let u = t % per; const W2 = PD.x1 - PD.x0, D2 = PD.z1 - PD.z0;
+        if (u < W2) return [PD.x0 + u, PD.z0, 0, -1]; u -= W2; if (u < D2) return [PD.x1, PD.z0 + u, 1, 0]; u -= D2; if (u < W2) return [PD.x1 - u, PD.z1, 0, 1]; u -= W2; return [PD.x0, PD.z1 - u, -1, 0]; };
+      for (let t = 0; t < per; t += 0.22 + q() * 0.3) { const [x, z, nx, nz] = at(t), o = q() * q() * 0.75 - 0.05, sl = (q() - 0.5) * 0.25;
+        ch.push(M(x + nx * o - nz * sl, -0.03 + q() * 0.035, z + nz * o + nx * sl, (q() - 0.5) * 0.25, q() * 6.283, (q() - 0.5) * 0.25, 1)); ch.at(-1).scale(new THREE.Vector3(0.12 + q() * 0.3, 0.05 + q() * 0.04, 0.1 + q() * 0.25)); const v = 0.62 + q() * 0.14; cc.push([v, v * 0.98, v * 0.93]); }
+      for (let i = 0; i < 260; i++) { const [x, z, nx, nz] = at(q() * per), o = 0.1 + q() * q() * 1.1; pm.push(M(x + nx * o + (q() - 0.5) * 0.3 * Math.abs(nz), 0.0, z + nz * o + (q() - 0.5) * 0.3 * Math.abs(nx), q() * 3, q() * 3, 0, 0.3 + q() * 0.6)); const v = 0.38 + q() * 0.25; pc.push([v, v * 0.9, v * 0.78]); }
+      const ci = kit.instances(new THREE.BoxGeometry(1, 1, 1), PADM, ch, cc); ci.name = 'r10padChunks'; Fr.groups.ext.add(ci);
+      const pos = [], col = [], idx = [], N = 96, dirt = [0.34, 0.29, 0.22];
+      for (let i = 0; i < N; i++) { const [x, z, nx, nz] = at(i / N * per), w = 0.7 + Math.sin(i * 1.7) * 0.25 + q() * 0.3; pos.push(x - nx * 0.05, 0.012, z - nz * 0.05, x + nx * w, 0.012, z + nz * w); col.push(...dirt, 0.8, ...dirt, 0); }
+      for (let i = 0; i < N; i++) { const a = i * 2, b = ((i + 1) % N) * 2; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 4)); g.setIndex(idx); g.computeVertexNormals();
+      if (g.attributes.normal.getY(0) < 0) { for (let i = 0; i < idx.length; i += 3) { const t2 = idx[i + 1]; idx[i + 1] = idx[i + 2]; idx[i + 2] = t2; } g.setIndex(idx); g.computeVertexNormals(); }
+      const dm = new THREE.MeshStandardMaterial({ vertexColors: true, transparent: true, depthWrite: false, roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }); dm.name = 'r10padDirt';
+      const dmesh = new THREE.Mesh(g, dm); dmesh.name = 'r10padDirt'; dmesh.receiveShadow = true; dmesh.renderOrder = 2; dmesh.raycast = () => {}; Fr.groups.ext.add(dmesh); }
     const pi = kit.instances(pg, mat.concrete(), pm, pc); pi.name = 'r8pebbles'; Fr.groups.detail.add(pi); }
 
   // ================= walls: board-and-batten =================
@@ -163,14 +178,14 @@ export function build(ctx) {
   const WALLS = [
     // SE face (+Z): bedroom, kitchen (over the sink), living room windows, all shuttered (B / D)
     { id: 'S', a: [-6.5, -3.6], b: [6.5, -3.6], deck: false, ops: [
-      { id: 'W_bed_s', u: 1.95, w: 1.0, sill: 0.85, h: 1.3, kind: 'window', shutter: true },
+      { id: 'W_bath', u: 1.8, w: 0.7, sill: 1.35, h: 0.7, kind: 'window', frosted: true },   // r10: bath and bedroom mirrored
       { id: 'W_kit', u: 6.4, w: 1.2, sill: 1.0, h: 1.05, kind: 'window', shutter: true },
       { id: 'W_liv_s', u: 10.35, w: 1.0, sill: 0.85, h: 1.3, kind: 'window', shutter: true } ] },
     // NW face (-Z, the bay side): the big window behind the sofa (15: bamboo blind), the bathroom window (frosted)
     { id: 'N', a: [6.5, -10.4], b: [-6.5, -10.4], deck: false, ops: [
       { id: 'W_liv_n', u: 2.7, w: 1.6, sill: 0.95, h: 1.15, kind: 'window', shutter: true },
       { id: 'W_liv_n2', u: 5.6, w: 1.0, sill: 0.85, h: 1.3, kind: 'window', shutter: true },
-      { id: 'W_bath', u: 11.2, w: 0.7, sill: 1.35, h: 0.7, kind: 'window', frosted: true } ] },
+      { id: 'W_bed_s', u: 11.05, w: 1.0, sill: 0.85, h: 1.3, kind: 'window', shutter: true } ] },
     // NE gable (+X, back): the slider onto the upper strip and a window (E: the slider, a window with shutters by the chairs)
     { id: 'E', a: [6.5, -3.6], b: [6.5, -10.4], deck: true, gable: true, ops: [
       { id: 'D_slide', u: 5.0, w: 1.9, sill: 0, h: 2.08, kind: 'slider' },
@@ -178,9 +193,9 @@ export function build(ctx) {
       { id: 'V_e', u: 3.4, w: 0.5, sill: 3.05, h: 0.5, kind: 'vent' } ] },
     // SW gable (-X, FRONT): the front door in the middle, a window each side, the small hatch in the gable above the door (B)
     { id: 'W', a: [-6.5, -10.4], b: [-6.5, -3.6], deck: true, gable: true, ops: [
-      { id: 'W_bath_f', u: 1.45, w: 0.8, sill: 1.0, h: 1.0, kind: 'window', shutter: true, frosted: true },
+      { id: 'W_bed_f', u: 1.45, w: 1.0, sill: 0.85, h: 1.3, kind: 'window', shutter: true },
       { id: 'D_front', u: 3.4, w: 0.92, sill: 0, h: 2.06, kind: 'door' },
-      { id: 'W_bed_f', u: 5.35, w: 1.0, sill: 0.85, h: 1.3, kind: 'window', shutter: true },
+      { id: 'W_bath_f', u: 5.35, w: 0.8, sill: 1.0, h: 1.0, kind: 'window', shutter: true, frosted: true },
       { id: 'H_gable', u: 3.4, w: 0.62, sill: 2.95, h: 0.72, kind: 'hatch' } ] },
   ];
   for (const W of WALLS) {
@@ -342,24 +357,29 @@ export function build(ctx) {
     box(MP, 0.28, 0.42, 0.14, mx, my0 - 0.25, mz - 0.02, { color: 0x8e918c, bevel: 0.01 });
     ctx.r8service = { x: mx, y: my1 - 0.05, z: mz }; }
 
-  // ================= the hoop (C): on the middle beam over the passage, backboard facing SE (+Z), a shot goes NW under the house =================
-  { const H = P.hoop, bz = H.z + 0.12, yTop = beamBot - 0.01, BBm = mat.paint({ peel: 'a', fade: 0.5, gloss: 0.6, scale: 0.5 });
-    box(BBm, 1.2, 0.8, 0.035, H.x, yTop - 0.4, bz, { color: 0xe8e5dc, wear: 0.45 });
-    for (const [dx, dy, sx, sy] of [[0, -0.1, 0.6, 0.05], [0, -0.33, 0.6, 0.05], [-0.28, -0.215, 0.05, 0.28], [0.28, -0.215, 0.05, 0.28]]) box(mat.plastic(), sx, sy, 0.006, H.x + dx, yTop - 0.4 + dy + 0.05, bz + 0.021, { color: 0x262626, bevel: 0.001 });
-    for (const s of [-1, 1]) box(STEEL, 0.04, 0.3, 0.12, H.x + s * 0.4, yTop - 0.05, bz - 0.06, { color: 0x6c6a64 });
-    const rimY = yTop - 0.4 - 0.33, rimZ = bz + 0.25; D.geo(mat.metalPaint(), new THREE.TorusGeometry(0.23, 0.009, 8, 32), M(H.x, rimY, rimZ, Math.PI / 2, 0, 0), { color: 0xd2531f });
-    box(MP, 0.12, 0.1, 0.03, H.x, rimY - 0.03, bz + 0.03, { color: 0xd2531f });
+  // ================= the hoop (r10, playtest Nov 19: "on the face at the bottom of those stairs", not in the middle under the house) =================
+  // mounted on the annex's NW wall beside the foot of the back stair, backboard facing NW (-Z) over the lawn toward the bay; a backyard
+  // height (rim ~2.75 m: the upper deck's joists are right above it)
+  { const H = P.hoop, wz = H.z, bz = wz - 0.32, yB = 2.85, BBm = mat.paint({ peel: 'a', fade: 0.5, gloss: 0.6, scale: 0.5 });
+    box(BBm, 1.1, 0.72, 0.035, H.x, yB, bz, { color: 0xe8e5dc, wear: 0.45 });
+    for (const [dx, dy, sx, sy] of [[0, 0.17, 0.56, 0.05], [0, -0.06, 0.56, 0.05], [-0.255, 0.055, 0.05, 0.28], [0.255, 0.055, 0.05, 0.28]]) box(mat.plastic(), sx, sy, 0.006, H.x + dx, yB - 0.12 + dy, bz - 0.021, { color: 0x262626, bevel: 0.001 });
+    // 2x4 frame from the wall: two uprights screwed to the boards, two arms out to the backboard
+    for (const s of [-1, 1]) { box(mat.wood(), 0.09, 1.3, 0.05, H.x + s * 0.38, 2.25, wz - 0.045, { grain: 1, color: 0x7d6e5c, wear: 0.7 });
+      box(STEEL, 0.05, 0.05, 0.3, H.x + s * 0.38, yB + 0.15, wz - 0.19, { color: 0x6c6a64 }); box(STEEL, 0.05, 0.05, 0.36, H.x + s * 0.38, yB - 0.22, wz - 0.17, { color: 0x6c6a64 }, 0.5); }
+    const rimY = yB - 0.36 + 0.13, rimZ = bz - 0.25; D.geo(mat.metalPaint(), new THREE.TorusGeometry(0.23, 0.009, 8, 32), M(H.x, rimY, rimZ, Math.PI / 2, 0, 0), { color: 0xd2531f });
+    box(MP, 0.12, 0.1, 0.03, H.x, rimY - 0.03, bz - 0.03, { color: 0xd2531f });
     for (let k = 0; k < 12; k++) { const a1 = k / 12 * 6.283, a2 = a1 + 0.5, pts = [[H.x + Math.cos(a1) * 0.22, rimY, rimZ + Math.sin(a1) * 0.22], [H.x + Math.cos(a2) * 0.17, rimY - 0.2, rimZ + Math.sin(a2) * 0.17], [H.x + Math.cos(a1 + 1.0) * 0.13, rimY - 0.4, rimZ + Math.sin(a1 + 1.0) * 0.13]];
       D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.004, { seg: 4, color: 0xe5e2da, steps: 10 }); }
-    Fr.anchor('hoop', H.x, 0, H.z + 4.2, 0); Fr.anchor('hoopRim', H.x, rimY, rimZ, 0); }
+    Fr.col.box(H.x, yB, bz, 1.1, 0.72, 0.06, { tag: 'prop' });
+    Fr.anchor('hoop', H.x, 0, wz - 4.2, Math.PI); Fr.anchor('hoopRim', H.x, rimY, rimZ, Math.PI); }
 
   // ================= anchors, interior visibility, camera occluder =================
   Fr.anchor('carport', 0, 0.06, -8.5, Math.PI); Fr.anchor('front', Bd.x0 - 6, 0, -7, -Math.PI / 2);
   Fr.anchor('truckR4', -3.0, 0, 9.5, -2.76);   // G: nose in toward the front walkway corner, right of the B / D sight line
   Fr.anchor('spawnYard', -17, 0, 2.5, 2.37);   // in the drive, facing the front door
   const camS = new THREE.Vector3();
-  ctx.lookIn = (cx, cy, cz) => { const [sx, sz] = StoH(...toS(cx, cz)); camS.set(sx, cy, sz); return (inR(P.body, sx, sz, 1.4) && cy > F - 1.4) || (inR({ x0: WK.x0, x1: P.lower.x1, z0: P.lower.z0, z1: WK.z1 }, sx, sz, 2.0) && cy > F - 1.6); };
-  ctx.facing = (dir, cx, cz) => { if (!dir) return true; const [sx, sz] = StoH(...toS(cx, cz)); if (inR(P.body, sx, sz, 0.2)) return true; const [d0, d1] = StoH(...toS(0, 0)), [d2, d3] = StoH(...toS(dir.x, dir.z)), dx = d2 - d0, dz = d3 - d1, hx = 0 - sx, hz = -7 - sz; return dx * hx + dz * hz > -0.35 * Math.hypot(hx, hz); };
+  ctx.lookIn = (cx, cy, cz) => { const [sx, sz] = HtoB(...StoH(...toS(cx, cz))); camS.set(sx, cy, sz); return (inR(P.body, sx, sz, 1.4) && cy > F - 1.4) || (inR({ x0: WK.x0, x1: P.lower.x1, z0: P.lower.z0, z1: WK.z1 }, sx, sz, 2.0) && cy > F - 1.6); };
+  ctx.facing = (dir, cx, cz) => { if (!dir) return true; const [sx, sz] = HtoB(...StoH(...toS(cx, cz))); if (inR(P.body, sx, sz, 0.2)) return true; const [d0, d1] = HtoB(...StoH(...toS(0, 0))), [d2, d3] = HtoB(...StoH(...toS(dir.x, dir.z))), dx = d2 - d0, dz = d3 - d1, hx = 0 - sx, hz = -7 - sz; return dx * hx + dz * hz > -0.35 * Math.hypot(hx, hz); };
   ctx.buildOccluder = () => { const ob = kit.batch('r8occ'), m = new THREE.MeshBasicMaterial({ visible: false }); m.name = 'nh:occluder'; m.userData.uvScale = 1;
     ob.box(m, Bd.x1 - Bd.x0, yT - F, Bd.z1 - Bd.z0, M(0, (F + yT) / 2, (Bd.z0 + Bd.z1) / 2), {});
     for (const R of [WK, UP]) ob.box(m, R.x1 - R.x0, 0.3, R.z1 - R.z0, M((R.x0 + R.x1) / 2, F - 0.15, (R.z0 + R.z1) / 2), {});

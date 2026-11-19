@@ -152,7 +152,7 @@ function bboxOfRings(rings) {
 }
 
 export function createMapRenderer(game) {
-  let built = null, builtFor = null;
+  let built = null, builtFor = null, builtRev = 0;
   const cache = new Map();   // key -> { c, used }
   // default per-frame tile budget (minimap, phone); the pause map passes its own larger budget. r2-perf: 6 -> 3 ms, the
   // overview underlay covers tiles that are not drawn yet
@@ -199,7 +199,11 @@ export function createMapRenderer(game) {
   // ---------- spatial index ----------
   function build() {
     const c = city();
-    if (builtFor === c && built) return built;
+    // map data patched at run time (mapLayers.rev bumped: Nico's canal, src/world/setpieces/nicoHouse/nicoHouse.v2.js) rebuilds once
+    const rev = c?.mapLayers?.rev || 0;
+    if (builtFor === c && built && builtRev === rev) return built;
+    if (builtFor === c && built) { ovCache = null; ovFor = null; }
+    builtRev = rev;
     const L = c.mapLayers || {};
     const ring = boundaryFor(c);
     insideFn = ring ? makeMask(ring) : null;

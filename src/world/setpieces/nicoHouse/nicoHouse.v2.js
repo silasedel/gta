@@ -5,7 +5,8 @@ import { buildNicoHouse, PLAN } from './index.js';
 import { CAR_SPOTS, PLANTING, LITTER, DRIVE, DRIVE_PUDDLE } from './yard.data.js';
 import { patchPuddles } from '../../ground/puddles.js';
 import { lots as houseLots } from '../houses/lots.js';
-import { R4, R8, P4, toS, plantClear, HtoG } from './r4/plan4.js';
+import { R4, R8, P4, toS, plantClear, HtoG, BtoG } from './r4/plan4.js';
+import { NICO_MAP_LAND } from './mapPatch.data.js';
 // r2-perf: the yard ground collider as a triangle mesh with the SAME vertices and cell triangulation as the heightfield
 // descriptor. Rapier's heightfield has no BVH, so the player's character controller paid ~2.2 ms per call standing in the
 // yard (3 calls a frame at the spawn: ~7 ms); the trimesh is ~0.13 ms. Same surface. ?hftri=0 = the heightfield (A/B).
@@ -56,6 +57,11 @@ export async function initV2(game) {
     const W = (hx, hz) => { const [gx, gz] = HtoG(hx, hz); return [spot.x + gx * hc + gz * hs, spot.z - gx * hs + gz * hc]; };
     const cx = (Cn.x0 + Cn.x1) / 2, z0 = P4.wallZ - 1.5, cz = (z0 + Cn.z1) / 2, [x0, w0] = W(cx, cz), [x1, w1] = W(cx + 1, cz);
     houseLots.reserve({ x: x0, z: w0, hw: (Cn.x1 - Cn.x0) / 2 + 0.6, hd: (Cn.z1 - z0) / 2 + 0.6, ry: Math.atan2(-(w1 - w0), x1 - x0), id: 'nico_canal' }); } catch (e) { /* lots module off */ }
+  // r10 (playtest Nov 19: the canal on the pause map and the minimap looked like a high heel): the published map build predates the canal
+  // carve, so the land ring around the lot is swapped for the carved one (tools/v2/keys/r10/map_patch.py) when it is still the old ring
+  if (R8 && !temporary) try { const L = game.city?.mapLayers, O = NICO_MAP_LAND.old;
+    const hit = (L?.land || []).find((p) => { const r = p.outer; if (!r || r.length !== O.n || (p.holes && p.holes.length)) return false; let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const [x, z] of r) { if (x < a) a = x; if (z < b) b = z; if (x > c) c = x; if (z > d) d = z; } return Math.abs(a - O.bbox[0]) < 0.6 && Math.abs(b - O.bbox[1]) < 0.6 && Math.abs(c - O.bbox[2]) < 0.6 && Math.abs(d - O.bbox[3]) < 0.6; });
+    if (hit) { hit.outer = NICO_MAP_LAND.outer; hit.holes = NICO_MAP_LAND.holes; L.rev = (L.rev || 0) + 1; } } catch (e) { console.warn('[nicoHouse] map patch', e); }
   const sea = game.city?.seaLevel ?? -0.12;
   // ground-continuity: the yard sits flush on the ground around it (it used to float 1 m above the water on a 0.88 m ledge
   // with no sides); +4 cm keeps the yard sheet above the terrain's own surface without a step you notice
@@ -180,7 +186,7 @@ export async function initV2(game) {
   game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null, parked, carSpots: CAR_SPOTS, stairs };
   if (R4) { game.nicoHouse.r4site = house.r4site; game.nicoHouse.r4oz = house.r4site?.oz ?? P4.oz; }
   // the house center (body center, yard grade) in world space: shot tools and the minimap blip use it
-  if (R4) { const [cx, cz] = HtoG(0, -7); game.nicoHouse.center = toWorld(new THREE.Vector3(cx, 0, cz)); }
+  if (R4) { const [cx, cz] = R8 ? BtoG(0, -7) : HtoG(0, -7); game.nicoHouse.center = toWorld(new THREE.Vector3(cx, 0, cz)); }
   // other tracks: game.nicoHouse.anchors.{spawn, bed, wardrobe, dock, carport, truck, bike, kayak, skiff, mailbox, hoop, hammock}
   // the player starts right next to the house (on the drive in front of the carport), following the lot in layout.json
   const sp = anchors.spawnYard || anchors.spawn;
