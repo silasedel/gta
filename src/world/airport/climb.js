@@ -15,7 +15,7 @@ export function createClimb(game, fences) {
     if (!P || P.state.inVehicle || P.script || P.swimming || P.ragdoll || !P.state.grounded) return null;
     const p = P.position, hx = Math.sin(P.heading), hz = Math.cos(P.heading);
     for (const f of fences()) {
-      const n = f.nearest(p.x, p.z, REACH + 0.3); if (!n) continue;
+      const n = f.nearest(p.x, p.z, REACH + 0.3); if (!n || n.climbable === false) continue;   // W6: the base fence only at its climb spots
       const tx = n.x - p.x, tz = n.z - p.z, d = Math.hypot(tx, tz) || 1e-3;
       if ((tx * hx + tz * hz) / d < 0.55 && d > 0.25) continue;            // must face the fence
       // which way over: away from the side he stands on
@@ -24,12 +24,12 @@ export function createClimb(game, fences) {
       const land = { x: n.x + ox * 0.75, z: n.z + oz * 0.75 };
       land.y = game.city?.groundHeightAt?.(land.x, land.z) ?? n.y;
       if (game.city?.isWater?.(land.x, land.z)) continue;
-      return { fence: n, ox, oz, land, top: n.y + 2.2, start: p.clone(), heading: Math.atan2(ox, oz), toAirside: side > 0 };
+      return { fence: n, ox, oz, land, top: n.y + (n.top ?? 2.2), start: p.clone(), heading: Math.atan2(ox, oz), toAirside: side > 0 };
     }
     return null;
   }
   function start(c) {
-    S.move = { c, t: 0, dur: 2.55 };
+    S.move = { c, t: 0, dur: 2.55 + Math.max(0, c.top - c.start.y - 2.2) * 0.9 };   // taller fences take longer
     try { P.collider?.setEnabled(false); } catch (e) { /* */ }
     P.heading = c.heading;
     P.script = { lock: true, climb: true, fixed() {}, anim: { speed: 0, grounded: false, jumping: true, sprint: false }, pose: (dt, ch) => { S.char = ch; } };

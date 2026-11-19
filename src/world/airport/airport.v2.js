@@ -16,6 +16,9 @@ import { buildStructures } from './structures.js';
 import { buildTerminal } from './terminal.js';
 import { buildFence } from './fence.js';
 import { createClimb } from './climb.js';
+import { planBase, buildBase, zoneConfig, fenceOpts, BASE_NAME } from './base.js';
+import { airportZoneConfig } from './security.js';
+import { createZone } from '../../gameplay/stealth/zone.js';
 import { createTraffic } from '../../vehicles/air/traffic/traffic.js';
 import { help } from '../../jobs/kit.js';
 import { payCash } from '../../activities/common.js';
@@ -25,13 +28,16 @@ const Q = typeof location !== 'undefined' ? location.search : '';
 const OFF = /[?&]airport=0\b/.test(Q), NO_TRAFFIC = /[?&]airtraffic=0\b/.test(Q);
 const BUILD_R = 3500, HIDE_R = 5000;
 const FARE = { mia: 189, eyw: 129 };
+// W6 (Nov 19 playtest): the smaller airport (Key West) is a military air base (base.js); ?base=0 keeps it civilian
+const MILITARY = new Set(/[?&]base=0\b/.test(Q) ? [] : ['eyw']);
+const STEALTH_OFF = /[?&]stealth=0\b/.test(Q);
 
 export async function initV2(game) {
   if (OFF) return;
   const { scene, world, RAPIER, renderer } = game, city = game.city;
   if (!scene || !world || !RAPIER || !city?.groundHeightAt) return;
   const ground = (x, z) => city.groundHeightAt(x, z);
-  const list = DATA.airports.map((ap) => ({ ap, id: ap.id, name: ap.name, state: 'idle', group: null, parts: {}, airside: ap.airside, landside: ap.landside, cx: ap.center[0], cz: ap.center[1], stats: {} }));
+  const list = DATA.airports.map((ap) => ({ ap, id: ap.id, military: MILITARY.has(ap.id), name: MILITARY.has(ap.id) ? BASE_NAME : ap.name, state: 'idle', group: null, parts: {}, airside: ap.airside, landside: ap.landside, cx: ap.center[0], cz: ap.center[1], stats: {} }));
   const at = (x, z) => list.find((a) => Math.abs(x - a.cx) < 2500 && Math.abs(z - a.cz) < 2500 && (pip(a.airside, x, z) || (a.landside && pip(a.landside, x, z)))) || null;
   const inAirside = (x, z) => { for (const a of list) if (Math.abs(x - a.cx) < 2500 && Math.abs(z - a.cz) < 2500 && pip(a.airside, x, z) && !a.parts.terminal?.inside(x, z, 0.5)) return a; return null; };
   const isFree = (x, z) => { if (city.isWater?.(x, z)) return true; const zn = city.zoneAt?.(x, z); if (!/airport|park|rural|wilderness/.test(zn || '')) return false; try { const r = city.roadGraph?.nearestEdge?.(x, z, {}, 20); if (r && r.dist < (r.edge.width || 8) / 2 + 2) return false; } catch (e) { /* */ } return true; };
@@ -49,18 +55,40 @@ export async function initV2(game) {
     await step('pavement', () => buildPavement(ap, ctx));
     await step('markings', () => buildMarkings(ap, ctx));
     await step('lights', () => buildLights(ap, ctx));
+    if (A.military) {   // military air base: no terminal, no airline ground equipment; a tall razor-wire fence climbable at a few spots
+      A.plan = planBase(ap, ctx);
+      await step('structures', () => buildStructures({ ...ap, stands: [] }, ctx));
+      await step('fence', () => buildFence({ group, world, RAPIER, ground, ring: ap.airside, gates: ap.fenceGates || [], inside: (x, z) => pip(ap.airside, x, z), ...fenceOpts, climbSpots: A.plan.climbSpots }));
+      await step('base', () => buildBase(ap, ctx, A.plan, A.parts.fence));
+    } else {
     await step('terminal', () => buildTerminal(ap, ctx));
     await step('structures', () => buildStructures(ap, ctx));
     await step('fence', () => buildFence({ group, world, RAPIER, ground, ring: ap.airside, gates: ap.fenceGates || [], inside: (x, z) => pip(ap.airside, x, z),
       skip: (x, z) => { const T = ap.terminal; return T && ringDist(T.ring, x, z) < 2.0 || pip(T.ring, x, z); } }));
+    }
+    if (!STEALTH_OFF) await step('zone', () => makeZone(A));
     if (A.parts.terminal && traffic) { const tA = traffic.AP.find((x) => x.ap.id === ap.id); if (tA) tA.onBoard = (rows) => A.parts.terminal.drawBoard(rows); }
     A.stats.buildMs = Math.round(performance.now() - t0); A.stats.marks = A.parts.markings?.counts; A.stats.lights = A.parts.lights?.counts; A.stats.fence = A.parts.fence?.stats;
     A.state = 'live';
   }
 
+  // W6 stealth zones: guards + cameras (src/gameplay/stealth/zone.js). The base: 4 stars on detection, 5 if seen again.
+  function makeZone(A) {
+    const ap = A.ap, F = A.parts.fence, T = A.parts.terminal;
+    const cfg = A.military ? zoneConfig(ap, A.plan, A.parts.base || {}, F) : airportZoneConfig(ap, F);
+    const Z = createZone(game, { id: ap.id, label: A.military ? 'AIR STATION' : 'AIRPORT', ...cfg, cx: A.cx, cz: A.cz, thinkR: 400, sleepR: 3000,
+      contains: A.military ? (x, z) => pip(ap.airside, x, z) : (x, z) => { if (!pip(ap.airside, x, z) || T?.inside?.(x, z, 0.5)) return false; const v = game.player?.state?.vehicle; return !(v && v.air) && !sec.pass && !boarding.active; },
+      nearFence: (x, z) => !!F?.nearest?.(x, z, 2.5),
+      stars: A.military ? 4 : 2, stars2: A.military ? 5 : 3, siren: A.military, airspace: A.military ? 1100 : 0,
+      alertText: A.military ? 'Southline Air Station: intruder on the base. Security forces responding.' : 'Airport security: intruder airside',
+      escalateText: A.military ? 'Base alert: military response authorized' : 'Airport police requesting backup' });
+    if (F?.body) Z.setFenceBody(F.body);
+    return Z;
+  }
+
   // ---------------------------------------------------------------- traffic, climbing, security, boarding
   let traffic = null;
-  if (!NO_TRAFFIC) try { traffic = createTraffic(game, DATA.airports); } catch (e) { console.warn('[airport] traffic', e); }
+  if (!NO_TRAFFIC) try { traffic = createTraffic(game, DATA.airports.filter((ap) => !MILITARY.has(ap.id))); } catch (e) { console.warn('[airport] traffic', e); }
   const climb = createClimb(game, () => list.filter((a) => a.parts.fence).map((a) => a.parts.fence));
   game.fixedHooks.unshift(function airportClimbInput() {
     if (game.ui?.paused || game.ui?.phoneOpen || climb.active || !game.input?.pressed?.('Space')) return;
@@ -72,7 +100,7 @@ export async function initV2(game) {
   function security(dt) {
     const P = game.player; if (!P) return;
     const v = P.state?.vehicle, inAir = !!(v && v.air);
-    const a = inAirside(P.position.x, P.position.z);
+    let a = inAirside(P.position.x, P.position.z); if (a && (a.parts.zone || a.military) && !STEALTH_OFF) a = null;   // guarded zones report by sight (zone.js)
     if (a && !inAir && !sec.pass && !boarding.active) {
       if (sec.inside !== a) { sec.inside = a; sec.t = 0; }
       sec.t += dt; sec.outT = 0;
@@ -101,7 +129,8 @@ export async function initV2(game) {
   }
   async function board(a, g) {
     if (boarding.active) return false;
-    const dest = list.find((x) => x !== a), fare = FARE[a.id] || 150;
+    const dest = list.find((x) => x !== a && !x.military); if (!dest) return false;
+    const fare = FARE[a.id] || 150;
     if (!payCash(game, fare, { to: 'Southline Air', memo: `Flight to ${dest.name}`, place: a.name, category: 'travel', accepts: ['card', 'bank', 'cash'] })) { game.hud?.notify?.(`Not enough money for the $${fare} fare`, 2500); return false; }
     boarding.active = true; sec.pass = a.id;
     const P = game.player;
@@ -161,18 +190,32 @@ export async function initV2(game) {
       A.parts.structures?.update?.(dt, cam, t);
       A.parts.terminal?.update?.(dt, pp);
     }
+    for (const A of list) if (A.parts.zone) try { A.parts.zone.update(dt); } catch (e) { console.warn('[airport] zone', e); A.parts.zone = null; }
     try { traffic?.update(dt, pp, cam, renderer); } catch (e) { console.warn('[airport] traffic', e); }
     climb.poseUpdate();
     security(dt);
     // prompts: gate podium (board), fence (climb)
     if (!boarding.active) {
       const np = nearPodium();
-      if (np) { const dest = list.find((x) => x !== np.a); help(game, 'airport', `Press <b>E</b> to board the flight to ${dest.name} ($${FARE[np.a.id]})`); if (game.input?.pressed?.('KeyE')) board(np.a, np.g); }
+      const npDest = np && list.find((x) => x !== np.a && !x.military);
+      if (np && !npDest) help(game, 'airport', 'No departures today: Key West is a military airfield now');
+      else if (np) { const dest = npDest; help(game, 'airport', `Press <b>E</b> to board the flight to ${dest.name} ($${FARE[np.a.id]})`); if (game.input?.pressed?.('KeyE')) board(np.a, np.g); }
       else if (!climb.active && !P.state?.inVehicle && climb.probe()) help(game, 'airport', 'Press <b>SPACE</b> to climb the fence');
       else help(game, 'airport', null);
     }
   }
   game.updaters.push(update);
+  const baseA = list.find((a) => a.military);
+  game.base = baseA ? {
+    get state() { return baseA.state; }, get plan() { return baseA.plan; }, get zone() { return baseA.parts.zone; }, get built() { return baseA.parts.base; },
+    // dev teleports: 'gate' (outside the main gate), 'climb' / 'climb2' / 'climb3' (outside a climb spot), 'pad' (the helipad), 'jet'
+    spot(name = 'gate') { const P0 = baseA.plan, B = baseA.parts.base; if (!P0) return null;
+      if (name.startsWith('climb')) { const c = P0.climbSpots[(+name.slice(5) || 1) - 1]; return c && { x: c.x - c.nx * 4, z: c.z - c.nz * 4 }; }
+      if (name === 'pad') return { x: P0.pad.x + 12, z: P0.pad.z };
+      if (name === 'jet') { const j = B?.jets?.[0]; return j && { x: j.mesh.position.x + 4, z: j.mesh.position.z + 6 }; }
+      const g = B?.gate; return g ? { x: g.x + g.ox * 30, z: g.z + g.oz * 30 } : { x: P0.main.x, z: P0.main.z }; },
+    tp(name = 'gate') { const s = this.spot(name) || { x: -4470, z: 6040 }; return game.dev?.teleportTo ? game.dev.teleportTo(s.x, s.z) : game.teleport?.(s.x, undefined, s.z, 0); },
+  } : null;
   game.airport = {
     list, at, inAirside, traffic, climb, board, data: DATA,
     onTrespass: (fn) => sec.onTrespass.push(fn),

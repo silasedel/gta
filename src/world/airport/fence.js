@@ -6,7 +6,7 @@
 // nearest(x, z) for the span, its outward normal and height).
 import * as THREE from 'three';
 
-const POST = 3.0, H = 2.15, ARM = 0.5, TILE = 0.1;
+const POST = 3.0, H0 = 2.15, ARM = 0.5, TILE = 0.1;
 
 function diamondTexture() {
   const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
@@ -18,16 +18,19 @@ function diamondTexture() {
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
-function signTexture() {
+function signTexture(paint) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g2 = c.getContext('2d');
-  g2.fillStyle = '#f4f4f0'; g2.fillRect(0, 0, 256, 128); g2.fillStyle = '#b3171d'; g2.fillRect(0, 0, 256, 38); g2.fillStyle = '#fff'; g2.font = 'bold 26px Arial'; g2.textAlign = 'center'; g2.fillText('RESTRICTED AREA', 128, 28);
+  g2.fillStyle = '#f4f4f0'; g2.fillRect(0, 0, 256, 128); if (paint) { paint(g2); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; } g2.fillStyle = '#b3171d'; g2.fillRect(0, 0, 256, 38); g2.fillStyle = '#fff'; g2.font = 'bold 26px Arial'; g2.textAlign = 'center'; g2.fillText('RESTRICTED AREA', 128, 28);
   g2.fillStyle = '#1b1b1b'; g2.font = 'bold 19px Arial'; g2.fillText('AIRPORT OPERATIONS', 128, 66); g2.font = '16px Arial'; g2.fillText('No trespassing. Violators', 128, 92); g2.fillText('will be prosecuted.', 128, 114);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
 // opts: { scene/group, world, RAPIER, ground(x, z), ring: [[x, z]...] (closed, airside inside), gates: [{ x, z, w }], skip(x, z) -> bool (a building is the barrier there), inside(x, z) }
+// W6 military base: height (m, default 2.15), razor (concertina coil on top), climbSpots [{ x, z }] (when given the fence is
+// climbable only within 3 m of one of them; nearest() reports climbable / top), sign (canvas painter for the warning signs)
 export function buildFence(opts) {
-  const { group: parent, world, RAPIER, ground, ring, gates = [], skip = () => false, inside } = opts;
+  const { group: parent, world, RAPIER, ground, ring, gates = [], skip = () => false, inside, razor = false, climbSpots = null } = opts;
+  const H = opts.height || H0;
   // resample the ring into posts every ~3 m; break runs at gates and where skip() says a building stands
   const n = ring.length, runs = [], gateSpans = [];
   let run = [];
@@ -69,6 +72,13 @@ export function buildFence(opts) {
     fab.uv.push(u0, 0, u1, 0, u1, (H - 0.04) / TILE, u0, (H - 0.04) / TILE); fab.idx.push(b, b + 1, b + 2, b, b + 2, b + 3); fab.u = u1 % 64;
     const [ox, oz] = outward(p, q);
     for (const f of [0.33, 0.66, 1.0]) { const o = ARM * f * Math.SQRT1_2, hh = H + 0.03 + ARM * f * Math.SQRT1_2; wires.push(p.x + ox * o, p.y + hh, p.z + oz * o, q.x + ox * o, q.y + hh, q.z + oz * o); }
+    if (razor && !(climbSpots && climbSpots.some((c) => Math.hypot(c.x - (p.x + q.x) / 2, c.z - (p.z + q.z) / 2) < 4))) {   // concertina coil (cut away at the climb spots) (a helix of line segments, 0.32 m loops) sitting on the arms
+      const R = 0.3, n = Math.max(2, Math.round(len / 0.32)) * 8, cx0 = ox * ARM * 0.45, cz0 = oz * ARM * 0.45, ux = dx / len, uz = dz / len;
+      let lx = 0, ly = 0, lz = 0;
+      for (let k = 0; k <= n; k++) { const t = k / n, ang = k / 8 * Math.PI * 2, y0 = p.y + (q.y - p.y) * t + H + 0.42 + Math.sin(ang) * R;
+        const off = Math.cos(ang) * R, x = p.x + dx * t + cx0 + ox * off + ux * Math.sin(ang) * 0.05, z = p.z + dz * t + cz0 + oz * off + uz * Math.sin(ang) * 0.05;
+        if (k) wires.push(lx, ly, lz, x, y0, z); lx = x; ly = y0; lz = z; }
+    }
     spans.push({ ax: p.x, az: p.z, bx: q.x, bz: q.z, y: Math.min(p.y, q.y), nx: ox, nz: oz, len, gate: !!isGate });
   };
   for (const r of runs) for (let i = 0; i < r.length; i++) {
@@ -86,11 +96,11 @@ export function buildFence(opts) {
     addSpan(a, b, true);
     const dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz), [ox, oz] = outward(a, b);
     const brace = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(len, H - 0.2), 0.05, 0.05), steel); brace.position.set((a.x + b.x) / 2, a.y + H / 2, (a.z + b.z) / 2); brace.rotation.set(0, Math.atan2(-dz, dx), Math.atan2(H - 0.2, len), 'YZX'); group.add(brace);
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), new THREE.MeshStandardMaterial({ map: signTexture(), roughness: 0.7, side: THREE.DoubleSide })); sign.position.set((a.x + b.x) / 2 + ox * 0.05, a.y + 1.3, (a.z + b.z) / 2 + oz * 0.05); sign.rotation.y = Math.atan2(ox, oz); group.add(sign);
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), new THREE.MeshStandardMaterial({ map: signTexture(opts.sign), roughness: 0.7, side: THREE.DoubleSide })); sign.position.set((a.x + b.x) / 2 + ox * 0.05, a.y + 1.3, (a.z + b.z) / 2 + oz * 0.05); sign.rotation.y = Math.atan2(ox, oz); group.add(sign);
     booths.push({ x: (a.x + b.x) / 2 + ox * 6 + (dx / len) * (len / 2 + 2.5), z: (a.z + b.z) / 2 + oz * 6 + (dz / len) * (len / 2 + 2.5), heading: Math.atan2(ox, oz), arm: { x: (a.x + b.x) / 2 + ox * 5, z: (a.z + b.z) / 2 + oz * 5, along: Math.atan2(dx, dz), len } });
   }
   // warning signs every ~150 m along the outside
-  const signMat = new THREE.MeshStandardMaterial({ map: signTexture(), roughness: 0.7 });
+  const signMat = new THREE.MeshStandardMaterial({ map: signTexture(opts.sign), roughness: 0.7 });
   let acc = 0;
   for (const sp of spans) { acc += sp.len; if (acc < 150 || sp.gate) continue; acc = 0; const m = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), signMat); m.position.set((sp.ax + sp.bx) / 2 + sp.nx * 0.06, sp.y + 1.35, (sp.az + sp.bz) / 2 + sp.nz * 0.06); m.rotation.y = Math.atan2(sp.nx, sp.nz); group.add(m); }
   const addInst = (geo, mat, list, name) => { if (!list.length) return; const im = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((mm, i) => im.setMatrixAt(i, mm)); im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.name = name; im.castShadow = false; im.receiveShadow = true; group.add(im); };
@@ -112,10 +122,11 @@ export function buildFence(opts) {
   }
   // colliders: a thin wall per span, 2.6 m high (the barbed arms count)
   // created 150 per frame (about 2 ms), not all at once in the middle of play
+  const CH = H + (razor ? 0.95 : 0.45);
   { let i = 0; const qq = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
     const chunk = () => { const end = Math.min(spans.length, i + 150);
       for (; i < end; i++) { const sp = spans[i]; qq.setFromAxisAngle(up, Math.atan2(sp.bx - sp.ax, sp.bz - sp.az));
-        try { world.createCollider(RAPIER.ColliderDesc.cuboid(0.06, 1.3, sp.len / 2 + 0.05).setTranslation((sp.ax + sp.bx) / 2, sp.y + 1.3, (sp.az + sp.bz) / 2).setRotation({ x: qq.x, y: qq.y, z: qq.z, w: qq.w }), body); } catch (e) { /* */ } }
+        try { world.createCollider(RAPIER.ColliderDesc.cuboid(0.06, CH / 2, sp.len / 2 + 0.05).setTranslation((sp.ax + sp.bx) / 2, sp.y + CH / 2, (sp.az + sp.bz) / 2).setRotation({ x: qq.x, y: qq.y, z: qq.z, w: qq.w }), body); } catch (e) { /* */ } }
       if (i < spans.length) requestAnimationFrame(chunk); };
     chunk(); }
   parent.add(group);
@@ -126,9 +137,9 @@ export function buildFence(opts) {
       if (Math.abs(sp.ax - x) > sp.len + maxD + 1 && Math.abs(sp.bx - x) > sp.len + maxD + 1) continue;
       const dx = sp.bx - sp.ax, dz = sp.bz - sp.az, L2 = dx * dx + dz * dz; let t = L2 ? ((x - sp.ax) * dx + (z - sp.az) * dz) / L2 : 0; t = Math.max(0, Math.min(1, t));
       const px = sp.ax + dx * t, pz = sp.az + dz * t, d = Math.hypot(px - x, pz - z);
-      if (d < bd) { bd = d; best = { x: px, z: pz, nx: sp.nx, nz: sp.nz, y: sp.y, d, gate: sp.gate, height: H + 0.35 }; }
+      if (d < bd) { bd = d; best = { x: px, z: pz, nx: sp.nx, nz: sp.nz, y: sp.y, d, gate: sp.gate, height: H + 0.35, top: H + 0.05, climbable: !climbSpots || climbSpots.some((c) => Math.hypot(c.x - px, c.z - pz) < 3) }; }
     }
     return best;
   }
-  return { group, nearest, stats: { runs: runs.length, posts: posts.length, spans: spans.length, gates: gateSpans.length, km: +(spans.reduce((s, p) => s + p.len, 0) / 1000).toFixed(2) }, gates: gateSpans };
+  return { group, body, height: H, nearest, stats: { runs: runs.length, posts: posts.length, spans: spans.length, gates: gateSpans.length, km: +(spans.reduce((s, p) => s + p.len, 0) / 1000).toFixed(2) }, gates: gateSpans };
 }
